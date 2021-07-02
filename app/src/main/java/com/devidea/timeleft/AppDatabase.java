@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.devidea.timeleft;
 
 import androidx.room.Database;
 import androidx.room.RoomDatabase;

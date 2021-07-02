@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.myapplication" >
+    xmlns:tools="http://schemas.android.com/tools"
+    package="com.devidea.timeleft" >
 
     <application
         android:allowBackup="true"
@@ -8,8 +9,8 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.MyApplication" >
-        <receiver android:name=".AppWidget" >
+        android:theme="@style/Theme.MyApplication">
+        <receiver android:name="com.devidea.timeleft.AppWidget" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -19,13 +20,13 @@
                 android:resource="@xml/app_widget_info" />
         </receiver>
 
-        <activity android:name=".AppWidgetConfigure">
+        <activity android:name="com.devidea.timeleft.AppWidgetConfigure">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
             </intent-filter>
         </activity>
 
-        <activity android:name=".MainActivity" >
+        <activity android:name="com.devidea.timeleft.MainActivity" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 

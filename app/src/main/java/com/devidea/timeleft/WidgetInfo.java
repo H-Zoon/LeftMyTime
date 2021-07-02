@@ -1,6 +1,5 @@
-package com.example.myapplication;
+package com.devidea.timeleft;
 
-import androidx.room.ColumnInfo;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 

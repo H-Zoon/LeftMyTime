@@ -1,4 +1,4 @@
-package com.example.myapplication;
+package com.devidea.timeleft;
 
 import org.junit.Test;
 
