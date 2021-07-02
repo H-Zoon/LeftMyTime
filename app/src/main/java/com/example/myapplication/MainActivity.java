@@ -3,9 +3,11 @@ package com.example.myapplication;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.animation.ObjectAnimator;
 import android.app.Activity;
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.os.Bundle;
 import android.os.Handler;
@@ -40,20 +42,15 @@ public class MainActivity extends AppCompatActivity {
     //핸들러
     Handler handler;
 
-    //위젯 구분에 사용되는 sharedPreferences
-    SharedPreferences pref;
-    SharedPreferences.Editor editor;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
+
+        //context = this.getApplicationContext();
+
         handler = new Handler();
-
-        pref = getSharedPreferences("pref", Activity.MODE_PRIVATE);
-        editor = pref.edit();
-
 
         //현재시간 설정
         timeView = findViewById(R.id.timenow);
@@ -156,4 +153,5 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat format_time = new SimpleDateFormat("HH:mm.ss", Locale.KOREA);
         return format_time.format(date);
     }
+
 }

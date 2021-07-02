@@ -16,6 +16,7 @@ import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
 import androidx.annotation.Nullable;
+import androidx.room.Room;
 
 public class AppWidgetConfigure extends Activity {
 
@@ -26,19 +27,14 @@ public class AppWidgetConfigure extends Activity {
     Button B_summit;
     int value = 0;
 
-    SharedPreferences sharedPref;
-    SharedPreferences.Editor editor;
-
-    private RadioGroup radioGroup;
-
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        Context context = getApplicationContext();
-        SharedPreferences sharedPref = context.getSharedPreferences("WidgetConfigure", Context.MODE_PRIVATE);
-        editor = sharedPref.edit();
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
+                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
+
 
         // Set the result to CANCELED.  This will cause the widget host to cancel
         // out of the widget placement if they press the back button.
@@ -76,8 +72,6 @@ public class AppWidgetConfigure extends Activity {
 
                         views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_year()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        editor.putString(String.valueOf(AppWidgetId),"year");
-                        editor.apply();
                         break;
                     case 1:
                         views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.get_month() + "%");
@@ -85,8 +79,6 @@ public class AppWidgetConfigure extends Activity {
 
                         views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_month()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        editor.putString(String.valueOf(AppWidgetId),"month");
-                        editor.apply();
                         break;
                     case 2:
 
@@ -109,13 +101,24 @@ public class AppWidgetConfigure extends Activity {
                         views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_time()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        editor.putString(String.valueOf(AppWidgetId),"time");
-                        editor.apply();
-                        Log.d("info", sharedPref.getString(String.valueOf(AppWidgetId), "time"));
+                        WidgetInfo w = new WidgetInfo(AppWidgetId, "time");
+                        db.DatabaseDao().insertAll(w);
+
+                        Log.d("help", "myname" + AppWidgetId);
+
                         break;
 
                 }
+                /*
+                new Thread(new Runnable() {
+                    @Override
+                    public void run() {
 
+                    }
+                }).start();
+
+
+                 */
                 Intent resultValue = new Intent();
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetId);
                 setResult(RESULT_OK, resultValue);
@@ -144,7 +147,7 @@ public class AppWidgetConfigure extends Activity {
             }
         };
 
-        radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
+        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
         radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener);
 
     }

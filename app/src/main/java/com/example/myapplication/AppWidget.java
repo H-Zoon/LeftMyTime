@@ -13,13 +13,20 @@ import android.util.Log;
 import android.widget.ProgressBar;
 import android.widget.RemoteViews;
 
+import androidx.room.Room;
+
 /**
  * Implementation of App Widget functionality.
  */
 public class AppWidget extends AppWidgetProvider {
+
+
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
+
+        AppDatabase db = Room.databaseBuilder(context,
+                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
 
         String action = intent.getAction();
         Log.d("help", "onReceive() action = " + action);
@@ -28,16 +35,20 @@ public class AppWidget extends AppWidgetProvider {
             Bundle extras = intent.getExtras();
 
             if (extras != null) {
-                int[] appWidgetIds = extras.getIntArray(AppWidgetManager.EXTRA_APPWIDGET_IDS);
+                int[] appWidgetIds = db.DatabaseDao().get();
+
                 Log.d("help", "extras is not null");
                 if (appWidgetIds != null && appWidgetIds.length > 0) {
                     Log.d("help", "appWidgetIds is not null onReceive() action = " + action);
                     this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
                 }
+
+
+
+
             }
         }
     }
-
 
 
     @Override
@@ -49,7 +60,7 @@ public class AppWidget extends AppWidgetProvider {
 
             Log.d("help", String.valueOf(appWidgetId));
 
-            //updateAppWidget(context, appWidgetManager, appWidgetId);
+            updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
 
@@ -87,62 +98,14 @@ public class AppWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
-        Log.d("widget2", String.valueOf(appWidgetId));
+        views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.get_time() + "%");
+        //appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-        String value = loadTitlePref(context, appWidgetId);
-
-        switch (value) {
-            case "year":
-                views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.get_year() + "%");
-                // Instruct the widget manager to update the widget
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-
-                views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_year()), false);
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-                Log.d("help", "year");
-                break;
-
-            case "month":
-                views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.get_month() + "%");
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-
-                views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_month()), false);
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-                Log.d("help", "month");
-                break;
-
-            case "time":
-                /*
-                views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.get_time() + "%");
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-
-                views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_time()), false);
-                appWidgetManager.updateAppWidget(appWidgetId, views);
-
-                //설정버튼
-                //PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, AppWidgetConfigure, 0);
-                //views.setOnClickPendingIntent(R.id.button, pendingIntent);
-
-                //새로고침
-                Intent intent2 = new Intent(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                views.setOnClickFillInIntent(R.id.button2, intent2);
-
-                Log.d("help", "time update");
-
-                 */
-                break;
-        }
+        views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_time()), false);
+        appWidgetManager.updateAppWidget(appWidgetId, views);
+        Log.d("help", "update done");
 
     }
-
-    // Read the prefix from the SharedPreferences object for this widget.
-    // If there is no preference saved, get the default from a resource
-    static String loadTitlePref(Context context, int appWidgetId) {
-        SharedPreferences prefs = context.getSharedPreferences("WidgetConfigure", Context.MODE_PRIVATE);
-
-        return prefs.getString(String.valueOf(appWidgetId), "time");
-
-    }
-
 
 }
+
