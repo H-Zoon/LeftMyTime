@@ -63,8 +63,8 @@ public class MainActivity extends AppCompatActivity {
         itemList3 = new ItemList();
 
 
-        recyclerView = (RecyclerView)findViewById(R.id.recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this,RecyclerView.VERTICAL, false)); // 상하 스크롤 //
+        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
         itemList.setSummery("Year Left is");
@@ -87,7 +87,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void run() {
 
-                while(true){
+                while (true) {
                     //핸들러
                     handler.post(new Runnable() {
 
@@ -114,9 +114,9 @@ public class MainActivity extends AppCompatActivity {
         SimpleDateFormat format_Day = new SimpleDateFormat("D", Locale.KOREA);
         int day = Integer.parseInt(format_Day.format(date));
 
-        float YearPercent = ((float)day/365)*100;
+        float YearPercent = ((float) day / 365) * 100;
 
-        return String.format(Locale.getDefault(),"%.1f", YearPercent);
+        return String.format(Locale.getDefault(), "%.1f", YearPercent);
     }
 
     public static String get_month() {
@@ -124,15 +124,15 @@ public class MainActivity extends AppCompatActivity {
         Date date = new Date(time);
         SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA);
         int month_day = Integer.parseInt(format_month_day.format(date));
-        LocalDate newDate = LocalDate.of(2021, 3,1); //해당 달의 일수를 돌려받을때 사용합니다.
+        LocalDate newDate = LocalDate.of(2021, 3, 1); //해당 달의 일수를 돌려받을때 사용합니다.
         int lengthOfMon = newDate.lengthOfMonth();
 
-        float MonthPercent = (float)month_day/lengthOfMon*100;
+        float MonthPercent = (float) month_day / lengthOfMon * 100;
 
-        return String.format(Locale.getDefault(),"%.1f", MonthPercent);
+        return String.format(Locale.getDefault(), "%.1f", MonthPercent);
     }
 
-    public static String get_time(){
+    public static String get_time() {
         long time = System.currentTimeMillis();
         Date date = new Date(time);
         SimpleDateFormat format_hour = new SimpleDateFormat("H", Locale.KOREA);
@@ -142,9 +142,9 @@ public class MainActivity extends AppCompatActivity {
         int min = Integer.parseInt(format_min.format(date));
         int sec = Integer.parseInt(format_sec.format(date));
 
-        float TimePercent = ((((float)hour*3600)+(min*60)+sec)/86400)*100;
+        float TimePercent = ((((float) hour * 3600) + (min * 60) + sec) / 86400) * 100;
 
-        return String.format(Locale.getDefault(),"%.1f", TimePercent);
+        return String.format(Locale.getDefault(), "%.1f", TimePercent);
     }
 
     public String time_now() {

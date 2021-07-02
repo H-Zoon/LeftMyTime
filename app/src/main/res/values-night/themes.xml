@@ -14,7 +14,7 @@
         <!-- Customize your theme here. -->
     </style>
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
-        <item name="appWidgetBackgroundColor">@color/black</item>
-        <item name="appWidgetTextColor">@color/white</item>
+        <item name="appWidgetBackgroundColor">@color/white</item>
+        <item name="appWidgetTextColor">@color/black</item>
     </style>
 </resources>

@@ -4,38 +4,50 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:layout_marginTop="40dp"
     android:orientation="vertical"
-    tools:context=".MainActivity" >
+    tools:context=".MainActivity">
 
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical" >
+        android:orientation="vertical">
 
         <TextView
-        android:id="@+id/hi"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="The future depends on what we do in the present."
-        android:fontFamily="@font/poiretone_regular"
-        android:textSize="25sp"
-        android:gravity="center" />
+            android:id="@+id/hi"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:fontFamily="@font/poiretone_regular"
+            android:gravity="center"
+            android:text="The future depends on what we do in the present."
+            android:textSize="25sp" />
 
         <TextView
             android:id="@+id/timenow"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="TextView"
+            android:layout_marginTop="10dp"
+            android:layout_marginBottom="10dp"
             android:fontFamily="@font/poiretone_regular"
-            android:textSize="65sp"
-            android:gravity="center" />
+            android:gravity="center"
+            android:text="TextView"
+            android:textSize="65sp" />
 
     </LinearLayout>
 
-    <androidx.recyclerview.widget.RecyclerView
+    <ImageView
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:id="@+id/recyclerview">
+        android:layout_height="1dp"
+        android:layout_marginBottom="10dp"
+        android:src="@drawable/line"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:overScrollMode="never"
+        android:id="@+id/recyclerview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
 
     </androidx.recyclerview.widget.RecyclerView>
 

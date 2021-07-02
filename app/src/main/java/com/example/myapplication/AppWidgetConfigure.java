@@ -15,6 +15,7 @@ import android.widget.Button;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
+
 import androidx.annotation.Nullable;
 import androidx.room.Room;
 
@@ -28,6 +29,7 @@ public class AppWidgetConfigure extends Activity {
     int value = 0;
 
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
+
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
@@ -65,46 +67,59 @@ public class AppWidgetConfigure extends Activity {
                 RemoteViews views = new RemoteViews(context.getPackageName(),
                         R.layout.app_widget);
 
-                switch(value) {
+                /*
+                //설정버튼
+                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
+                views.setOnClickPendingIntent(R.id.button, pendingIntent);
+
+                //새로고침 ver1
+                Intent intentR = new Intent(context, AppWidget.class);
+                intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                int[] ids = new int[]{AppWidgetId};
+                intentR.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
+                PendingIntent pendingIntentR = PendingIntent.getBroadcast(context, (AppWidgetId * -1), intentR, PendingIntent.FLAG_UPDATE_CURRENT);
+                views.setOnClickPendingIntent(R.id.button2, pendingIntentR);
+
+                 */
+
+
+                //새로고침 ver2
+                Intent intentR = new Intent(context, AppWidget.class);
+                intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
+                PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
+                views.setOnClickPendingIntent(R.id.button2, pendingIntent);
+
+
+                switch (value) {
                     case 0:
                         views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.get_year() + "%");
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_year()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_year()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
+                        WidgetInfo y = new WidgetInfo(AppWidgetId, "year");
+                        db.DatabaseDao().insertAll(y);
                         break;
+
                     case 1:
                         views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.get_month() + "%");
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_month()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_month()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
+                        WidgetInfo m = new WidgetInfo(AppWidgetId, "month");
+                        db.DatabaseDao().insertAll(m);
                         break;
                     case 2:
-
-                        //설정버튼
-                        PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-                        views.setOnClickPendingIntent(R.id.button, pendingIntent);
-
-                        //새로고침
-                        Intent intentR = new Intent(context, AppWidget.class);
-                        intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                        int[] ids = new int[]{AppWidgetId};
-                        intentR.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-                        PendingIntent pendingIntentR = PendingIntent.getBroadcast(context, (AppWidgetId * -1), intentR, PendingIntent.FLAG_UPDATE_CURRENT);
-                        views.setOnClickPendingIntent(R.id.button2, pendingIntentR);
-                        //
 
                         views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.get_time() + "%");
                         //appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress,100,(int)Float.parseFloat(MainActivity.get_time()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_time()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
                         WidgetInfo w = new WidgetInfo(AppWidgetId, "time");
                         db.DatabaseDao().insertAll(w);
-
-                        Log.d("help", "myname" + AppWidgetId);
 
                         break;
 
@@ -116,7 +131,6 @@ public class AppWidgetConfigure extends Activity {
 
                     }
                 }).start();
-
 
                  */
                 Intent resultValue = new Intent();
@@ -132,15 +146,15 @@ public class AppWidgetConfigure extends Activity {
         RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
-                switch(checkedId) {
+                switch (checkedId) {
                     case R.id.yearButton:
-                            value = 0;
+                        value = 0;
                         break;
                     case R.id.monthButton:
-                            value = 1;
+                        value = 1;
                         break;
                     case R.id.timeButton:
-                            value = 2;
+                        value = 2;
                         break;
 
                 }
