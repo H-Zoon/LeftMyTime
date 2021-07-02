@@ -33,7 +33,6 @@ public class AppWidget extends AppWidgetProvider {
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             Bundle extras = intent.getExtras();
 
-            if (extras != null) {
                 int[] appWidgetIds = db.DatabaseDao().get();
 
                 Log.d(TAG, "extras is not null");
@@ -43,7 +42,6 @@ public class AppWidget extends AppWidgetProvider {
                 }
 
 
-            }
         }
     }
 
