@@ -21,23 +21,19 @@ public class AppWidgetConfigure extends Activity {
 
     Button B_summit;
     int value = 0;
-
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
 
-        AppDatabase db = Room.databaseBuilder(getApplicationContext(),
-                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
+        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
 
-
-        // Set the result to CANCELED.  This will cause the widget host to cancel
-        // out of the widget placement if they press the back button.
+        //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED);
-        // Set the view layout resource to use.
+        //위젯 레이아웃 설정
         setContentView(R.layout.appwidget_configure);
-        // Find the widget id from the intent.
+        // Intent에서 widget id 가져오기
         Intent intent = getIntent();
         Bundle extras = intent.getExtras();
         if (extras != null) {
@@ -116,15 +112,7 @@ public class AppWidgetConfigure extends Activity {
                         break;
 
                 }
-                /*
-                new Thread(new Runnable() {
-                    @Override
-                    public void run() {
 
-                    }
-                }).start();
-
-                 */
                 Intent resultValue = new Intent();
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetId);
                 setResult(RESULT_OK, resultValue);

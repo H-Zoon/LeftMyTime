@@ -4,19 +4,19 @@ public class ItemList {
     private String summery;
     private String percent;
 
-    public void setSummery(String summery){
+    public void setSummery(String summery) {
         this.summery = summery;
     }
 
-    public void setPercent_string(String percent){
+    public void setPercent_string(String percent) {
         this.percent = percent;
     }
 
-    public String getSummery(){
+    public String getSummery() {
         return summery;
     }
 
-    public String getPercent_string(){
+    public String getPercent_string() {
         return percent;
     }
 

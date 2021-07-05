@@ -16,12 +16,8 @@ public interface DatabaseDao {
     String get_summery(int ID);
 
 
-
     @Query("DELETE FROM WidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
-
-
-
 
 
 }

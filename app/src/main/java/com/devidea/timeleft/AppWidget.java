@@ -30,13 +30,13 @@ public class AppWidget extends AppWidgetProvider {
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             Bundle extras = intent.getExtras();
 
-                int[] appWidgetIds = db.DatabaseDao().get();
+            int[] appWidgetIds = db.DatabaseDao().get();
 
-                Log.d(TAG, "extras is not null");
-                if (appWidgetIds != null && appWidgetIds.length > 0) {
-                    Log.d(TAG, "appWidgetIds is not null");
-                    this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
-                }
+            Log.d(TAG, "extras is not null");
+            if (appWidgetIds != null && appWidgetIds.length > 0) {
+                Log.d(TAG, "appWidgetIds is not null");
+                this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
+            }
 
 
         }
@@ -98,7 +98,7 @@ public class AppWidget extends AppWidgetProvider {
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
-        if(value != null) {
+        if (value != null) {
             Intent intentR = new Intent(context, AppWidget.class);
             intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);

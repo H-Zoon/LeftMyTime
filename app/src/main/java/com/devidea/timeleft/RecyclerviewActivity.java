@@ -62,7 +62,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
         String percent_buf = arrayList.get(position).getPercent_string();
         viewHolder.percent.setText(percent_buf + "%");
 
-        int percent = (int)Float.parseFloat(percent_buf);
+        int percent = (int) Float.parseFloat(percent_buf);
 
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
                 .setDuration(1500)
@@ -79,7 +79,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
                 if (payload instanceof String) {
                     String type = (String) payload;
                     viewHolder.percent.setText(type + "%");
-                    int percent = (int)Float.parseFloat(type);
+                    int percent = (int) Float.parseFloat(type);
                     viewHolder.progressBar.setProgress(percent);
                 }
             }
@@ -87,7 +87,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
     }
 
     @Override
-    public int getItemCount () {
+    public int getItemCount() {
         return arrayList.size();
     }
 
