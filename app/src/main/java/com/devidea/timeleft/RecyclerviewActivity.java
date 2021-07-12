@@ -19,7 +19,7 @@ import java.util.List;
 class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
 
     //array list
-    private final ArrayList<ItemList> arrayList;
+    private final ArrayList<AdapterItem> arrayList;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView summery;
@@ -38,7 +38,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
     }
 
     //CustomAdapter 생성자
-    public CustomAdapter(ArrayList<ItemList> arrayList) {
+    public CustomAdapter(ArrayList<AdapterItem> arrayList) {
         this.arrayList = arrayList;
     }
 

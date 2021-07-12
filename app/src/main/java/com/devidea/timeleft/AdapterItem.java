@@ -1,6 +1,6 @@
 package com.devidea.timeleft;
 
-public class ItemList {
+public class AdapterItem {
     private String summery;
     private String percent;
 

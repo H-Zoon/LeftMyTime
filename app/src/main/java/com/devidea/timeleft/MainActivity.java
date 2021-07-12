@@ -19,12 +19,12 @@ public class MainActivity extends AppCompatActivity {
     //recyclerView 관련 객체
     CustomAdapter adapter;
     RecyclerView recyclerView;
-    ArrayList<ItemList> itemListArrayList;
+    ArrayList<AdapterItem> adapterItemListArray;
 
     //리스트 getter, setter
-    ItemList itemList;
-    ItemList itemList2;
-    ItemList itemList3;
+    AdapterItem adapterItem;
+    AdapterItem adapterItem2;
+    AdapterItem adapterItem3;
 
     //현재시간
     TextView timeView;
@@ -43,30 +43,30 @@ public class MainActivity extends AppCompatActivity {
         timeView = findViewById(R.id.timenow);
         timeView.setText(timeNow());
 
-        itemListArrayList = new ArrayList<>();
+        adapterItemListArray = new ArrayList<>();
         ////왤까?
-        itemList = new ItemList();
-        itemList2 = new ItemList();
-        itemList3 = new ItemList();
+        adapterItem = new AdapterItem();
+        adapterItem2 = new AdapterItem();
+        adapterItem3 = new AdapterItem();
 
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
-        itemList.setSummery("Year Left is");
-        itemList.setPercentString(getYear());
-        itemListArrayList.add(itemList);
+        adapterItem.setSummery("Year Left is");
+        adapterItem.setPercentString(getYear());
+        adapterItemListArray.add(adapterItem);
 
-        itemList2.setSummery("Month Left is");
-        itemList2.setPercentString(getMonth());
-        itemListArrayList.add(itemList2);
+        adapterItem2.setSummery("Month Left is");
+        adapterItem2.setPercentString(getMonth());
+        adapterItemListArray.add(adapterItem2);
 
-        itemList3.setSummery("Time Left is");
-        itemList3.setPercentString(getTime());
-        itemListArrayList.add(itemList3);
+        adapterItem3.setSummery("Time Left is");
+        adapterItem3.setPercentString(getTime());
+        adapterItemListArray.add(adapterItem3);
 
-        adapter = new CustomAdapter(itemListArrayList);
+        adapter = new CustomAdapter(adapterItemListArray);
         recyclerView.setAdapter(adapter);
 
         //초단위, 현재시간 update Thread
