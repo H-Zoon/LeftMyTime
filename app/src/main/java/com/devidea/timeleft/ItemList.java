@@ -8,7 +8,7 @@ public class ItemList {
         this.summery = summery;
     }
 
-    public void setPercent_string(String percent) {
+    public void setPercentString(String percent) {
         this.percent = percent;
     }
 
@@ -16,7 +16,7 @@ public class ItemList {
         return summery;
     }
 
-    public String getPercent_string() {
+    public String getPercentString() {
         return percent;
     }
 

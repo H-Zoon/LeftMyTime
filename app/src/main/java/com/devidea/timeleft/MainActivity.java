@@ -55,15 +55,15 @@ public class MainActivity extends AppCompatActivity {
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
         itemList.setSummery("Year Left is");
-        itemList.setPercent_string(getYear());
+        itemList.setPercentString(getYear());
         itemListArrayList.add(itemList);
 
         itemList2.setSummery("Month Left is");
-        itemList2.setPercent_string(getMonth());
+        itemList2.setPercentString(getMonth());
         itemListArrayList.add(itemList2);
 
         itemList3.setSummery("Time Left is");
-        itemList3.setPercent_string(getTime());
+        itemList3.setPercentString(getTime());
         itemListArrayList.add(itemList3);
 
         adapter = new CustomAdapter(itemListArrayList);
