@@ -54,17 +54,17 @@ public class MainActivity extends AppCompatActivity {
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
-        adapterItem.setSummery("Year Left is");
-        adapterItem.setPercentString(getYear());
-        adapterItemListArray.add(adapterItem);
+        //adapterItem.setSummery("Year Left is");
+        //adapterItem.setPercentString(getYear());
+        adapterItemListArray.add(new TimeInfoYear().setTimeItem());
 
-        adapterItem2.setSummery("Month Left is");
-        adapterItem2.setPercentString(getMonth());
-        adapterItemListArray.add(adapterItem2);
+        //adapterItem2.setSummery("Month Left is");
+        //adapterItem2.setPercentString(getMonth());
+        adapterItemListArray.add(new TimeInfoMonth().setTimeItem());
 
-        adapterItem3.setSummery("Time Left is");
-        adapterItem3.setPercentString(getTime());
-        adapterItemListArray.add(adapterItem3);
+        //adapterItem3.setSummery("Time Left is");
+        //adapterItem3.setPercentString(getTime());
+        adapterItemListArray.add(new TimeInfoDttm().setTimeItem());
 
         adapter = new CustomAdapter(adapterItemListArray);
         recyclerView.setAdapter(adapter);
