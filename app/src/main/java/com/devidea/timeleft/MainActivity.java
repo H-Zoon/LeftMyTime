@@ -3,6 +3,7 @@ package com.devidea.timeleft;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.room.Room;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -21,19 +22,19 @@ public class MainActivity extends AppCompatActivity {
     RecyclerView recyclerView;
     ArrayList<AdapterItem> adapterItemListArray;
 
-    //리스트 getter, setter
-    AdapterItem adapterItem;
-    AdapterItem adapterItem2;
-    AdapterItem adapterItem3;
-
     //현재시간
     TextView timeView;
 
     //핸들러
     Handler handler;
 
+    static AppDatabase appDatabase;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+        //database 객체 초기화
+        appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
@@ -44,26 +45,15 @@ public class MainActivity extends AppCompatActivity {
         timeView.setText(timeNow());
 
         adapterItemListArray = new ArrayList<>();
-        ////왤까?
-        adapterItem = new AdapterItem();
-        adapterItem2 = new AdapterItem();
-        adapterItem3 = new AdapterItem();
 
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
-        //adapterItem.setSummery("Year Left is");
-        //adapterItem.setPercentString(getYear());
+
         adapterItemListArray.add(new TimeInfoYear().setTimeItem());
-
-        //adapterItem2.setSummery("Month Left is");
-        //adapterItem2.setPercentString(getMonth());
         adapterItemListArray.add(new TimeInfoMonth().setTimeItem());
-
-        //adapterItem3.setSummery("Time Left is");
-        //adapterItem3.setPercentString(getTime());
         adapterItemListArray.add(new TimeInfoDttm().setTimeItem());
 
         adapter = new CustomAdapter(adapterItemListArray);
@@ -80,7 +70,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount() - 1, getTime()); // 리사이클러뷰 payload 호출
+                            adapter.notifyItemChanged(adapter.getItemCount(), getTime()); // 리사이클러뷰 payload 호출
                             timeView.setText(timeNow()); //현재시간
                         }
                     });
