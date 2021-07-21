@@ -19,7 +19,7 @@ public class AppWidgetConfigure extends Activity {
         super();
     }
 
-    Button B_summit;
+    Button summitButton;
     int value = 0;
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
@@ -80,30 +80,30 @@ public class AppWidgetConfigure extends Activity {
 
                 switch (value) {
                     case 0:
-                        views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.get_year() + "%");
+                        views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.getYear() + "%");
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_year()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getYear()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         WidgetInfo y = new WidgetInfo(AppWidgetId, "year");
                         db.DatabaseDao().insertAll(y);
                         break;
 
                     case 1:
-                        views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.get_month() + "%");
+                        views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.getMonth() + "%");
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_month()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getMonth()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         WidgetInfo m = new WidgetInfo(AppWidgetId, "month");
                         db.DatabaseDao().insertAll(m);
                         break;
                     case 2:
 
-                        views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.get_time() + "%");
+                        views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.getTime() + "%");
                         //appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_time()), false);
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getTime()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
                         WidgetInfo w = new WidgetInfo(AppWidgetId, "time");
@@ -120,8 +120,8 @@ public class AppWidgetConfigure extends Activity {
             }
         };
 
-        B_summit = findViewById(R.id.summit_button);
-        B_summit.setOnClickListener(mOnClickListener);
+        summitButton = findViewById(R.id.summit_button);
+        summitButton.setOnClickListener(mOnClickListener);
 
         RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
             @Override

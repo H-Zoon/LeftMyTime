@@ -19,7 +19,7 @@ import java.util.List;
 class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
 
     //array list
-    private final ArrayList<ItemList> arrayList;
+    private final ArrayList<AdapterItem> arrayList;
 
     public static class ViewHolder extends RecyclerView.ViewHolder {
         private final TextView summery;
@@ -38,7 +38,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
     }
 
     //CustomAdapter 생성자
-    public CustomAdapter(ArrayList<ItemList> arrayList) {
+    public CustomAdapter(ArrayList<AdapterItem> arrayList) {
         this.arrayList = arrayList;
     }
 
@@ -59,7 +59,7 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
         String summery_buf = arrayList.get(position).getSummery();
         viewHolder.summery.setText(summery_buf);
 
-        String percent_buf = arrayList.get(position).getPercent_string();
+        String percent_buf = arrayList.get(position).getPercentString();
         viewHolder.percent.setText(percent_buf + "%");
 
         int percent = (int) Float.parseFloat(percent_buf);

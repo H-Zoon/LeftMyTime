@@ -106,29 +106,29 @@ public class AppWidget extends AppWidgetProvider {
 
             switch (value) {
                 case "year":
-                    views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.get_year() + "%");
+                    views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.getYear() + "%");
                     appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_year()), false);
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getYear()), false);
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "year update done");
                     break;
 
                 case "month":
-                    views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.get_month() + "%");
+                    views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.getMonth() + "%");
                     appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_month()), false);
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getMonth()), false);
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "month update done");
                     break;
 
                 case "time":
 
-                    views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.get_time() + "%");
+                    views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.getTime() + "%");
                     //appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.get_time()), false);
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getTime()), false);
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
                     break;

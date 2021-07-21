@@ -3,7 +3,6 @@ package com.devidea.timeleft;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
-import androidx.room.Room;
 
 import android.os.Bundle;
 import android.os.Handler;
@@ -20,12 +19,12 @@ public class MainActivity extends AppCompatActivity {
     //recyclerView 관련 객체
     CustomAdapter adapter;
     RecyclerView recyclerView;
-    ArrayList<ItemList> itemListArrayList;
+    ArrayList<AdapterItem> adapterItemListArray;
 
     //리스트 getter, setter
-    ItemList itemList;
-    ItemList itemList2;
-    ItemList itemList3;
+    AdapterItem adapterItem;
+    AdapterItem adapterItem2;
+    AdapterItem adapterItem3;
 
     //현재시간
     TextView timeView;
@@ -42,32 +41,32 @@ public class MainActivity extends AppCompatActivity {
 
         //현재시간 설정
         timeView = findViewById(R.id.timenow);
-        timeView.setText(time_now());
+        timeView.setText(timeNow());
 
-        itemListArrayList = new ArrayList<>();
+        adapterItemListArray = new ArrayList<>();
         ////왤까?
-        itemList = new ItemList();
-        itemList2 = new ItemList();
-        itemList3 = new ItemList();
+        adapterItem = new AdapterItem();
+        adapterItem2 = new AdapterItem();
+        adapterItem3 = new AdapterItem();
 
 
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
 
-        itemList.setSummery("Year Left is");
-        itemList.setPercent_string(get_year());
-        itemListArrayList.add(itemList);
+        //adapterItem.setSummery("Year Left is");
+        //adapterItem.setPercentString(getYear());
+        adapterItemListArray.add(new TimeInfoYear().setTimeItem());
 
-        itemList2.setSummery("Month Left is");
-        itemList2.setPercent_string(get_month());
-        itemListArrayList.add(itemList2);
+        //adapterItem2.setSummery("Month Left is");
+        //adapterItem2.setPercentString(getMonth());
+        adapterItemListArray.add(new TimeInfoMonth().setTimeItem());
 
-        itemList3.setSummery("Time Left is");
-        itemList3.setPercent_string(get_time());
-        itemListArrayList.add(itemList3);
+        //adapterItem3.setSummery("Time Left is");
+        //adapterItem3.setPercentString(getTime());
+        adapterItemListArray.add(new TimeInfoDttm().setTimeItem());
 
-        adapter = new CustomAdapter(itemListArrayList);
+        adapter = new CustomAdapter(adapterItemListArray);
         recyclerView.setAdapter(adapter);
 
         //초단위, 현재시간 update Thread
@@ -81,8 +80,8 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount() - 1, get_time()); // 리사이클러뷰 payload 호출
-                            timeView.setText(time_now()); //현재시간
+                            adapter.notifyItemChanged(adapter.getItemCount() - 1, getTime()); // 리사이클러뷰 payload 호출
+                            timeView.setText(timeNow()); //현재시간
                         }
                     });
 
@@ -96,7 +95,7 @@ public class MainActivity extends AppCompatActivity {
         }).start();
     }
 
-    public static String get_year() {
+    public static String getYear() {
         long time = System.currentTimeMillis();
         Date date = new Date(time);
         SimpleDateFormat format_Day = new SimpleDateFormat("D", Locale.KOREA);
@@ -107,7 +106,7 @@ public class MainActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%.1f", YearPercent);
     }
 
-    public static String get_month() {
+    public static String getMonth() {
         long time = System.currentTimeMillis();
         Date date = new Date(time);
         SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA);
@@ -120,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%.1f", MonthPercent);
     }
 
-    public static String get_time() {
+    public static String getTime() {
         long time = System.currentTimeMillis();
         Date date = new Date(time);
         SimpleDateFormat format_hour = new SimpleDateFormat("H", Locale.KOREA);
@@ -135,7 +134,7 @@ public class MainActivity extends AppCompatActivity {
         return String.format(Locale.getDefault(), "%.1f", TimePercent);
     }
 
-    public String time_now() {
+    public String timeNow() {
         long time = System.currentTimeMillis();
         Date date = new Date(time);
         SimpleDateFormat format_time = new SimpleDateFormat("HH:mm.ss", Locale.KOREA);
