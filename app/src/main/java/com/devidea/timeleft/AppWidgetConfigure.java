@@ -13,6 +13,8 @@ import android.widget.RemoteViews;
 
 import androidx.room.Room;
 
+import static com.devidea.timeleft.MainActivity.appDatabase;
+
 public class AppWidgetConfigure extends Activity {
 
     public AppWidgetConfigure() {
@@ -26,8 +28,6 @@ public class AppWidgetConfigure extends Activity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
-
-        AppDatabase db = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
 
         //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED);
@@ -57,22 +57,8 @@ public class AppWidgetConfigure extends Activity {
                 RemoteViews views = new RemoteViews(context.getPackageName(),
                         R.layout.app_widget);
 
-                /*
-                //설정버튼
-                PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, 0);
-                views.setOnClickPendingIntent(R.id.button, pendingIntent);
 
-                //새로고침 ver1
-                Intent intentR = new Intent(context, AppWidget.class);
-                intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-                int[] ids = new int[]{AppWidgetId};
-                intentR.putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, ids);
-                PendingIntent pendingIntentR = PendingIntent.getBroadcast(context, (AppWidgetId * -1), intentR, PendingIntent.FLAG_UPDATE_CURRENT);
-                views.setOnClickPendingIntent(R.id.button2, pendingIntentR);
-
-                 */
-
-                //새로고침 ver2
+                //위젯에 새로고침 버튼 추가
                 Intent intentR = new Intent(context, AppWidget.class);
                 intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
@@ -86,7 +72,7 @@ public class AppWidgetConfigure extends Activity {
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getYear()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         WidgetInfo y = new WidgetInfo(AppWidgetId, "year");
-                        db.DatabaseDao().insertAll(y);
+                        appDatabase.DatabaseDao().insertAll(y);
                         break;
 
                     case 1:
@@ -96,7 +82,7 @@ public class AppWidgetConfigure extends Activity {
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getMonth()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         WidgetInfo m = new WidgetInfo(AppWidgetId, "month");
-                        db.DatabaseDao().insertAll(m);
+                        appDatabase.DatabaseDao().insertAll(m);
                         break;
                     case 2:
 
@@ -107,7 +93,7 @@ public class AppWidgetConfigure extends Activity {
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
                         WidgetInfo w = new WidgetInfo(AppWidgetId, "time");
-                        db.DatabaseDao().insertAll(w);
+                        appDatabase.DatabaseDao().insertAll(w);
 
                         break;
 

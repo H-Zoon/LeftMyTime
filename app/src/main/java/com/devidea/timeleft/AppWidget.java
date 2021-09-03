@@ -12,6 +12,8 @@ import android.widget.RemoteViews;
 
 import androidx.room.Room;
 
+import static com.devidea.timeleft.MainActivity.appDatabase;
+
 /**
  * Implementation of App Widget functionality.
  */
@@ -22,15 +24,13 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
-        AppDatabase db = Room.databaseBuilder(context,
-                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
         String action = intent.getAction();
         Log.d(TAG, "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             Bundle extras = intent.getExtras();
 
-            int[] appWidgetIds = db.DatabaseDao().get();
+            int[] appWidgetIds = appDatabase.DatabaseDao().get();
 
             Log.d(TAG, "extras is not null");
             if (appWidgetIds != null && appWidgetIds.length > 0) {
@@ -84,18 +84,13 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        AppDatabase db = Room.databaseBuilder(context,
-                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
-        db.DatabaseDao().delete(appWidgetIds[0]);
+        appDatabase.DatabaseDao().delete(appWidgetIds[0]);
         Log.d(TAG, "onDeleted done");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
 
-        AppDatabase db = Room.databaseBuilder(context,
-                AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
-        String value = db.DatabaseDao().get_summery(appWidgetId);
-
+        String value = appDatabase.DatabaseDao().get_summery(appWidgetId);
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
         if (value != null) {
