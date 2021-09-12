@@ -22,16 +22,22 @@
             android:text="The future depends on what we do in the present."
             android:textSize="25sp" />
 
-        <TextView
-            android:id="@+id/timenow"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="@font/poiretone_regular"
-            android:gravity="center"
-            android:text="TextView"
-            android:textSize="65sp" />
+            android:layout_height="match_parent"
+            android:overScrollMode="never">
+
+        </androidx.recyclerview.widget.RecyclerView>
+
+        <me.relex.circleindicator.CircleIndicator2
+            android:id="@+id/indicator"
+            app:ci_drawable="@drawable/black_indicator"
+            app:ci_width="5pt"
+            app:ci_height="5pt"
+            android:layout_width="match_parent"
+            android:layout_height="48dp" />
+
 
     </LinearLayout>
 
@@ -42,14 +48,5 @@
         android:src="@drawable/line"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never">
-
-    </androidx.recyclerview.widget.RecyclerView>
-
 
 </LinearLayout>
