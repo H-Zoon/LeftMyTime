@@ -1,4 +1,4 @@
-package com.devidea.timeleft;
+ package com.devidea.timeleft;
 
 import java.text.SimpleDateFormat;
 import java.util.Date;
@@ -21,6 +21,5 @@ public class TimeInfoYear implements TimeInfo{
 
         return adapterItem;
     }
-
 
 }

@@ -21,9 +21,13 @@ import me.relex.circleindicator.CircleIndicator2;
 public class MainActivity extends AppCompatActivity {
 
     //recyclerView 관련 객체
-    CustomAdapter adapter;
-    RecyclerView recyclerView;
-    ArrayList<AdapterItem> adapterItemListArray;
+    private CustomAdapter adapter;
+    private RecyclerView recyclerView;
+    public static ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();;
+
+    public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
+    public static final TimeInfoMonth timeInfoMonth= new TimeInfoMonth();
+    public static final TimeInfoDttm timeInfoDttm= new TimeInfoDttm();
 
     //핸들러
     Handler handler;
@@ -40,9 +44,6 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
 
-        adapterItemListArray = new ArrayList<>();
-
-
         recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
@@ -55,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
         CircleIndicator2 indicator = findViewById(R.id.indicator);
         indicator.attachToRecyclerView(recyclerView, pagerSnapHelper);
 
-        adapterItemListArray.add(new TimeInfoYear().setTimeItem());
-        adapterItemListArray.add(new TimeInfoMonth().setTimeItem());
-        adapterItemListArray.add(new TimeInfoDttm().setTimeItem());
+        adapterItemListArray.add(timeInfoYear.setTimeItem());
+        adapterItemListArray.add(timeInfoMonth.setTimeItem());
+        adapterItemListArray.add(timeInfoDttm.setTimeItem());
 
         adapter = new CustomAdapter(adapterItemListArray);
         recyclerView.setAdapter(adapter);
@@ -76,7 +77,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount(), getTime()); // 리사이클러뷰 payload 호출
+                            adapter.notifyItemChanged(adapter.getItemCount(), timeInfoDttm.setTimeItem().getPercentString()); // 리사이클러뷰 payload 호출
                         }
                     });
 
@@ -89,44 +90,4 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
     }
-
-    public static String getYear() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_Day = new SimpleDateFormat("D", Locale.KOREA);
-        int day = Integer.parseInt(format_Day.format(date));
-
-        float YearPercent = ((float) day / 365) * 100;
-
-        return String.format(Locale.getDefault(), "%.1f", YearPercent);
-    }
-
-    public static String getMonth() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA);
-        int month_day = Integer.parseInt(format_month_day.format(date));
-        LocalDate newDate = LocalDate.of(2021, 3, 1); //해당 달의 일수를 돌려받을때 사용합니다.
-        int lengthOfMon = newDate.lengthOfMonth();
-
-        float MonthPercent = (float) month_day / lengthOfMon * 100;
-
-        return String.format(Locale.getDefault(), "%.1f", MonthPercent);
-    }
-
-    public static String getTime() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_hour = new SimpleDateFormat("H", Locale.KOREA);
-        SimpleDateFormat format_min = new SimpleDateFormat("m", Locale.KOREA);
-        SimpleDateFormat format_sec = new SimpleDateFormat("s", Locale.KOREA);
-        int hour = Integer.parseInt(format_hour.format(date));
-        int min = Integer.parseInt(format_min.format(date));
-        int sec = Integer.parseInt(format_sec.format(date));
-
-        float TimePercent = ((((float) hour * 3600) + (min * 60) + sec) / 86400) * 100;
-
-        return String.format(Locale.getDefault(), "%.1f", TimePercent);
-    }
-
 }

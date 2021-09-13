@@ -13,13 +13,15 @@ import android.widget.RemoteViews;
 import androidx.room.Room;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.timeInfoDttm;
+import static com.devidea.timeleft.MainActivity.timeInfoMonth;
+import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
 /**
  * Implementation of App Widget functionality.
  */
 public class AppWidget extends AppWidgetProvider {
     private static final String TAG = "AppWidget";
-
 
     @Override
     public void onReceive(Context context, Intent intent) {
@@ -101,29 +103,28 @@ public class AppWidget extends AppWidgetProvider {
 
             switch (value) {
                 case "year":
-                    views.setTextViewText(R.id.percent_text, "Year Left " + MainActivity.getYear() + "%");
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getYear()), false);
+                    views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
+
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "year update done");
                     break;
 
                 case "month":
-                    views.setTextViewText(R.id.percent_text, "Month Left " + MainActivity.getMonth() + "%");
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getMonth()), false);
+                    views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
+
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "month update done");
                     break;
 
                 case "time":
 
-                    views.setTextViewText(R.id.percent_text, "Time Left " + MainActivity.getTime() + "%");
-                    //appWidgetManager.updateAppWidget(AppWidgetId, views);
+                    views.setTextViewText(R.id.percent_text, timeInfoDttm.setTimeItem().getSummery() + timeInfoDttm.setTimeItem().getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoDttm.setTimeItem().getPercentString()), false);
 
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(MainActivity.getTime()), false);
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
                     break;
