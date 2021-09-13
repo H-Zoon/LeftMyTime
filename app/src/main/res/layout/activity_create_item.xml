@@ -7,7 +7,7 @@
     tools:context=".CreateItemActivity">
 
     <EditText
-        android:id="@+id/input_title"
+        android:id="@+id/input_summery"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:ems="10"
@@ -27,7 +27,7 @@
         android:text="TextView" />
 
     <Button
-        android:id="@+id/button"
+        android:id="@+id/summit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Button" />

@@ -20,10 +20,10 @@ public class CreateItemActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_create_item);
 
-        inputTitle = findViewById(R.id.input_title);
+        inputTitle = findViewById(R.id.input_summery);
         inputDay = findViewById(R.id.input_day);
         explanDay = findViewById(R.id.cal);
-        save = findViewById(R.id.button);
+        save = findViewById(R.id.summit);
 
         save.setOnClickListener(new View.OnClickListener() {
             @Override

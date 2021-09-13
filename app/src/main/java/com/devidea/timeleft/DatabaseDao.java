@@ -16,6 +16,9 @@ public interface DatabaseDao {
     @Query("SELECT * FROM EntityItemInfo")
     List<EntityItemInfo> getItem();
 
+    @Query("DELETE FROM EntityItemInfo WHERE id = :ID")
+    void deleteItem(int ID);
+
     @Insert
     void saveWidget(EntityWidgetInfo entityWidgetInfo);
 

@@ -9,9 +9,7 @@ import androidx.room.Room;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.util.Log;
 import android.view.View;
-import android.widget.Adapter;
 import android.widget.Button;
 
 import java.text.ParseException;
@@ -24,7 +22,12 @@ public class MainActivity extends AppCompatActivity {
     //recyclerView 관련 객체
     private CustomAdapter adapter;
     private RecyclerView recyclerView;
-    private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();;
+    private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
+
+    //test
+    private CustomAdapter customItemAdapter;
+    private RecyclerView customItemRecyclerView;
+    private final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth= new TimeInfoMonth();
@@ -61,23 +64,33 @@ public class MainActivity extends AppCompatActivity {
         adapterItemListArray.add(timeInfoMonth.setTimeItem());
         adapterItemListArray.add(timeInfoTime.setTimeItem());
 
+        adapter = new CustomAdapter(adapterItemListArray);
+        recyclerView.setAdapter(adapter);
+
+        //인디케이터 활성화 꼭 공부하기!!
+        adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
+
+
+
+        //todo: test입니다
+        customItemRecyclerView = (RecyclerView) findViewById(R.id.recyclerview2);
+        customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
 
         ItemGenerator itemGenerator = new ItemGenerator();
         try {
             if(appDatabase.DatabaseDao().getItem().size()!=0) {
                 for(int i = 0; i<appDatabase.DatabaseDao().getItem().size(); i++) {
-                    itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i));
+                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
                 }
             }
         } catch (ParseException e) {
             e.printStackTrace();
         }
 
-        adapter = new CustomAdapter(adapterItemListArray);
-        recyclerView.setAdapter(adapter);
+        customItemAdapter = new CustomAdapter(CustomItemListArray);
+        customItemRecyclerView.setAdapter(customItemAdapter);
 
-        //인디케이터 활성화 꼭 공부하기!!
-        adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
+
 
         //초단위, 현재시간 update Thread
         new Thread(new Runnable() {

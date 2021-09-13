@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="250dp"
+    android:minWidth="350dp"
     android:minHeight="45dp"
     android:updatePeriodMillis="0"
     android:previewImage="@drawable/example_appwidget_preview"
@@ -8,6 +8,7 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:initialKeyguardLayout="@layout/app_widget"
-    android:configure="com.devidea.timeleft.AppWidgetConfigure">
+    android:configure="com.devidea.timeleft.AppWidgetConfigure"
+    android:fontFamily="@font/poiretone_regular">
 </appwidget-provider>
     <!--android:updatePeriodMillis="86400000"-->

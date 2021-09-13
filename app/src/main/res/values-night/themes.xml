@@ -16,5 +16,6 @@
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
         <item name="appWidgetBackgroundColor">@color/white</item>
         <item name="appWidgetTextColor">@color/black</item>
+        <item name="android:fontFamily">@font/poiretone_regular</item>
     </style>
 </resources>

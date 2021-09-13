@@ -8,6 +8,7 @@ import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.Date;
+import java.util.Locale;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 
@@ -31,7 +32,9 @@ public class ItemGenerator {
 
     }
 
-    public void calDate(EntityItemInfo itemInfo) throws ParseException {
+    public AdapterItem calDate(EntityItemInfo itemInfo) throws ParseException {
+
+        AdapterItem adapterItem = new AdapterItem();
 
         @SuppressLint("SimpleDateFormat") SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
@@ -40,14 +43,18 @@ public class ItemGenerator {
         Date today = new Date();
 
         Long setDay = ((endDate.getTime()-startDate.getTime()) / (24*60*60*1000));
-        Long leftDay = ((startDate.getTime() - today.getTime()) / (24*60*60*1000));
+        Long leftDay = ((today.getTime() - startDate.getTime()) / (24*60*60*1000));
 
-
-        String percent = String.valueOf(leftDay/setDay*100);
+        float MonthPercent = (float) leftDay/setDay*100;
 
         Log.d("setDay", String.valueOf(setDay));
         Log.d("leftDay", String.valueOf(leftDay));
-        Log.d("total%", percent);
+        Log.d("total%", String.format(Locale.getDefault(), "%.1f", MonthPercent));
+
+        adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
+        adapterItem.setSummery(itemInfo.getSummery());
+
+        return adapterItem;
     }
 
 
