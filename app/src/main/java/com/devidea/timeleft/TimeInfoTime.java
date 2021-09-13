@@ -4,7 +4,7 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
 
-public class TimeInfoDttm implements TimeInfo{
+public class TimeInfoTime implements TimeInfo{
 
     @Override
     public AdapterItem setTimeItem() {
@@ -20,7 +20,7 @@ public class TimeInfoDttm implements TimeInfo{
 
         float TimePercent = ((((float) hour * 3600) + (min * 60) + sec) / 86400) * 100;
 
-        adapterItem.setSummery("Time Left is");
+        adapterItem.setSummery("Time Left is ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", TimePercent));
 
         return adapterItem;

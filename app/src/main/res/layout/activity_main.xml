@@ -33,10 +33,10 @@
         <me.relex.circleindicator.CircleIndicator2
             android:id="@+id/indicator"
             app:ci_drawable="@drawable/black_indicator"
-            app:ci_width="5pt"
-            app:ci_height="5pt"
+            app:ci_width="3pt"
+            app:ci_height="3pt"
             android:layout_width="match_parent"
-            android:layout_height="48dp" />
+            android:layout_height="20dp" />
 
 
     </LinearLayout>
@@ -48,5 +48,11 @@
         android:src="@drawable/line"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+
+    <Button
+        android:id="@+id/time_add"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Button" />
 
 </LinearLayout>

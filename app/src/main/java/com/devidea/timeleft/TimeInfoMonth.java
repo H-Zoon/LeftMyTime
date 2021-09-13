@@ -1,7 +1,10 @@
 package com.devidea.timeleft;
 
+import android.util.Log;
+
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
+import java.time.YearMonth;
 import java.util.Date;
 import java.util.Locale;
 
@@ -13,13 +16,17 @@ public class TimeInfoMonth implements TimeInfo{
 
         long time = System.currentTimeMillis();
         Date date = new Date(time);
-        SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA);
-        int month_day = Integer.parseInt(format_month_day.format(date));
-        LocalDate newDate = LocalDate.of(2021, 3, 1); //해당 달의 일수를 돌려받을때 사용합니다.
-        int lengthOfMon = newDate.lengthOfMonth();
+        SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA); //해당달의 일수 format
+        YearMonth yearMonth = YearMonth.from(LocalDate.now());
+
+        int month_day = Integer.parseInt(format_month_day.format(date)); //오늘 일수
+        int lengthOfMon = yearMonth.lengthOfMonth(); //해당 달의 총 일수
+
+        Log.d("format_Year", String.valueOf(LocalDate.now()));
+
         float MonthPercent = (float) month_day / lengthOfMon * 100;
 
-        adapterItem.setSummery("Month Left is");
+        adapterItem.setSummery("Month Left is ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
 
         return adapterItem;

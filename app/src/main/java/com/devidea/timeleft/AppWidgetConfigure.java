@@ -11,10 +11,8 @@ import android.widget.Button;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
 
-import androidx.room.Room;
-
 import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.timeInfoDttm;
+import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
@@ -73,8 +71,8 @@ public class AppWidgetConfigure extends Activity {
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        WidgetInfo y = new WidgetInfo(AppWidgetId, "year");
-                        appDatabase.DatabaseDao().insertAll(y);
+                        EntityWidgetInfo y = new EntityWidgetInfo(AppWidgetId, "year");
+                        appDatabase.DatabaseDao().saveWidget(y);
                         break;
 
                     case 1:
@@ -82,17 +80,17 @@ public class AppWidgetConfigure extends Activity {
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        WidgetInfo m = new WidgetInfo(AppWidgetId, "month");
-                        appDatabase.DatabaseDao().insertAll(m);
+                        EntityWidgetInfo m = new EntityWidgetInfo(AppWidgetId, "month");
+                        appDatabase.DatabaseDao().saveWidget(m);
                         break;
                     case 2:
-                        views.setTextViewText(R.id.percent_text, timeInfoDttm.setTimeItem().getSummery() + timeInfoDttm.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoDttm.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
 
-                        WidgetInfo w = new WidgetInfo(AppWidgetId, "time");
-                        appDatabase.DatabaseDao().insertAll(w);
+                        EntityWidgetInfo w = new EntityWidgetInfo(AppWidgetId, "time");
+                        appDatabase.DatabaseDao().saveWidget(w);
 
                         break;
 

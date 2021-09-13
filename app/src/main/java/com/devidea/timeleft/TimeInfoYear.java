@@ -16,7 +16,7 @@ public class TimeInfoYear implements TimeInfo{
         int day = Integer.parseInt(format_Day.format(date));
         float YearPercent = ((float) day / 365) * 100;
 
-        adapterItem.setSummery("Year Left is");
+        adapterItem.setSummery("Year Left is ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", YearPercent));
 
         return adapterItem;

@@ -6,15 +6,16 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.TextView;
+import android.util.Log;
+import android.view.View;
+import android.widget.Adapter;
+import android.widget.Button;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
 
 import me.relex.circleindicator.CircleIndicator2;
 
@@ -23,11 +24,11 @@ public class MainActivity extends AppCompatActivity {
     //recyclerView 관련 객체
     private CustomAdapter adapter;
     private RecyclerView recyclerView;
-    public static ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();;
+    private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();;
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth= new TimeInfoMonth();
-    public static final TimeInfoDttm timeInfoDttm= new TimeInfoDttm();
+    public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
 
     //핸들러
     Handler handler;
@@ -58,7 +59,19 @@ public class MainActivity extends AppCompatActivity {
 
         adapterItemListArray.add(timeInfoYear.setTimeItem());
         adapterItemListArray.add(timeInfoMonth.setTimeItem());
-        adapterItemListArray.add(timeInfoDttm.setTimeItem());
+        adapterItemListArray.add(timeInfoTime.setTimeItem());
+
+
+        ItemGenerator itemGenerator = new ItemGenerator();
+        try {
+            if(appDatabase.DatabaseDao().getItem().size()!=0) {
+                for(int i = 0; i<appDatabase.DatabaseDao().getItem().size(); i++) {
+                    itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i));
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
         adapter = new CustomAdapter(adapterItemListArray);
         recyclerView.setAdapter(adapter);
@@ -77,7 +90,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount(), timeInfoDttm.setTimeItem().getPercentString()); // 리사이클러뷰 payload 호출
+                            adapter.notifyItemChanged(adapter.getItemCount(), timeInfoTime.setTimeItem().getPercentString()); // 리사이클러뷰 payload 호출
                         }
                     });
 
@@ -89,5 +102,16 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
+        Button button = findViewById(R.id.time_add);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), CreateItemActivity.class);
+                startActivity(intent);
+
+            }
+        });
     }
+
 }

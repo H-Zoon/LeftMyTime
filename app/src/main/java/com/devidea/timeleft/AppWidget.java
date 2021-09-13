@@ -10,10 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import androidx.room.Room;
-
 import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.timeInfoDttm;
+import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
@@ -122,8 +120,8 @@ public class AppWidget extends AppWidgetProvider {
 
                 case "time":
 
-                    views.setTextViewText(R.id.percent_text, timeInfoDttm.setTimeItem().getSummery() + timeInfoDttm.setTimeItem().getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoDttm.setTimeItem().getPercentString()), false);
+                    views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
 
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
