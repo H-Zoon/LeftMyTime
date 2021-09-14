@@ -46,17 +46,22 @@ public class CreateItemActivity extends AppCompatActivity {
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 @SuppressLint("SimpleDateFormat") SimpleDateFormat transFormat = new SimpleDateFormat("dd");
 
-                Calendar start = new GregorianCalendar(now.getYear(), now.getMonthValue()-1, now.getDayOfMonth());
+                Calendar start = new GregorianCalendar(now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth());
                 Calendar end = new GregorianCalendar(year, month, dayOfMonth);
                 int diffDay;
 
-                if(start.compareTo(end) < 0){
-                    diffDay=(int)((end.getTimeInMillis()-start.getTimeInMillis())/(24*60*60*1000));
-                    inputDay.setText(String.valueOf(diffDay));
+                if (start.compareTo(end) < 0) {
+                    diffDay = (int) ((end.getTimeInMillis() - start.getTimeInMillis()) / (24 * 60 * 60 * 1000));
+                    if (diffDay > 365) {
+                        Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
+                    } else {
+                        inputDay.setText(String.valueOf(diffDay));
+                        inputDay.setSelection(inputDay.length());
+                    }
+
+                } else {
+                    Toast.makeText(CreateItemActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();
                 }
-
-                else Toast.makeText(CreateItemActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();
-
 
             }
         };
@@ -64,7 +69,7 @@ public class CreateItemActivity extends AppCompatActivity {
         calender.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerDialog datePicker = new DatePickerDialog(CreateItemActivity.this, dateSetListener, now.getYear(), now.getMonthValue()-1, now.getDayOfMonth());
+                DatePickerDialog datePicker = new DatePickerDialog(CreateItemActivity.this, dateSetListener, now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth());
                 datePicker.show();
             }
         });
@@ -72,8 +77,18 @@ public class CreateItemActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                itemGenerator.genDate(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()));
-                finish();
+                if (!(inputSummery.getText().toString().equals("")) && !(inputDay.getText().toString().equals(""))) {
+                    if (Integer.parseInt(inputDay.getText().toString()) > 365) {
+                        Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
+                    } else {
+                        itemGenerator.genDate(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()));
+                        MainActivity.refreshItem();
+                        finish();
+                    }
+
+                } else {
+                    Toast.makeText(CreateItemActivity.this, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG).show();
+                }
             }
         });
 

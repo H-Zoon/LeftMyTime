@@ -47,12 +47,15 @@ public class ItemGenerator {
 
         float MonthPercent = (float) leftDay/setDay*100;
 
-        Log.d("setDay", String.valueOf(setDay));
-        Log.d("leftDay", String.valueOf(leftDay));
         Log.d("total%", String.format(Locale.getDefault(), "%.1f", MonthPercent));
+
+        adapterItem.setStartDay(transFormat.format(startDate));
+        adapterItem.setEndDay(transFormat.format(endDate));
+        adapterItem.setLeftDay(String.valueOf(setDay));
 
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
         adapterItem.setSummery(itemInfo.getSummery());
+        adapterItem.setId(itemInfo.getId());
 
         return adapterItem;
     }

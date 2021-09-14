@@ -20,7 +20,7 @@ public class TimeInfoTime implements TimeInfo{
 
         float TimePercent = ((((float) hour * 3600) + (min * 60) + sec) / 86400) * 100;
 
-        adapterItem.setSummery("Time Left is ");
+        adapterItem.setSummery("오늘하루도 벌써.. ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", TimePercent));
 
         return adapterItem;

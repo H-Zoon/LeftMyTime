@@ -18,7 +18,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="The future depends on what we do in the present."
+            android:text="오늘도 좋은하루 보내세요 ;)"
             android:textSize="25sp" />
 
         <androidx.recyclerview.widget.RecyclerView

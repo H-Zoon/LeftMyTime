@@ -3,7 +3,6 @@ package com.devidea.timeleft;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.room.Room;
 
 import android.content.Intent;
@@ -11,6 +10,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
+import android.widget.Toast;
 
 import java.text.ParseException;
 import java.util.ArrayList;
@@ -20,18 +20,22 @@ import me.relex.circleindicator.CircleIndicator2;
 public class MainActivity extends AppCompatActivity {
 
     //recyclerView 관련 객체
-    private CustomAdapter adapter;
-    private RecyclerView recyclerView;
+    private RecyclerView adapter;
+    private androidx.recyclerview.widget.RecyclerView recyclerView;
     private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
 
     //test
-    private CustomAdapter customItemAdapter;
-    private RecyclerView customItemRecyclerView;
+    private static CustomRecyclerView customItemAdapter;
+    private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
     private final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
-    public static final TimeInfoMonth timeInfoMonth= new TimeInfoMonth();
+    public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
     public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
+
+    //뒤로가기 버튼 리스너에 쓰이는 변수
+    private final long FINISH_INTERVAL_TIME = 2000;
+    private long backPressedTime = 0;
 
     //핸들러
     Handler handler;
@@ -48,9 +52,16 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
 
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
+        recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
         //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
+
+        adapterItemListArray.add(timeInfoYear.setTimeItem());
+        adapterItemListArray.add(timeInfoMonth.setTimeItem());
+        adapterItemListArray.add(timeInfoTime.setTimeItem());
+
+        adapter = new RecyclerView(adapterItemListArray);
+        recyclerView.setAdapter(adapter);
 
         // PagerSnapHelper 추가 꼭 공부하기 !!
         PagerSnapHelper pagerSnapHelper = new PagerSnapHelper();
@@ -60,26 +71,19 @@ public class MainActivity extends AppCompatActivity {
         CircleIndicator2 indicator = findViewById(R.id.indicator);
         indicator.attachToRecyclerView(recyclerView, pagerSnapHelper);
 
-        adapterItemListArray.add(timeInfoYear.setTimeItem());
-        adapterItemListArray.add(timeInfoMonth.setTimeItem());
-        adapterItemListArray.add(timeInfoTime.setTimeItem());
-
-        adapter = new CustomAdapter(adapterItemListArray);
-        recyclerView.setAdapter(adapter);
-
         //인디케이터 활성화 꼭 공부하기!!
         adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
 
 
 
-        //todo: test입니다
-        customItemRecyclerView = (RecyclerView) findViewById(R.id.recyclerview2);
-        customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
+        //커스텀 항목에 대한 추가
+        customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
+        customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
 
         ItemGenerator itemGenerator = new ItemGenerator();
         try {
-            if(appDatabase.DatabaseDao().getItem().size()!=0) {
-                for(int i = 0; i<appDatabase.DatabaseDao().getItem().size(); i++) {
+            if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                     CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
                 }
             }
@@ -87,11 +91,11 @@ public class MainActivity extends AppCompatActivity {
             e.printStackTrace();
         }
 
-        customItemAdapter = new CustomAdapter(CustomItemListArray);
+        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
         customItemRecyclerView.setAdapter(customItemAdapter);
 
 
-
+/*
         //초단위, 현재시간 update Thread
         new Thread(new Runnable() {
             @Override
@@ -116,6 +120,9 @@ public class MainActivity extends AppCompatActivity {
             }
         }).start();
 
+
+ */
+
         Button button = findViewById(R.id.time_add);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -125,6 +132,37 @@ public class MainActivity extends AppCompatActivity {
 
             }
         });
+    }
+
+    public static void refreshItem(){
+        ItemGenerator itemGenerator = new ItemGenerator();
+        ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+        try {
+            if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+
+        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        customItemRecyclerView.setAdapter(customItemAdapter);
+    }
+
+    @Override
+    public void onBackPressed() {
+        long tempTime = System.currentTimeMillis();
+        long intervalTime = tempTime - backPressedTime;
+
+        if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
+            finish();
+        } else {
+            backPressedTime = tempTime;
+            Toast.makeText(getApplicationContext(), "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+        }
+
     }
 
 }
