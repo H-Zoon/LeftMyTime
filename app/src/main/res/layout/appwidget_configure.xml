@@ -18,7 +18,6 @@
             android:id="@+id/percent_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
             android:text="Time left here"
             android:textSize="50sp" />
 
@@ -42,7 +41,6 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
             android:text="Choose One"
             android:textSize="30sp" />
 
@@ -55,7 +53,6 @@
                 android:id="@+id/yearButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
                 android:text="Year left"
                 android:textSize="20sp" />
 
@@ -63,7 +60,6 @@
                 android:id="@+id/monthButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
                 android:text="Month left"
                 android:textSize="20sp" />
 
@@ -71,7 +67,6 @@
                 android:id="@+id/timeButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
                 android:text="Time left"
                 android:textSize="20sp" />
         </RadioGroup>
@@ -88,7 +83,6 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:fontFamily="@font/poiretone_regular"
             android:text="Save"
             android:textSize="30sp" />
 

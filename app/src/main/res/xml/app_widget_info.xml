@@ -9,6 +9,6 @@
     android:widgetCategory="home_screen"
     android:initialKeyguardLayout="@layout/app_widget"
     android:configure="com.devidea.timeleft.AppWidgetConfigure"
-    android:fontFamily="@font/poiretone_regular">
+    >
 </appwidget-provider>
     <!--android:updatePeriodMillis="86400000"-->

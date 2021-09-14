@@ -17,7 +17,6 @@
             android:id="@+id/hi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
             android:gravity="center"
             android:text="The future depends on what we do in the present."
             android:textSize="25sp" />
@@ -26,17 +25,15 @@
             android:id="@+id/recyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
-            android:overScrollMode="never">
-
-        </androidx.recyclerview.widget.RecyclerView>
+            android:overScrollMode="never" />
 
         <me.relex.circleindicator.CircleIndicator2
             android:id="@+id/indicator"
-            app:ci_drawable="@drawable/black_indicator"
-            app:ci_width="3pt"
-            app:ci_height="3pt"
             android:layout_width="match_parent"
-            android:layout_height="20dp" />
+            android:layout_height="20dp"
+            app:ci_drawable="@drawable/black_indicator"
+            app:ci_height="3pt"
+            app:ci_width="3pt" />
 
 
     </LinearLayout>
@@ -51,6 +48,7 @@
 
     <Button
         android:id="@+id/time_add"
+        style="@style/Style.Color.Button"
         android:layout_width="40dp"
         android:layout_height="40dp"
         android:layout_gravity="end"
@@ -61,8 +59,6 @@
         android:id="@+id/recyclerview2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:overScrollMode="never">
-
-    </androidx.recyclerview.widget.RecyclerView>
+        android:overScrollMode="never" />
 
 </LinearLayout>

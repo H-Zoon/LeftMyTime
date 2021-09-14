@@ -1,36 +1,75 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_marginTop="50dp"
+    android:layout_marginStart="25dp"
+    android:layout_marginEnd="25dp"
     android:orientation="vertical"
     tools:context=".CreateItemActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="원하는 날 기다리기" />
 
     <EditText
         android:id="@+id/input_summery"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:background="@drawable/line"
         android:ems="10"
-        android:text="이름" />
+        android:hint="이름을 입력해주세요" />
 
-    <EditText
-        android:id="@+id/input_day"
+    <LinearLayout
+        android:layout_marginTop="10dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:ems="10"
-        android:inputType="number" />
+        android:orientation="horizontal"
+        android:weightSum="10"
+        android:layout_gravity="center"
+        android:background="@drawable/line">
 
-    <TextView
-        android:id="@+id/cal"
+        <TextView
+            android:id="@+id/cal"
+            android:layout_weight="4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="오늘을 시작으로" />
+
+        <EditText
+            android:id="@+id/input_day"
+            android:layout_weight="2"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/cal2"
+            android:layout_weight="4"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:text="일 후로 설정합니다" />
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/calender"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="TextView" />
+        android:text="Button" />
+
 
     <Button
         android:id="@+id/summit"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Button" />
-
+        android:text="저장"
+        android:background="@drawable/line"
+        />
 
 </LinearLayout>

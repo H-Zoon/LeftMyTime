@@ -14,20 +14,20 @@ import static com.devidea.timeleft.MainActivity.appDatabase;
 
 public class ItemGenerator {
 
-    public void genDate(String summery, int endDay){
+    public void genDate(String summery, int end){
         SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         Date time = new Date();	 //현재 날짜
         Calendar cal = Calendar.getInstance();	 //날짜 계산을 위해 Calendar 추상클래스 선언 getInstance()메소드 사용
         cal.setTime(time);
-        cal.add(Calendar.DATE, endDay);
+        cal.add(Calendar.DATE, end);
 
         Log.d("srt", transFormat.format(time));
         Log.d("end", transFormat.format(cal.getTime()).toString());
         Log.d("summery", summery);
-        String startday = transFormat.format(time);
-        String enddat = transFormat.format(cal.getTime());
-        EntityItemInfo entityItemInfo = new EntityItemInfo(startday, enddat, summery);
+        String startDay = transFormat.format(time);
+        String endDay = transFormat.format(cal.getTime());
+        EntityItemInfo entityItemInfo = new EntityItemInfo(startDay, endDay, summery);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }

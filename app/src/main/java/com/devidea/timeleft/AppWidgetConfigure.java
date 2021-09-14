@@ -63,7 +63,7 @@ public class AppWidgetConfigure extends Activity {
                 Intent intentR = new Intent(context, AppWidget.class);
                 intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
-                views.setOnClickPendingIntent(R.id.button2, pendingIntent);
+                views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
 
                 switch (value) {
                     case 0:
