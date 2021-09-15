@@ -62,6 +62,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
             @Override
             public void onClick(View v) {
                 appDatabase.DatabaseDao().deleteItem(arrayList.get(position).getId());
+                appDatabase.DatabaseDao().delete_s(String.valueOf(arrayList.get(position).getId()));
                 MainActivity.refreshItem();
                 Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
             }

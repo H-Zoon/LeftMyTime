@@ -32,6 +32,7 @@ public class MainActivity extends AppCompatActivity {
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
     public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
+    public static final ItemGenerator itemgenerator = new ItemGenerator();
 
     //뒤로가기 버튼 리스너에 쓰이는 변수
     private final long FINISH_INTERVAL_TIME = 2000;

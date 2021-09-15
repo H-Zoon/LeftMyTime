@@ -10,7 +10,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import java.text.ParseException;
+import java.util.ArrayList;
+
 import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.itemgenerator;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
@@ -25,12 +29,19 @@ public class AppWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent.getAction();
+        int[] appWidgetIds = new int[0];
         Log.d(TAG, "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             Bundle extras = intent.getExtras();
 
-            int[] appWidgetIds = appDatabase.DatabaseDao().get();
+            try{
+                appWidgetIds = appDatabase.DatabaseDao().get();
+            } catch (Exception e) {
+                e.printStackTrace();
+                onDisabled(context);
+            }
+
 
             Log.d(TAG, "extras is not null");
             if (appWidgetIds != null && appWidgetIds.length > 0) {
@@ -50,7 +61,7 @@ public class AppWidget extends AppWidgetProvider {
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
 
-            Log.d(TAG, "appWidgetId is " + String.valueOf(appWidgetId));
+            Log.d(TAG, "appWidgetId is " + appWidgetId);
 
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
@@ -84,13 +95,25 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        appDatabase.DatabaseDao().delete(appWidgetIds[0]);
+        try{
+            appDatabase.DatabaseDao().delete(appWidgetIds[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
         Log.d(TAG, "onDeleted done");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
 
-        String value = appDatabase.DatabaseDao().get_summery(appWidgetId);
+        String value = null;
+        try {
+            value = appDatabase.DatabaseDao().get_summery(appWidgetId);
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
+
+
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
         if (value != null) {
@@ -125,6 +148,23 @@ public class AppWidget extends AppWidgetProvider {
 
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
+                    break;
+
+                default:
+                    AdapterItem adapterItem  = new AdapterItem();
+                    try {
+                        adapterItem = itemgenerator.calDate(appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value)));
+                    } catch (ParseException e) {
+                        e.printStackTrace();
+                    }
+
+                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery()+" 까지 " + adapterItem.getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
+                    views.setTextViewText(R.id.text, " 달성했습니다.");
+
+
+                    appWidgetManager.updateAppWidget(appWidgetId, views);
+                    Log.d(TAG, "custom update done");
                     break;
 
             }

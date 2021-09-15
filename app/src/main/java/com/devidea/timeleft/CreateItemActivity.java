@@ -3,24 +3,17 @@ package com.devidea.timeleft;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.Activity;
 import android.app.DatePickerDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.DatePicker;
 import android.widget.EditText;
-import android.widget.TextView;
 import android.widget.Toast;
-
-import com.google.android.material.datepicker.MaterialStyledDatePickerDialog;
 
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
 import java.util.Calendar;
-import java.util.Date;
 import java.util.GregorianCalendar;
 
 public class CreateItemActivity extends AppCompatActivity {
@@ -52,9 +45,10 @@ public class CreateItemActivity extends AppCompatActivity {
 
                 if (start.compareTo(end) < 0) {
                     diffDay = (int) ((end.getTimeInMillis() - start.getTimeInMillis()) / (24 * 60 * 60 * 1000));
-                    if (diffDay > 365) {
+                    if (diffDay > 1826) {
                         Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
+                        inputDay.setText("");
                         inputDay.setText(String.valueOf(diffDay));
                         inputDay.setSelection(inputDay.length());
                     }
@@ -78,10 +72,10 @@ public class CreateItemActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!(inputSummery.getText().toString().equals("")) && !(inputDay.getText().toString().equals(""))) {
-                    if (Integer.parseInt(inputDay.getText().toString()) > 365) {
+                    if (Integer.parseInt(inputDay.getText().toString()) > 1826) {
                         Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
-                        itemGenerator.genDate(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()));
+                        itemGenerator.saveItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()));
                         MainActivity.refreshItem();
                         finish();
                     }

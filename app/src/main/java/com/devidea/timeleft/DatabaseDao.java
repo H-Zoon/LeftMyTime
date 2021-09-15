@@ -19,6 +19,9 @@ public interface DatabaseDao {
     @Query("DELETE FROM EntityItemInfo WHERE id = :ID")
     void deleteItem(int ID);
 
+    @Query("SELECT * FROM EntityItemInfo WHERE id = :ID")
+    EntityItemInfo getSelectItem(int ID);
+
     @Insert
     void saveWidget(EntityWidgetInfo entityWidgetInfo);
 
@@ -28,9 +31,11 @@ public interface DatabaseDao {
     @Query("SELECT summery FROM EntityWidgetInfo WHERE widgetID = :ID")
     String get_summery(int ID);
 
-
     @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
+
+    @Query("DELETE FROM EntityWidgetInfo WHERE summery = :ID")
+    void delete_s(String ID);
 
 
 }

@@ -27,7 +27,7 @@ public class TimeInfoMonth implements TimeInfo{
 
         float MonthPercent = (float) month_day / lengthOfMon * 100;
 
-        adapterItem.setSummery(format_month.format(date)+"월이 벌써..");
+        adapterItem.setSummery(format_month.format(date)+"월의 ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
 
         return adapterItem;

@@ -24,7 +24,7 @@ public class TimeInfoYear implements TimeInfo{
         int day = Integer.parseInt(format_Day.format(date));
         float YearPercent = ((float) day / lengthOfYear) * 100;
 
-        adapterItem.setSummery(year+"년이 벌써..");
+        adapterItem.setSummery(year+"년의 ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", YearPercent));
 
         return adapterItem;

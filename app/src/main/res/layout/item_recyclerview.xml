@@ -43,7 +43,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:textSize="20dp"
-                android:text="  지나갔습니다." />
+                android:text=" 가 지나갔습니다." />
 
         </LinearLayout>
 

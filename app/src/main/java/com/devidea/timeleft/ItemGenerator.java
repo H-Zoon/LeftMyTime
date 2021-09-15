@@ -14,7 +14,7 @@ import static com.devidea.timeleft.MainActivity.appDatabase;
 
 public class ItemGenerator {
 
-    public void genDate(String summery, int end){
+    public void saveItem(String summery, int end){
         SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
 
         Date time = new Date();	 //현재 날짜
