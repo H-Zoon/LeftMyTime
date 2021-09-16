@@ -6,6 +6,24 @@ public class AdapterItem {
     private String startDay;
     private String endDay;
     private String leftDay;
+    private boolean autoUpdate;
+
+    public String getPercent() {
+        return percent;
+    }
+
+    public void setPercent(String percent) {
+        this.percent = percent;
+    }
+
+    public boolean isAutoUpdate() {
+        return autoUpdate;
+    }
+
+    public void setAutoUpdate(boolean autoUpdate) {
+        this.autoUpdate = autoUpdate;
+    }
+
     private int id;
 
     public String getStartDay() {

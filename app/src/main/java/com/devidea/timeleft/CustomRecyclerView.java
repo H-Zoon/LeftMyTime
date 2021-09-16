@@ -2,6 +2,7 @@ package com.devidea.timeleft;
 
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
+import android.annotation.SuppressLint;
 import android.content.Context;
 import android.util.Log;
 import android.util.SparseBooleanArray;
@@ -46,23 +47,31 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         return new CustomRecyclerView.ViewHolder(view);
     }
 
+    @SuppressLint("SetTextI18n")
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
 
         viewHolder.startDay.setText("설정일: " + arrayList.get(position).getStartDay());
         viewHolder.endDay.setText("종료일: " + arrayList.get(position).getEndDay());
         viewHolder.leftDay.setText("남은일: D-" + arrayList.get(position).getLeftDay());
+        if(arrayList.get(position).isAutoUpdate()) {
+            viewHolder.autoUpdate.setText("이후 반복되는 일정이에요");
+        }
+        else {
+            viewHolder.autoUpdate.setText("100% 달성후 끝나는 일정이에요");
+        }
 
         viewHolder.startDay.setVisibility(View.GONE);
         viewHolder.endDay.setVisibility(View.GONE);
         viewHolder.leftDay.setVisibility(View.GONE);
+        viewHolder.autoUpdate.setVisibility(View.GONE);
         viewHolder.deleteButton.setVisibility(View.GONE);
 
         viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 appDatabase.DatabaseDao().deleteItem(arrayList.get(position).getId());
-                appDatabase.DatabaseDao().delete_s(String.valueOf(arrayList.get(position).getId()));
+                appDatabase.DatabaseDao().deleteCustomWidget(String.valueOf(arrayList.get(position).getId()));
                 MainActivity.refreshItem();
                 Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
             }
@@ -94,6 +103,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         private final TextView startDay;
         private final TextView endDay;
         private final TextView leftDay;
+        private final TextView autoUpdate;
         private final Button deleteButton;
 
         //ViewHolder
@@ -104,7 +114,9 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
             progressBar = (ProgressBar) view.findViewById(R.id.progress);
             startDay = view.findViewById(R.id.start_day);
             endDay = view.findViewById(R.id.end_day);
+            autoUpdate = view.findViewById(R.id.update_is);
             leftDay = view.findViewById(R.id.left_day);
+
             deleteButton = view.findViewById(R.id.delete_button);
 
             itemView.setOnClickListener(new View.OnClickListener(){
@@ -151,6 +163,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                     startDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     endDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     leftDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                    autoUpdate.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     deleteButton.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                 }
             });

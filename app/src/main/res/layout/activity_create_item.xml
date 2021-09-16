@@ -13,15 +13,16 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="30dp"
+        android:layout_marginBottom="50dp"
         android:gravity="center"
         android:text="원하는 날 설정하기"
-        android:textSize="20sp" />
+        android:textSize="30sp" />
 
     <EditText
         android:id="@+id/input_summery"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:background="@drawable/line"
         android:ems="10"
         android:hint="이름을 입력해주세요" />
@@ -55,7 +56,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:text="일 후로 설정합니다."
+            android:text="일 후로 설정할께요."
             android:textSize="20sp" />
 
 
@@ -72,11 +73,26 @@
         android:textColor="@color/gray600" />
 
 
-    <Button
-        android:id="@+id/summit"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/line"
-        android:text="저장" />
+        android:layout_height="match_parent"
+        android:layout_marginBottom="20dp"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+        <CheckBox
+            android:id="@+id/auto_update_check"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="매번 반복되는 일정이에요 (예 : 월급날, 생일)" />
+
+        <Button
+            android:id="@+id/summit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:text="저장" />
+    </LinearLayout>
+
 
 </LinearLayout>

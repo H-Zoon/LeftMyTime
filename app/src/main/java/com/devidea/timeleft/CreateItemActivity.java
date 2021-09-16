@@ -7,6 +7,7 @@ import android.app.DatePickerDialog;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
@@ -20,6 +21,7 @@ public class CreateItemActivity extends AppCompatActivity {
 
     EditText inputSummery, inputDay;
     Button calender, save;
+    CheckBox AutoUpdateCheck;
     ItemGenerator itemGenerator = new ItemGenerator();
 
     @Override
@@ -33,6 +35,7 @@ public class CreateItemActivity extends AppCompatActivity {
         inputDay = findViewById(R.id.input_day);
         calender = findViewById(R.id.calender);
         save = findViewById(R.id.summit);
+        AutoUpdateCheck = findViewById(R.id.auto_update_check);
 
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
@@ -75,7 +78,7 @@ public class CreateItemActivity extends AppCompatActivity {
                     if (Integer.parseInt(inputDay.getText().toString()) > 1826) {
                         Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
-                        itemGenerator.saveItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()));
+                        itemGenerator.saveItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
                         MainActivity.refreshItem();
                         finish();
                     }

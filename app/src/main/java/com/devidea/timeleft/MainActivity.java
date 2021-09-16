@@ -24,7 +24,7 @@ public class MainActivity extends AppCompatActivity {
     private androidx.recyclerview.widget.RecyclerView recyclerView;
     private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
 
-    //test
+    //사용자가 추가한 부분의 아이템
     private static CustomRecyclerView customItemAdapter;
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
     private final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
@@ -54,7 +54,6 @@ public class MainActivity extends AppCompatActivity {
         handler = new Handler();
 
         recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
-        //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
         adapterItemListArray.add(timeInfoYear.setTimeItem());
@@ -81,6 +80,7 @@ public class MainActivity extends AppCompatActivity {
         customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
         customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
 
+        /*
         ItemGenerator itemGenerator = new ItemGenerator();
         try {
             if (appDatabase.DatabaseDao().getItem().size() != 0) {
@@ -91,9 +91,12 @@ public class MainActivity extends AppCompatActivity {
         } catch (ParseException e) {
             e.printStackTrace();
         }
+                */
 
-        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
-        customItemRecyclerView.setAdapter(customItemAdapter);
+        refreshItem();
+
+        //customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        //customItemRecyclerView.setAdapter(customItemAdapter);
 
 
 /*
