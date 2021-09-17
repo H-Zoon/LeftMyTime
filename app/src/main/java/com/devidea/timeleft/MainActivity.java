@@ -56,9 +56,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        adapterItemListArray.add(timeInfoYear.setTimeItem());
-        adapterItemListArray.add(timeInfoMonth.setTimeItem());
         adapterItemListArray.add(timeInfoTime.setTimeItem());
+        adapterItemListArray.add(timeInfoMonth.setTimeItem());
+        adapterItemListArray.add(timeInfoYear.setTimeItem());
 
         adapter = new RecyclerView(adapterItemListArray);
         recyclerView.setAdapter(adapter);
