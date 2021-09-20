@@ -2,6 +2,7 @@ package com.devidea.timeleft;
 
 
 import android.animation.ObjectAnimator;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -10,35 +11,17 @@ import android.widget.ProgressBar;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 
 import java.util.ArrayList;
 import java.util.List;
 
-
-class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
+class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     //array list
     private final ArrayList<AdapterItem> arrayList;
 
-    public static class ViewHolder extends RecyclerView.ViewHolder {
-        private final TextView summery;
-        private final TextView percent;
-        private final ProgressBar progressBar;
-
-        //ViewHolder
-        public ViewHolder(View view) {
-            super(view);
-
-            summery = (TextView) view.findViewById(R.id.summery);
-            percent = (TextView) view.findViewById(R.id.percent_text);
-            progressBar = (ProgressBar) view.findViewById(R.id.progress);
-        }
-
-    }
-
     //CustomAdapter 생성자
-    public CustomAdapter(ArrayList<AdapterItem> arrayList) {
+    public RecyclerView(ArrayList<AdapterItem> arrayList) {
         this.arrayList = arrayList;
     }
 
@@ -71,26 +54,24 @@ class CustomAdapter extends RecyclerView.Adapter<CustomAdapter.ViewHolder> {
     }
 
     @Override
-    public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position, @NonNull List<Object> payloads) {
-        if (payloads.isEmpty()) {
-            super.onBindViewHolder(viewHolder, position, payloads);
-        } else {
-            for (Object payload : payloads) {
-                if (payload instanceof String) {
-                    String type = (String) payload;
-                    viewHolder.percent.setText(type + "%");
-                    int percent = (int) Float.parseFloat(type);
-                    viewHolder.progressBar.setProgress(percent);
-                }
-            }
-        }
-    }
-
-    @Override
     public int getItemCount() {
         return arrayList.size();
     }
 
+    public static class ViewHolder extends androidx.recyclerview.widget.RecyclerView.ViewHolder {
+        private final TextView summery;
+        private final TextView percent;
+        private final ProgressBar progressBar;
+
+        //ViewHolder
+        public ViewHolder(View view) {
+            super(view);
+            summery = (TextView) view.findViewById(R.id.summery);
+            percent = (TextView) view.findViewById(R.id.percent_text);
+            progressBar = (ProgressBar) view.findViewById(R.id.progress);
+
+        }
+    }
 }
 
 

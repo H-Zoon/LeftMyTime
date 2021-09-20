@@ -17,21 +17,24 @@
             android:id="@+id/hi"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
             android:gravity="center"
-            android:text="The future depends on what we do in the present."
+            android:text="오늘도 좋은하루 보내세요 ;)"
             android:textSize="25sp" />
 
-        <TextView
-            android:id="@+id/timenow"
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:layout_marginBottom="10dp"
-            android:fontFamily="@font/poiretone_regular"
-            android:gravity="center"
-            android:text="TextView"
-            android:textSize="65sp" />
+            android:layout_height="match_parent"
+            android:overScrollMode="never" />
+
+        <me.relex.circleindicator.CircleIndicator2
+            android:id="@+id/indicator"
+            android:layout_width="match_parent"
+            android:layout_height="20dp"
+            app:ci_drawable="@drawable/black_indicator"
+            app:ci_height="3pt"
+            app:ci_width="3pt" />
+
 
     </LinearLayout>
 
@@ -43,13 +46,19 @@
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <Button
+        android:id="@+id/time_add"
+        style="@style/Style.Color.Button"
+        android:layout_width="40dp"
+        android:layout_height="40dp"
+        android:layout_gravity="end"
+        android:layout_marginEnd="10dp"
+        android:background="@drawable/outline_add_black_48" />
+
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview"
+        android:id="@+id/recyclerview2"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:overScrollMode="never">
-
-    </androidx.recyclerview.widget.RecyclerView>
-
+        android:overScrollMode="never" />
 
 </LinearLayout>

@@ -10,6 +10,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
+        <activity android:name=".CreateItemActivity"></activity>
 
         <receiver android:name=".AppWidget">
             <intent-filter>

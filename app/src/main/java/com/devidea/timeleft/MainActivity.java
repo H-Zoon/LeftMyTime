@@ -2,28 +2,41 @@ package com.devidea.timeleft;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
+import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.room.Room;
 
+import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
-import android.widget.TextView;
+import android.view.View;
+import android.widget.Button;
+import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.time.LocalDate;
+import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.Date;
-import java.util.Locale;
+
+import me.relex.circleindicator.CircleIndicator2;
 
 public class MainActivity extends AppCompatActivity {
 
     //recyclerView 관련 객체
-    CustomAdapter adapter;
-    RecyclerView recyclerView;
-    ArrayList<AdapterItem> adapterItemListArray;
+    private RecyclerView adapter;
+    private androidx.recyclerview.widget.RecyclerView recyclerView;
+    private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
 
-    //현재시간
-    TextView timeView;
+    //사용자가 추가한 부분의 아이템
+    private static CustomRecyclerView customItemAdapter;
+    private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
+    private final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+
+    public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
+    public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
+    public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
+    public static final ItemGenerator itemgenerator = new ItemGenerator();
+
+    //뒤로가기 버튼 리스너에 쓰이는 변수
+    private final long FINISH_INTERVAL_TIME = 2000;
+    private long backPressedTime = 0;
 
     //핸들러
     Handler handler;
@@ -40,25 +53,53 @@ public class MainActivity extends AppCompatActivity {
 
         handler = new Handler();
 
-        //현재시간 설정
-        timeView = findViewById(R.id.timenow);
-        timeView.setText(timeNow());
+        recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
+        recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        adapterItemListArray = new ArrayList<>();
+        adapterItemListArray.add(timeInfoTime.setTimeItem());
+        adapterItemListArray.add(timeInfoMonth.setTimeItem());
+        adapterItemListArray.add(timeInfoYear.setTimeItem());
 
-
-        recyclerView = (RecyclerView) findViewById(R.id.recyclerview);
-        recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false)); // 상하 스크롤 //
-        //recyclerView.setLayoutManager(new LinearLayoutManager(this, RecyclerView.HORIZONTAL, false)) ; // 좌우 스크롤 //
-
-
-        adapterItemListArray.add(new TimeInfoYear().setTimeItem());
-        adapterItemListArray.add(new TimeInfoMonth().setTimeItem());
-        adapterItemListArray.add(new TimeInfoDttm().setTimeItem());
-
-        adapter = new CustomAdapter(adapterItemListArray);
+        adapter = new RecyclerView(adapterItemListArray);
         recyclerView.setAdapter(adapter);
 
+        // PagerSnapHelper 추가 꼭 공부하기 !!
+        PagerSnapHelper pagerSnapHelper = new PagerSnapHelper();
+        pagerSnapHelper.attachToRecyclerView(recyclerView);
+
+        //인디케이터 활성화 꼭 공부하기!!
+        CircleIndicator2 indicator = findViewById(R.id.indicator);
+        indicator.attachToRecyclerView(recyclerView, pagerSnapHelper);
+
+        //인디케이터 활성화 꼭 공부하기!!
+        adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
+
+
+
+        //커스텀 항목에 대한 추가
+        customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
+        customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
+
+        /*
+        ItemGenerator itemGenerator = new ItemGenerator();
+        try {
+            if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
+                */
+
+        refreshItem();
+
+        //customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        //customItemRecyclerView.setAdapter(customItemAdapter);
+
+
+/*
         //초단위, 현재시간 update Thread
         new Thread(new Runnable() {
             @Override
@@ -70,8 +111,7 @@ public class MainActivity extends AppCompatActivity {
 
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount(), getTime()); // 리사이클러뷰 payload 호출
-                            timeView.setText(timeNow()); //현재시간
+                            adapter.notifyItemChanged(adapter.getItemCount(), timeInfoTime.setTimeItem().getPercentString()); // 리사이클러뷰 payload 호출
                         }
                     });
 
@@ -83,52 +123,50 @@ public class MainActivity extends AppCompatActivity {
                 }
             }
         }).start();
+
+
+ */
+
+        Button button = findViewById(R.id.time_add);
+        button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent intent = new Intent(getApplicationContext(), CreateItemActivity.class);
+                startActivity(intent);
+
+            }
+        });
     }
 
-    public static String getYear() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_Day = new SimpleDateFormat("D", Locale.KOREA);
-        int day = Integer.parseInt(format_Day.format(date));
+    public static void refreshItem(){
+        ItemGenerator itemGenerator = new ItemGenerator();
+        ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+        try {
+            if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
+                }
+            }
+        } catch (ParseException e) {
+            e.printStackTrace();
+        }
 
-        float YearPercent = ((float) day / 365) * 100;
-
-        return String.format(Locale.getDefault(), "%.1f", YearPercent);
+        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        customItemRecyclerView.setAdapter(customItemAdapter);
     }
 
-    public static String getMonth() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_month_day = new SimpleDateFormat("d", Locale.KOREA);
-        int month_day = Integer.parseInt(format_month_day.format(date));
-        LocalDate newDate = LocalDate.of(2021, 3, 1); //해당 달의 일수를 돌려받을때 사용합니다.
-        int lengthOfMon = newDate.lengthOfMonth();
+    @Override
+    public void onBackPressed() {
+        long tempTime = System.currentTimeMillis();
+        long intervalTime = tempTime - backPressedTime;
 
-        float MonthPercent = (float) month_day / lengthOfMon * 100;
+        if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
+            finish();
+        } else {
+            backPressedTime = tempTime;
+            Toast.makeText(getApplicationContext(), "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show();
+        }
 
-        return String.format(Locale.getDefault(), "%.1f", MonthPercent);
-    }
-
-    public static String getTime() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_hour = new SimpleDateFormat("H", Locale.KOREA);
-        SimpleDateFormat format_min = new SimpleDateFormat("m", Locale.KOREA);
-        SimpleDateFormat format_sec = new SimpleDateFormat("s", Locale.KOREA);
-        int hour = Integer.parseInt(format_hour.format(date));
-        int min = Integer.parseInt(format_min.format(date));
-        int sec = Integer.parseInt(format_sec.format(date));
-
-        float TimePercent = ((((float) hour * 3600) + (min * 60) + sec) / 86400) * 100;
-
-        return String.format(Locale.getDefault(), "%.1f", TimePercent);
-    }
-
-    public String timeNow() {
-        long time = System.currentTimeMillis();
-        Date date = new Date(time);
-        SimpleDateFormat format_time = new SimpleDateFormat("HH:mm.ss", Locale.KOREA);
-        return format_time.format(date);
     }
 
 }

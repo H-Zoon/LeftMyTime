@@ -18,9 +18,8 @@
             android:id="@+id/percent_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
-            android:text="Time left here"
-            android:textSize="50sp" />
+            android:text="이곳에 표시됩니다."
+            android:textSize="40sp" />
 
         <ProgressBar
             android:id="@+id/progress"
@@ -28,6 +27,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:max="100"
+            android:progress="75"
             android:progressDrawable="@drawable/progressbar" />
 
     </LinearLayout>
@@ -42,8 +42,7 @@
             android:id="@+id/textView2"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:fontFamily="@font/poiretone_regular"
-            android:text="Choose One"
+            android:text="하나를 선택해주세요."
             android:textSize="30sp" />
 
         <RadioGroup
@@ -55,24 +54,28 @@
                 android:id="@+id/yearButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
-                android:text="Year left"
+                android:text="년도 지나감 보기"
                 android:textSize="20sp" />
 
             <RadioButton
                 android:id="@+id/monthButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
-                android:text="Month left"
+                android:text="달 지나감 보기"
                 android:textSize="20sp" />
 
             <RadioButton
                 android:id="@+id/timeButton"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:fontFamily="@font/poiretone_regular"
-                android:text="Time left"
+                android:text="시간 지나감 보기"
+                android:textSize="20sp" />
+
+            <RadioButton
+                android:id="@+id/customButton"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="내가만든 항목 보기"
                 android:textSize="20sp" />
         </RadioGroup>
 
@@ -81,6 +84,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
         android:orientation="horizontal">
 
         <Button
@@ -88,8 +92,8 @@
             android:layout_width="0dp"
             android:layout_height="match_parent"
             android:layout_weight="1"
-            android:fontFamily="@font/poiretone_regular"
-            android:text="Save"
+            android:background="@drawable/line"
+            android:text="저장"
             android:textSize="30sp" />
 
     </LinearLayout>

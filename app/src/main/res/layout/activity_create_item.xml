@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_marginStart="25dp"
+    android:layout_marginTop="50dp"
+    android:layout_marginEnd="25dp"
+    android:orientation="vertical"
+    tools:context=".CreateItemActivity">
+
+    <TextView
+        android:id="@+id/textView"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="50dp"
+        android:gravity="center"
+        android:text="원하는 날 설정하기"
+        android:textSize="30sp" />
+
+    <EditText
+        android:id="@+id/input_summery"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/line"
+        android:ems="10"
+        android:hint="이름을 입력해주세요" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:gravity="center"
+        android:orientation="horizontal"
+        android:weightSum="20">
+
+        <TextView
+            android:id="@+id/cal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="start"
+            android:text="오늘부터"
+            android:textSize="20sp" />
+
+        <EditText
+            android:id="@+id/input_day"
+            android:layout_width="60dp"
+            android:layout_height="wrap_content"
+            android:ems="10"
+            android:gravity="center"
+            android:inputType="number" />
+
+        <TextView
+            android:id="@+id/cal2"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:text="일 후로 설정할께요."
+            android:textSize="20sp" />
+
+
+    </LinearLayout>
+
+    <Button
+        android:id="@+id/calender"
+        style="@style/Widget.AppCompat.Button.Borderless"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="end"
+        android:gravity="center"
+        android:text="달력에서 설정하기"
+        android:textColor="@color/gray600" />
+
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_marginBottom="20dp"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+        <CheckBox
+            android:id="@+id/auto_update_check"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="매번 반복되는 일정이에요 (예 : 월급날, 생일)" />
+
+        <Button
+            android:id="@+id/summit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:text="저장" />
+    </LinearLayout>
+
+
+</LinearLayout>
