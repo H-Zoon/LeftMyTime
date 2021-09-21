@@ -6,9 +6,11 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.room.Room;
 
 import android.app.AlertDialog;
+import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -28,7 +30,7 @@ public class MainActivity extends AppCompatActivity {
     //사용자가 추가한 부분의 아이템
     private static CustomRecyclerView customItemAdapter;
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
-    private final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+    //private ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
@@ -40,7 +42,9 @@ public class MainActivity extends AppCompatActivity {
     private long backPressedTime = 0;
 
     //핸들러
-    //Handler handler;
+    Handler handler = new Handler();
+
+    static Context context;
 
     static AppDatabase appDatabase;
 
@@ -52,7 +56,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        //handler = new Handler();
+        context = MainActivity.this;
 
         recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
@@ -79,19 +83,6 @@ public class MainActivity extends AppCompatActivity {
         //커스텀 항목에 대한 추가
         customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
         customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
-
-        /*
-        ItemGenerator itemGenerator = new ItemGenerator();
-        try {
-            if (appDatabase.DatabaseDao().getItem().size() != 0) {
-                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
-                }
-            }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
-                */
 
         refreshItem();
 
@@ -126,23 +117,22 @@ public class MainActivity extends AppCompatActivity {
 
 
  */
-
         Button button = findViewById(R.id.time_add);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
                 String[] itemName = new String[2];
-                itemName[0] ="시간";
-                itemName[1] ="일수";
+                itemName[0] = "시간범위 지정하기";
+                itemName[1] = "날짜 지정하기";
 
                 AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
 
-                builder.setTitle("하나를 선택해주세요");
+                builder.setTitle("원하시는 종류를 선택해주세요");
 
                 builder.setItems(itemName, new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
-                        switch (which){
+                        switch (which) {
                             case 0:
                                 startActivity(new Intent(getApplicationContext(), CreateTimeActivity.class));
                                 break;
@@ -173,10 +163,9 @@ public class MainActivity extends AppCompatActivity {
 
         if (appDatabase.DatabaseDao().getItem().size() != 0) {
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("time")){
+                if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("time")) {
                     CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
-                }
-                else{
+                } else {
                     CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
 

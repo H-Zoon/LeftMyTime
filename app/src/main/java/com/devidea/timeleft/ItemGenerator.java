@@ -31,7 +31,7 @@ public class ItemGenerator {
 
     }
 
-    public void saveTimeItem(String summery, LocalTime startValue, LocalTime endValue, boolean autoUpdate){
+    public void saveTimeItem(String summery, LocalTime startValue, LocalTime endValue, boolean autoUpdate) {
 
         EntityItemInfo entityItemInfo = new EntityItemInfo("time", String.valueOf(startValue), String.valueOf(endValue), summery, autoUpdate);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
@@ -48,23 +48,23 @@ public class ItemGenerator {
 
         adapterItem.setAutoUpdate(itemInfo.isAutoUpdate());
         adapterItem.setSummery(itemInfo.getSummery());
-        adapterItem.setStartDay(String.valueOf(startValue));
-        adapterItem.setEndDay(String.valueOf(endValue));
+        adapterItem.setStartDay("설정시간: " + startValue);
+        adapterItem.setEndDay("종료시간: " + endValue);
         adapterItem.setId(itemInfo.getId());
 
-        if(time.isAfter(startValue) && time.isBefore(endValue)){
-            float range = Duration.between(startValue,endValue).getSeconds();
-            float sendTime = Duration.between(startValue,time).getSeconds();
+        if (time.isAfter(startValue) && time.isBefore(endValue)) {
+            float range = Duration.between(startValue, endValue).getSeconds();
+            float sendTime = Duration.between(startValue, time).getSeconds();
 
-            adapterItem.setLeftDay(String.valueOf(LocalTime.ofSecondOfDay(Duration.between(time,endValue).getSeconds())));
+            adapterItem.setLeftDay("남은시간: " + (LocalTime.ofSecondOfDay(Duration.between(time, endValue).getSeconds())));
 
-            float timePercent = (sendTime/range)*100;
+            float timePercent = (sendTime / range) * 100;
 
             adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", timePercent));
 
-        }
-        else {
+        } else {
             adapterItem.setPercentString("100");
+            adapterItem.setLeftDay("설정시간이 지나면 계산해 드릴께요");
         }
 
         return adapterItem;
@@ -72,8 +72,7 @@ public class ItemGenerator {
     }
 
 
-
-    public AdapterItem generateItem(EntityItemInfo itemInfo){
+    public AdapterItem generateItem(EntityItemInfo itemInfo) {
 
         AdapterItem adapterItem = new AdapterItem();
 
@@ -82,11 +81,11 @@ public class ItemGenerator {
         LocalDate today = LocalDate.now();
 
         //설정일
-        int setDay = endDate.getDayOfMonth()-startDate.getDayOfMonth();
+        int setDay = endDate.getDayOfMonth() - startDate.getDayOfMonth();
         //설정일에서 지난일
-        int sendDay = today.getDayOfMonth()-startDate.getDayOfMonth();
+        int sendDay = today.getDayOfMonth() - startDate.getDayOfMonth();
         //설정일까지 남은일
-        int leftDay = endDate.getDayOfMonth()-today.getDayOfMonth();
+        int leftDay = endDate.getDayOfMonth() - today.getDayOfMonth();
 
         if (today.compareTo(endDate) > 0) {
             if (itemInfo.isAutoUpdate()) {
@@ -98,16 +97,16 @@ public class ItemGenerator {
 
                 float MonthPercent = (float) sendDay / setDay * 100;
 
-                adapterItem.setStartDay(String.valueOf(startDate));
-                adapterItem.setEndDay(String.valueOf(endDate));
-                adapterItem.setLeftDay(String.valueOf(leftDay));
+                adapterItem.setStartDay("설정일: " + startDate);
+                adapterItem.setEndDay("종료일: " + endDate);
+                adapterItem.setLeftDay("남은일: D-" + leftDay);
 
                 adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
 
             } else {
-                adapterItem.setStartDay(String.valueOf(startDate));
-                adapterItem.setEndDay(String.valueOf(endDate));
-                adapterItem.setLeftDay(String.valueOf(leftDay));
+                adapterItem.setStartDay("설정일: " + startDate);
+                adapterItem.setEndDay("종료일: " + endDate);
+                adapterItem.setLeftDay("남은일: D-" + leftDay);
                 adapterItem.setPercentString("100");
 
             }
@@ -115,9 +114,9 @@ public class ItemGenerator {
         } else {
             float MonthPercent = (float) sendDay / setDay * 100;
 
-            adapterItem.setStartDay(String.valueOf(startDate));
-            adapterItem.setEndDay(String.valueOf(endDate));
-            adapterItem.setLeftDay(String.valueOf(leftDay));
+            adapterItem.setStartDay("설정일: " + startDate);
+            adapterItem.setEndDay("종료일: " + endDate);
+            adapterItem.setLeftDay("남은일: D-" + leftDay);
 
             adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
         }

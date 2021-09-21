@@ -2,6 +2,7 @@ package com.devidea.timeleft;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
 import android.content.DialogInterface;
@@ -38,14 +39,15 @@ public class CreateTimeActivity extends AppCompatActivity {
         save = findViewById(R.id.summit_time);
 
         TimePickerDialog.OnTimeSetListener callbackMethodEnd = new TimePickerDialog.OnTimeSetListener() {
+            @SuppressLint("SetTextI18n")
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                endTime = LocalTime.of(hourOfDay,minute);
-                if(endTime.compareTo(startTime)<0){
-                    Toast.makeText(CreateTimeActivity.this, "시간 범위를 확인해주세요", Toast.LENGTH_LONG).show();
+                endTime = LocalTime.of(hourOfDay, minute);
+                if (endTime.isBefore(startTime)) {
+                    Toast.makeText(CreateTimeActivity.this, "시작시간 이후로 설정해주세요", Toast.LENGTH_LONG).show();
                     isValid = false;
-                }
-                else {
+                } else {
+                    timeRange.setText(startTime + " 부터 " + endTime + " 까지 계산할께요.");
                     isValid = true;
                 }
             }
@@ -58,7 +60,7 @@ public class CreateTimeActivity extends AppCompatActivity {
 
             @Override
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
-                startTime = LocalTime.of(hourOfDay,minute);
+                startTime = LocalTime.of(hourOfDay, minute);
                 datePickerEnd.show();
             }
         };
@@ -76,11 +78,13 @@ public class CreateTimeActivity extends AppCompatActivity {
         save.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(!(inputSummery.getText().toString().equals(""))&&isValid){
+                if (!(inputSummery.getText().toString().equals("")) && isValid) {
                     //TODO : booean값 가변형으로 수정
-                    itemGenerator.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, false);
+                    itemGenerator.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, true);
                     MainActivity.refreshItem();
                     finish();
+                } else {
+                    Toast.makeText(CreateTimeActivity.this, "시간과 이름을 확인해주세요", Toast.LENGTH_LONG).show();
                 }
             }
         });

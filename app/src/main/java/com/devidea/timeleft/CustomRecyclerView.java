@@ -3,7 +3,9 @@ package com.devidea.timeleft;
 import android.animation.ObjectAnimator;
 import android.animation.ValueAnimator;
 import android.annotation.SuppressLint;
+import android.app.AlertDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
@@ -12,6 +14,7 @@ import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 
@@ -51,13 +54,12 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
 
-        viewHolder.startDay.setText("설정일: " + arrayList.get(position).getStartDay());
-        viewHolder.endDay.setText("종료일: " + arrayList.get(position).getEndDay());
-        viewHolder.leftDay.setText("남은일: D-" + arrayList.get(position).getLeftDay());
-        if(arrayList.get(position).isAutoUpdate()) {
+        viewHolder.startDay.setText(arrayList.get(position).getStartDay());
+        viewHolder.endDay.setText(arrayList.get(position).getEndDay());
+        viewHolder.leftDay.setText(arrayList.get(position).getLeftDay());
+        if (arrayList.get(position).isAutoUpdate()) {
             viewHolder.autoUpdate.setText("이후 반복되는 일정이에요");
-        }
-        else {
+        } else {
             viewHolder.autoUpdate.setText("100% 달성후 끝나는 일정이에요");
         }
 
@@ -70,10 +72,31 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                appDatabase.DatabaseDao().deleteItem(arrayList.get(position).getId());
-                appDatabase.DatabaseDao().deleteCustomWidget(String.valueOf(arrayList.get(position).getId()));
-                MainActivity.refreshItem();
-                Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.context);
+
+                builder.setMessage("정말 삭제할까요?");
+
+                builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        appDatabase.DatabaseDao().deleteItem(arrayList.get(position).getId());
+                        appDatabase.DatabaseDao().deleteCustomWidget(String.valueOf(arrayList.get(position).getId()));
+                        MainActivity.refreshItem();
+                        Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
+                        Toast.makeText(MainActivity.context, "삭제되었습니다.", Toast.LENGTH_LONG).show();
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+
+                    }
+                });
+
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
+
             }
         });
 
@@ -119,9 +142,9 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
 
             deleteButton = view.findViewById(R.id.delete_button);
 
-            itemView.setOnClickListener(new View.OnClickListener(){
+            itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
-                public void onClick (View v){
+                public void onClick(View v) {
                     int pos = getAdapterPosition();
 
                     if (selectedItems.get(getAdapterPosition())) {
@@ -138,7 +161,6 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                 }
             });
         }
-
 
 
         private void changeVisibility(final boolean isExpanded) {
