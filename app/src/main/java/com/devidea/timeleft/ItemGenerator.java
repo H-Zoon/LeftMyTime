@@ -5,7 +5,10 @@ import android.util.Log;
 
 import java.text.ParseException;
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.Calendar;
 import java.util.Date;
 import java.util.Locale;
@@ -28,14 +31,46 @@ public class ItemGenerator {
 
     }
 
-    public void saveTimeItem(){
+    public void saveTimeItem(String summery, LocalTime startValue, LocalTime endValue, boolean autoUpdate){
 
-        Date time = new Date();     //현재 날짜
-        Calendar cal = Calendar.getInstance();     //날짜 계산을 위해 Calendar 추상클래스 선언 getInstance()메소드 사용
-        //cal.setTime(time);
-        cal.add(Calendar.HOUR, 6);
+        EntityItemInfo entityItemInfo = new EntityItemInfo("time", String.valueOf(startValue), String.valueOf(endValue), summery, autoUpdate);
+        appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }
+
+    public AdapterItem generateTimeItem(EntityItemInfo itemInfo) {
+
+        AdapterItem adapterItem = new AdapterItem();
+
+        LocalTime startValue = LocalTime.parse(itemInfo.getStartValue()); //시작시간
+        LocalTime endValue = LocalTime.parse(itemInfo.getEndValue()); // 종료시간
+        LocalTime time = LocalTime.now(); //현재 시간
+
+        adapterItem.setAutoUpdate(itemInfo.isAutoUpdate());
+        adapterItem.setSummery(itemInfo.getSummery());
+        adapterItem.setStartDay(String.valueOf(startValue));
+        adapterItem.setEndDay(String.valueOf(endValue));
+        adapterItem.setId(itemInfo.getId());
+
+        if(time.isAfter(startValue) && time.isBefore(endValue)){
+            float range = Duration.between(startValue,endValue).getSeconds();
+            float sendTime = Duration.between(startValue,time).getSeconds();
+
+            adapterItem.setLeftDay(String.valueOf(LocalTime.ofSecondOfDay(Duration.between(time,endValue).getSeconds())));
+
+            float timePercent = (sendTime/range)*100;
+
+            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", timePercent));
+
+        }
+        else {
+            adapterItem.setPercentString("100");
+        }
+
+        return adapterItem;
+
+    }
+
 
 
     public AdapterItem generateItem(EntityItemInfo itemInfo){

@@ -33,7 +33,7 @@ public class AppWidgetConfigure extends Activity {
     String value = "0";
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     ItemGenerator itemGenerator = new ItemGenerator();
-    String[] itemName = new String[appDatabase.DatabaseDao().getItem().size()];;
+    String[] itemName = new String[appDatabase.DatabaseDao().getItem().size()];
     ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
     @Override
@@ -107,7 +107,7 @@ public class AppWidgetConfigure extends Activity {
 
                     default:
                         int index = Integer.parseInt(value);
-                        views.setTextViewText(R.id.percent_text, CustomItemListArray.get(index).getSummery()+" 까지 "+ CustomItemListArray.get(index).getPercentString() + "%");
+                        views.setTextViewText(R.id.percent_text, CustomItemListArray.get(index).getSummery() + " 까지 " + CustomItemListArray.get(index).getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(CustomItemListArray.get(index).getPercentString()), false);
                         views.setTextViewText(R.id.text, " 달성했습니다.");
 
@@ -143,14 +143,13 @@ public class AppWidgetConfigure extends Activity {
                         break;
                     case R.id.customButton:
 
-
-                            if (appDatabase.DatabaseDao().getItem().size() != 0) {
-                                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                                    CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
-                                    itemName[i]=CustomItemListArray.get(i).getSummery();
-                                    Log.d("item", CustomItemListArray.get(i).getSummery());
-                                }
+                        if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                            for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+                                CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
+                                itemName[i] = CustomItemListArray.get(i).getSummery();
+                                Log.d("item", CustomItemListArray.get(i).getSummery());
                             }
+                        }
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(AppWidgetConfigure.this);
 

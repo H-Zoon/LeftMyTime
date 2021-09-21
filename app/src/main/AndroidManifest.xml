@@ -10,7 +10,8 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
-        <activity android:name=".CreateItemActivity"></activity>
+        <activity android:name=".CreateTimeActivity"></activity>
+        <activity android:name=".CreateMonthActivity" />
 
         <receiver android:name=".AppWidget">
             <intent-filter>

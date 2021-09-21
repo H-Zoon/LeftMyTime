@@ -5,14 +5,15 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.room.Room;
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
-import android.os.Handler;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 
 import me.relex.circleindicator.CircleIndicator2;
@@ -75,7 +76,6 @@ public class MainActivity extends AppCompatActivity {
         adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
 
 
-
         //커스텀 항목에 대한 추가
         customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
         customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
@@ -131,24 +131,57 @@ public class MainActivity extends AppCompatActivity {
         button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent intent = new Intent(getApplicationContext(), CreateItemActivity.class);
-                startActivity(intent);
+                String[] itemName = new String[2];
+                itemName[0] ="시간";
+                itemName[1] ="일수";
 
+                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+
+                builder.setTitle("하나를 선택해주세요");
+
+                builder.setItems(itemName, new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which){
+                            case 0:
+                                startActivity(new Intent(getApplicationContext(), CreateTimeActivity.class));
+                                break;
+                            case 1:
+                                startActivity(new Intent(getApplicationContext(), CreateMonthActivity.class));
+                                break;
+                        }
+
+                    }
+                });
+
+                builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int id) {
+                        Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_SHORT).show();
+                    }
+                });
+
+                AlertDialog alertDialog = builder.create();
+                alertDialog.show();
             }
         });
     }
 
-    public static void refreshItem(){
+    public static void refreshItem() {
         ItemGenerator itemGenerator = new ItemGenerator();
         ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
-            if (appDatabase.DatabaseDao().getItem().size() != 0) {
-                for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+        if (appDatabase.DatabaseDao().getItem().size() != 0) {
+            for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+                if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("time")){
+                    CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
+                }
+                else{
                     CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
+
             }
-
-
+        }
 
         customItemAdapter = new CustomRecyclerView(CustomItemListArray);
         customItemRecyclerView.setAdapter(customItemAdapter);

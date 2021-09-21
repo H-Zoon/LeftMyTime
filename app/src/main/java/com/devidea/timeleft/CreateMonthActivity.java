@@ -17,7 +17,7 @@ import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
-public class CreateItemActivity extends AppCompatActivity {
+public class CreateMonthActivity extends AppCompatActivity {
 
     EditText inputSummery, inputDay;
     Button calender, save;
@@ -27,7 +27,7 @@ public class CreateItemActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_create_item);
+        setContentView(R.layout.activity_create_month);
 
         LocalDate now = LocalDate.now();
 
@@ -49,7 +49,7 @@ public class CreateItemActivity extends AppCompatActivity {
                 if (start.compareTo(end) < 0) {
                     diffDay = (int) ((end.getTimeInMillis() - start.getTimeInMillis()) / (24 * 60 * 60 * 1000));
                     if (diffDay > 1826) {
-                        Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
+                        Toast.makeText(CreateMonthActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
                         inputDay.setText("");
                         inputDay.setText(String.valueOf(diffDay));
@@ -57,7 +57,7 @@ public class CreateItemActivity extends AppCompatActivity {
                     }
 
                 } else {
-                    Toast.makeText(CreateItemActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();
+                    Toast.makeText(CreateMonthActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();
                 }
 
             }
@@ -66,7 +66,7 @@ public class CreateItemActivity extends AppCompatActivity {
         calender.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                DatePickerDialog datePicker = new DatePickerDialog(CreateItemActivity.this, dateSetListener, now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth());
+                DatePickerDialog datePicker = new DatePickerDialog(CreateMonthActivity.this, dateSetListener, now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth());
                 datePicker.show();
             }
         });
@@ -76,7 +76,7 @@ public class CreateItemActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!(inputSummery.getText().toString().equals("")) && !(inputDay.getText().toString().equals(""))) {
                     if (Integer.parseInt(inputDay.getText().toString()) > 1826) {
-                        Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
+                        Toast.makeText(CreateMonthActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
                         itemGenerator.saveMonthItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
                         MainActivity.refreshItem();
@@ -84,7 +84,7 @@ public class CreateItemActivity extends AppCompatActivity {
                     }
 
                 } else {
-                    Toast.makeText(CreateItemActivity.this, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG).show();
+                    Toast.makeText(CreateMonthActivity.this, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG).show();
                 }
             }
         });
