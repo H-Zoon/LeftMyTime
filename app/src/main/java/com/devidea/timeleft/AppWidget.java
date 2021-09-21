@@ -10,17 +10,11 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
-import java.text.ParseException;
-
 import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.itemgenerator;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
-/**
- * Implementation of App Widget functionality.
- */
 public class AppWidget extends AppWidgetProvider {
     private static final String TAG = "AppWidget";
 
@@ -32,15 +26,8 @@ public class AppWidget extends AppWidgetProvider {
         Log.d(TAG, "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
-            Bundle extras = intent.getExtras();
 
-            try{
-                appWidgetIds = appDatabase.DatabaseDao().get();
-            } catch (Exception e) {
-                e.printStackTrace();
-                onDisabled(context);
-            }
-
+            appWidgetIds = appDatabase.DatabaseDao().get();
 
             Log.d(TAG, "extras is not null");
             if (appWidgetIds != null && appWidgetIds.length > 0) {
@@ -94,23 +81,16 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
-        try{
-            appDatabase.DatabaseDao().delete(appWidgetIds[0]);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
 
+        appDatabase.DatabaseDao().delete(appWidgetIds[0]);
         Log.d(TAG, "onDeleted done");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
 
         String value = null;
-        try {
-            value = appDatabase.DatabaseDao().get_summery(appWidgetId);
-        } catch (Exception e) {
-            e.printStackTrace();
-        }
+
+        value = appDatabase.DatabaseDao().getType(appWidgetId);
 
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
@@ -122,7 +102,7 @@ public class AppWidget extends AppWidgetProvider {
             views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
 
             switch (value) {
-                case "year":
+                case "embedYear":
 
                     views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
@@ -131,7 +111,7 @@ public class AppWidget extends AppWidgetProvider {
                     Log.d(TAG, "year update done");
                     break;
 
-                case "month":
+                case "embedMonth":
 
                     views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
@@ -140,7 +120,7 @@ public class AppWidget extends AppWidgetProvider {
                     Log.d(TAG, "month update done");
                     break;
 
-                case "time":
+                case "embedTime":
 
                     views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
@@ -148,6 +128,20 @@ public class AppWidget extends AppWidgetProvider {
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
                     break;
+
+                default:
+                    ItemGenerator itemGenerator = new ItemGenerator();
+                    AdapterItem adapterItem;
+                    int typeID = appDatabase.DatabaseDao().getTypeID(Integer.parseInt(value));
+                    EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(typeID);
+                    if (value.equals("time")) {
+                        adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
+                    } else {
+                        adapterItem = itemGenerator.generateItem(entityItemInfo);
+                    }
+                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() + adapterItem.getPercentString() + "%");
+                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
+
             }
 
         }

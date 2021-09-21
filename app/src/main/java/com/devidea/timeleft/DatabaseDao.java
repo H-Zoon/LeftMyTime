@@ -32,13 +32,16 @@ public interface DatabaseDao {
     @Query("SELECT widgetID FROM EntityWidgetInfo")
     int[] get();
 
-    @Query("SELECT summery FROM EntityWidgetInfo WHERE widgetID = :ID")
-    String get_summery(int ID);
+    @Query("SELECT type FROM EntityWidgetInfo WHERE widgetID = :ID")
+    String getType(int ID);
+
+    @Query("SELECT typeID FROM EntityWidgetInfo WHERE widgetID = :ID")
+    int getTypeID(int ID);
 
     @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE summery = :ID")
+    @Query("DELETE FROM EntityWidgetInfo WHERE type = :ID")
     void deleteCustomWidget(String ID);
 
 

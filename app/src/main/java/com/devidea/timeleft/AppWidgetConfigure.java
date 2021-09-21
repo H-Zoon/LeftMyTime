@@ -10,13 +10,18 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
+import android.widget.CheckBox;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
+import android.widget.Spinner;
 import android.widget.Toast;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
@@ -30,9 +35,14 @@ public class AppWidgetConfigure extends Activity {
     }
 
     Button summitButton;
+    Spinner spinner;
+    CheckBox checkBox;
+    RadioGroup radioGroup;
     String value = "0";
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     EntityWidgetInfo entityWidgetInfo;
+    ItemGenerator itemGenerator = new ItemGenerator();
+
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -55,7 +65,6 @@ public class AppWidgetConfigure extends Activity {
             finish();
         }
 
-
         View.OnClickListener mOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -74,29 +83,43 @@ public class AppWidgetConfigure extends Activity {
                 views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
 
                 switch (value) {
-                    case "year":
+                    case "embedYear":
                         views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
-                    case "month":
+                    case "embedMonth":
                         views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
-                    case "time":
+                    case "embedTime":
                         views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
+
+                    default:
+                        Log.d("value", value);
+                        EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value));
+                        AdapterItem adapterItem;
+                        if(entityItemInfo.getType().equals("time")){
+                            adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
+                        }else{ adapterItem = itemGenerator.generateItem(entityItemInfo);
+                        }
+                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() + adapterItem.getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
+                        appWidgetManager.updateAppWidget(AppWidgetId, views);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, adapterItem.getId(), entityItemInfo.getType());
+                        appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
 
                 }
 
@@ -107,29 +130,70 @@ public class AppWidgetConfigure extends Activity {
             }
         };
 
-        summitButton = findViewById(R.id.summit_button);
-        summitButton.setOnClickListener(mOnClickListener);
 
         RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
                 switch (checkedId) {
                     case R.id.yearButton:
-                        value = "year";
+                        value = "embedYear";
                         break;
                     case R.id.monthButton:
-                        value = "month";
+                        value = "embedMonth";
                         break;
                     case R.id.timeButton:
-                        value = "time";
+                        value = "embedTime";
                         break;
                 }
             }
         };
 
-        RadioGroup radioGroup = (RadioGroup) findViewById(R.id.radioGroup);
-        radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener);
+        radioGroup = findViewById(R.id.radioGroup);
+        summitButton = findViewById(R.id.summit_button);
+        spinner = findViewById(R.id.spinner);
+        checkBox = findViewById(R.id.checkBox);
 
+        radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener);
+        summitButton.setOnClickListener(mOnClickListener);
+        spinner.setEnabled(false);
+
+        checkBox.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                if(checkBox.isChecked()){
+                    for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                        radioGroup.getChildAt(i).setEnabled(false);
+                    }
+                    spinner.setEnabled(true);
+                }
+                else {
+                    for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                        radioGroup.getChildAt(i).setEnabled(true);
+                    }
+                    spinner.setEnabled(false);
+                }
+            }
+        });
+
+        ArrayList<String> itemName = new ArrayList<>();
+        List<EntityItemInfo> entityItemInfo = appDatabase.DatabaseDao().getItem();
+        for(int i = 0; i<appDatabase.DatabaseDao().getItem().size(); i++){
+           itemName.add(appDatabase.DatabaseDao().getItem().get(i).getSummery());
+        }
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, itemName);
+        spinner.setAdapter(adapter);
+        spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                value = String.valueOf(entityItemInfo.get(position).getId());
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {
+
+            }
+        });
     }
 }
 

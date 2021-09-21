@@ -13,6 +13,7 @@ import android.widget.EditText;
 import android.widget.Toast;
 
 import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
@@ -40,22 +41,13 @@ public class CreateMonthActivity extends AppCompatActivity {
         DatePickerDialog.OnDateSetListener dateSetListener = new DatePickerDialog.OnDateSetListener() {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
-                @SuppressLint("SimpleDateFormat") SimpleDateFormat transFormat = new SimpleDateFormat("dd");
+                LocalDate startDate = LocalDate.now();
+                LocalDate endDate = LocalDate.of(year, month, dayOfMonth);
 
-                Calendar start = new GregorianCalendar(now.getYear(), now.getMonthValue() - 1, now.getDayOfMonth());
-                Calendar end = new GregorianCalendar(year, month, dayOfMonth);
-                int diffDay;
-
-                if (start.compareTo(end) < 0) {
-                    diffDay = (int) ((end.getTimeInMillis() - start.getTimeInMillis()) / (24 * 60 * 60 * 1000));
-                    if (diffDay > 1826) {
-                        Toast.makeText(CreateMonthActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
-                    } else {
-                        inputDay.setText("");
-                        inputDay.setText(String.valueOf(diffDay));
-                        inputDay.setSelection(inputDay.length());
-                    }
-
+                if (startDate.isAfter(endDate)) {
+                    inputDay.setText("");
+                    inputDay.setText(String.valueOf(endDate.minusDays(startDate.getDayOfMonth()).getDayOfMonth()));
+                    inputDay.setSelection(inputDay.length());
                 } else {
                     Toast.makeText(CreateMonthActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();
                 }

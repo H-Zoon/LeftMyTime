@@ -11,14 +11,14 @@ public class ItemGenerator {
 
     public void saveMonthItem(String summery, int end, boolean autoUpdate) {
 
-        EntityItemInfo entityItemInfo = new EntityItemInfo("month", String.valueOf(LocalDate.now()), String.valueOf(LocalDate.now().plusDays(end)), summery, autoUpdate);
+        EntityItemInfo entityItemInfo = new EntityItemInfo("Month", String.valueOf(LocalDate.now()), String.valueOf(LocalDate.now().plusDays(end)), summery, autoUpdate);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }
 
     public void saveTimeItem(String summery, LocalTime startValue, LocalTime endValue, boolean autoUpdate) {
 
-        EntityItemInfo entityItemInfo = new EntityItemInfo("time", String.valueOf(startValue), String.valueOf(endValue), summery, autoUpdate);
+        EntityItemInfo entityItemInfo = new EntityItemInfo("Time", String.valueOf(startValue), String.valueOf(endValue), summery, autoUpdate);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }

@@ -115,7 +115,7 @@ public class MainActivity extends AppCompatActivity {
 
         if (appDatabase.DatabaseDao().getItem().size() != 0) {
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("time")) {
+                if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
                     CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
                 } else {
                     CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
