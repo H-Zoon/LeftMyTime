@@ -27,7 +27,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     //array list
     private final ArrayList<AdapterItem> arrayList;
     // Item의 클릭 상태를 저장할 array 객체
-    private static SparseBooleanArray selectedItems = new SparseBooleanArray();
+    private SparseBooleanArray selectedItems;
     // 직전에 클릭됐던 Item의 position
     private static int prePosition = -1;
     //context
@@ -43,6 +43,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     @Override
     public CustomRecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         context = viewGroup.getContext();
+        selectedItems = new SparseBooleanArray(getItemCount());
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
                 .inflate(R.layout.item_recyclerview_custom, viewGroup, false);
@@ -93,7 +94,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
 
                     }
                 });
-
+                selectedItems.put(position, false);
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
 
@@ -149,22 +150,22 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
 
                     if (selectedItems.get(getAdapterPosition())) {
                         // 펼쳐진 Item을 클릭 시
-                        selectedItems.delete(getAdapterPosition());
+                        selectedItems.put(getAdapterPosition(),false);
                     } else {
                         // 직전의 클릭됐던 Item의 클릭상태를 지움
-                        selectedItems.delete(prePosition);
+                        selectedItems.put(pos, false);
+                        prePosition = pos;
                         // 클릭한 Item의 position을 저장
                         selectedItems.put(getAdapterPosition(), true);
                     }
                     changeVisibility(selectedItems.get(getAdapterPosition()));
-                    Log.d("start", "start");
                 }
             });
         }
 
 
         private void changeVisibility(final boolean isExpanded) {
-            // height 값을 dp로 지정해서 넣고싶으면 아래 소스를 이용
+            // height 값을 dp로 지정
             int dpValue = 200;
             float d = context.getResources().getDisplayMetrics().density;
             int height = (int) (dpValue * d);
@@ -177,9 +178,8 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                 @Override
                 public void onAnimationUpdate(ValueAnimator animation) {
                     // value는 height 값
-                    int value = (int) animation.getAnimatedValue();
                     // imageView의 높이 변경
-                    itemView.findViewById(R.id.view).getLayoutParams().height = value;
+                    itemView.findViewById(R.id.view).getLayoutParams().height = (int) animation.getAnimatedValue();
                     itemView.findViewById(R.id.view).requestLayout();
                     // imageView가 실제로 사라지게하는 부분
                     startDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
