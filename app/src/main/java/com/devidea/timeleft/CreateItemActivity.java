@@ -78,7 +78,7 @@ public class CreateItemActivity extends AppCompatActivity {
                     if (Integer.parseInt(inputDay.getText().toString()) > 1826) {
                         Toast.makeText(CreateItemActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
-                        itemGenerator.saveItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
+                        itemGenerator.saveMonthItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
                         MainActivity.refreshItem();
                         finish();
                     }

@@ -39,7 +39,7 @@ public class MainActivity extends AppCompatActivity {
     private long backPressedTime = 0;
 
     //핸들러
-    Handler handler;
+    //Handler handler;
 
     static AppDatabase appDatabase;
 
@@ -51,7 +51,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        handler = new Handler();
+        //handler = new Handler();
 
         recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
@@ -141,15 +141,14 @@ public class MainActivity extends AppCompatActivity {
     public static void refreshItem(){
         ItemGenerator itemGenerator = new ItemGenerator();
         ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
-        try {
+
             if (appDatabase.DatabaseDao().getItem().size() != 0) {
                 for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
+                    CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
             }
-        } catch (ParseException e) {
-            e.printStackTrace();
-        }
+
+
 
         customItemAdapter = new CustomRecyclerView(CustomItemListArray);
         customItemRecyclerView.setAdapter(customItemAdapter);

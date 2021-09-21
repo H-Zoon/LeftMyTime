@@ -8,14 +8,6 @@ public class AdapterItem {
     private String leftDay;
     private boolean autoUpdate;
 
-    public String getPercent() {
-        return percent;
-    }
-
-    public void setPercent(String percent) {
-        this.percent = percent;
-    }
-
     public boolean isAutoUpdate() {
         return autoUpdate;
     }

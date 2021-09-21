@@ -23,7 +23,7 @@ public interface DatabaseDao {
     @Query("SELECT * FROM EntityItemInfo WHERE id = :ID")
     EntityItemInfo getSelectItem(int ID);
 
-    @Query("UPDATE EntityItemInfo SET startDay = :updateStart, endDay = :updateEnd WHERE id = :ID")
+    @Query("UPDATE EntityItemInfo SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
     void updateItem(String updateStart, String updateEnd, int ID);
 
     @Insert

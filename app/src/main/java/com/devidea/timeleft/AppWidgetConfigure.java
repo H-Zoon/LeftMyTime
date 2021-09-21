@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import java.text.ParseException;
 import java.util.ArrayList;
-import java.util.List;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
@@ -144,17 +143,14 @@ public class AppWidgetConfigure extends Activity {
                         break;
                     case R.id.customButton:
 
-                        try {
+
                             if (appDatabase.DatabaseDao().getItem().size() != 0) {
                                 for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                                    CustomItemListArray.add(itemGenerator.calDate(appDatabase.DatabaseDao().getItem().get(i)));
+                                    CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
                                     itemName[i]=CustomItemListArray.get(i).getSummery();
                                     Log.d("item", CustomItemListArray.get(i).getSummery());
                                 }
                             }
-                        } catch (ParseException e) {
-                            e.printStackTrace();
-                        }
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(AppWidgetConfigure.this);
 

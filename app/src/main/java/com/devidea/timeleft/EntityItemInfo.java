@@ -8,14 +8,16 @@ public class EntityItemInfo {
     @PrimaryKey(autoGenerate = true)
     int id = 0;
 
-    public String startDay;
-    public String endDay;
+    public String type;
+    public String startValue;
+    public String endValue;
     public String summery;
     public boolean autoUpdate;
 
-    public EntityItemInfo(String startDay, String endDay, String summery, boolean autoUpdate) {
-        this.startDay = startDay;
-        this.endDay = endDay;
+    public EntityItemInfo(String type, String startValue, String endValue, String summery, boolean autoUpdate) {
+        this.type = type;
+        this.startValue = startValue;
+        this.endValue = endValue;
         this.summery = summery;
         this.autoUpdate = autoUpdate;
     }
@@ -24,12 +26,16 @@ public class EntityItemInfo {
         return id;
     }
 
-    public String getStartDay() {
-        return startDay;
+    public String getType() {
+        return type;
     }
 
-    public String getEndDay() {
-        return endDay;
+    public String getStartValue() {
+        return startValue;
+    }
+
+    public String getEndValue() {
+        return endValue;
     }
 
     public String getSummery() {

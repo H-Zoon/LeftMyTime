@@ -11,7 +11,6 @@ import android.util.Log;
 import android.widget.RemoteViews;
 
 import java.text.ParseException;
-import java.util.ArrayList;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.itemgenerator;
@@ -152,11 +151,9 @@ public class AppWidget extends AppWidgetProvider {
 
                 default:
                     AdapterItem adapterItem  = new AdapterItem();
-                    try {
-                        adapterItem = itemgenerator.calDate(appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value)));
-                    } catch (ParseException e) {
-                        e.printStackTrace();
-                    }
+
+                        adapterItem = itemgenerator.generateItem(appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value)));
+
 
                     views.setTextViewText(R.id.percent_text, adapterItem.getSummery()+" 까지 " + adapterItem.getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
