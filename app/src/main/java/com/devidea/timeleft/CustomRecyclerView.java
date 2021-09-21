@@ -72,7 +72,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         viewHolder.deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.context);
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
 
                 builder.setMessage("정말 삭제할까요?");
 
@@ -83,7 +83,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                         appDatabase.DatabaseDao().deleteCustomWidget(String.valueOf(arrayList.get(position).getId()));
                         MainActivity.refreshItem();
                         Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
-                        Toast.makeText(MainActivity.context, "삭제되었습니다.", Toast.LENGTH_LONG).show();
+                        Toast.makeText(context, "삭제되었습니다.", Toast.LENGTH_LONG).show();
                     }
                 });
 

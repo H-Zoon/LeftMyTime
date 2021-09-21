@@ -71,12 +71,6 @@
                 android:text="시간 지나감 보기"
                 android:textSize="20sp" />
 
-            <RadioButton
-                android:id="@+id/customButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="내가만든 항목 보기"
-                android:textSize="20sp" />
         </RadioGroup>
 
     </LinearLayout>

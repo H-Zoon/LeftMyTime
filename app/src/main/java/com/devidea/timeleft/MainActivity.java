@@ -22,31 +22,17 @@ import me.relex.circleindicator.CircleIndicator2;
 
 public class MainActivity extends AppCompatActivity {
 
-    //recyclerView 관련 객체
-    private RecyclerView adapter;
-    private androidx.recyclerview.widget.RecyclerView recyclerView;
     private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
 
-    //사용자가 추가한 부분의 아이템
-    private static CustomRecyclerView customItemAdapter;
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
-    //private ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
     public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
     public static final ItemGenerator itemgenerator = new ItemGenerator();
 
-    //뒤로가기 버튼 리스너에 쓰이는 변수
-    private final long FINISH_INTERVAL_TIME = 2000;
     private long backPressedTime = 0;
-
-    //핸들러
-    Handler handler = new Handler();
-
-    static Context context;
-
-    static AppDatabase appDatabase;
+    public static AppDatabase appDatabase;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,16 +42,15 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        context = MainActivity.this;
-
-        recyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview);
+        androidx.recyclerview.widget.RecyclerView recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
         adapterItemListArray.add(timeInfoTime.setTimeItem());
         adapterItemListArray.add(timeInfoMonth.setTimeItem());
         adapterItemListArray.add(timeInfoYear.setTimeItem());
 
-        adapter = new RecyclerView(adapterItemListArray);
+        //recyclerView 관련 객체
+        RecyclerView adapter = new RecyclerView(adapterItemListArray);
         recyclerView.setAdapter(adapter);
 
         // PagerSnapHelper 추가 꼭 공부하기 !!
@@ -79,44 +64,12 @@ public class MainActivity extends AppCompatActivity {
         //인디케이터 활성화 꼭 공부하기!!
         adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
 
-
         //커스텀 항목에 대한 추가
-        customItemRecyclerView = (androidx.recyclerview.widget.RecyclerView) findViewById(R.id.recyclerview2);
+        customItemRecyclerView = findViewById(R.id.recyclerview2);
         customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
 
         refreshItem();
 
-        //customItemAdapter = new CustomRecyclerView(CustomItemListArray);
-        //customItemRecyclerView.setAdapter(customItemAdapter);
-
-
-/*
-        //초단위, 현재시간 update Thread
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-
-                while (true) {
-                    //핸들러
-                    handler.post(new Runnable() {
-
-                        @Override
-                        public void run() {
-                            adapter.notifyItemChanged(adapter.getItemCount(), timeInfoTime.setTimeItem().getPercentString()); // 리사이클러뷰 payload 호출
-                        }
-                    });
-
-                    try {
-                        Thread.sleep(1000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }).start();
-
-
- */
         Button button = findViewById(R.id.time_add);
         button.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -150,7 +103,6 @@ public class MainActivity extends AppCompatActivity {
                         Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_SHORT).show();
                     }
                 });
-
                 AlertDialog alertDialog = builder.create();
                 alertDialog.show();
             }
@@ -172,7 +124,8 @@ public class MainActivity extends AppCompatActivity {
             }
         }
 
-        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        //사용자가 추가한 부분의 아이템
+        CustomRecyclerView customItemAdapter = new CustomRecyclerView(CustomItemListArray);
         customItemRecyclerView.setAdapter(customItemAdapter);
     }
 
@@ -181,6 +134,8 @@ public class MainActivity extends AppCompatActivity {
         long tempTime = System.currentTimeMillis();
         long intervalTime = tempTime - backPressedTime;
 
+        //뒤로가기 버튼 리스너에 쓰이는 변수
+        long FINISH_INTERVAL_TIME = 2000;
         if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
             finish();
         } else {

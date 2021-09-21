@@ -148,22 +148,6 @@ public class AppWidget extends AppWidgetProvider {
                     appWidgetManager.updateAppWidget(appWidgetId, views);
                     Log.d(TAG, "time update done");
                     break;
-
-                default:
-                    AdapterItem adapterItem  = new AdapterItem();
-
-                        adapterItem = itemgenerator.generateItem(appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value)));
-
-
-                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery()+" 까지 " + adapterItem.getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
-                    views.setTextViewText(R.id.text, " 달성했습니다.");
-
-
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
-                    Log.d(TAG, "custom update done");
-                    break;
-
             }
 
         }

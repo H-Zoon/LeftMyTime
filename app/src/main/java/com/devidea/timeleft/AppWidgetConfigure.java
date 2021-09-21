@@ -32,9 +32,7 @@ public class AppWidgetConfigure extends Activity {
     Button summitButton;
     String value = "0";
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
-    ItemGenerator itemGenerator = new ItemGenerator();
-    String[] itemName = new String[appDatabase.DatabaseDao().getItem().size()];
-    ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+    EntityWidgetInfo entityWidgetInfo;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -79,42 +77,26 @@ public class AppWidgetConfigure extends Activity {
                     case "year":
                         views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
-
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        EntityWidgetInfo y = new EntityWidgetInfo(AppWidgetId, value);
-                        appDatabase.DatabaseDao().saveWidget(y);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
                     case "month":
                         views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
-
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-                        EntityWidgetInfo m = new EntityWidgetInfo(AppWidgetId, value);
-                        appDatabase.DatabaseDao().saveWidget(m);
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
+
                     case "time":
                         views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
-
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
-
-                        EntityWidgetInfo w = new EntityWidgetInfo(AppWidgetId, value);
-                        appDatabase.DatabaseDao().saveWidget(w);
-
+                        entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, value);
+                        appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
-
-
-                    default:
-                        int index = Integer.parseInt(value);
-                        views.setTextViewText(R.id.percent_text, CustomItemListArray.get(index).getSummery() + " 까지 " + CustomItemListArray.get(index).getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(CustomItemListArray.get(index).getPercentString()), false);
-                        views.setTextViewText(R.id.text, " 달성했습니다.");
-
-                        appWidgetManager.updateAppWidget(AppWidgetId, views);
-
-                        EntityWidgetInfo c = new EntityWidgetInfo(AppWidgetId, String.valueOf(CustomItemListArray.get(index).getId()));
-                        appDatabase.DatabaseDao().saveWidget(c);
 
                 }
 
@@ -140,46 +122,6 @@ public class AppWidgetConfigure extends Activity {
                         break;
                     case R.id.timeButton:
                         value = "time";
-                        break;
-                    case R.id.customButton:
-
-                        if (appDatabase.DatabaseDao().getItem().size() != 0) {
-                            for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
-                                CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
-                                itemName[i] = CustomItemListArray.get(i).getSummery();
-                                Log.d("item", CustomItemListArray.get(i).getSummery());
-                            }
-                        }
-
-                        AlertDialog.Builder builder = new AlertDialog.Builder(AppWidgetConfigure.this);
-
-                        builder.setTitle("하나를 선택해주세요");
-                        Log.d("item", itemName[0]);
-                        builder.setItems(itemName, new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int which) {
-                                value = String.valueOf(which);
-                                Toast.makeText(getApplicationContext(), CustomItemListArray.get(Integer.parseInt(value)).getSummery() + " 선택됌", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                Toast.makeText(getApplicationContext(), CustomItemListArray.get(Integer.parseInt(value)).getSummery() + " 선택됌", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-                            @Override
-                            public void onClick(DialogInterface dialog, int id) {
-                                Toast.makeText(getApplicationContext(), "취소", Toast.LENGTH_SHORT).show();
-                            }
-                        });
-
-                        AlertDialog alertDialog = builder.create();
-                        alertDialog.show();
-
                         break;
                 }
             }

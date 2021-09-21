@@ -1,16 +1,8 @@
 package com.devidea.timeleft;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
-import java.time.LocalDateTime;
 import java.time.LocalTime;
-import java.util.Calendar;
-import java.util.Date;
 import java.util.Locale;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
@@ -19,14 +11,7 @@ public class ItemGenerator {
 
     public void saveMonthItem(String summery, int end, boolean autoUpdate) {
 
-        LocalDate time = LocalDate.now();     //현재 날짜
-        LocalDate addTime = LocalDate.now().plusDays(end);
-
-        String startValue = String.valueOf(time);
-        String endValue = String.valueOf(addTime);
-
-        //todo : type값 가변형으로 변경.
-        EntityItemInfo entityItemInfo = new EntityItemInfo("month", startValue, endValue, summery, autoUpdate);
+        EntityItemInfo entityItemInfo = new EntityItemInfo("month", String.valueOf(LocalDate.now()), String.valueOf(LocalDate.now().plusDays(end)), summery, autoUpdate);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }
@@ -87,42 +72,28 @@ public class ItemGenerator {
         //설정일까지 남은일
         int leftDay = endDate.getDayOfMonth() - today.getDayOfMonth();
 
-        if (today.compareTo(endDate) > 0) {
-            if (itemInfo.isAutoUpdate()) {
-                String updateStart = String.valueOf(endDate);
-                String updateEnd = String.valueOf(endDate.plusDays(setDay));
-                int id = itemInfo.getId();
-                appDatabase.DatabaseDao().updateItem(updateStart, updateEnd, id);
-                Log.d("update", String.valueOf(setDay));
 
-                float MonthPercent = (float) sendDay / setDay * 100;
-
-                adapterItem.setStartDay("설정일: " + startDate);
-                adapterItem.setEndDay("종료일: " + endDate);
-                adapterItem.setLeftDay("남은일: D-" + leftDay);
-
-                adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
-
-            } else {
-                adapterItem.setStartDay("설정일: " + startDate);
-                adapterItem.setEndDay("종료일: " + endDate);
-                adapterItem.setLeftDay("남은일: D-" + leftDay);
-                adapterItem.setPercentString("100");
-
-            }
-
-        } else {
-            float MonthPercent = (float) sendDay / setDay * 100;
-
-            adapterItem.setStartDay("설정일: " + startDate);
-            adapterItem.setEndDay("종료일: " + endDate);
-            adapterItem.setLeftDay("남은일: D-" + leftDay);
-
-            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
+        //종료일로 넘어가고 자동 업데이트 체크한 경우
+        if (today.isAfter(endDate) && itemInfo.isAutoUpdate()) {
+            //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
+            appDatabase.DatabaseDao().updateItem(String.valueOf(endDate), String.valueOf(endDate.plusDays(setDay)), itemInfo.getId());
         }
+
+        float MonthPercent = (float) sendDay / setDay * 100;
+
+        adapterItem.setStartDay("설정일: " + startDate);
+        adapterItem.setEndDay("종료일: " + endDate);
+        adapterItem.setLeftDay("남은일: D-" + leftDay);
         adapterItem.setAutoUpdate(itemInfo.isAutoUpdate());
         adapterItem.setSummery(itemInfo.getSummery());
         adapterItem.setId(itemInfo.getId());
+
+        if(MonthPercent<100){
+            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
+        }
+        else {
+            adapterItem.setPercentString("100");
+        }
 
         return adapterItem;
     }

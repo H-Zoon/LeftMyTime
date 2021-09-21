@@ -24,7 +24,6 @@ public class CreateTimeActivity extends AppCompatActivity {
     TextView timeRange;
     EditText inputSummery;
     Button clock, save;
-    //CheckBox AutoUpdateCheck;
     ItemGenerator itemGenerator = new ItemGenerator();
     LocalTime startTime, endTime;
     boolean isValid = false;
@@ -79,7 +78,6 @@ public class CreateTimeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!(inputSummery.getText().toString().equals("")) && isValid) {
-                    //TODO : booean값 가변형으로 수정
                     itemGenerator.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, true);
                     MainActivity.refreshItem();
                     finish();
