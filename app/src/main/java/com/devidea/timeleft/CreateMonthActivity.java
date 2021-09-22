@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -15,6 +16,8 @@ import android.widget.Toast;
 import java.text.SimpleDateFormat;
 import java.time.Duration;
 import java.time.LocalDate;
+import java.time.Period;
+import java.time.temporal.ChronoUnit;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
 
@@ -42,11 +45,11 @@ public class CreateMonthActivity extends AppCompatActivity {
             @Override
             public void onDateSet(DatePicker view, int year, int month, int dayOfMonth) {
                 LocalDate startDate = LocalDate.now();
-                LocalDate endDate = LocalDate.of(year, month, dayOfMonth);
+                LocalDate endDate = LocalDate.of(year, month+1, dayOfMonth);
 
-                if (startDate.isAfter(endDate)) {
+                if (endDate.isAfter(startDate)) {
                     inputDay.setText("");
-                    inputDay.setText(String.valueOf(endDate.minusDays(startDate.getDayOfMonth()).getDayOfMonth()));
+                    inputDay.setText(String.valueOf(ChronoUnit.DAYS.between(startDate, endDate)));
                     inputDay.setSelection(inputDay.length());
                 } else {
                     Toast.makeText(CreateMonthActivity.this, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG).show();

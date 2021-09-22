@@ -108,10 +108,9 @@ public class AppWidgetConfigure extends Activity {
                         break;
 
                     default:
-                        Log.d("value", value);
                         EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value));
                         AdapterItem adapterItem;
-                        if(entityItemInfo.getType().equals("time")){
+                        if(entityItemInfo.getType().equals("Time")){
                             adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
                         }else{ adapterItem = itemGenerator.generateItem(entityItemInfo);
                         }

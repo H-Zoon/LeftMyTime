@@ -3,6 +3,7 @@ package com.devidea.timeleft;
 import java.time.Duration;
 import java.time.LocalDate;
 import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
@@ -66,11 +67,13 @@ public class ItemGenerator {
         LocalDate today = LocalDate.now();
 
         //설정일
-        int setDay = endDate.getDayOfMonth() - startDate.getDayOfMonth();
+        int setDay = (int) ChronoUnit.DAYS.between(startDate, endDate);
+
         //설정일에서 지난일
-        int sendDay = today.getDayOfMonth() - startDate.getDayOfMonth();
+        int sendDay = (int) ChronoUnit.DAYS.between(startDate, today);
+
         //설정일까지 남은일
-        int leftDay = endDate.getDayOfMonth() - today.getDayOfMonth();
+        int leftDay = (int) ChronoUnit.DAYS.between(today, endDate);
 
 
         //종료일로 넘어가고 자동 업데이트 체크한 경우

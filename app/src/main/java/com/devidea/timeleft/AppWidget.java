@@ -10,6 +10,8 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import androidx.room.Room;
+
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
@@ -17,7 +19,6 @@ import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
 public class AppWidget extends AppWidgetProvider {
     private static final String TAG = "AppWidget";
-
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -26,6 +27,9 @@ public class AppWidget extends AppWidgetProvider {
         Log.d(TAG, "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
+            if(appDatabase == null){
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
+            }
 
             appWidgetIds = appDatabase.DatabaseDao().get();
 
@@ -62,7 +66,7 @@ public class AppWidget extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 50000, pendingIntent);
+        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent);
         Log.d(TAG, "alert on");
 
     }
@@ -88,20 +92,20 @@ public class AppWidget extends AppWidgetProvider {
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
 
-        String value = null;
+        String type = null;
 
-        value = appDatabase.DatabaseDao().getType(appWidgetId);
+        type = appDatabase.DatabaseDao().getType(appWidgetId);
 
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
-        if (value != null) {
+        if (type != null) {
             Intent intentR = new Intent(context, AppWidget.class);
             intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
             views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
 
-            switch (value) {
+            switch (type) {
                 case "embedYear":
 
                     views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
@@ -132,9 +136,10 @@ public class AppWidget extends AppWidgetProvider {
                 default:
                     ItemGenerator itemGenerator = new ItemGenerator();
                     AdapterItem adapterItem;
-                    int typeID = appDatabase.DatabaseDao().getTypeID(Integer.parseInt(value));
-                    EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(typeID);
-                    if (value.equals("time")) {
+
+                    //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
+                    EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(appDatabase.DatabaseDao().getTypeID(appWidgetId));
+                    if (type.equals("Time")) {
                         adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
                     } else {
                         adapterItem = itemGenerator.generateItem(entityItemInfo);
