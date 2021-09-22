@@ -80,9 +80,14 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                 builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int id) {
+                        /*
+                        AppWidget appWidget = new AppWidget();
+                        appWidget.onDeleted(context, );
+                         */
                         appDatabase.DatabaseDao().deleteItem(arrayList.get(position).getId());
-                        appDatabase.DatabaseDao().deleteCustomWidget(String.valueOf(arrayList.get(position).getId()));
-                        MainActivity.refreshItem();
+                        appDatabase.DatabaseDao().deleteCustomWidget(arrayList.get(position).getId());
+
+                        MainActivity.GetDBItem();
                         Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
                         Toast.makeText(context, "삭제되었습니다.", Toast.LENGTH_LONG).show();
                     }

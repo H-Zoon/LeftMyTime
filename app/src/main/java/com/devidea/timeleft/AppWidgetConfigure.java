@@ -24,6 +24,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.itemGenerator;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
@@ -41,8 +42,6 @@ public class AppWidgetConfigure extends Activity {
     String value = "0";
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     EntityWidgetInfo entityWidgetInfo;
-    ItemGenerator itemGenerator = new ItemGenerator();
-
 
     @Override
     public void onCreate(Bundle icicle) {

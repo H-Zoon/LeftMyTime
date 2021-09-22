@@ -41,8 +41,8 @@ public interface DatabaseDao {
     @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE type = :ID")
-    void deleteCustomWidget(String ID);
+    @Query("DELETE FROM EntityWidgetInfo WHERE typeID = :ID")
+    void deleteCustomWidget(int ID);
 
 
 }

@@ -3,22 +3,16 @@ package com.devidea.timeleft;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.annotation.SuppressLint;
-import android.app.DatePickerDialog;
 import android.app.TimePickerDialog;
-import android.content.DialogInterface;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.CheckBox;
 import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
 
 import java.time.LocalTime;
-
-import static android.content.DialogInterface.BUTTON_POSITIVE;
 
 public class CreateTimeActivity extends AppCompatActivity {
     TextView timeRange;
@@ -79,7 +73,7 @@ public class CreateTimeActivity extends AppCompatActivity {
             public void onClick(View v) {
                 if (!(inputSummery.getText().toString().equals("")) && isValid) {
                     itemGenerator.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, true);
-                    MainActivity.refreshItem();
+                    MainActivity.GetDBItem();
                     finish();
                 } else {
                     Toast.makeText(CreateTimeActivity.this, "시간과 이름을 확인해주세요", Toast.LENGTH_LONG).show();

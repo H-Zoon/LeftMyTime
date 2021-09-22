@@ -2,10 +2,8 @@ package com.devidea.timeleft;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.annotation.SuppressLint;
 import android.app.DatePickerDialog;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -13,13 +11,8 @@ import android.widget.DatePicker;
 import android.widget.EditText;
 import android.widget.Toast;
 
-import java.text.SimpleDateFormat;
-import java.time.Duration;
 import java.time.LocalDate;
-import java.time.Period;
 import java.time.temporal.ChronoUnit;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
 
 public class CreateMonthActivity extends AppCompatActivity {
 
@@ -74,7 +67,7 @@ public class CreateMonthActivity extends AppCompatActivity {
                         Toast.makeText(CreateMonthActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
                         itemGenerator.saveMonthItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
-                        MainActivity.refreshItem();
+                        MainActivity.GetDBItem();
                         finish();
                     }
 

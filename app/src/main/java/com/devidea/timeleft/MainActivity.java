@@ -6,7 +6,6 @@ import androidx.recyclerview.widget.PagerSnapHelper;
 import androidx.room.Room;
 
 import android.app.AlertDialog;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
@@ -16,6 +15,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 
 import me.relex.circleindicator.CircleIndicator2;
@@ -23,14 +23,17 @@ import me.relex.circleindicator.CircleIndicator2;
 public class MainActivity extends AppCompatActivity {
 
     private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
+    private static final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
 
+    private androidx.recyclerview.widget.RecyclerView recyclerView;
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
+
+    private static CustomRecyclerView customItemAdapter;
 
     public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
     public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
     public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
-    public static final ItemGenerator itemgenerator = new ItemGenerator();
-
+    public static final ItemGenerator itemGenerator = new ItemGenerator();
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
 
@@ -42,7 +45,7 @@ public class MainActivity extends AppCompatActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        androidx.recyclerview.widget.RecyclerView recyclerView = findViewById(R.id.recyclerview);
+        recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
         adapterItemListArray.add(timeInfoTime.setTimeItem());
@@ -68,7 +71,7 @@ public class MainActivity extends AppCompatActivity {
         customItemRecyclerView = findViewById(R.id.recyclerview2);
         customItemRecyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.VERTICAL, false)); // 상하 스크롤 //
 
-        refreshItem();
+        GetDBItem();
 
         Button button = findViewById(R.id.time_add);
         button.setOnClickListener(new View.OnClickListener() {
@@ -107,11 +110,11 @@ public class MainActivity extends AppCompatActivity {
                 alertDialog.show();
             }
         });
+
     }
 
-    public static void refreshItem() {
-        ItemGenerator itemGenerator = new ItemGenerator();
-        ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+    public static void GetDBItem() {
+        CustomItemListArray.clear();
 
         if (appDatabase.DatabaseDao().getItem().size() != 0) {
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
@@ -123,9 +126,8 @@ public class MainActivity extends AppCompatActivity {
 
             }
         }
-
         //사용자가 추가한 부분의 아이템
-        CustomRecyclerView customItemAdapter = new CustomRecyclerView(CustomItemListArray);
+        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
         customItemRecyclerView.setAdapter(customItemAdapter);
     }
 

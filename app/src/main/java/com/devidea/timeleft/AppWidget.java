@@ -13,6 +13,7 @@ import android.widget.RemoteViews;
 import androidx.room.Room;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.itemGenerator;
 import static com.devidea.timeleft.MainActivity.timeInfoTime;
 import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
@@ -134,7 +135,6 @@ public class AppWidget extends AppWidgetProvider {
                     break;
 
                 default:
-                    ItemGenerator itemGenerator = new ItemGenerator();
                     AdapterItem adapterItem;
 
                     //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
