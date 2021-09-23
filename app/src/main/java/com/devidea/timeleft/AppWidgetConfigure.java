@@ -44,6 +44,8 @@ public class AppWidgetConfigure extends Activity {
     String value = "0";
     int AppWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
     EntityWidgetInfo entityWidgetInfo;
+    Context context = AppWidgetConfigure.this;
+    boolean isFirstSelected = false;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -69,6 +71,7 @@ public class AppWidgetConfigure extends Activity {
         View.OnClickListener mOnClickListener = new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Log.d("click", value);
                 final Context context = AppWidgetConfigure.this;
                 // appwidget 인스턴스 가져오기
                 AppWidgetManager appWidgetManager = AppWidgetManager.getInstance(context);
@@ -111,11 +114,12 @@ public class AppWidgetConfigure extends Activity {
                     default:
                         EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value));
                         AdapterItem adapterItem;
-                        if(entityItemInfo.getType().equals("Time")){
+                        if (entityItemInfo.getType().equals("Time")) {
                             adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
-                        }else{ adapterItem = itemGenerator.generateItem(entityItemInfo);
+                        } else {
+                            adapterItem = itemGenerator.generateItem(entityItemInfo);
                         }
-                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() + adapterItem.getPercentString() + "%");
+                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, adapterItem.getId(), entityItemInfo.getType());
@@ -157,36 +161,47 @@ public class AppWidgetConfigure extends Activity {
         summitButton.setOnClickListener(mOnClickListener);
         spinner.setEnabled(false);
 
+        ArrayList<String> itemName = new ArrayList<>();
+        List<EntityItemInfo> entityItemInfo = appDatabase.DatabaseDao().getItem();
+        for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
+            itemName.add(appDatabase.DatabaseDao().getItem().get(i).getSummery());
+        }
+
         checkBox.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if(checkBox.isChecked()){
-                    for (int i = 0; i < radioGroup.getChildCount(); i++) {
-                        radioGroup.getChildAt(i).setEnabled(false);
+                if (appDatabase.DatabaseDao().getItem().size() != 0) {
+                    if (checkBox.isChecked()) {
+                        for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                            radioGroup.getChildAt(i).setEnabled(false);
+                        }
+                        value = String.valueOf(entityItemInfo.get(0).getId());
+                        isFirstSelected = true;
+                        spinner.setEnabled(true);
+                    } else {
+                        for (int i = 0; i < radioGroup.getChildCount(); i++) {
+                            radioGroup.getChildAt(i).setEnabled(true);
+                        }
+                        isFirstSelected = false;
+                        spinner.setEnabled(false);
                     }
-                    spinner.setEnabled(true);
-                }
-                else {
-                    for (int i = 0; i < radioGroup.getChildCount(); i++) {
-                        radioGroup.getChildAt(i).setEnabled(true);
-                    }
-                    spinner.setEnabled(false);
+                } else {
+                    checkBox.setChecked(false);
+                    Toast.makeText(context, "저장된 항목이 없습니다.", Toast.LENGTH_SHORT).show();
                 }
             }
         });
-
-        ArrayList<String> itemName = new ArrayList<>();
-        List<EntityItemInfo> entityItemInfo = appDatabase.DatabaseDao().getItem();
-        for(int i = 0; i<appDatabase.DatabaseDao().getItem().size(); i++){
-           itemName.add(appDatabase.DatabaseDao().getItem().get(i).getSummery());
-        }
 
         ArrayAdapter<String> adapter = new ArrayAdapter<>(this, android.R.layout.simple_list_item_1, itemName);
         spinner.setAdapter(adapter);
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
-                value = String.valueOf(entityItemInfo.get(position).getId());
+                if (isFirstSelected) {
+                    value = String.valueOf(entityItemInfo.get(position).getId());
+                    Log.d("value", value);
+                }
+
             }
 
             @Override

@@ -125,6 +125,7 @@ public class MainActivity extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            adapter.notifyItemChanged(0, "update");
                             for(int i=0; i<position.size(); i++){
                                 customItemAdapter.notifyItemChanged(position.get(i), itemID.get(i));
                             }

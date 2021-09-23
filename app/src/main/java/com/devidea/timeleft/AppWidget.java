@@ -144,7 +144,7 @@ public class AppWidget extends AppWidgetProvider {
                     } else {
                         adapterItem = itemGenerator.generateItem(entityItemInfo);
                     }
-                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() + adapterItem.getPercentString() + "%");
+                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
 
             }
