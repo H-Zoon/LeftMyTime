@@ -19,8 +19,10 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
+import java.util.List;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.itemGenerator;
 
 public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<CustomRecyclerView.ViewHolder> {
 
@@ -55,18 +57,18 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     @Override
     public void onBindViewHolder(@NonNull ViewHolder viewHolder, int position) {
 
-        viewHolder.startDay.setText(arrayList.get(position).getStartDay());
-        viewHolder.endDay.setText(arrayList.get(position).getEndDay());
-        viewHolder.leftDay.setText(arrayList.get(position).getLeftDay());
+        viewHolder.startValue.setText(arrayList.get(position).getStartDay());
+        viewHolder.endValue.setText(arrayList.get(position).getEndDay());
+        viewHolder.leftValue.setText(arrayList.get(position).getLeftDay());
         if (arrayList.get(position).isAutoUpdate()) {
             viewHolder.autoUpdate.setText("이후 반복되는 일정이에요");
         } else {
             viewHolder.autoUpdate.setText("100% 달성후 끝나는 일정이에요");
         }
 
-        viewHolder.startDay.setVisibility(View.GONE);
-        viewHolder.endDay.setVisibility(View.GONE);
-        viewHolder.leftDay.setVisibility(View.GONE);
+        viewHolder.startValue.setVisibility(View.GONE);
+        viewHolder.endValue.setVisibility(View.GONE);
+        viewHolder.leftValue.setVisibility(View.GONE);
         viewHolder.autoUpdate.setVisibility(View.GONE);
         viewHolder.deleteButton.setVisibility(View.GONE);
 
@@ -88,7 +90,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                         appDatabase.DatabaseDao().deleteCustomWidget(arrayList.get(position).getId());
 
                         MainActivity.GetDBItem();
-                        Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
+                        //Log.d("deldte", String.valueOf(arrayList.get(position).getId()));
                         Toast.makeText(context, "삭제되었습니다.", Toast.LENGTH_LONG).show();
                     }
                 });
@@ -121,6 +123,23 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     }
 
     @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads);
+        } else {
+            for (Object payload : payloads) {
+                int itemID = (int) payload;
+                AdapterItem adapterItem = itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getSelectItem(itemID));
+                holder.leftValue.setText(adapterItem.getLeftDay());
+                holder.percent.setText(adapterItem.getPercentString() + "%");
+                holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
+
+
+            }
+        }
+    }
+
+    @Override
     public int getItemCount() {
         return arrayList.size();
     }
@@ -129,22 +148,22 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         private final TextView summery;
         private final TextView percent;
         private final ProgressBar progressBar;
-        private final TextView startDay;
-        private final TextView endDay;
-        private final TextView leftDay;
+        private final TextView startValue;
+        private final TextView endValue;
+        private final TextView leftValue;
         private final TextView autoUpdate;
         private final Button deleteButton;
 
         //ViewHolder
         public ViewHolder(View view) {
             super(view);
-            summery = (TextView) view.findViewById(R.id.summery);
-            percent = (TextView) view.findViewById(R.id.percent_text);
-            progressBar = (ProgressBar) view.findViewById(R.id.progress);
-            startDay = view.findViewById(R.id.start_day);
-            endDay = view.findViewById(R.id.end_day);
+            summery = view.findViewById(R.id.summery);
+            percent = view.findViewById(R.id.percent_text);
+            progressBar = view.findViewById(R.id.progress);
+            startValue = view.findViewById(R.id.start_day);
+            endValue = view.findViewById(R.id.end_day);
             autoUpdate = view.findViewById(R.id.update_is);
-            leftDay = view.findViewById(R.id.left_day);
+            leftValue = view.findViewById(R.id.left_day);
 
             deleteButton = view.findViewById(R.id.delete_button);
 
@@ -155,7 +174,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
 
                     if (selectedItems.get(getAdapterPosition())) {
                         // 펼쳐진 Item을 클릭 시
-                        selectedItems.put(getAdapterPosition(),false);
+                        selectedItems.put(getAdapterPosition(), false);
                     } else {
                         // 직전의 클릭됐던 Item의 클릭상태를 지움
                         selectedItems.put(pos, false);
@@ -187,9 +206,9 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                     itemView.findViewById(R.id.view).getLayoutParams().height = (int) animation.getAnimatedValue();
                     itemView.findViewById(R.id.view).requestLayout();
                     // imageView가 실제로 사라지게하는 부분
-                    startDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-                    endDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-                    leftDay.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                    startValue.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                    endValue.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                    leftValue.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     autoUpdate.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     deleteButton.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                 }

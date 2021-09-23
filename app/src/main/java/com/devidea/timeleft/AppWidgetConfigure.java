@@ -1,5 +1,6 @@
 package com.devidea.timeleft;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.app.PendingIntent;
@@ -17,6 +18,7 @@ import android.widget.CheckBox;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.text.ParseException;

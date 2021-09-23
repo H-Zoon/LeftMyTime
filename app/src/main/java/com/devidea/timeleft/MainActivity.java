@@ -17,6 +17,7 @@ import android.widget.Toast;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.List;
 
 import me.relex.circleindicator.CircleIndicator2;
 
@@ -36,6 +37,9 @@ public class MainActivity extends AppCompatActivity {
     public static final ItemGenerator itemGenerator = new ItemGenerator();
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
+
+    private static ArrayList<Integer> position = new ArrayList<Integer>();
+    private static ArrayList<Integer> itemID = new ArrayList<Integer>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -111,15 +115,45 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
+        Handler handler = new Handler();
+        //초단위, 현재시간 update Thread
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                while (true) {
+                    //핸들러
+                    handler.post(new Runnable() {
+                        @Override
+                        public void run() {
+                            for(int i=0; i<position.size(); i++){
+                                customItemAdapter.notifyItemChanged(position.get(i), itemID.get(i));
+                            }
+                        }
+                    });
+
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                        e.printStackTrace();
+                    }
+                }
+            }
+        }).start();
+
     }
+
 
     public static void GetDBItem() {
         CustomItemListArray.clear();
+        position.clear();
+        itemID.clear();
 
         if (appDatabase.DatabaseDao().getItem().size() != 0) {
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                 if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
                     CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    position.add(i);
+                    itemID.add(CustomItemListArray.get(i).getId());
                 } else {
                     CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }

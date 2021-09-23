@@ -16,7 +16,7 @@ public class TimeInfoTime implements TimeInfo{
 
         float TimePercent = (secondsValue/ 86400) * 100;
 
-        adapterItem.setSummery("오늘하루의 ");
+        adapterItem.setSummery("오늘의 ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", TimePercent));
 
         return adapterItem;
