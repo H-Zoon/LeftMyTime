@@ -44,7 +44,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //database 객체 초기화
-        appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "WidgetInfo").allowMainThreadQueries().build();
+        appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "ItemData")
+                .allowMainThreadQueries()
+                .fallbackToDestructiveMigration()
+                .build();
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
