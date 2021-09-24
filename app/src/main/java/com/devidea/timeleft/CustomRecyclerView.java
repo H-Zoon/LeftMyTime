@@ -12,6 +12,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -153,6 +154,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         private final TextView leftValue;
         private final TextView autoUpdate;
         private final Button deleteButton;
+        private final ImageView imageView;
 
         //ViewHolder
         public ViewHolder(View view) {
@@ -164,6 +166,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
             endValue = view.findViewById(R.id.end_day);
             autoUpdate = view.findViewById(R.id.update_is);
             leftValue = view.findViewById(R.id.left_day);
+            imageView = view.findViewById(R.id.imageView);
 
             deleteButton = view.findViewById(R.id.delete_button);
 
@@ -211,6 +214,7 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                     leftValue.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     autoUpdate.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     deleteButton.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
+                    imageView.setImageResource(isExpanded ? R.drawable.baseline_expand_less_black_36 : R.drawable.baseline_expand_more_black_36);
                 }
             });
             // Animation start

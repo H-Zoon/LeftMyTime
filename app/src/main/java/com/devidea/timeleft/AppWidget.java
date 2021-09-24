@@ -7,6 +7,7 @@ import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.os.SystemClock;
 import android.util.Log;
 import android.widget.RemoteViews;
 
@@ -25,7 +26,7 @@ public class AppWidget extends AppWidgetProvider {
         super.onReceive(context, intent);
         String action = intent.getAction();
         int[] appWidgetIds = new int[0];
-        Log.d(TAG, "onReceive() action = " + action);
+        Log.d("widget", "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             if(appDatabase == null){
@@ -34,13 +35,9 @@ public class AppWidget extends AppWidgetProvider {
 
             appWidgetIds = appDatabase.DatabaseDao().get();
 
-            Log.d(TAG, "extras is not null");
             if (appWidgetIds != null && appWidgetIds.length > 0) {
-                Log.d(TAG, "appWidgetIds is not null");
                 this.onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds);
             }
-
-
         }
     }
 
@@ -48,12 +45,9 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onUpdate(Context context, AppWidgetManager appWidgetManager, int[] appWidgetIds) {
         super.onUpdate(context, appWidgetManager, appWidgetIds);
-        Log.d(TAG, "update");
         // There may be multiple widgets active, so update all of them
         for (int appWidgetId : appWidgetIds) {
-
-            Log.d(TAG, "appWidgetId is " + appWidgetId);
-
+            Log.d("widget", "appWidgetId is " + appWidgetId);
             updateAppWidget(context, appWidgetManager, appWidgetId);
         }
     }
@@ -63,12 +57,11 @@ public class AppWidget extends AppWidgetProvider {
         Intent intent = new Intent(context, AppWidget.class);
 
         intent.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
-
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT);
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 60000, pendingIntent);
-        Log.d(TAG, "alert on");
+        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+        Log.d("widget", "alert on");
 
     }
 
@@ -79,7 +72,7 @@ public class AppWidget extends AppWidgetProvider {
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0);
         alarmManager.cancel(pendingIntent);//알람 해제
         pendingIntent.cancel(); //인텐트 해제
-        Log.d(TAG, "alert off");
+        Log.d("widget", "alert off");
     }
 
 
@@ -88,15 +81,11 @@ public class AppWidget extends AppWidgetProvider {
         super.onDeleted(context, appWidgetIds);
 
         appDatabase.DatabaseDao().delete(appWidgetIds[0]);
-        Log.d(TAG, "onDeleted done");
+        Log.d("widget", "onDeleted done");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-
-        String type = null;
-
-        type = appDatabase.DatabaseDao().getType(appWidgetId);
-
+        String type = appDatabase.DatabaseDao().getType(appWidgetId);
 
         RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
@@ -113,7 +102,6 @@ public class AppWidget extends AppWidgetProvider {
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
 
                     appWidgetManager.updateAppWidget(appWidgetId, views);
-                    Log.d(TAG, "year update done");
                     break;
 
                 case "embedMonth":
@@ -122,7 +110,6 @@ public class AppWidget extends AppWidgetProvider {
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
 
                     appWidgetManager.updateAppWidget(appWidgetId, views);
-                    Log.d(TAG, "month update done");
                     break;
 
                 case "embedTime":
@@ -131,7 +118,6 @@ public class AppWidget extends AppWidgetProvider {
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
 
                     appWidgetManager.updateAppWidget(appWidgetId, views);
-                    Log.d(TAG, "time update done");
                     break;
 
                 default:
@@ -148,7 +134,7 @@ public class AppWidget extends AppWidgetProvider {
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
 
             }
-
+            Log.d("widget", type + "update done");
         }
 
         appWidgetManager.updateAppWidget(appWidgetId, views);
