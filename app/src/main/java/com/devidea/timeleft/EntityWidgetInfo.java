@@ -1,5 +1,6 @@
 package com.devidea.timeleft;
 
+import androidx.annotation.Nullable;
 import androidx.room.Entity;
 import androidx.room.PrimaryKey;
 
@@ -9,10 +10,13 @@ public class EntityWidgetInfo {
     @PrimaryKey
     public int widgetID;
 
-    public String summery;
+    public int typeID;
+    public String type;
 
-    public EntityWidgetInfo(int widgetID, String summery) {
+    public EntityWidgetInfo(int widgetID, int typeID, String type) {
         this.widgetID = widgetID;
-        this.summery = summery;
+        this.typeID = typeID;
+        this.type = type;
     }
+
 }

@@ -23,7 +23,7 @@ public interface DatabaseDao {
     @Query("SELECT * FROM EntityItemInfo WHERE id = :ID")
     EntityItemInfo getSelectItem(int ID);
 
-    @Query("UPDATE EntityItemInfo SET startDay = :updateStart, endDay = :updateEnd WHERE id = :ID")
+    @Query("UPDATE EntityItemInfo SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
     void updateItem(String updateStart, String updateEnd, int ID);
 
     @Insert
@@ -32,14 +32,17 @@ public interface DatabaseDao {
     @Query("SELECT widgetID FROM EntityWidgetInfo")
     int[] get();
 
-    @Query("SELECT summery FROM EntityWidgetInfo WHERE widgetID = :ID")
-    String get_summery(int ID);
+    @Query("SELECT type FROM EntityWidgetInfo WHERE widgetID = :ID")
+    String getType(int ID);
+
+    @Query("SELECT typeID FROM EntityWidgetInfo WHERE widgetID = :ID")
+    int getTypeID(int ID);
 
     @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE summery = :ID")
-    void deleteCustomWidget(String ID);
+    @Query("DELETE FROM EntityWidgetInfo WHERE typeID = :ID")
+    void deleteCustomWidget(int ID);
 
 
 }

@@ -2,7 +2,6 @@ package com.devidea.timeleft;
 
 
 import android.animation.ObjectAnimator;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,6 +13,10 @@ import androidx.annotation.NonNull;
 
 import java.util.ArrayList;
 import java.util.List;
+
+import static com.devidea.timeleft.MainActivity.appDatabase;
+import static com.devidea.timeleft.MainActivity.itemGenerator;
+import static com.devidea.timeleft.MainActivity.timeInfoTime;
 
 class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
@@ -51,6 +54,17 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
                 .setDuration(1500)
                 .start();
 
+    }
+
+    @Override
+    public void onBindViewHolder(@NonNull ViewHolder holder, int position, @NonNull List<Object> payloads) {
+        if (payloads.isEmpty()) {
+            super.onBindViewHolder(holder, position, payloads);
+        } else {
+            AdapterItem adapterItem = timeInfoTime.setTimeItem();
+            holder.percent.setText(adapterItem.getPercentString() + "%");
+            holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
+        }
     }
 
     @Override

@@ -1,98 +1,102 @@
 package com.devidea.timeleft;
 
-import android.annotation.SuppressLint;
-import android.util.Log;
-
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
+import java.time.Duration;
 import java.time.LocalDate;
-import java.util.Calendar;
-import java.util.Date;
+import java.time.LocalTime;
+import java.time.temporal.ChronoUnit;
 import java.util.Locale;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 
 public class ItemGenerator {
 
-    public void saveItem(String summery, int end, boolean autoUpdate) {
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
+    public void saveMonthItem(String summery, int end, boolean autoUpdate) {
 
-        Date time = new Date();     //현재 날짜
-        Calendar cal = Calendar.getInstance();     //날짜 계산을 위해 Calendar 추상클래스 선언 getInstance()메소드 사용
-        cal.setTime(time);
-        cal.add(Calendar.DATE, end);
-
-        Log.d("save_srt", transFormat.format(time));
-        Log.d("save_end", transFormat.format(cal.getTime()).toString());
-        Log.d("summery", summery);
-        Log.d("auto", String.valueOf(autoUpdate));
-        String startDay = transFormat.format(time);
-        String endDay = transFormat.format(cal.getTime());
-        //todo : boolean값은 수정해야 합니다.
-        EntityItemInfo entityItemInfo = new EntityItemInfo(startDay, endDay, summery, autoUpdate);
+        EntityItemInfo entityItemInfo = new EntityItemInfo("Month", String.valueOf(LocalDate.now()), String.valueOf(LocalDate.now().plusDays(end)), summery, autoUpdate);
         appDatabase.DatabaseDao().saveItem(entityItemInfo);
 
     }
 
-    public AdapterItem calDate(EntityItemInfo itemInfo) throws ParseException {
+    public void saveTimeItem(String summery, LocalTime startValue, LocalTime endValue, boolean autoUpdate) {
+
+        EntityItemInfo entityItemInfo = new EntityItemInfo("Time", String.valueOf(startValue), String.valueOf(endValue), summery, autoUpdate);
+        appDatabase.DatabaseDao().saveItem(entityItemInfo);
+
+    }
+
+    public AdapterItem generateTimeItem(EntityItemInfo itemInfo) {
 
         AdapterItem adapterItem = new AdapterItem();
 
-        @SuppressLint("SimpleDateFormat") SimpleDateFormat transFormat = new SimpleDateFormat("yyyy-MM-dd");
+        LocalTime startValue = LocalTime.parse(itemInfo.getStartValue()); //시작시간
+        LocalTime endValue = LocalTime.parse(itemInfo.getEndValue()); // 종료시간
+        LocalTime time = LocalTime.now(); //현재 시간
 
-        Date startDate = transFormat.parse(itemInfo.getStartDay());
-        Date endDate = transFormat.parse(itemInfo.getEndDay());
-        String todayString = transFormat.format(new Date());
-        Date today = transFormat.parse(todayString);
+        adapterItem.setAutoUpdate(itemInfo.isAutoUpdate());
+        adapterItem.setSummery(itemInfo.getSummery());
+        adapterItem.setStartDay("설정시간: " + startValue);
+        adapterItem.setEndDay("종료시간: " + endValue);
+        adapterItem.setId(itemInfo.getId());
 
-        int setDay = (int) ((endDate.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-        int sendDay = (int) ((today.getTime() - startDate.getTime()) / (24 * 60 * 60 * 1000));
-        int leftDay = (int) ((endDate.getTime() - today.getTime()) / (24 * 60 * 60 * 1000));
+        if (time.isAfter(startValue) && time.isBefore(endValue)) {
+            float range = Duration.between(startValue, endValue).getSeconds();
+            float sendTime = Duration.between(startValue, time).getSeconds();
 
-        if (today.compareTo(endDate) > 0) {
-            if (itemInfo.isAutoUpdate()) {
-                Calendar cal = Calendar.getInstance();
-                cal.setTime(endDate);
-                cal.add(Calendar.DATE, setDay);
-                String updateStart = transFormat.format(endDate);
-                String updateEnd = transFormat.format(cal.getTime());
-                int id = itemInfo.getId();
-                appDatabase.DatabaseDao().updateItem(updateStart, updateEnd, id);
-                Log.d("update", String.valueOf(setDay));
+            adapterItem.setLeftDay("남은시간: " + (LocalTime.ofSecondOfDay(Duration.between(time, endValue).getSeconds())));
 
-                float MonthPercent = (float) sendDay / setDay * 100;
+            float timePercent = (sendTime / range) * 100;
 
-                Log.d("total%", String.format(Locale.getDefault(), "%.1f", MonthPercent));
-
-                adapterItem.setStartDay(transFormat.format(startDate));
-                adapterItem.setEndDay(transFormat.format(endDate));
-                adapterItem.setLeftDay(String.valueOf(leftDay));
-
-                adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
-
-            } else {
-                adapterItem.setStartDay(transFormat.format(startDate));
-                adapterItem.setEndDay(transFormat.format(endDate));
-                adapterItem.setLeftDay(String.valueOf(leftDay));
-
-                adapterItem.setPercentString("100");
-
-            }
+            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", timePercent));
 
         } else {
-            float MonthPercent = (float) sendDay / setDay * 100;
-
-            Log.d("total%", String.format(Locale.getDefault(), "%.1f", MonthPercent));
-
-            adapterItem.setStartDay(transFormat.format(startDate));
-            adapterItem.setEndDay(transFormat.format(endDate));
-            adapterItem.setLeftDay(String.valueOf(leftDay));
-
-            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
+            adapterItem.setPercentString("100");
+            adapterItem.setLeftDay("설정시간이 지나면 계산해 드릴께요");
         }
+
+        return adapterItem;
+
+    }
+
+
+    public AdapterItem generateItem(EntityItemInfo itemInfo) {
+
+        AdapterItem adapterItem = new AdapterItem();
+
+        LocalDate startDate = LocalDate.parse(itemInfo.getStartValue());
+        LocalDate endDate = LocalDate.parse(itemInfo.getEndValue());
+        LocalDate today = LocalDate.now();
+
+        //설정일
+        int setDay = (int) ChronoUnit.DAYS.between(startDate, endDate);
+
+        //설정일에서 지난일
+        int sendDay = (int) ChronoUnit.DAYS.between(startDate, today);
+
+        //설정일까지 남은일
+        int leftDay = (int) ChronoUnit.DAYS.between(today, endDate);
+
+
+        //종료일로 넘어가고 자동 업데이트 체크한 경우
+        if (today.isAfter(endDate) && itemInfo.isAutoUpdate()) {
+            //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
+            appDatabase.DatabaseDao().updateItem(String.valueOf(endDate), String.valueOf(endDate.plusDays(setDay)), itemInfo.getId());
+        }
+
+        float MonthPercent = (float) sendDay / setDay * 100;
+
+        adapterItem.setStartDay("설정일: " + startDate);
+        adapterItem.setEndDay("종료일: " + endDate);
+        adapterItem.setLeftDay("남은일: D-" + leftDay);
         adapterItem.setAutoUpdate(itemInfo.isAutoUpdate());
         adapterItem.setSummery(itemInfo.getSummery());
         adapterItem.setId(itemInfo.getId());
+
+        if(MonthPercent<100){
+            adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", MonthPercent));
+        }
+        else {
+            adapterItem.setPercentString("100");
+        }
 
         return adapterItem;
     }
