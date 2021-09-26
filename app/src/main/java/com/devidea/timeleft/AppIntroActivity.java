@@ -4,7 +4,6 @@ import android.annotation.SuppressLint;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.graphics.Color;
 import android.os.Bundle;
 
 import androidx.annotation.Nullable;
@@ -12,7 +11,7 @@ import androidx.fragment.app.Fragment;
 
 import com.github.appintro.AppIntro2;
 import com.github.appintro.AppIntroCustomLayoutFragment;
-import com.github.appintro.AppIntroFragment;
+
 
 public class AppIntroActivity extends AppIntro2 {
 
@@ -23,7 +22,8 @@ public class AppIntroActivity extends AppIntro2 {
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-
+        showStatusBar(true);
+        setIndicatorEnabled(false);
 
         //최초접속시에만 intro화면 출력하도록
         sharedPreferences = getApplicationContext().getSharedPreferences("MyPreferences", Context.MODE_PRIVATE);
@@ -36,44 +36,9 @@ public class AppIntroActivity extends AppIntro2 {
                 finish();
             }
         }
-
-        setImmersiveMode();
-
-        addSlide(AppIntroFragment.newInstance(
-                "TimeLaft에 오신것을 환영합니다",
-                "지금 이순간에도 지나가는 시간을 확인해보세요",
-                R.drawable.description01,
-                R.color.white,
-                R.color.black,
-                R.color.black,
-                R.font.nanumsquareround,
-                R.font.nanumsquareround,
-                R.drawable.ic_launcher_background
-        ));
-
-        addSlide(AppIntroFragment.newInstance(
-                "내가 원하는것 추가해보기",
-                "내가 원하는 시간, 날까지의 흐름을 추가해보세요",
-                R.drawable.description02,
-                R.color.white,
-                R.color.black,
-                R.color.black,
-                R.font.nanumsquareround,
-                R.font.nanumsquareround,
-                R.drawable.ic_launcher_background
-        ));
-
-        addSlide(AppIntroFragment.newInstance(
-                "언제 어디서나 확인가능",
-                "모든 항목에 대한 위젯을 만들수 있어요",
-                R.drawable.description03,
-                R.color.white,
-                R.color.black,
-                R.color.black,
-                R.font.nanumsquareround,
-                R.font.nanumsquareround,
-                R.drawable.ic_launcher_background
-        ));
+        addSlide(AppIntroCustomLayoutFragment.newInstance(R.layout.intro_layout_01));
+        addSlide(AppIntroCustomLayoutFragment.newInstance(R.layout.intro_layout_02));
+        addSlide(AppIntroCustomLayoutFragment.newInstance(R.layout.intro_layout_03));
 
     }
 
