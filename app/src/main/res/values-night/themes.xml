@@ -13,6 +13,7 @@
         <!-- Customize your theme here. -->
         <item name="android:fontFamily">@font/nanumsquareround</item>
         <item name="android:textColor">@color/white</item>
+        <item name="android:timePickerDialogTheme">@style/MyTimePickerDialogStyle</item>
     </style>
 
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
@@ -26,6 +27,15 @@
     <style name="Style.Color.Button" parent="">
         <item name="android:backgroundTint">@color/white</item>
         <item name="backgroundColor">@color/white</item>
+    </style>
+
+    <style name="MyTimePickerDialogStyle" parent="android:Theme.Material.Dialog.Alert">
+        <item name="android:headerTimeTextAppearance">@style/TextAppearance.TimePickerDialogStyle.TimeLabel</item>
+    </style>
+
+    <style name="TextAppearance.TimePickerDialogStyle.TimeLabel" parent="android:style/TextAppearance.Material">
+        <item name="android:textSize">60sp</item> <!-- from -->
+        <item name="android:textColor">@color/white</item>
     </style>
 
 </resources>

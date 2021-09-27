@@ -10,6 +10,7 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
@@ -118,7 +119,7 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        Handler handler = new Handler();
+        Handler handler = new Handler(Looper.getMainLooper());
         //초단위, 현재시간 update Thread
         new Thread(new Runnable() {
             @Override

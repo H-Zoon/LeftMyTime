@@ -1,9 +1,12 @@
 package com.devidea.timeleft;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 
 import android.annotation.SuppressLint;
 import android.app.TimePickerDialog;
+import android.content.res.Configuration;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
@@ -55,6 +58,9 @@ public class CreateTimeActivity extends AppCompatActivity {
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                 startTime = LocalTime.of(hourOfDay, minute);
                 datePickerEnd.show();
+                //버튼 색상변경. theme에서 변경방법 찾아 적용
+                datePickerEnd.getButton(datePickerEnd.BUTTON_NEGATIVE).setTextColor(Color.BLACK);
+                datePickerEnd.getButton(datePickerEnd.BUTTON_POSITIVE).setTextColor(Color.BLACK);
             }
         };
         TimePickerDialog datePickerStart = new TimePickerDialog(CreateTimeActivity.this, callbackMethodStart, 12, 0, false);
@@ -64,6 +70,10 @@ public class CreateTimeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 datePickerStart.show();
+
+                //버튼 색상변경. theme에서 변경방법 찾아 적용
+                datePickerStart.getButton(datePickerStart.BUTTON_NEGATIVE).setTextColor(Color.BLACK);
+                datePickerStart.getButton(datePickerStart.BUTTON_POSITIVE).setTextColor(Color.BLACK);
 
             }
         });
@@ -82,5 +92,25 @@ public class CreateTimeActivity extends AppCompatActivity {
         });
 
     }
+
+    //TimePickerDialog 의 주, 야간 테마변경을 위한 함수
+    /*
+
+    private int getTimeTheme() {
+        int value;
+        int currentNightMode = getResources().getConfiguration().uiMode
+                & Configuration.UI_MODE_NIGHT_MASK;
+        switch (currentNightMode) {
+            case Configuration.UI_MODE_NIGHT_YES:
+                value = 2;
+                break;
+            default:
+                value = 3;
+                break;
+        }
+        return value;
+    }
+
+     */
 
 }
