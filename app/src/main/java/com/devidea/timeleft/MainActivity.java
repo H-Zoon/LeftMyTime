@@ -11,14 +11,11 @@ import android.content.Intent;
 import android.os.Bundle;
 import android.os.Handler;
 import android.os.Looper;
-import android.util.Log;
 import android.view.View;
 import android.widget.Button;
 import android.widget.Toast;
 
-import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.List;
 
 import me.relex.circleindicator.CircleIndicator2;
 
@@ -160,7 +157,7 @@ public class MainActivity extends AppCompatActivity {
                     position.add(i);
                     itemID.add(CustomItemListArray.get(i).getId());
                 } else {
-                    CustomItemListArray.add(itemGenerator.generateItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    CustomItemListArray.add(itemGenerator.generateMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
 
             }

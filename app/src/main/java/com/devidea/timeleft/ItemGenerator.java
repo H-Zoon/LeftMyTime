@@ -58,13 +58,14 @@ public class ItemGenerator {
     }
 
 
-    public AdapterItem generateItem(EntityItemInfo itemInfo) {
+    public AdapterItem generateMonthItem(EntityItemInfo itemInfo) {
 
         AdapterItem adapterItem = new AdapterItem();
 
         LocalDate startDate = LocalDate.parse(itemInfo.getStartValue());
         LocalDate endDate = LocalDate.parse(itemInfo.getEndValue());
         LocalDate today = LocalDate.now();
+        int id = itemInfo.getId();
 
         //설정일
         int setDay = (int) ChronoUnit.DAYS.between(startDate, endDate);
@@ -75,11 +76,22 @@ public class ItemGenerator {
         //설정일까지 남은일
         int leftDay = (int) ChronoUnit.DAYS.between(today, endDate);
 
+        int lengthOfMonth = LocalDate.now().lengthOfMonth();
+
 
         //종료일로 넘어가고 자동 업데이트 체크한 경우
         if (today.isAfter(endDate) && itemInfo.isAutoUpdate()) {
             //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
-            appDatabase.DatabaseDao().updateItem(String.valueOf(endDate), String.valueOf(endDate.plusDays(setDay)), itemInfo.getId());
+            appDatabase.DatabaseDao().updateItem(String.valueOf(endDate), String.valueOf(endDate.plusDays(lengthOfMonth)), itemInfo.getId());
+
+            itemInfo = appDatabase.DatabaseDao().getSelectItem(id);
+
+            startDate = LocalDate.parse(itemInfo.getStartValue());
+            endDate = LocalDate.parse(itemInfo.getEndValue());
+
+            setDay = (int) ChronoUnit.DAYS.between(startDate, endDate) ;
+            sendDay = (int) ChronoUnit.DAYS.between(startDate, today);
+            leftDay = (int) ChronoUnit.DAYS.between(today, endDate);
         }
 
         float MonthPercent = (float) sendDay / setDay * 100;
