@@ -111,6 +111,11 @@ public class AppWidgetConfigure extends Activity {
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
+                    case "0":
+                        setResult(RESULT_CANCELED);
+                        finish();
+                        break;
+
                     default:
                         EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value));
                         AdapterItem adapterItem;
@@ -124,6 +129,7 @@ public class AppWidgetConfigure extends Activity {
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, adapterItem.getId(), entityItemInfo.getType());
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
+                        break;
 
                 }
 
