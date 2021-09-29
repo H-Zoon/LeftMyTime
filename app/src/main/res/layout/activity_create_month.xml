@@ -84,7 +84,7 @@
             android:id="@+id/auto_update_check"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="매번 반복되는 일정이에요 (예 : 월급날, 생일)" />
+            android:text="매달 반복되는 일정이에요 (예 : 월급날)" />
 
         <Button
             android:id="@+id/summit"

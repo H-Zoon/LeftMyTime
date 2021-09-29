@@ -1,12 +1,9 @@
 package com.devidea.timeleft;
 
-import android.annotation.SuppressLint;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.PendingIntent;
 import android.appwidget.AppWidgetManager;
 import android.content.Context;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -18,10 +15,8 @@ import android.widget.CheckBox;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
 import android.widget.Spinner;
-import android.widget.TextView;
 import android.widget.Toast;
 
-import java.text.ParseException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -122,7 +117,7 @@ public class AppWidgetConfigure extends Activity {
                         if (entityItemInfo.getType().equals("Time")) {
                             adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
                         } else {
-                            adapterItem = itemGenerator.generateItem(entityItemInfo);
+                            adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
                         }
                         views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);

@@ -6,7 +6,6 @@ import android.appwidget.AppWidgetManager;
 import android.appwidget.AppWidgetProvider;
 import android.content.Context;
 import android.content.Intent;
-import android.os.Bundle;
 import android.os.SystemClock;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -128,7 +127,7 @@ public class AppWidget extends AppWidgetProvider {
                     if (type.equals("Time")) {
                         adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
                     } else {
-                        adapterItem = itemGenerator.generateItem(entityItemInfo);
+                        adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
                     }
                     views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
