@@ -24,7 +24,7 @@ public class AppWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent.getAction();
-        int[] appWidgetIds = new int[0];
+        int[] appWidgetIds;
         Log.d("widget", "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
