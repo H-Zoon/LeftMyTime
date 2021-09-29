@@ -137,7 +137,7 @@ public class AppWidgetConfigure extends Activity {
                         } else {
                             adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
                         }
-                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
+                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" "+ adapterItem.getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, adapterItem.getId(), entityItemInfo.getType());

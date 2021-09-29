@@ -49,7 +49,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="TextView"
-            android:textSize="50sp" />
+            android:textSize="40sp" />
 
         <ProgressBar
             android:id="@+id/progress"
