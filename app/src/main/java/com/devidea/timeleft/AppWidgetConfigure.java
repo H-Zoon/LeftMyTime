@@ -55,10 +55,7 @@ public class AppWidgetConfigure extends Activity {
                         .build();
 
             } catch (Exception e) {
-                appDatabase = Room.databaseBuilder(getApplicationContext(), AppDatabase.class, "ItemData")
-                        .allowMainThreadQueries()
-                        .fallbackToDestructiveMigration()
-                        .build();
+                Toast.makeText(context, "어플리케이션 실행 후 다시 시도해주세요.", Toast.LENGTH_LONG).show();
             }
 
         }

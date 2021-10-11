@@ -29,7 +29,9 @@ public class AppWidget extends AppWidgetProvider {
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             if(appDatabase == null){
-                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData").allowMainThreadQueries().build();
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
+                        .allowMainThreadQueries()
+                        .build();
             }
 
             appWidgetIds = appDatabase.DatabaseDao().get();
