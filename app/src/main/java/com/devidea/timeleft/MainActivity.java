@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.Looper;
 import android.view.View;
 import android.widget.Button;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import java.util.ArrayList;
@@ -39,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private static ArrayList<Integer> position = new ArrayList<Integer>();
     private static ArrayList<Integer> itemID = new ArrayList<Integer>();
 
+    private static TextView explanation;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         //database 객체 초기화
@@ -49,6 +52,8 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        explanation = findViewById(R.id.explanation);
 
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
@@ -151,6 +156,7 @@ public class MainActivity extends AppCompatActivity {
         itemID.clear();
 
         if (appDatabase.DatabaseDao().getItem().size() != 0) {
+            explanation.setVisibility(View.INVISIBLE);
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                 if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
                     CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
@@ -161,6 +167,9 @@ public class MainActivity extends AppCompatActivity {
                 }
 
             }
+        }
+        else{
+           explanation.setVisibility(View.VISIBLE);
         }
         //사용자가 추가한 부분의 아이템
         customItemAdapter = new CustomRecyclerView(CustomItemListArray);

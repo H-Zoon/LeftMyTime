@@ -24,12 +24,14 @@ public class AppWidget extends AppWidgetProvider {
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
         String action = intent.getAction();
-        int[] appWidgetIds = new int[0];
+        int[] appWidgetIds;
         Log.d("widget", "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
             if(appDatabase == null){
-                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData").allowMainThreadQueries().build();
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
+                        .allowMainThreadQueries()
+                        .build();
             }
 
             appWidgetIds = appDatabase.DatabaseDao().get();
@@ -129,7 +131,7 @@ public class AppWidget extends AppWidgetProvider {
                     } else {
                         adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
                     }
-                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
+                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" "+ adapterItem.getPercentString() + "%");
                     views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
 
             }
@@ -141,4 +143,3 @@ public class AppWidget extends AppWidgetProvider {
     }
 
 }
-

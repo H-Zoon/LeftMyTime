@@ -17,6 +17,8 @@ import android.widget.RemoteViews;
 import android.widget.Spinner;
 import android.widget.Toast;
 
+import androidx.room.Room;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -45,6 +47,18 @@ public class AppWidgetConfigure extends Activity {
     @Override
     public void onCreate(Bundle icicle) {
         super.onCreate(icicle);
+
+        if(appDatabase == null){
+            try{
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
+                        .allowMainThreadQueries()
+                        .build();
+
+            } catch (Exception e) {
+                Toast.makeText(context, "어플리케이션 실행 후 다시 시도해주세요.", Toast.LENGTH_LONG).show();
+            }
+
+        }
 
         //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED);
@@ -108,6 +122,7 @@ public class AppWidgetConfigure extends Activity {
 
                     case "0":
                         setResult(RESULT_CANCELED);
+                        Toast.makeText(context, "취소되었습니다", Toast.LENGTH_SHORT).show();
                         finish();
                         break;
 
@@ -119,7 +134,7 @@ public class AppWidgetConfigure extends Activity {
                         } else {
                             adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
                         }
-                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" 이(가) "+ adapterItem.getPercentString() + "%");
+                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" "+ adapterItem.getPercentString() + "%");
                         views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, adapterItem.getId(), entityItemInfo.getType());

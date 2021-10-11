@@ -56,10 +56,26 @@
         android:layout_marginEnd="10dp"
         android:background="@drawable/outline_add_black_48" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/recyclerview2"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:overScrollMode="never" />
+        android:layout_height="match_parent">
+
+        <TextView
+            android:layout_gravity="top|center"
+            android:gravity="center"
+            android:layout_marginTop="20dp"
+            android:id="@+id/explanation"
+            android:textSize="20sp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:visibility="invisible"
+            android:text="아직 추가된 항목이 없어요 \n + 버튼을 눌러 추가해보세요." />
+
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/recyclerview2"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:overScrollMode="never" />
+    </FrameLayout>
 
 </LinearLayout>
