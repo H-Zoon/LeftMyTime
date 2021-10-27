@@ -26,6 +26,8 @@ public interface DatabaseDao {
     @Query("UPDATE EntityItemInfo SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
     void updateItem(String updateStart, String updateEnd, int ID);
 
+    //위젯엔티티
+
     @Insert
     void saveWidget(EntityWidgetInfo entityWidgetInfo);
 
@@ -35,13 +37,13 @@ public interface DatabaseDao {
     @Query("SELECT type FROM EntityWidgetInfo WHERE widgetID = :ID")
     String getType(int ID);
 
-    @Query("SELECT typeID FROM EntityWidgetInfo WHERE widgetID = :ID")
+    @Query("SELECT ItemID FROM EntityWidgetInfo WHERE widgetID = :ID")
     int getTypeID(int ID);
 
     @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
     void delete(int ID);
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE typeID = :ID")
+    @Query("DELETE FROM EntityWidgetInfo WHERE ItemID = :ID")
     void deleteCustomWidget(int ID);
 
 

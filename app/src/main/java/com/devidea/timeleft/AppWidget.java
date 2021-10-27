@@ -19,7 +19,6 @@ import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
 public class AppWidget extends AppWidgetProvider {
-    private static final String TAG = "AppWidget";
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -28,7 +27,7 @@ public class AppWidget extends AppWidgetProvider {
         Log.d("widget", "onReceive() action = " + action);
 
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE.equals(action)) {
-            if(appDatabase == null){
+            if (appDatabase == null) {
                 appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
                         .allowMainThreadQueries()
                         .build();
@@ -86,59 +85,72 @@ public class AppWidget extends AppWidgetProvider {
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-        String type = appDatabase.DatabaseDao().getType(appWidgetId);
 
-        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+        try {
 
-        if (type != null) {
+            String type = appDatabase.DatabaseDao().getType(appWidgetId);
+
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+
             Intent intentR = new Intent(context, AppWidget.class);
             intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
             views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
+            if (type != null) {
+                switch (type) {
+                    case "embedYear":
 
-            switch (type) {
-                case "embedYear":
+                        views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
 
-                    views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                        break;
 
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
-                    break;
+                    case "embedMonth":
 
-                case "embedMonth":
+                        views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
 
-                    views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                        break;
 
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
-                    break;
+                    case "embedTime":
 
-                case "embedTime":
+                        views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
 
-                    views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
+                        break;
 
-                    appWidgetManager.updateAppWidget(appWidgetId, views);
-                    break;
+                    default:
+                        AdapterItem adapterItem;
 
-                default:
-                    AdapterItem adapterItem;
+                        //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
+                        EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(appDatabase.DatabaseDao().getTypeID(appWidgetId));
+                        if (type.equals("Time")) {
+                            adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
+                        } else {
+                            adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
+                        }
+                        views.setTextViewText(R.id.percent_text, adapterItem.getSummery() + " " + adapterItem.getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
+                        appWidgetManager.updateAppWidget(appWidgetId, views);
 
-                    //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
-                    EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(appDatabase.DatabaseDao().getTypeID(appWidgetId));
-                    if (type.equals("Time")) {
-                        adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
-                    } else {
-                        adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
-                    }
-                    views.setTextViewText(R.id.percent_text, adapterItem.getSummery() +" "+ adapterItem.getPercentString() + "%");
-                    views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(adapterItem.getPercentString()), false);
-
+                }
             }
-            Log.d("widget", type + "update done");
-        }
 
-        appWidgetManager.updateAppWidget(appWidgetId, views);
+            Log.d("widget", type + "update done");
+        } catch (NumberFormatException e) {
+            e.printStackTrace();
+            appDatabase.DatabaseDao().deleteCustomWidget(appWidgetId);
+
+            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+
+            views.setTextViewText(R.id.percent_text, "삭제후 다시 설정해 주세요");
+            views.setProgressBar(R.id.progress, 100, 0, false);
+            appWidgetManager.updateAppWidget(appWidgetId, views);
+            Log.d("widget", "fail");
+        }
 
     }
 
