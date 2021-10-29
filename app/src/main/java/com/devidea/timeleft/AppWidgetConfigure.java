@@ -146,6 +146,7 @@ public class AppWidgetConfigure extends Activity {
                 Intent resultValue = new Intent();
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetId);
                 setResult(RESULT_OK, resultValue);
+                views.setViewVisibility(R.id.percent_summery, 0);
                 finish();
             }
         };
