@@ -19,6 +19,7 @@ import static com.devidea.timeleft.MainActivity.timeInfoMonth;
 import static com.devidea.timeleft.MainActivity.timeInfoYear;
 
 public class AppWidget extends AppWidgetProvider {
+
     @Override
     public void onReceive(Context context, Intent intent) {
         super.onReceive(context, intent);
@@ -79,24 +80,46 @@ public class AppWidget extends AppWidgetProvider {
     @Override
     public void onDeleted(Context context, int[] appWidgetIds) {
         super.onDeleted(context, appWidgetIds);
+        try {
+            appDatabase.DatabaseDao().delete(appWidgetIds[0]);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (appDatabase == null) {
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
+                        .allowMainThreadQueries()
+                        .build();
 
-        appDatabase.DatabaseDao().delete(appWidgetIds[0]);
+                appDatabase.DatabaseDao().delete(appWidgetIds[0]);
+            }
+        }
+
         Log.d("widget", "onDeleted done");
     }
 
     static void updateAppWidget(Context context, AppWidgetManager appWidgetManager, int appWidgetId) {
-
+        String type = null;
         try {
 
-            String type = appDatabase.DatabaseDao().getType(appWidgetId);
+            type = appDatabase.DatabaseDao().getType(appWidgetId);
+        } catch (Exception e) {
+            e.printStackTrace();
+            if (appDatabase == null) {
+                appDatabase = Room.databaseBuilder(context, AppDatabase.class, "ItemData")
+                        .allowMainThreadQueries()
+                        .build();
 
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
+                type = appDatabase.DatabaseDao().getType(appWidgetId);
+            }
+        }
+
+        RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
 
             Intent intentR = new Intent(context, AppWidget.class);
             intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
             PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
             views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
             if (type != null) {
+                views.setViewVisibility(R.id.percent_summery, 0);
                 switch (type) {
                     case "embedYear":
 
@@ -140,17 +163,7 @@ public class AppWidget extends AppWidgetProvider {
             }
 
             Log.d("widget", type + "update done");
-        } catch (NumberFormatException e) {
-            e.printStackTrace();
-            appDatabase.DatabaseDao().deleteCustomWidget(appWidgetId);
 
-            RemoteViews views = new RemoteViews(context.getPackageName(), R.layout.app_widget);
-
-            views.setTextViewText(R.id.percent_text, "삭제후 다시 설정해 주세요");
-            views.setProgressBar(R.id.progress, 100, 0, false);
-            appWidgetManager.updateAppWidget(appWidgetId, views);
-            Log.d("widget", "fail");
-        }
 
     }
 
