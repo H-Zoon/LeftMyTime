@@ -14,17 +14,15 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.itemGenerator;
-import static com.devidea.timeleft.MainActivity.timeInfoTime;
+import static com.devidea.timeleft.MainActivity.DEFAULT_TIME;
 
-class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<RecyclerView.ViewHolder> {
+class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<TopRecyclerView.ViewHolder> {
 
     //array list
     private final ArrayList<AdapterItem> arrayList;
 
     //CustomAdapter 생성자
-    public RecyclerView(ArrayList<AdapterItem> arrayList) {
+    public TopRecyclerView(ArrayList<AdapterItem> arrayList) {
         this.arrayList = arrayList;
     }
 
@@ -34,7 +32,7 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
     public ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.item_recyclerview, viewGroup, false);
+                .inflate(R.layout.item_recyclerview_top, viewGroup, false);
 
         return new ViewHolder(view);
     }
@@ -42,11 +40,15 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
 
-        String summery_buf = arrayList.get(position).getSummery();
-        viewHolder.summery.setText(summery_buf);
+        //String summery_buf = arrayList.get(position).getSummery();
+        viewHolder.summery.setText(arrayList.get(position).getSummery());
 
         String percent_buf = arrayList.get(position).getPercentString();
         viewHolder.percent.setText(percent_buf + "%");
+
+        viewHolder.startValue.setText(arrayList.get(position).getStartDay());
+        viewHolder.endValue.setText(arrayList.get(position).getEndDay());
+        viewHolder.leftValue.setText(arrayList.get(position).getLeftDay());
 
         int percent = (int) Float.parseFloat(percent_buf);
 
@@ -61,9 +63,10 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads);
         } else {
-            AdapterItem adapterItem = timeInfoTime.setTimeItem();
+            AdapterItem adapterItem = DEFAULT_TIME.setTimeItem();
             holder.percent.setText(adapterItem.getPercentString() + "%");
             holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
+            holder.leftValue.setText(adapterItem.getLeftDay());
         }
     }
 
@@ -76,6 +79,9 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
         private final TextView summery;
         private final TextView percent;
         private final ProgressBar progressBar;
+        private final TextView startValue;
+        private final TextView endValue;
+        private final TextView leftValue;
 
         //ViewHolder
         public ViewHolder(View view) {
@@ -83,6 +89,10 @@ class RecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<Rec
             summery = (TextView) view.findViewById(R.id.summery);
             percent = (TextView) view.findViewById(R.id.percent_text);
             progressBar = (ProgressBar) view.findViewById(R.id.progress);
+
+            startValue = view.findViewById(R.id.start_day);
+            endValue = view.findViewById(R.id.end_day);
+            leftValue = view.findViewById(R.id.left_day);
 
         }
     }

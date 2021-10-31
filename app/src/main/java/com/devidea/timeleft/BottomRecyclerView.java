@@ -6,7 +6,6 @@ import android.annotation.SuppressLint;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
-import android.util.Log;
 import android.util.SparseBooleanArray;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -25,7 +24,7 @@ import java.util.List;
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.itemGenerator;
 
-public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<CustomRecyclerView.ViewHolder> {
+public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<BottomRecyclerView.ViewHolder> {
 
     //array list
     private final ArrayList<AdapterItem> arrayList;
@@ -37,21 +36,21 @@ public class CustomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
     private static Context context;
 
     //CustomAdapter 생성자
-    public CustomRecyclerView(ArrayList<AdapterItem> arrayList) {
+    public BottomRecyclerView(ArrayList<AdapterItem> arrayList) {
         this.arrayList = arrayList;
     }
 
     // Create new views (invoked by the layout manager)
     @NonNull
     @Override
-    public CustomRecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
+    public BottomRecyclerView.ViewHolder onCreateViewHolder(ViewGroup viewGroup, int viewType) {
         context = viewGroup.getContext();
         selectedItems = new SparseBooleanArray(getItemCount());
         // Create a new view, which defines the UI of the list item
         View view = LayoutInflater.from(viewGroup.getContext())
-                .inflate(R.layout.item_recyclerview_custom, viewGroup, false);
+                .inflate(R.layout.item_recyclerview_bottom, viewGroup, false);
 
-        return new CustomRecyclerView.ViewHolder(view);
+        return new BottomRecyclerView.ViewHolder(view);
     }
 
     @SuppressLint("SetTextI18n")

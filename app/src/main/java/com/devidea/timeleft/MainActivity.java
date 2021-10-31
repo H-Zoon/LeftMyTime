@@ -22,17 +22,18 @@ import me.relex.circleindicator.CircleIndicator2;
 
 public class MainActivity extends AppCompatActivity {
 
-    private final ArrayList<AdapterItem> adapterItemListArray = new ArrayList<>();
-    private static final ArrayList<AdapterItem> CustomItemListArray = new ArrayList<>();
+    private final ArrayList<AdapterItem> topItemListArray = new ArrayList<>();
+    private static final ArrayList<AdapterItem> bottomItemListArray = new ArrayList<>();
 
     private androidx.recyclerview.widget.RecyclerView recyclerView;
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
 
-    private static CustomRecyclerView customItemAdapter;
+    private static BottomRecyclerView bottomItemAdapter;
+    private static TopRecyclerView topItemAdapter;
 
-    public static final TimeInfoYear timeInfoYear = new TimeInfoYear();
-    public static final TimeInfoMonth timeInfoMonth = new TimeInfoMonth();
-    public static final TimeInfoTime timeInfoTime = new TimeInfoTime();
+    public static final DefaultYear DEFAULT_YEAR = new DefaultYear();
+    public static final DefaultDay DEFAULT_DAY = new DefaultDay();
+    public static final DefaultTime DEFAULT_TIME = new DefaultTime();
     public static final ItemGenerator itemGenerator = new ItemGenerator();
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
@@ -58,13 +59,13 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        adapterItemListArray.add(timeInfoTime.setTimeItem());
-        adapterItemListArray.add(timeInfoMonth.setTimeItem());
-        adapterItemListArray.add(timeInfoYear.setTimeItem());
+        topItemListArray.add(DEFAULT_TIME.setTimeItem());
+        topItemListArray.add(DEFAULT_DAY.setTimeItem());
+        topItemListArray.add(DEFAULT_YEAR.setTimeItem());
 
         //recyclerView 관련 객체
-        RecyclerView adapter = new RecyclerView(adapterItemListArray);
-        recyclerView.setAdapter(adapter);
+        topItemAdapter = new TopRecyclerView(topItemListArray);
+        recyclerView.setAdapter(topItemAdapter);
 
         // PagerSnapHelper 추가 꼭 공부하기 !!
         PagerSnapHelper pagerSnapHelper = new PagerSnapHelper();
@@ -75,7 +76,7 @@ public class MainActivity extends AppCompatActivity {
         indicator.attachToRecyclerView(recyclerView, pagerSnapHelper);
 
         //인디케이터 활성화 꼭 공부하기!!
-        adapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
+        topItemAdapter.registerAdapterDataObserver(indicator.getAdapterDataObserver());
 
         //커스텀 항목에 대한 추가
         customItemRecyclerView = findViewById(R.id.recyclerview2);
@@ -131,9 +132,9 @@ public class MainActivity extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
-                            adapter.notifyItemChanged(0, "update");
+                            topItemAdapter.notifyItemChanged(0, "update");
                             for(int i=0; i<position.size(); i++){
-                                customItemAdapter.notifyItemChanged(position.get(i), itemID.get(i));
+                                bottomItemAdapter.notifyItemChanged(position.get(i), itemID.get(i));
                             }
                         }
                     });
@@ -151,7 +152,7 @@ public class MainActivity extends AppCompatActivity {
 
 
     public static void GetDBItem() {
-        CustomItemListArray.clear();
+        bottomItemListArray.clear();
         position.clear();
         itemID.clear();
 
@@ -159,11 +160,11 @@ public class MainActivity extends AppCompatActivity {
             explanation.setVisibility(View.INVISIBLE);
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                 if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
-                    CustomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
                     position.add(i);
-                    itemID.add(CustomItemListArray.get(i).getId());
+                    itemID.add(bottomItemListArray.get(i).getId());
                 } else {
-                    CustomItemListArray.add(itemGenerator.generateMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(itemGenerator.generateMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
 
             }
@@ -172,8 +173,8 @@ public class MainActivity extends AppCompatActivity {
            explanation.setVisibility(View.VISIBLE);
         }
         //사용자가 추가한 부분의 아이템
-        customItemAdapter = new CustomRecyclerView(CustomItemListArray);
-        customItemRecyclerView.setAdapter(customItemAdapter);
+        bottomItemAdapter = new BottomRecyclerView(bottomItemListArray);
+        customItemRecyclerView.setAdapter(bottomItemAdapter);
     }
 
     @Override
