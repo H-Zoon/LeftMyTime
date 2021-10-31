@@ -4,7 +4,7 @@
 import java.time.LocalDate;
 import java.util.Locale;
 
-public class TimeInfoYear implements TimeInfo{
+public class DefaultYear implements TimeInfo{
 
     @Override
     public AdapterItem setTimeItem() {
@@ -14,6 +14,10 @@ public class TimeInfoYear implements TimeInfo{
 
         adapterItem.setSummery(LocalDate.now().getYear()+"년의 ");
         adapterItem.setPercentString(String.format(Locale.getDefault(), "%.1f", YearPercent));
+
+        adapterItem.setStartDay("시작일: " + LocalDate.now().getYear()+"년" +" 1월"+" 1일");
+        adapterItem.setEndDay("종료일: " +  LocalDate.now().getYear()+"년" +" 12월"+" 31일");
+        adapterItem.setLeftDay("남은일: " + (LocalDate.now().lengthOfYear() - LocalDate.now().getDayOfYear()) + "일");
 
         return adapterItem;
     }

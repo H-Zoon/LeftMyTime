@@ -13,8 +13,8 @@
         android:id="@+id/summery"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="TextView"
         android:layout_gravity="center"
+        android:text="TextView"
         android:textSize="30sp" />
 
     <FrameLayout
@@ -28,7 +28,7 @@
             android:layout_gravity="center"
             android:background="@drawable/circle_inner"
             android:indeterminateOnly="false"
-            android:max="120"
+            android:max="100"
             android:progress="0"
             android:progressDrawable="@drawable/circle_outer" />
 
@@ -45,9 +45,35 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center"
         android:layout_marginBottom="10dp"
         android:text="지나갔습니다."
-        android:layout_gravity="center"
         android:textSize="30sp" />
+
+
+    <TextView
+        android:id="@+id/start_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="10dp"
+        android:layout_marginBottom="10dp"
+        android:text="TextView"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/end_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="TextView"
+        android:textSize="20sp" />
+
+    <TextView
+        android:id="@+id/left_day"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="10dp"
+        android:text="TextView"
+        android:textSize="20sp" />
 
 </LinearLayout>

@@ -14,9 +14,9 @@ import androidx.room.Room;
 
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.itemGenerator;
-import static com.devidea.timeleft.MainActivity.timeInfoTime;
-import static com.devidea.timeleft.MainActivity.timeInfoMonth;
-import static com.devidea.timeleft.MainActivity.timeInfoYear;
+import static com.devidea.timeleft.MainActivity.DEFAULT_TIME;
+import static com.devidea.timeleft.MainActivity.DEFAULT_DAY;
+import static com.devidea.timeleft.MainActivity.DEFAULT_YEAR;
 
 public class AppWidget extends AppWidgetProvider {
 
@@ -123,24 +123,24 @@ public class AppWidget extends AppWidgetProvider {
                 switch (type) {
                     case "embedYear":
 
-                        views.setTextViewText(R.id.percent_text, timeInfoYear.setTimeItem().getSummery() + timeInfoYear.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoYear.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.percent_text, DEFAULT_YEAR.setTimeItem().getSummery() + DEFAULT_YEAR.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_YEAR.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(appWidgetId, views);
                         break;
 
                     case "embedMonth":
 
-                        views.setTextViewText(R.id.percent_text, timeInfoMonth.setTimeItem().getSummery() + timeInfoMonth.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoMonth.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.percent_text, DEFAULT_DAY.setTimeItem().getSummery() + DEFAULT_DAY.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_DAY.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(appWidgetId, views);
                         break;
 
                     case "embedTime":
 
-                        views.setTextViewText(R.id.percent_text, timeInfoTime.setTimeItem().getSummery() + timeInfoTime.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(timeInfoTime.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.percent_text, DEFAULT_TIME.setTimeItem().getSummery() + DEFAULT_TIME.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_TIME.setTimeItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(appWidgetId, views);
                         break;
