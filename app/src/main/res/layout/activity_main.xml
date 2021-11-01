@@ -9,7 +9,7 @@
     android:gravity="bottom"
     app:umanoDragView="@id/bottomLayout"
 
-    app:umanoOverlay="true"
+    app:umanoOverlay="false"
     app:umanoPanelHeight="100dp"
     app:umanoShadowHeight="10dp"
     tools:context=".MainActivity">
@@ -21,9 +21,9 @@
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerview"
-            android:layout_marginTop="50dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="50dp"
             android:overScrollMode="never" />
 
         <me.relex.circleindicator.CircleIndicator2
@@ -36,12 +36,10 @@
 
     </LinearLayout>
 
-
     <LinearLayout
         android:id="@+id/bottomLayout"
         android:layout_width="match_parent"
         android:layout_height="700dp"
-        android:background="@color/white"
         android:orientation="vertical">
 
         <Button
@@ -56,8 +54,7 @@
 
         <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-           >
+            android:layout_height="match_parent">
 
             <TextView
                 android:id="@+id/explanation"
@@ -77,8 +74,6 @@
                 android:overScrollMode="never" />
         </FrameLayout>
 
-
     </LinearLayout>
-
 
 </com.sothree.slidinguppanel.SlidingUpPanelLayout>
