@@ -1,12 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/main_panel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginTop="20dp"
-    android:layout_marginBottom="20dp"
-    android:orientation="vertical"
+    android:background="#00FFFFFF"
+    android:gravity="bottom"
+    app:umanoDragView="@id/bottomLayout"
+
+    app:umanoOverlay="false"
+    app:umanoPanelHeight="100dp"
+    app:umanoShadowHeight="10dp"
     tools:context=".MainActivity">
 
     <LinearLayout
@@ -14,18 +19,11 @@
         android:layout_height="wrap_content"
         android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/hi"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:gravity="center"
-            android:text="오늘도 좋은하루 보내세요 ;)"
-            android:textSize="25sp" />
-
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerview"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
+            android:layout_marginTop="50dp"
             android:overScrollMode="never" />
 
         <me.relex.circleindicator.CircleIndicator2
@@ -36,46 +34,46 @@
             app:ci_height="3pt"
             app:ci_width="3pt" />
 
+    </LinearLayout>
+
+    <LinearLayout
+        android:id="@+id/bottomLayout"
+        android:layout_width="match_parent"
+        android:layout_height="700dp"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/time_add"
+            style="@style/Style.Color.Button"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="20dp"
+            android:layout_marginEnd="10dp"
+            android:background="@drawable/outline_add_black_48" />
+
+        <FrameLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:id="@+id/explanation"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_gravity="top|center"
+                android:layout_marginTop="20dp"
+                android:gravity="center"
+                android:text="아직 추가된 항목이 없어요 \n + 버튼을 눌러 추가해보세요."
+                android:textSize="20sp"
+                android:visibility="invisible" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/recyclerview2"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:overScrollMode="never" />
+        </FrameLayout>
 
     </LinearLayout>
 
-    <ImageView
-        android:layout_width="match_parent"
-        android:layout_height="1dp"
-        android:layout_marginBottom="10dp"
-        android:src="@drawable/line"
-        app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <Button
-        android:id="@+id/time_add"
-        style="@style/Style.Color.Button"
-        android:layout_width="40dp"
-        android:layout_height="40dp"
-        android:layout_gravity="end"
-        android:layout_marginEnd="10dp"
-        android:background="@drawable/outline_add_black_48" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent">
-
-        <TextView
-            android:layout_gravity="top|center"
-            android:gravity="center"
-            android:layout_marginTop="20dp"
-            android:id="@+id/explanation"
-            android:textSize="20sp"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:visibility="invisible"
-            android:text="아직 추가된 항목이 없어요 \n + 버튼을 눌러 추가해보세요." />
-
-        <androidx.recyclerview.widget.RecyclerView
-            android:id="@+id/recyclerview2"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:overScrollMode="never" />
-    </FrameLayout>
-
-</LinearLayout>
+</com.sothree.slidinguppanel.SlidingUpPanelLayout>

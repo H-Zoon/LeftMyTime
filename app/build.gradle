@@ -10,8 +10,8 @@ android {
         applicationId "com.devidea.timeleft"
         minSdkVersion 28
         targetSdkVersion 30
-        versionCode 5
-        versionName "2.4"
+        versionCode 6
+        versionName "3.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,5 +44,7 @@ dependencies {
     annotationProcessor 'androidx.room:room-compiler:2.3.0'
     implementation 'me.relex:circleindicator:2.1.6'
     implementation 'com.github.AppIntro:AppIntro:6.1.0'
+
+    implementation 'com.github.hannesa2:AndroidSlidingUpPanel:4.2.2'
 
 }

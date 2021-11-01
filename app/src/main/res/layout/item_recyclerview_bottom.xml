@@ -29,17 +29,17 @@
                 android:layout_height="wrap_content"
                 android:text="TextView"
                 android:textSize="20sp" />
+
             <View
                 android:layout_width="0dp"
                 android:layout_height="0dp"
-                android:layout_weight="1"
-                />
+                android:layout_weight="1" />
 
             <ImageView
-                android:gravity="end"
                 android:id="@+id/imageView"
                 android:layout_width="30dp"
                 android:layout_height="30dp"
+                android:gravity="end"
                 app:srcCompat="@drawable/baseline_expand_more_black_36" />
         </LinearLayout>
 
@@ -48,6 +48,7 @@
             android:id="@+id/percent_text"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="10dp"
             android:text="TextView"
             android:textSize="40sp" />
 
@@ -58,6 +59,7 @@
             android:layout_height="wrap_content"
             android:max="100"
             android:progressDrawable="@drawable/progressbar" />
+
     </LinearLayout>
 
     <LinearLayout
