@@ -19,7 +19,7 @@
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
         <item name="colorPrimary">@color/black</item>
 
-        <item name="android:backgroundTint">#CCFFFFFF</item>
+        <item name="android:backgroundTint">@color/white</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:fontFamily">@font/nanumsquareround</item>
     </style>

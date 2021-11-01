@@ -17,7 +17,7 @@
         android:text="TimeLeft에 오신것을 \n 환영합니다." />
 
     <ImageView
-        android:background="@drawable/line"
+
         android:backgroundTint="@color/gray600"
         android:layout_marginTop="50dp"
         android:id="@+id/imageView2"

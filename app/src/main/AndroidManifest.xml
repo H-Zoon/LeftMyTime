@@ -13,7 +13,7 @@
 
         <activity android:name=".CreateTimeActivity" />
         <activity android:name=".CreateMonthActivity" />
-        <activity android:name=".MainActivity"/>
+        <activity android:name=".MainActivity" />
 
         <activity android:name=".AppIntroActivity">
             <intent-filter>
@@ -22,7 +22,9 @@
             </intent-filter>
         </activity>
 
-        <receiver android:name=".AppWidget">
+        <receiver
+            android:name=".AppWidget"
+            android:label="기본위젯">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
@@ -30,6 +32,7 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info" />
+
         </receiver>
 
         <activity android:name=".AppWidgetConfigure">
