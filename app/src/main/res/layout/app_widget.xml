@@ -11,10 +11,11 @@
     <Button
         android:id="@+id/refrash"
         style="@style/Style.Color.Button"
-        android:layout_marginEnd="5dp"
-        android:layout_gravity="end"
         android:layout_width="20dp"
         android:layout_height="20dp"
+        android:layout_gravity="end"
+        android:layout_marginTop="5dp"
+        android:layout_marginEnd="5dp"
         android:background="@drawable/baseline_refresh_black_36" />
 
 
@@ -23,7 +24,6 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="TextView"
         android:textSize="15sp" />
 
     <TextView
@@ -31,7 +31,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center"
-        android:text="TextView"
+        android:text="로딩중.."
         android:textSize="30sp" />
 
     <ProgressBar

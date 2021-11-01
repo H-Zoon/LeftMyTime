@@ -2,105 +2,115 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginLeft="15dp"
-    android:layout_marginRight="15dp"
     android:orientation="vertical"
-    android:weightSum="2">
+    android:padding="10dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="하나를 선택해주세요."
+        android:textSize="30sp" />
 
     <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="0.5"
-        android:gravity="center"
+        android:layout_width="140dp"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginTop="20dp"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/line_widget"
         android:orientation="vertical">
 
+        <Button
+            android:id="@+id/refrash"
+            style="@style/Style.Color.Button"
+            android:layout_width="20dp"
+            android:layout_height="20dp"
+            android:layout_gravity="end"
+            android:layout_marginTop="5dp"
+            android:layout_marginEnd="5dp"
+            android:background="@drawable/baseline_refresh_black_36" />
+
         <TextView
-            android:id="@+id/percent_text"
-            android:layout_width="match_parent"
+            android:id="@+id/summery_preview"
+            android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="이곳에 표시됩니다."
-            android:textSize="40sp" />
+            android:layout_gravity="center"
+            android:text="제목"
+            android:textSize="15sp" />
+
+        <TextView
+            android:id="@+id/percent"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:text="75%"
+            android:textSize="30sp" />
 
         <ProgressBar
             android:id="@+id/progress"
             style="?android:attr/progressBarStyleHorizontal"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
+            android:layout_height="20dp"
+            android:layout_marginTop="10dp"
             android:max="100"
             android:progress="75"
-            android:progressDrawable="@drawable/progressbar" />
+            android:progressDrawable="@drawable/progressbar_widget" />
 
     </LinearLayout>
 
-    <LinearLayout
+    <RadioGroup
+        android:id="@+id/radioGroup"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_weight="1.5"
-        android:orientation="vertical">
+        android:layout_height="wrap_content">
 
-        <TextView
-            android:id="@+id/textView2"
+        <RadioButton
+            android:id="@+id/yearButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="하나를 선택해주세요."
-            android:textSize="30sp" />
+            android:text="년도 지나감 보기"
+            android:textSize="20sp" />
 
-        <RadioGroup
-            android:id="@+id/radioGroup"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content">
-
-            <RadioButton
-                android:id="@+id/yearButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="년도 지나감 보기"
-                android:textSize="20sp" />
-
-            <RadioButton
-                android:id="@+id/monthButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="달 지나감 보기"
-                android:textSize="20sp" />
-
-            <RadioButton
-                android:id="@+id/timeButton"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="시간 지나감 보기"
-                android:textSize="20sp" />
-
-        </RadioGroup>
-
-        <CheckBox
-            android:id="@+id/checkBox"
+        <RadioButton
+            android:id="@+id/monthButton"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="내가만든 항목 보기" />
+            android:text="달 지나감 보기"
+            android:textSize="20sp" />
 
-        <Spinner
-            android:id="@+id/spinner"
+        <RadioButton
+            android:id="@+id/timeButton"
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"/>
+            android:layout_height="wrap_content"
+            android:text="시간 지나감 보기"
+            android:textSize="20sp" />
 
-    </LinearLayout>
+    </RadioGroup>
 
-    <LinearLayout
+    <CheckBox
+        android:id="@+id/checkBox"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:orientation="horizontal">
+        android:text="내가만든 항목 보기" />
 
-        <Button
-            android:id="@+id/summit_button"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_weight="1"
-            android:background="@drawable/line"
-            android:text="저장"
-            android:textSize="30sp" />
+    <Spinner
+        android:id="@+id/spinner"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content" />
 
-    </LinearLayout>
+    <View
+        android:layout_width="wrap_content"
+        android:layout_height="0dp"
+        android:layout_weight="1" />
+
+
+    <Button
+        android:id="@+id/summit_button"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+
+        android:layout_gravity="bottom"
+        android:background="@drawable/line"
+        android:text="저장"
+        android:textSize="30sp" />
 
 </LinearLayout>

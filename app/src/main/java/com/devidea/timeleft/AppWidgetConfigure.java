@@ -15,6 +15,7 @@ import android.widget.CheckBox;
 import android.widget.RadioGroup;
 import android.widget.RemoteViews;
 import android.widget.Spinner;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.room.Room;
@@ -43,6 +44,8 @@ public class AppWidgetConfigure extends Activity {
     EntityWidgetInfo entityWidgetInfo;
     Context context = AppWidgetConfigure.this;
     boolean isFirstSelected = false;
+
+    TextView Preview;
 
     @Override
     public void onCreate(Bundle icicle) {
@@ -88,12 +91,15 @@ public class AppWidgetConfigure extends Activity {
                 RemoteViews views = new RemoteViews(context.getPackageName(),
                         R.layout.app_widget);
 
-
                 //위젯에 새로고침 버튼 추가
                 Intent intentR = new Intent(context, AppWidget.class);
                 intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
                 PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
                 views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
+
+                Intent appIntent=new Intent(context, MainActivity.class);
+                PendingIntent pe=PendingIntent.getActivity(context, 0, appIntent, 0);
+                views.setOnClickPendingIntent(R.id.percent, pe);
 
                 switch (value) {
                     case "embedYear":
@@ -158,14 +164,18 @@ public class AppWidgetConfigure extends Activity {
         RadioGroup.OnCheckedChangeListener radioGroupButtonChangeListener = new RadioGroup.OnCheckedChangeListener() {
             @Override
             public void onCheckedChanged(RadioGroup group, int checkedId) {
+                Preview = findViewById(R.id.summery_preview);
                 switch (checkedId) {
                     case R.id.yearButton:
+                        Preview.setText(DEFAULT_YEAR.setTimeItem().getSummery());
                         value = "embedYear";
                         break;
                     case R.id.monthButton:
+                        Preview.setText(DEFAULT_DAY.setTimeItem().getSummery());
                         value = "embedMonth";
                         break;
                     case R.id.timeButton:
+                        Preview.setText(DEFAULT_TIME.setTimeItem().getSummery());
                         value = "embedTime";
                         break;
                 }
@@ -196,6 +206,11 @@ public class AppWidgetConfigure extends Activity {
                             radioGroup.getChildAt(i).setEnabled(false);
                         }
                         value = String.valueOf(entityItemInfo.get(0).getId());
+
+                        Preview = findViewById(R.id.summery_preview);
+                        Preview.setText(entityItemInfo.get(0).getSummery());
+                        spinner.setSelection(0);
+
                         isFirstSelected = true;
                         spinner.setEnabled(true);
                     } else {
@@ -217,7 +232,11 @@ public class AppWidgetConfigure extends Activity {
         spinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
             @Override
             public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                Preview = findViewById(R.id.summery_preview);
+                Preview.setText(entityItemInfo.get(position).getSummery());
+
                 if (isFirstSelected) {
+                    Preview.setText(entityItemInfo.get(position).getSummery());
                     value = String.valueOf(entityItemInfo.get(position).getId());
                     Log.d("value", value);
                 }

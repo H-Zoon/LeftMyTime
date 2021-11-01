@@ -118,6 +118,11 @@ public class AppWidget extends AppWidgetProvider {
         intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT);
         views.setOnClickPendingIntent(R.id.refrash, pendingIntent);
+
+        Intent appIntent=new Intent(context, MainActivity.class);
+        PendingIntent pe=PendingIntent.getActivity(context, 0, appIntent, 0);
+        views.setOnClickPendingIntent(R.id.percent, pe);
+
         if (type != null) {
             switch (type) {
                 case "embedYear":
