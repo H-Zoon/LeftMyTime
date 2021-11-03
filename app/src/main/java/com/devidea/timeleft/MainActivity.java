@@ -31,9 +31,12 @@ public class MainActivity extends AppCompatActivity {
     private static BottomRecyclerView bottomItemAdapter;
     private static TopRecyclerView topItemAdapter;
 
-    public static final DefaultYear DEFAULT_YEAR = new DefaultYear();
+    public static final TimeCalculator TIME_CALCULATOR = new CreateDefaultValue();
+    /*
     public static final DefaultDay DEFAULT_DAY = new DefaultDay();
     public static final DefaultTime DEFAULT_TIME = new DefaultTime();
+
+     */
     public static final ItemGenerator itemGenerator = new ItemGenerator();
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
@@ -59,9 +62,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        topItemListArray.add(DEFAULT_TIME.setTimeItem());
-        topItemListArray.add(DEFAULT_DAY.setTimeItem());
-        topItemListArray.add(DEFAULT_YEAR.setTimeItem());
+        topItemListArray.add(TIME_CALCULATOR.setTimeItem());
+        topItemListArray.add(TIME_CALCULATOR.setDayItem());
+        topItemListArray.add(TIME_CALCULATOR.setYearItem());
 
         //recyclerView 관련 객체
         topItemAdapter = new TopRecyclerView(topItemListArray);

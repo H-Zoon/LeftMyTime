@@ -23,11 +23,10 @@ import androidx.room.Room;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.devidea.timeleft.MainActivity.TIME_CALCULATOR;
 import static com.devidea.timeleft.MainActivity.appDatabase;
 import static com.devidea.timeleft.MainActivity.itemGenerator;
-import static com.devidea.timeleft.MainActivity.DEFAULT_TIME;
-import static com.devidea.timeleft.MainActivity.DEFAULT_DAY;
-import static com.devidea.timeleft.MainActivity.DEFAULT_YEAR;
+
 
 public class AppWidgetConfigure extends Activity {
 
@@ -103,27 +102,29 @@ public class AppWidgetConfigure extends Activity {
 
                 switch (value) {
                     case "embedYear":
-                        views.setTextViewText(R.id.summery, DEFAULT_YEAR.setTimeItem().getSummery());
-                        views.setTextViewText(R.id.percent, DEFAULT_YEAR.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_YEAR.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setYearItem().getSummery());
+                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setYearItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setYearItem().getPercentString()), false);
+
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
                     case "embedMonth":
-                        views.setTextViewText(R.id.summery, DEFAULT_DAY.setTimeItem().getSummery());
-                        views.setTextViewText(R.id.percent, DEFAULT_DAY.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_DAY.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setDayItem().getSummery());
+                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setDayItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setDayItem().getPercentString()), false);
+
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
                         break;
 
                     case "embedTime":
-                        views.setTextViewText(R.id.summery, DEFAULT_TIME.setTimeItem().getSummery());
-                        views.setTextViewText(R.id.percent, DEFAULT_TIME.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(DEFAULT_TIME.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setTimeItem().getSummery());
+                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setTimeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setTimeItem().getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
@@ -167,15 +168,15 @@ public class AppWidgetConfigure extends Activity {
                 Preview = findViewById(R.id.summery_preview);
                 switch (checkedId) {
                     case R.id.yearButton:
-                        Preview.setText(DEFAULT_YEAR.setTimeItem().getSummery());
+                        Preview.setText(TIME_CALCULATOR.setYearItem().getSummery());
                         value = "embedYear";
                         break;
                     case R.id.monthButton:
-                        Preview.setText(DEFAULT_DAY.setTimeItem().getSummery());
+                        Preview.setText(TIME_CALCULATOR.setDayItem().getSummery());
                         value = "embedMonth";
                         break;
                     case R.id.timeButton:
-                        Preview.setText(DEFAULT_TIME.setTimeItem().getSummery());
+                        Preview.setText(TIME_CALCULATOR.setTimeItem().getSummery());
                         value = "embedTime";
                         break;
                 }

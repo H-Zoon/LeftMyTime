@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.devidea.timeleft.MainActivity.DEFAULT_TIME;
+import static com.devidea.timeleft.MainActivity.TIME_CALCULATOR;
 
 class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<TopRecyclerView.ViewHolder> {
 
@@ -63,9 +63,9 @@ class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads);
         } else {
-            AdapterItem adapterItem = DEFAULT_TIME.setTimeItem();
+            AdapterItem adapterItem = TIME_CALCULATOR.setTimeItem();
             holder.percent.setText(adapterItem.getPercentString() + "%");
-            holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
+            holder.progressBar.setProgress((int) Float.parseFloat(adapterItem.getPercentString()));
             holder.leftValue.setText(adapterItem.getLeftDay());
         }
     }
