@@ -31,13 +31,9 @@ public class MainActivity extends AppCompatActivity {
     private static BottomRecyclerView bottomItemAdapter;
     private static TopRecyclerView topItemAdapter;
 
-    public static final TimeCalculator TIME_CALCULATOR = new CreateDefaultValue();
-    /*
-    public static final DefaultDay DEFAULT_DAY = new DefaultDay();
-    public static final DefaultTime DEFAULT_TIME = new DefaultTime();
+    public static final InterfaceItem ITEM_GENERATE = new ItemGenerate();
+    public static final ItemSave SAVE_ITEM = new ItemSave();
 
-     */
-    public static final ItemGenerator itemGenerator = new ItemGenerator();
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
 
@@ -62,9 +58,9 @@ public class MainActivity extends AppCompatActivity {
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        topItemListArray.add(TIME_CALCULATOR.setTimeItem());
-        topItemListArray.add(TIME_CALCULATOR.setDayItem());
-        topItemListArray.add(TIME_CALCULATOR.setYearItem());
+        topItemListArray.add(ITEM_GENERATE.timeItem());
+        topItemListArray.add(ITEM_GENERATE.monthItem());
+        topItemListArray.add(ITEM_GENERATE.yearItem());
 
         //recyclerView 관련 객체
         topItemAdapter = new TopRecyclerView(topItemListArray);
@@ -163,11 +159,11 @@ public class MainActivity extends AppCompatActivity {
             explanation.setVisibility(View.INVISIBLE);
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                 if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
-                    bottomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(ITEM_GENERATE.customTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
                     position.add(i);
                     itemID.add(bottomItemListArray.get(i).getId());
                 } else {
-                    bottomItemListArray.add(itemGenerator.generateMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(ITEM_GENERATE.customMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
 
             }

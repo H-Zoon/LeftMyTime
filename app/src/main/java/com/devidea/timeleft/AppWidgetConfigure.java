@@ -23,9 +23,8 @@ import androidx.room.Room;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.devidea.timeleft.MainActivity.TIME_CALCULATOR;
+import static com.devidea.timeleft.MainActivity.ITEM_GENERATE;
 import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.itemGenerator;
 
 
 public class AppWidgetConfigure extends Activity {
@@ -102,9 +101,9 @@ public class AppWidgetConfigure extends Activity {
 
                 switch (value) {
                     case "embedYear":
-                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setYearItem().getSummery());
-                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setYearItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setYearItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, ITEM_GENERATE.yearItem().getSummery());
+                        views.setTextViewText(R.id.percent, ITEM_GENERATE.yearItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(ITEM_GENERATE.yearItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
@@ -112,9 +111,9 @@ public class AppWidgetConfigure extends Activity {
                         break;
 
                     case "embedMonth":
-                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setDayItem().getSummery());
-                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setDayItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setDayItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, ITEM_GENERATE.monthItem().getSummery());
+                        views.setTextViewText(R.id.percent, ITEM_GENERATE.monthItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(ITEM_GENERATE.monthItem().getPercentString()), false);
 
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
@@ -122,9 +121,9 @@ public class AppWidgetConfigure extends Activity {
                         break;
 
                     case "embedTime":
-                        views.setTextViewText(R.id.summery, TIME_CALCULATOR.setTimeItem().getSummery());
-                        views.setTextViewText(R.id.percent, TIME_CALCULATOR.setTimeItem().getPercentString() + "%");
-                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(TIME_CALCULATOR.setTimeItem().getPercentString()), false);
+                        views.setTextViewText(R.id.summery, ITEM_GENERATE.timeItem().getSummery());
+                        views.setTextViewText(R.id.percent, ITEM_GENERATE.timeItem().getPercentString() + "%");
+                        views.setProgressBar(R.id.progress, 100, (int) Float.parseFloat(ITEM_GENERATE.timeItem().getPercentString()), false);
                         appWidgetManager.updateAppWidget(AppWidgetId, views);
                         entityWidgetInfo = new EntityWidgetInfo(AppWidgetId, -1, value);
                         appDatabase.DatabaseDao().saveWidget(entityWidgetInfo);
@@ -140,9 +139,9 @@ public class AppWidgetConfigure extends Activity {
                         EntityItemInfo entityItemInfo = appDatabase.DatabaseDao().getSelectItem(Integer.parseInt(value));
                         AdapterItem adapterItem;
                         if (entityItemInfo.getType().equals("Time")) {
-                            adapterItem = itemGenerator.generateTimeItem(entityItemInfo);
+                            adapterItem = ITEM_GENERATE.customTimeItem(entityItemInfo);
                         } else {
-                            adapterItem = itemGenerator.generateMonthItem(entityItemInfo);
+                            adapterItem = ITEM_GENERATE.customMonthItem(entityItemInfo);
                         }
                         views.setTextViewText(R.id.summery, adapterItem.getSummery());
                         views.setTextViewText(R.id.percent, adapterItem.getPercentString() + "%");
@@ -168,15 +167,15 @@ public class AppWidgetConfigure extends Activity {
                 Preview = findViewById(R.id.summery_preview);
                 switch (checkedId) {
                     case R.id.yearButton:
-                        Preview.setText(TIME_CALCULATOR.setYearItem().getSummery());
+                        Preview.setText(ITEM_GENERATE.yearItem().getSummery());
                         value = "embedYear";
                         break;
                     case R.id.monthButton:
-                        Preview.setText(TIME_CALCULATOR.setDayItem().getSummery());
+                        Preview.setText(ITEM_GENERATE.monthItem().getSummery());
                         value = "embedMonth";
                         break;
                     case R.id.timeButton:
-                        Preview.setText(TIME_CALCULATOR.setTimeItem().getSummery());
+                        Preview.setText(ITEM_GENERATE.timeItem().getSummery());
                         value = "embedTime";
                         break;
                 }

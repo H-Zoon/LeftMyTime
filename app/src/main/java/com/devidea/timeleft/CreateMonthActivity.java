@@ -19,7 +19,7 @@ public class CreateMonthActivity extends AppCompatActivity {
     EditText inputSummery, inputDay;
     Button calender, save;
     CheckBox AutoUpdateCheck;
-    ItemGenerator itemGenerator = new ItemGenerator();
+    ItemSave itemSave = new ItemSave();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -66,7 +66,7 @@ public class CreateMonthActivity extends AppCompatActivity {
                     if (Integer.parseInt(inputDay.getText().toString()) > 1826) {
                         Toast.makeText(CreateMonthActivity.this, "흠..감당하기엔 너무 멀지 않나요..?", Toast.LENGTH_LONG).show();
                     } else {
-                        itemGenerator.saveMonthItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
+                        itemSave.saveMonthItem(inputSummery.getText().toString(), Integer.parseInt(inputDay.getText().toString()), AutoUpdateCheck.isChecked());
                         MainActivity.GetDBItem();
                         finish();
                     }

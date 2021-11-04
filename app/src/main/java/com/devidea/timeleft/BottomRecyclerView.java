@@ -21,8 +21,8 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.devidea.timeleft.MainActivity.ITEM_GENERATE;
 import static com.devidea.timeleft.MainActivity.appDatabase;
-import static com.devidea.timeleft.MainActivity.itemGenerator;
 
 public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<BottomRecyclerView.ViewHolder> {
 
@@ -125,7 +125,7 @@ public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         } else {
             for (Object payload : payloads) {
                 int itemID = (int) payload;
-                AdapterItem adapterItem = itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getSelectItem(itemID));
+                AdapterItem adapterItem = ITEM_GENERATE.customTimeItem(appDatabase.DatabaseDao().getSelectItem(itemID));
                 holder.leftValue.setText(adapterItem.getLeftDay());
                 holder.percent.setText(adapterItem.getPercentString() + "%");
                 holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
