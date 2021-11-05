@@ -148,8 +148,7 @@ public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
         private final TextView endValue;
         private final TextView leftValue;
         private final TextView autoUpdate;
-        private final Button deleteButton;
-        private final ImageView imageView;
+        private final Button deleteButton, imageButton;
 
         //ViewHolder
         public ViewHolder(View view) {
@@ -161,7 +160,7 @@ public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
             endValue = view.findViewById(R.id.end_day);
             autoUpdate = view.findViewById(R.id.update_is);
             leftValue = view.findViewById(R.id.left_day);
-            imageView = view.findViewById(R.id.imageView);
+            imageButton = view.findViewById(R.id.imageButton);
 
             deleteButton = view.findViewById(R.id.delete_button);
 
@@ -209,7 +208,7 @@ public class BottomRecyclerView extends androidx.recyclerview.widget.RecyclerVie
                     leftValue.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     autoUpdate.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
                     deleteButton.setVisibility(isExpanded ? View.VISIBLE : View.GONE);
-                    imageView.setImageResource(isExpanded ? R.drawable.baseline_expand_less_black_36 : R.drawable.baseline_expand_more_black_36);
+                    imageButton.setBackgroundResource(isExpanded ? R.drawable.baseline_expand_less_black_36 : R.drawable.baseline_expand_more_black_36);
                 }
             });
             // Animation start

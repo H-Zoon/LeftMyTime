@@ -5,42 +5,89 @@
     android:id="@+id/main_panel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#00FFFFFF"
     android:gravity="bottom"
     app:umanoDragView="@id/bottomLayout"
 
-    app:umanoOverlay="false"
+    app:umanoOverlay="true"
     app:umanoPanelHeight="100dp"
     app:umanoShadowHeight="10dp"
     tools:context=".MainActivity">
 
-    <LinearLayout
+    <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent">
+
+        <TextView
+            android:id="@+id/day"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="tset"
+            android:textSize="25sp"
+
+            app:layout_constraintBottom_toTopOf="@+id/time"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+
+            app:layout_constraintVertical_bias="0.1"
+            app:layout_constraintVertical_chainStyle="packed" />
+
+        <TextView
+            android:id="@+id/time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="30dp"
+            android:text="tset"
+
+            android:textSize="35sp"
+            app:layout_constraintBottom_toTopOf="@+id/recyclerview"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/day" />
 
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/recyclerview"
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginTop="50dp"
-            android:overScrollMode="never" />
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:overScrollMode="never"
+
+            app:layout_constraintBottom_toTopOf="@+id/indicator"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/time" />
 
         <me.relex.circleindicator.CircleIndicator2
             android:id="@+id/indicator"
             android:layout_width="match_parent"
             android:layout_height="20dp"
             app:ci_drawable="@drawable/black_indicator"
-            app:ci_height="3pt"
-            app:ci_width="3pt" />
 
-    </LinearLayout>
+            app:ci_height="3pt"
+            app:ci_width="3pt"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintLeft_toLeftOf="parent"
+            app:layout_constraintRight_toRightOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/recyclerview" />
+
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
 
     <LinearLayout
         android:id="@+id/bottomLayout"
+        style="@style/background"
         android:layout_width="match_parent"
-        android:layout_height="700dp"
+        android:layout_height="match_parent"
         android:orientation="vertical">
+
+        <Button
+            android:id="@+id/button"
+            android:layout_width="wrap_content"
+            android:layout_height="10dp"
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp"
+            android:background="@drawable/line" />
+
 
         <Button
             android:id="@+id/time_add"

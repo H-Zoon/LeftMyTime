@@ -35,12 +35,14 @@
                 android:layout_height="0dp"
                 android:layout_weight="1" />
 
-            <ImageView
-                android:id="@+id/imageView"
-                android:layout_width="30dp"
-                android:layout_height="30dp"
-                android:gravity="end"
-                app:srcCompat="@drawable/baseline_expand_more_black_36" />
+
+            <Button
+                android:id="@+id/imageButton"
+                android:layout_width="25dp"
+                android:layout_height="25dp"
+                android:background="@drawable/baseline_expand_more_black_36"
+                style="@style/Style.Color.Button"
+                android:text="Button" />
         </LinearLayout>
 
 

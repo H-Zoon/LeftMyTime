@@ -19,7 +19,7 @@
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
         <item name="colorPrimary">@color/white</item>
 
-        <item name="android:backgroundTint">#8C000000</item>
+        <item name="android:backgroundTint">#CC000000</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:fontFamily">@font/nanumsquareround</item>
     </style>
@@ -36,6 +36,10 @@
     <style name="TextAppearance.TimePickerDialogStyle.TimeLabel" parent="android:style/TextAppearance.Material">
         <item name="android:textSize">60sp</item> <!-- from -->
         <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="background" parent="android:style/TextAppearance.Material">
+        <item name="android:background">@color/black</item>
     </style>
 
 </resources>
