@@ -14,9 +14,9 @@
 
         <activity android:name=".CreateTimeActivity" />
         <activity android:name=".CreateMonthActivity" />
-        <activity android:name=".MainActivity" />
-
-        <activity android:name=".AppIntroActivity">
+        <activity
+            android:name=".MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -25,6 +25,7 @@
 
         <receiver
             android:name=".AppWidget"
+            android:exported="false"
             android:label="기본위젯">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -36,7 +37,9 @@
 
         </receiver>
 
-        <activity android:name=".AppWidgetConfigure">
+        <activity
+            android:name=".AppWidgetConfigure"
+            android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
