@@ -6,8 +6,9 @@
     android:layout_marginLeft="10dp"
     android:layout_marginTop="10dp"
     android:layout_marginRight="10dp"
+    android:orientation="vertical"
     android:background="@drawable/line"
-    android:orientation="vertical">
+    android:padding="10dp">
 
     <TextView
         android:id="@+id/summery"
@@ -50,30 +51,14 @@
         android:text="지나갔습니다."
         android:textSize="30sp" />
 
-
-    <TextView
-        android:id="@+id/start_day"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="40dp"
-        android:layout_marginBottom="10dp"
-        android:text="TextView"
-        android:textSize="20sp" />
-
-    <TextView
-        android:id="@+id/end_day"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
-        android:text="TextView"
-        android:textSize="20sp" />
-
     <TextView
         android:id="@+id/left_day"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginBottom="10dp"
+        android:layout_marginTop="15dp"
         android:text="TextView"
-        android:textSize="20sp" />
+        android:gravity="center"
+        android:textColor="@color/gray600"
+        android:textSize="25sp" />
 
 </LinearLayout>

@@ -1,11 +1,9 @@
 package com.devidea.timeleft;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.app.AppCompatDelegate;
 
 import android.annotation.SuppressLint;
 import android.app.TimePickerDialog;
-import android.content.res.Configuration;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.view.View;
@@ -21,7 +19,7 @@ public class CreateTimeActivity extends AppCompatActivity {
     TextView timeRange;
     EditText inputSummery;
     Button clock, save;
-    ItemGenerator itemGenerator = new ItemGenerator();
+    ItemSave itemSave = new ItemSave();
     LocalTime startTime, endTime;
     boolean isValid = false;
 
@@ -82,7 +80,7 @@ public class CreateTimeActivity extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 if (!(inputSummery.getText().toString().equals("")) && isValid) {
-                    itemGenerator.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, true);
+                    itemSave.saveTimeItem(inputSummery.getText().toString(), startTime, endTime, true);
                     MainActivity.GetDBItem();
                     finish();
                 } else {

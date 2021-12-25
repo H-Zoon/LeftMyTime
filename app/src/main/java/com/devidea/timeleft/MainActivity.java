@@ -16,6 +16,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 
 import me.relex.circleindicator.CircleIndicator2;
@@ -25,23 +28,23 @@ public class MainActivity extends AppCompatActivity {
     private final ArrayList<AdapterItem> topItemListArray = new ArrayList<>();
     private static final ArrayList<AdapterItem> bottomItemListArray = new ArrayList<>();
 
+    //상단 recyclerView 객체
     private androidx.recyclerview.widget.RecyclerView recyclerView;
+    private TopRecyclerView topItemAdapter;
+
+    //하단 recyclerView 객체
     private static androidx.recyclerview.widget.RecyclerView customItemRecyclerView;
-
     private static BottomRecyclerView bottomItemAdapter;
-    private static TopRecyclerView topItemAdapter;
 
-    public static final DefaultYear DEFAULT_YEAR = new DefaultYear();
-    public static final DefaultDay DEFAULT_DAY = new DefaultDay();
-    public static final DefaultTime DEFAULT_TIME = new DefaultTime();
-    public static final ItemGenerator itemGenerator = new ItemGenerator();
+    public static final InterfaceItem ITEM_GENERATE = new ItemGenerate();
+
     private long backPressedTime = 0;
     public static AppDatabase appDatabase;
 
     private static ArrayList<Integer> position = new ArrayList<Integer>();
     private static ArrayList<Integer> itemID = new ArrayList<Integer>();
 
-    private static TextView explanation;
+    private static TextView explanation, dayText, timeText;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -55,13 +58,15 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         explanation = findViewById(R.id.explanation);
+        timeText = findViewById(R.id.time);
+        dayText = findViewById(R.id.day);
 
         recyclerView = findViewById(R.id.recyclerview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, androidx.recyclerview.widget.RecyclerView.HORIZONTAL, false)); // 좌우 스크롤 //
 
-        topItemListArray.add(DEFAULT_TIME.setTimeItem());
-        topItemListArray.add(DEFAULT_DAY.setTimeItem());
-        topItemListArray.add(DEFAULT_YEAR.setTimeItem());
+        topItemListArray.add(ITEM_GENERATE.timeItem());
+        topItemListArray.add(ITEM_GENERATE.monthItem());
+        topItemListArray.add(ITEM_GENERATE.yearItem());
 
         //recyclerView 관련 객체
         topItemAdapter = new TopRecyclerView(topItemListArray);
@@ -132,6 +137,7 @@ public class MainActivity extends AppCompatActivity {
                     handler.post(new Runnable() {
                         @Override
                         public void run() {
+                            clock();
                             topItemAdapter.notifyItemChanged(0, "update");
                             for(int i=0; i<position.size(); i++){
                                 bottomItemAdapter.notifyItemChanged(position.get(i), itemID.get(i));
@@ -160,11 +166,11 @@ public class MainActivity extends AppCompatActivity {
             explanation.setVisibility(View.INVISIBLE);
             for (int i = 0; i < appDatabase.DatabaseDao().getItem().size(); i++) {
                 if (appDatabase.DatabaseDao().getItem().get(i).getType().equals("Time")) {
-                    bottomItemListArray.add(itemGenerator.generateTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(ITEM_GENERATE.customTimeItem(appDatabase.DatabaseDao().getItem().get(i)));
                     position.add(i);
                     itemID.add(bottomItemListArray.get(i).getId());
                 } else {
-                    bottomItemListArray.add(itemGenerator.generateMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
+                    bottomItemListArray.add(ITEM_GENERATE.customMonthItem(appDatabase.DatabaseDao().getItem().get(i)));
                 }
 
             }
@@ -175,6 +181,15 @@ public class MainActivity extends AppCompatActivity {
         //사용자가 추가한 부분의 아이템
         bottomItemAdapter = new BottomRecyclerView(bottomItemListArray);
         customItemRecyclerView.setAdapter(bottomItemAdapter);
+    }
+
+    public void clock(){
+        LocalDateTime currentDateTime = LocalDateTime.now();
+        DateTimeFormatter dateFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일");
+        DateTimeFormatter TimeFormatter = DateTimeFormatter.ofPattern("a h:m:ss");
+        dayText.setText(currentDateTime.format(dateFormatter));
+        timeText.setText(currentDateTime.format(TimeFormatter));
+
     }
 
     @Override

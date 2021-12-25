@@ -14,7 +14,7 @@ import androidx.annotation.NonNull;
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.devidea.timeleft.MainActivity.DEFAULT_TIME;
+import static com.devidea.timeleft.MainActivity.ITEM_GENERATE;
 
 class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<TopRecyclerView.ViewHolder> {
 
@@ -40,14 +40,11 @@ class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<
     @Override
     public void onBindViewHolder(ViewHolder viewHolder, int position) {
 
-        //String summery_buf = arrayList.get(position).getSummery();
         viewHolder.summery.setText(arrayList.get(position).getSummery());
 
         String percent_buf = arrayList.get(position).getPercentString();
         viewHolder.percent.setText(percent_buf + "%");
 
-        viewHolder.startValue.setText(arrayList.get(position).getStartDay());
-        viewHolder.endValue.setText(arrayList.get(position).getEndDay());
         viewHolder.leftValue.setText(arrayList.get(position).getLeftDay());
 
         int percent = (int) Float.parseFloat(percent_buf);
@@ -63,9 +60,9 @@ class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads);
         } else {
-            AdapterItem adapterItem = DEFAULT_TIME.setTimeItem();
+            AdapterItem adapterItem = ITEM_GENERATE.timeItem();
             holder.percent.setText(adapterItem.getPercentString() + "%");
-            holder.progressBar.setProgress((int)Float.parseFloat(adapterItem.getPercentString()));
+            holder.progressBar.setProgress((int) Float.parseFloat(adapterItem.getPercentString()));
             holder.leftValue.setText(adapterItem.getLeftDay());
         }
     }
@@ -79,8 +76,6 @@ class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<
         private final TextView summery;
         private final TextView percent;
         private final ProgressBar progressBar;
-        private final TextView startValue;
-        private final TextView endValue;
         private final TextView leftValue;
 
         //ViewHolder
@@ -89,9 +84,6 @@ class TopRecyclerView extends androidx.recyclerview.widget.RecyclerView.Adapter<
             summery = (TextView) view.findViewById(R.id.summery);
             percent = (TextView) view.findViewById(R.id.percent_text);
             progressBar = (ProgressBar) view.findViewById(R.id.progress);
-
-            startValue = view.findViewById(R.id.start_day);
-            endValue = view.findViewById(R.id.end_day);
             leftValue = view.findViewById(R.id.left_day);
 
         }
