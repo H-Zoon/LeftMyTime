@@ -2,9 +2,13 @@ plugins {
     id 'com.android.application'
 }
 
+apply plugin: 'kotlin-android'
+apply plugin: 'kotlin-kapt'
+
 android {
     compileSdkVersion 32
     buildToolsVersion '30.0.3'
+    buildFeatures { viewBinding = true }
 
     defaultConfig {
         applicationId "com.devidea.timeleft"
@@ -43,7 +47,6 @@ dependencies {
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.4.0'
     annotationProcessor 'androidx.room:room-compiler:2.4.0'
     implementation 'me.relex:circleindicator:2.1.6'
-    implementation 'com.github.AppIntro:AppIntro:6.1.0'
 
     implementation 'com.github.hannesa2:AndroidSlidingUpPanel:4.2.2'
 
