@@ -69,12 +69,7 @@ class AppWidget : AppWidgetProvider() {
         val appWidgetIds: IntArray
         Log.d("widget", "onReceive() action = $action")
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
-            if (MainActivity.Companion.appDatabase == null) {
-                MainActivity.Companion.appDatabase =
-                    Room.databaseBuilder(context, AppDatabase::class.java, "ItemData")
-                        .allowMainThreadQueries()
-                        .build()
-            }
+
             appWidgetIds = MainActivity.Companion.appDatabase!!.DatabaseDao().get()!!
             if (appWidgetIds != null && appWidgetIds.size > 0) {
                 onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
@@ -121,18 +116,9 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        try {
-            MainActivity.Companion.appDatabase!!.DatabaseDao().delete(appWidgetIds[0])
-        } catch (e: Exception) {
-            e.printStackTrace()
-            if (MainActivity.Companion.appDatabase == null) {
-                MainActivity.Companion.appDatabase =
-                    Room.databaseBuilder(context, AppDatabase::class.java, "ItemData")
-                        .allowMainThreadQueries()
-                        .build()
-                MainActivity.Companion.appDatabase!!.DatabaseDao().delete(appWidgetIds[0])
-            }
-        }
+
+        MainActivity.Companion.appDatabase!!.DatabaseDao().delete(appWidgetIds[0])
+
         Log.d("widget", "onDeleted done")
     }
 
@@ -164,23 +150,23 @@ class AppWidget : AppWidgetProvider() {
             val appIntent = Intent(context, MainActivity::class.java)
             val pe = PendingIntent.getActivity(context, 0, appIntent, 0)
             views.setOnClickPendingIntent(R.id.percent, pe)
-   /*
+
             if (type != null) {
                 when (type) {
                     "embedYear" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().getSummery()
+                            MainActivity.Companion.ITEM_GENERATE.yearItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().getPercentString() + "%"
+                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().getPercentString()
-                                .toFloat() as Int,
+                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString
+                            !!.toFloat() as Int,
                             false
                         )
                         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -188,18 +174,18 @@ class AppWidget : AppWidgetProvider() {
                     "embedMonth" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().getSummery()
+                            MainActivity.Companion.ITEM_GENERATE.monthItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
                             MainActivity.Companion.ITEM_GENERATE.monthItem()
-                                .getPercentString() + "%"
+                                .percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().getPercentString()
-                                .toFloat() as Int,
+                            MainActivity.Companion.ITEM_GENERATE.monthItem().percentString
+                            !!.toFloat() as Int,
                             false
                         )
                         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -207,17 +193,17 @@ class AppWidget : AppWidgetProvider() {
                     "embedTime" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().getSummery()
+                            MainActivity.Companion.ITEM_GENERATE.timeItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().getPercentString() + "%"
+                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().getPercentString()
-                                .toFloat() as Int,
+                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString
+                            !!.toFloat() as Int,
                             false
                         )
                         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -247,10 +233,11 @@ class AppWidget : AppWidgetProvider() {
 
                         appWidgetManager.updateAppWidget(appWidgetId, views)
                     }
-                    */
+
                 }
             }
             //Log.d("widget", type + "update done")
         }
 
-//}}
+    }
+}

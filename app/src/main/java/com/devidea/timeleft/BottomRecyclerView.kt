@@ -64,12 +64,12 @@ constructor(  //array list
     }
 
     @SuppressLint("SetTextI18n")
-    public override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
-        /*
-        viewHolder.startValue.setText(arrayList.get(position).getStartDay())
-        viewHolder.endValue.setText(arrayList.get(position).getEndDay())
-        viewHolder.leftValue.setText(arrayList.get(position).getLeftDay())
-        if (arrayList.get(position)!!.isAutoUpdate()) {
+    public override fun onBindViewHolder(viewHolder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
+
+        viewHolder.startValue.text = arrayList[position]!!.startDay
+        viewHolder.endValue.text = arrayList[position]!!.endDay
+        viewHolder.leftValue.text = arrayList[position]!!.leftDay
+        if (arrayList[position]!!.isAutoUpdate) {
             viewHolder.autoUpdate.setText("이후 반복되는 일정이에요")
         } else {
             viewHolder.autoUpdate.setText("100% 달성후 끝나는 일정이에요")
@@ -86,9 +86,9 @@ constructor(  //array list
                 builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
                     public override fun onClick(dialog: DialogInterface, id: Int) {
                         MainActivity.Companion.appDatabase!!.DatabaseDao()
-                            .deleteItem(arrayList.get(position).getId())
+                            .deleteItem(arrayList.get(position)!!.id)
                         MainActivity.Companion.appDatabase!!.DatabaseDao().deleteCustomWidget(
-                            arrayList.get(position).getId()
+                            arrayList.get(position)!!.id
                         )
                         MainActivity.Companion.GetDBItem()
                         Toast.makeText(context, "삭제되었습니다.", Toast.LENGTH_LONG).show()
@@ -102,20 +102,20 @@ constructor(  //array list
                 alertDialog.show()
             }
         })
-        val summery_buf: String? = arrayList.get(position).getSummery()
+        val summery_buf: String? = arrayList.get(position)!!.summery
         viewHolder.summery.setText(summery_buf)
-        val percent_buf: String? = arrayList.get(position).getPercentString()
+        val percent_buf: String? = arrayList.get(position)!!.percentString
         viewHolder.percent.setText(percent_buf + "%")
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
             .setDuration(1500)
             .start()
 
-         */
+
     }
 
     public override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
-        /*
+
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
@@ -124,13 +124,13 @@ constructor(  //array list
                 val adapterItem: AdapterItem = MainActivity.Companion.ITEM_GENERATE.customTimeItem(
                     MainActivity.Companion.appDatabase!!.DatabaseDao().getSelectItem(itemID)
                 )
-                holder.leftValue.setText(adapterItem.getLeftDay())
-                holder.percent.setText(adapterItem.getPercentString() + "%")
-                holder.progressBar.setProgress(adapterItem.getPercentString().toFloat() as Int)
+                holder.leftValue.setText(adapterItem.leftDay)
+                holder.percent.setText(adapterItem.percentString + "%")
+                holder.progressBar.setProgress(adapterItem.percentString!!.toFloat() as Int)
             }
         }
 
-         */
+
     }
 
     public override fun getItemCount(): Int {

@@ -95,18 +95,6 @@ class ItemGenerate : InterfaceItem {
     }
 
     override fun monthItem(): AdapterItem {
-        TODO("Not yet implemented")
-    }
-
-    override fun customTimeItem(itemInfo: EntityItemInfo?): AdapterItem {
-        TODO("Not yet implemented")
-    }
-
-    override fun customMonthItem(itemInfo: EntityItemInfo?): AdapterItem {
-        TODO("Not yet implemented")
-    }
-/*
-    override fun monthItem(): AdapterItem {
         val adapterItem = AdapterItem()
         val monthOfDay = LocalDate.now().dayOfMonth
         val lengthOfMonth = LocalDate.now().lengthOfMonth()
@@ -121,14 +109,14 @@ class ItemGenerate : InterfaceItem {
     override fun customTimeItem(itemInfo: EntityItemInfo?): AdapterItem {
 
         val adapterItem = AdapterItem()
-        val startValue = LocalTime.parse(itemInfo.getStartValue()) //시작시간
-        val endValue = LocalTime.parse(itemInfo.getEndValue()) // 종료시간
+        val startValue = LocalTime.parse(itemInfo!!.startValue) //시작시간
+        val endValue = LocalTime.parse(itemInfo.endValue) // 종료시간
         val time = LocalTime.now() //현재 시간
         adapterItem.isAutoUpdate = itemInfo!!.isAutoUpdate
-        adapterItem.summery = itemInfo.getSummery()
+        adapterItem.summery = itemInfo.summery
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
-        adapterItem.id = itemInfo.getId()
+        adapterItem.id = itemInfo.id
         if (time.isAfter(startValue) && time.isBefore(endValue)) {
             val range = Duration.between(startValue, endValue).seconds.toFloat()
             val sendTime = Duration.between(startValue, time).seconds.toFloat()
@@ -153,10 +141,10 @@ class ItemGenerate : InterfaceItem {
     override fun customMonthItem(itemInfo: EntityItemInfo?): AdapterItem {
         var itemInfo = itemInfo
         val adapterItem = AdapterItem()
-        var startDate = LocalDate.parse(itemInfo.getStartValue())
-        var endDate = LocalDate.parse(itemInfo.getEndValue())
+        var startDate = LocalDate.parse(itemInfo!!.startValue)
+        var endDate = LocalDate.parse(itemInfo.endValue)
         val today = LocalDate.now()
-        val id = itemInfo.getId()
+        val id = itemInfo.id
 
         //설정일
         var setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()
@@ -174,11 +162,11 @@ class ItemGenerate : InterfaceItem {
             MainActivity.Companion.appDatabase!!.DatabaseDao().updateItem(
                 endDate.toString(),
                 endDate.plusDays(lengthOfMonth.toLong()).toString(),
-                itemInfo.getId()
+                itemInfo.id
             )
             itemInfo = MainActivity.Companion.appDatabase!!.DatabaseDao().getSelectItem(id)
-            startDate = LocalDate.parse(itemInfo.getStartValue())
-            endDate = LocalDate.parse(itemInfo.getEndValue())
+            startDate = LocalDate.parse(itemInfo.startValue)
+            endDate = LocalDate.parse(itemInfo.endValue)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()
             sendDay = ChronoUnit.DAYS.between(startDate, today).toInt()
             leftDay = ChronoUnit.DAYS.between(today, endDate).toInt()
@@ -188,8 +176,8 @@ class ItemGenerate : InterfaceItem {
         adapterItem.endDay = "종료일: $endDate"
         adapterItem.leftDay = "남은일: D-$leftDay"
         adapterItem.isAutoUpdate = itemInfo!!.isAutoUpdate
-        adapterItem.summery = itemInfo.getSummery()
-        adapterItem.id = itemInfo.getId()
+        adapterItem.summery = itemInfo!!.summery
+        adapterItem.id = itemInfo!!.id
         if (MonthPercent < 100) {
             adapterItem.percentString =
                 String.format(Locale.getDefault(), "%.1f", MonthPercent)
@@ -199,5 +187,4 @@ class ItemGenerate : InterfaceItem {
         return adapterItem
     }
 
- */
 }
