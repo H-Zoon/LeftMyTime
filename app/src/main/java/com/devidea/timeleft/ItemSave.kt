@@ -4,6 +4,8 @@ import java.time.LocalDate
 import java.time.LocalTime
 
 class ItemSave {
+    private val appDatabase = AppDatabase.getInstance(App.context())
+
     fun saveMonthItem(summery: String?, end: Int, autoUpdate: Boolean) {
         val entityItemInfo = EntityItemInfo(
             "Month",
@@ -12,7 +14,7 @@ class ItemSave {
             summery,
             autoUpdate
         )
-        MainActivity.Companion.appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
+        appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
     }
 
     fun saveTimeItem(
@@ -23,6 +25,6 @@ class ItemSave {
     ) {
         val entityItemInfo =
             EntityItemInfo("Time", startValue.toString(), endValue.toString(), summery, autoUpdate)
-        MainActivity.Companion.appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
+        appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
     }
 }

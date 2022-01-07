@@ -65,6 +65,8 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 class ItemGenerate : InterfaceItem {
+    private val appDatabase = AppDatabase.getInstance(App.context())
+
     override fun timeItem(): AdapterItem {
         val adapterItem = AdapterItem()
         val now = LocalTime.now()
@@ -159,12 +161,12 @@ class ItemGenerate : InterfaceItem {
         //종료일로 넘어가고 자동 업데이트 체크한 경우
         if (today.isAfter(endDate) && itemInfo!!.isAutoUpdate) {
             //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
-            MainActivity.Companion.appDatabase!!.DatabaseDao().updateItem(
+            appDatabase!!.DatabaseDao().updateItem(
                 endDate.toString(),
                 endDate.plusDays(lengthOfMonth.toLong()).toString(),
                 itemInfo.id
             )
-            itemInfo = MainActivity.Companion.appDatabase!!.DatabaseDao().getSelectItem(id)
+            itemInfo = appDatabase!!.DatabaseDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue)
             endDate = LocalDate.parse(itemInfo.endValue)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()

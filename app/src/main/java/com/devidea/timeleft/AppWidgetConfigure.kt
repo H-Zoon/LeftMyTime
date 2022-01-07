@@ -53,6 +53,8 @@ import java.lang.Exception
 import java.util.ArrayList
 
 class AppWidgetConfigure constructor() : Activity() {
+    private val appDatabase = AppDatabase.getInstance(App.context())
+
     var summitButton: Button? = null
     var spinner: Spinner? = null
     var checkBox: CheckBox? = null
@@ -66,16 +68,6 @@ class AppWidgetConfigure constructor() : Activity() {
     public override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
 
-        if (MainActivity.Companion.appDatabase == null) {
-            try {
-                MainActivity.Companion.appDatabase =
-                    Room.databaseBuilder(context, AppDatabase::class.java, "ItemData")
-                        .allowMainThreadQueries()
-                        .build()
-            } catch (e: Exception) {
-                Toast.makeText(context, "어플리케이션 실행 후 다시 시도해주세요.", Toast.LENGTH_LONG).show()
-            }
-        }
 
         //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED)
@@ -131,12 +123,12 @@ class AppWidgetConfigure constructor() : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString!!.toFloat() as Int,
+                                MainActivity.Companion.ITEM_GENERATE.yearItem().percentString!!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        MainActivity.Companion.appDatabase!!.DatabaseDao()
+                        appDatabase!!.DatabaseDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "embedMonth" -> {
@@ -152,13 +144,13 @@ class AppWidgetConfigure constructor() : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().percentString
-                                !!.toFloat() as Int,
+                                MainActivity.Companion.ITEM_GENERATE.monthItem().percentString
+                                !!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        MainActivity.Companion.appDatabase!!.DatabaseDao()
+                        appDatabase!!.DatabaseDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "embedTime" -> {
@@ -173,13 +165,13 @@ class AppWidgetConfigure constructor() : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString
-                                !!.toFloat() as Int,
+                                MainActivity.Companion.ITEM_GENERATE.timeItem().percentString
+                                !!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        MainActivity.Companion.appDatabase!!.DatabaseDao()
+                        appDatabase!!.DatabaseDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "0" -> {
@@ -189,7 +181,7 @@ class AppWidgetConfigure constructor() : Activity() {
                     }
                     else -> {
                         val entityItemInfo: EntityItemInfo =
-                            MainActivity.Companion.appDatabase!!.DatabaseDao()
+                            appDatabase!!.DatabaseDao()
                                 .getSelectItem(value.toInt())
                         val adapterItem: AdapterItem
                         if ((entityItemInfo.type == "Time")) {
@@ -204,7 +196,7 @@ class AppWidgetConfigure constructor() : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                            adapterItem.percentString!!.toFloat() as Int,
+                                adapterItem.percentString!!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -213,7 +205,7 @@ class AppWidgetConfigure constructor() : Activity() {
                             adapterItem.id,
                             entityItemInfo.type
                         )
-                        MainActivity.Companion.appDatabase!!.DatabaseDao()
+                        appDatabase!!.DatabaseDao()
                             .saveWidget(entityWidgetInfo)
                     }
                 }
@@ -261,15 +253,15 @@ class AppWidgetConfigure constructor() : Activity() {
         spinner.setEnabled(false)
         val itemName: ArrayList<String?> = ArrayList()
         val entityItemInfo: List<EntityItemInfo?> =
-            MainActivity.Companion.appDatabase!!.DatabaseDao().item
-        for (i in MainActivity.Companion.appDatabase!!.DatabaseDao().item.indices) {
+            appDatabase!!.DatabaseDao().item
+        for (i in appDatabase!!.DatabaseDao().item.indices) {
             itemName.add(
-                MainActivity.Companion.appDatabase!!.DatabaseDao().item.get(i)?.summery
+                appDatabase!!.DatabaseDao().item.get(i)?.summery
             )
         }
         checkBox.setOnClickListener(object : View.OnClickListener {
             public override fun onClick(v: View) {
-                if (MainActivity.Companion.appDatabase!!.DatabaseDao().item.size != 0) {
+                if (appDatabase!!.DatabaseDao().item.size != 0) {
                     if (checkBox.isChecked()) {
                         for (i in 0 until radioGroup.getChildCount()) {
                             radioGroup.getChildAt(i).setEnabled(false)

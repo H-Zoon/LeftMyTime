@@ -1,35 +1,8 @@
 package com.devidea.timeleft
 
-import com.devidea.timeleft.EntityItemInfo
-import com.devidea.timeleft.MainActivity
-import android.appwidget.AppWidgetProvider
-import android.content.Intent
-import android.appwidget.AppWidgetManager
-import androidx.room.Room
-import com.devidea.timeleft.AppDatabase
-import com.devidea.timeleft.AppWidget
-import com.devidea.timeleft.R
-import com.devidea.timeleft.AdapterItem
-import androidx.room.Database
-import com.devidea.timeleft.EntityWidgetInfo
-import androidx.room.RoomDatabase
-import com.devidea.timeleft.DatabaseDao
-import androidx.room.Dao
-import com.devidea.timeleft.InterfaceItem
-import androidx.appcompat.app.AppCompatActivity
+
 import androidx.recyclerview.widget.RecyclerView
-import com.devidea.timeleft.TopRecyclerView
-import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
-import me.relex.circleindicator.CircleIndicator2
 import android.content.DialogInterface
-import com.devidea.timeleft.CreateTimeActivity
-import com.devidea.timeleft.CreateMonthActivity
-import android.os.Looper
-import com.devidea.timeleft.BottomRecyclerView
-import com.devidea.timeleft.ItemGenerate
-import androidx.room.PrimaryKey
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.animation.ObjectAnimator
@@ -38,9 +11,6 @@ import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.app.*
-import com.devidea.timeleft.ItemSave
-import android.app.TimePickerDialog.OnTimeSetListener
-import android.app.DatePickerDialog.OnDateSetListener
 import android.content.Context
 import android.view.View
 import android.widget.*
@@ -48,10 +18,10 @@ import java.util.ArrayList
 
 class BottomRecyclerView     //CustomAdapter 생성자
 constructor(  //array list
-    private val arrayList: ArrayList<AdapterItem?>
-) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
+    private val arrayList: ArrayList<AdapterItem?>) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
+    private val appDatabase = AppDatabase.getInstance(App.context())
 
     // Create new views (invoked by the layout manager)
     public override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
@@ -85,9 +55,9 @@ constructor(  //array list
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
                     public override fun onClick(dialog: DialogInterface, id: Int) {
-                        MainActivity.Companion.appDatabase!!.DatabaseDao()
+                        appDatabase!!.DatabaseDao()
                             .deleteItem(arrayList.get(position)!!.id)
-                        MainActivity.Companion.appDatabase!!.DatabaseDao().deleteCustomWidget(
+                        appDatabase!!.DatabaseDao().deleteCustomWidget(
                             arrayList.get(position)!!.id
                         )
                         MainActivity.Companion.GetDBItem()
@@ -122,7 +92,7 @@ constructor(  //array list
             for (payload: Any in payloads) {
                 val itemID: Int = payload as Int
                 val adapterItem: AdapterItem = MainActivity.Companion.ITEM_GENERATE.customTimeItem(
-                    MainActivity.Companion.appDatabase!!.DatabaseDao().getSelectItem(itemID)
+                   appDatabase!!.DatabaseDao().getSelectItem(itemID)
                 )
                 holder.leftValue.setText(adapterItem.leftDay)
                 holder.percent.setText(adapterItem.percentString + "%")

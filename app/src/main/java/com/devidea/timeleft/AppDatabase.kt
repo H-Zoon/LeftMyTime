@@ -57,6 +57,7 @@ import android.app.TimePickerDialog
 import android.app.DatePickerDialog.OnDateSetListener
 import android.widget.DatePicker
 import android.app.DatePickerDialog
+import android.content.Context
 
 @Database(
     entities = [EntityWidgetInfo::class, EntityItemInfo::class],
@@ -65,4 +66,23 @@ import android.app.DatePickerDialog
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun DatabaseDao(): DatabaseDao
+
+    companion object {
+        private var instance: AppDatabase? = null
+
+        @Synchronized
+        fun getInstance(context: Context): AppDatabase? {
+            if (instance == null){
+                synchronized(AppDatabase::class){
+                    instance = Room.databaseBuilder(
+                            context.applicationContext,
+                            AppDatabase::class.java,
+                            "appdatabase"
+                    ).allowMainThreadQueries().build()
+                }
+            }
+            return instance
+        }
+
+    }
 }

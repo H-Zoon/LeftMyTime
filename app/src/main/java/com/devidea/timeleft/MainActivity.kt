@@ -11,6 +11,7 @@ import me.relex.circleindicator.CircleIndicator2
 import android.content.DialogInterface
 import android.os.Looper
 import android.app.*
+import android.content.Context
 import android.os.Handler
 import android.view.View
 import android.widget.*
@@ -22,13 +23,22 @@ class MainActivity() : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem?>()
 
     private var backPressedTime: Long = 0
+
     override fun onCreate(savedInstanceState: Bundle?) {
 
+        /*
         //database 객체 초기화
         appDatabase = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "ItemData")
             .allowMainThreadQueries()
             .fallbackToDestructiveMigration()
             .build()
+
+         */
+
+
+        //기존 database instance의 싱글톤 디자인패턴 사용
+        val appDatabase = AppDatabase.getInstance(applicationContext)
+
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
@@ -39,9 +49,9 @@ class MainActivity() : AppCompatActivity() {
         var recyclerView: RecyclerView = findViewById(R.id.recyclerview)
 
         recyclerView.layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.HORIZONTAL,
-            false
+                this,
+                RecyclerView.HORIZONTAL,
+                false
         ) // 좌우 스크롤 //
 
 
@@ -59,7 +69,7 @@ class MainActivity() : AppCompatActivity() {
 
         //인디케이터 활성화 꼭 공부하기!!
         val indicator = findViewById<CircleIndicator2>(R.id.indicator)
-       //indicator.attachToRecyclerView(recyclerView, pagerSnapHelper)
+        //indicator.attachToRecyclerView(recyclerView, pagerSnapHelper)
 
         //인디케이터 활성화 꼭 공부하기!!
         topItemAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
@@ -68,9 +78,9 @@ class MainActivity() : AppCompatActivity() {
 
         var customItemRecyclerView: RecyclerView = findViewById(R.id.recyclerview2)
         customItemRecyclerView.layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.VERTICAL,
-            false
+                this,
+                RecyclerView.VERTICAL,
+                false
         ) // 상하 스크롤 //
 
 
@@ -85,16 +95,16 @@ class MainActivity() : AppCompatActivity() {
             builder.setItems(itemName, DialogInterface.OnClickListener { dialog, which ->
                 when (which) {
                     0 -> startActivity(
-                        Intent(
-                            applicationContext,
-                            CreateTimeActivity::class.java
-                        )
+                            Intent(
+                                    applicationContext,
+                                    CreateTimeActivity::class.java
+                            )
                     )
                     1 -> startActivity(
-                        Intent(
-                            applicationContext,
-                            CreateMonthActivity::class.java
-                        )
+                            Intent(
+                                    applicationContext,
+                                    CreateMonthActivity::class.java
+                            )
                     )
                 }
             })
@@ -116,7 +126,7 @@ class MainActivity() : AppCompatActivity() {
                     topItemAdapter!!.notifyItemChanged(0, "update")
                     for (i in position.indices) {
                         bottomItemAdapter!!.notifyItemChanged(
-                            position[i], itemID[i]
+                                position[i], itemID[i]
                         )
                     }
                 }
@@ -159,9 +169,9 @@ class MainActivity() : AppCompatActivity() {
         private var customItemRecyclerView: RecyclerView? = null
         private var bottomItemAdapter: BottomRecyclerView? = null
 
-
+        private val appDatabase = AppDatabase.getInstance(App.context())
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
-        var appDatabase: AppDatabase? = null
+
         private val position = ArrayList<Int>()
         private val itemID = ArrayList<Int>()
         private var explanation: TextView? = null
@@ -177,17 +187,17 @@ class MainActivity() : AppCompatActivity() {
                 for (i in appDatabase!!.DatabaseDao().item.indices) {
                     if ((appDatabase!!.DatabaseDao().item[i]?.type == "Time")) {
                         bottomItemListArray.add(
-                            ITEM_GENERATE.customTimeItem(
-                                appDatabase!!.DatabaseDao().item[i]
-                            )
+                                ITEM_GENERATE.customTimeItem(
+                                        appDatabase!!.DatabaseDao().item[i]
+                                )
                         )
                         position.add(i)
                         bottomItemListArray[i]?.let { itemID.add(it.id) }
                     } else {
                         bottomItemListArray.add(
-                            ITEM_GENERATE.customMonthItem(
-                                appDatabase!!.DatabaseDao().item[i]
-                            )
+                                ITEM_GENERATE.customMonthItem(
+                                        appDatabase!!.DatabaseDao().item[i]
+                                )
                         )
                     }
                 }
