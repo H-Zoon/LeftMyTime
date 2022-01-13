@@ -14,19 +14,11 @@ import java.util.ArrayList
 class AppWidgetConfigure : Activity() {
     private val appDatabase = AppDatabase.getInstance(App.context())
 
-    /*
-    var summitButton: Button? = null
-    var spinner: Spinner? = null
-    var checkBox: CheckBox? = null
-    var radioGroup: RadioGroup? = null
-
-     */
     var value: String = "0"
     var AppWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
     var entityWidgetInfo: EntityWidgetInfo? = null
     var context: Context = this@AppWidgetConfigure
     var isFirstSelected: Boolean = false
-    //var Preview: TextView? = null
     public override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
 
@@ -60,7 +52,7 @@ class AppWidgetConfigure : Activity() {
 
                 //위젯에 새로고침 버튼 추가
                 val intentR: Intent = Intent(context, AppWidget::class.java)
-                intentR.setAction(AppWidgetManager.ACTION_APPWIDGET_UPDATE)
+                intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                 val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
                     context,
                     0,
@@ -166,7 +158,7 @@ class AppWidgetConfigure : Activity() {
                             adapterItem.id,
                             entityItemInfo.type
                         )
-                        appDatabase!!.DatabaseDao()
+                        appDatabase.DatabaseDao()
                             .saveWidget(entityWidgetInfo)
                     }
                 }
@@ -177,95 +169,85 @@ class AppWidgetConfigure : Activity() {
             }
         }
         val radioGroupButtonChangeListener: RadioGroup.OnCheckedChangeListener =
-            object : RadioGroup.OnCheckedChangeListener {
-                override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
-                    var Preview: TextView = findViewById(R.id.summery_preview)
+                RadioGroup.OnCheckedChangeListener { group, checkedId ->
+                    val Preview: TextView = findViewById(R.id.summery_preview)
                     when (checkedId) {
                         R.id.yearButton -> {
-                            Preview.setText(
-                                MainActivity.ITEM_GENERATE.yearItem().summery
-                            )
+                            Preview.text = MainActivity.ITEM_GENERATE.yearItem().summery
                             value = "embedYear"
                         }
                         R.id.monthButton -> {
-                            Preview.setText(
-                                MainActivity.ITEM_GENERATE.monthItem().summery
-                            )
+                            Preview.text = MainActivity.ITEM_GENERATE.monthItem().summery
                             value = "embedMonth"
                         }
                         R.id.timeButton -> {
-                            Preview.setText(
-                                MainActivity.ITEM_GENERATE.timeItem().summery
-                            )
+                            Preview.text = MainActivity.ITEM_GENERATE.timeItem().summery
                             value = "embedTime"
                         }
                     }
                 }
-            }
 
-        var summitButton: Button = findViewById(R.id.summit_button)
-        var spinner: Spinner = findViewById(R.id.spinner)
-        var checkBox: CheckBox = findViewById(R.id.checkBox)
-        var radioGroup: RadioGroup = findViewById(R.id.radioGroup)
+        val summitButton: Button = findViewById(R.id.summit_button)
+        val spinner: Spinner = findViewById(R.id.spinner)
+        val checkBox: CheckBox = findViewById(R.id.checkBox)
+        val radioGroup: RadioGroup = findViewById(R.id.radioGroup)
         var Preview: TextView//? = null // = findViewById(R.id.summery_preview)
 
         radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener)
         summitButton.setOnClickListener(mOnClickListener)
-        spinner.setEnabled(false)
+        spinner.isEnabled = false
         val itemName: ArrayList<String?> = ArrayList()
         val entityItemInfo: List<EntityItemInfo?> =
             appDatabase!!.DatabaseDao().item
-        for (i in appDatabase!!.DatabaseDao().item.indices) {
+        for (i in appDatabase.DatabaseDao().item.indices) {
             itemName.add(
-                appDatabase!!.DatabaseDao().item.get(i)?.summery
+                appDatabase.DatabaseDao().item[i]?.summery
             )
         }
-        checkBox.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
-                if (appDatabase!!.DatabaseDao().item.size != 0) {
-                    if (checkBox.isChecked()) {
-                        for (i in 0 until radioGroup.getChildCount()) {
-                            radioGroup.getChildAt(i).setEnabled(false)
-                        }
-                        value = entityItemInfo.get(0)!!.id.toString()
-                        Preview = findViewById(R.id.summery_preview)
-                        Preview.setText(entityItemInfo.get(0)!!.summery)
-                        spinner.setSelection(0)
-                        isFirstSelected = true
-                        spinner.setEnabled(true)
-                    } else {
-                        for (i in 0 until radioGroup.getChildCount()) {
-                            radioGroup.getChildAt(i).setEnabled(true)
-                        }
-                        isFirstSelected = false
-                        spinner.setEnabled(false)
+        checkBox.setOnClickListener {
+            if (appDatabase.DatabaseDao().item.isNotEmpty()) {
+                if (checkBox.isChecked()) {
+                    for (i in 0 until radioGroup.getChildCount()) {
+                        radioGroup.getChildAt(i).setEnabled(false)
                     }
+                    value = entityItemInfo[0]!!.id.toString()
+                    Preview = findViewById(R.id.summery_preview)
+                    Preview.text = entityItemInfo[0]!!.summery
+                    spinner.setSelection(0)
+                    isFirstSelected = true
+                    spinner.isEnabled = true
                 } else {
-                    checkBox.setChecked(false)
-                    Toast.makeText(context, "저장된 항목이 없습니다.", Toast.LENGTH_SHORT).show()
+                    for (i in 0 until radioGroup.getChildCount()) {
+                        radioGroup.getChildAt(i).isEnabled = true
+                    }
+                    isFirstSelected = false
+                    spinner.isEnabled = false
                 }
+            } else {
+                checkBox.isChecked = false
+                Toast.makeText(context, "저장된 항목이 없습니다.", Toast.LENGTH_SHORT).show()
             }
-        })
+        }
         val adapter: ArrayAdapter<String?> =
             ArrayAdapter(this, android.R.layout.simple_list_item_1, itemName)
-        spinner.setAdapter(adapter)
-        spinner.setOnItemSelectedListener(object : AdapterView.OnItemSelectedListener {
-            public override fun onItemSelected(
-                parent: AdapterView<*>?,
-                view: View,
-                position: Int,
-                id: Long
+        spinner.adapter = adapter
+        spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
+            override fun onItemSelected(
+                    parent: AdapterView<*>?,
+                    view: View,
+                    position: Int,
+                    id: Long
             ) {
                 Preview = findViewById(R.id.summery_preview)
-                Preview.setText(entityItemInfo.get(position)!!.summery)
+                Preview.text = entityItemInfo[position]!!.summery
                 if (isFirstSelected) {
-                    Preview.setText(entityItemInfo.get(position)!!.summery)
-                    value = entityItemInfo.get(position)!!.id.toString()
+                    Preview.text = entityItemInfo[position]!!.summery
+                    value = entityItemInfo[position]!!.id.toString()
                     Log.d("value", value)
                 }
             }
             override fun onNothingSelected(parent: AdapterView<*>?) {}
-        })
+        }
 
 
     }

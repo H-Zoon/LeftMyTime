@@ -27,11 +27,11 @@ class CreateMonthActivity constructor() : AppCompatActivity() {
         save = findViewById(R.id.summit)
         AutoUpdateCheck = findViewById(R.id.auto_update_check)
         val dateSetListener: OnDateSetListener = object : OnDateSetListener {
-            public override fun onDateSet(
-                view: DatePicker,
-                year: Int,
-                month: Int,
-                dayOfMonth: Int
+            override fun onDateSet(
+                    view: DatePicker,
+                    year: Int,
+                    month: Int,
+                    dayOfMonth: Int
             ) {
                 val startDate: LocalDate = LocalDate.now()
                 val endDate: LocalDate = LocalDate.of(year, month + 1, dayOfMonth)
@@ -41,47 +41,45 @@ class CreateMonthActivity constructor() : AppCompatActivity() {
                     inputDay!!.setSelection(inputDay!!.length())
                 } else {
                     Toast.makeText(this@CreateMonthActivity, "오늘보다 먼 날을 선택해주세요", Toast.LENGTH_LONG)
-                        .show()
+                            .show()
                 }
             }
         }
         calender!!.setOnClickListener(object : View.OnClickListener {
-            public override fun onClick(v: View) {
+            override fun onClick(v: View) {
                 val datePicker: DatePickerDialog = DatePickerDialog(
-                    this@CreateMonthActivity,
-                    dateSetListener,
-                    now.getYear(),
-                    now.getMonthValue() - 1,
-                    now.getDayOfMonth()
+                        this@CreateMonthActivity,
+                        dateSetListener,
+                        now.year,
+                        now.getMonthValue() - 1,
+                        now.getDayOfMonth()
                 )
                 datePicker.show()
             }
         })
-        save!!.setOnClickListener(object : View.OnClickListener {
-            public override fun onClick(v: View) {
-                if (!((inputSummery!!.getText().toString() == "")) && !((inputDay!!.getText()
-                        .toString() == ""))
-                ) {
-                    if (inputDay!!.getText().toString().toInt() > 1826) {
-                        Toast.makeText(
+        save!!.setOnClickListener {
+            if (!((inputSummery!!.getText().toString() == "")) && !((inputDay!!.getText()
+                            .toString() == ""))
+            ) {
+                if (inputDay!!.getText().toString().toInt() > 1826) {
+                    Toast.makeText(
                             this@CreateMonthActivity,
                             "흠..감당하기엔 너무 멀지 않나요..?",
                             Toast.LENGTH_LONG
-                        ).show()
-                    } else {
-                        itemSave.saveMonthItem(
+                    ).show()
+                } else {
+                    itemSave.saveMonthItem(
                             inputSummery!!.text.toString(),
                             inputDay!!.text.toString().toInt(),
                             AutoUpdateCheck!!.isChecked
-                        )
-                        MainActivity.Companion.GetDBItem()
-                        finish()
-                    }
-                } else {
-                    Toast.makeText(this@CreateMonthActivity, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG)
-                        .show()
+                    )
+                    MainActivity.Companion.GetDBItem()
+                    finish()
                 }
+            } else {
+                Toast.makeText(this@CreateMonthActivity, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG)
+                        .show()
             }
-        })
+        }
     }
 }

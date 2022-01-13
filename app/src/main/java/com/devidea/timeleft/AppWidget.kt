@@ -3,15 +3,12 @@ package com.devidea.timeleft
 import android.appwidget.AppWidgetProvider
 import android.content.Intent
 import android.appwidget.AppWidgetManager
-import androidx.room.Room
 import android.app.PendingIntent
 import android.app.AlarmManager
 import android.widget.RemoteViews
 import android.content.Context
-import android.os.Build
 import android.os.SystemClock
 import android.util.Log
-import java.lang.Exception
 
 class AppWidget : AppWidgetProvider() {
 
@@ -25,7 +22,7 @@ class AppWidget : AppWidgetProvider() {
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
 
             appWidgetIds = appDatabase!!.DatabaseDao().get()!!
-            if (appWidgetIds != null && appWidgetIds.size > 0) {
+            if (appWidgetIds.isNotEmpty()) {
                 onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
             }
         }
@@ -51,7 +48,6 @@ class AppWidget : AppWidgetProvider() {
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
-
         alarmManager.setInexactRepeating(
                 AlarmManager.ELAPSED_REALTIME,
                 SystemClock.elapsedRealtime(),
@@ -67,7 +63,6 @@ class AppWidget : AppWidgetProvider() {
 
         val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
-
         alarmManager.cancel(pendingIntent) //알람 해제
         pendingIntent.cancel() //인텐트 해제
         Log.d("widget", "alert off")
@@ -75,13 +70,11 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-
         appDatabase!!.DatabaseDao().delete(appWidgetIds[0])
-
         Log.d("widget", "onDeleted done")
     }
 
-    fun updateAppWidget(
+    private fun updateAppWidget(
             context: Context,
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
@@ -108,16 +101,16 @@ class AppWidget : AppWidgetProvider() {
                 "embedYear" -> {
                     views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().summery
+                            MainActivity.ITEM_GENERATE.yearItem().summery
                     )
                     views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString + "%"
+                            MainActivity.ITEM_GENERATE.yearItem().percentString + "%"
                     )
                     views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString
+                            MainActivity.ITEM_GENERATE.yearItem().percentString
                             !!.toFloat().toInt(),
                             false
                     )
@@ -126,17 +119,17 @@ class AppWidget : AppWidgetProvider() {
                 "embedMonth" -> {
                     views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().summery
+                            MainActivity.ITEM_GENERATE.monthItem().summery
                     )
                     views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem()
+                            MainActivity.ITEM_GENERATE.monthItem()
                                     .percentString + "%"
                     )
                     views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().percentString
+                            MainActivity.ITEM_GENERATE.monthItem().percentString
                             !!.toFloat().toInt(),
                             false
                     )
@@ -145,16 +138,16 @@ class AppWidget : AppWidgetProvider() {
                 "embedTime" -> {
                     views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().summery
+                            MainActivity.ITEM_GENERATE.timeItem().summery
                     )
                     views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString + "%"
+                            MainActivity.ITEM_GENERATE.timeItem().percentString + "%"
                     )
                     views.setProgressBar(
                             R.id.progress,
                             100,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString
+                            MainActivity.ITEM_GENERATE.timeItem().percentString
                             !!.toFloat().toInt(),
                             false
                     )
@@ -170,16 +163,16 @@ class AppWidget : AppWidgetProvider() {
                                             .getTypeID(appWidgetId)
                             )
                     adapterItem = if (type == "Time") {
-                        MainActivity.Companion.ITEM_GENERATE.customTimeItem(entityItemInfo)
+                        MainActivity.ITEM_GENERATE.customTimeItem(entityItemInfo)
                     } else {
-                        MainActivity.Companion.ITEM_GENERATE.customMonthItem(entityItemInfo)
+                        MainActivity.ITEM_GENERATE.customMonthItem(entityItemInfo)
                     }
                     views.setTextViewText(R.id.summery, adapterItem.summery)
                     views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
                     views.setProgressBar(
                             R.id.progress,
                             100,
-                            adapterItem.percentString?.toFloat() as Int,
+                            adapterItem.percentString!!.toFloat().toInt(),
                             false
                     )
 

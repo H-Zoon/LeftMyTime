@@ -40,42 +40,38 @@ constructor(  //array list
         viewHolder.endValue.text = arrayList[position]!!.endDay
         viewHolder.leftValue.text = arrayList[position]!!.leftDay
         if (arrayList[position]!!.isAutoUpdate) {
-            viewHolder.autoUpdate.setText("이후 반복되는 일정이에요")
+            viewHolder.autoUpdate.text = "이후 반복되는 일정이에요"
         } else {
-            viewHolder.autoUpdate.setText("100% 달성후 끝나는 일정이에요")
+            viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }
-        viewHolder.startValue.setVisibility(View.GONE)
-        viewHolder.endValue.setVisibility(View.GONE)
-        viewHolder.leftValue.setVisibility(View.GONE)
-        viewHolder.autoUpdate.setVisibility(View.GONE)
-        viewHolder.deleteButton.setVisibility(View.GONE)
-        viewHolder.deleteButton.setOnClickListener(object : View.OnClickListener {
-            override fun onClick(v: View) {
+        viewHolder.startValue.visibility = View.GONE
+        viewHolder.endValue.visibility = View.GONE
+        viewHolder.leftValue.visibility = View.GONE
+        viewHolder.autoUpdate.visibility = View.GONE
+        viewHolder.deleteButton.visibility = View.GONE
+        with(viewHolder) {
+            deleteButton.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
-                builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
-                    override fun onClick(dialog: DialogInterface, id: Int) {
-                        appDatabase!!.DatabaseDao()
-                            .deleteItem(arrayList.get(position)!!.id)
-                        appDatabase!!.DatabaseDao().deleteCustomWidget(
-                            arrayList.get(position)!!.id
-                        )
-                        MainActivity.GetDBItem()
-                        Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
-                    }
-                })
-                builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
-                    override fun onClick(dialog: DialogInterface, id: Int) {}
-                })
+                builder.setPositiveButton("OK") { dialog, id ->
+                    appDatabase!!.DatabaseDao()
+                            .deleteItem(arrayList[position]!!.id)
+                    appDatabase.DatabaseDao().deleteCustomWidget(
+                            arrayList[position]!!.id
+                    )
+                    MainActivity.GetDBItem()
+                    Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
+                }
+                builder.setNegativeButton("Cancel") { dialog, id -> }
                 selectedItems!!.put(position, false)
                 val alertDialog: AlertDialog = builder.create()
                 alertDialog.show()
             }
-        })
-        val summery_buf: String? = arrayList.get(position)!!.summery
-        viewHolder.summery.setText(summery_buf)
-        val percent_buf: String? = arrayList.get(position)!!.percentString
-        viewHolder.percent.setText(percent_buf + "%")
+        }
+        val summery_buf: String? = arrayList[position]!!.summery
+        viewHolder.summery.text = summery_buf
+        val percent_buf: String? = arrayList[position]!!.percentString
+        viewHolder.percent.text = percent_buf + "%"
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
             .setDuration(1500)
@@ -94,9 +90,9 @@ constructor(  //array list
                 val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.customTimeItem(
                    appDatabase!!.DatabaseDao().getSelectItem(itemID)
                 )
-                holder.leftValue.setText(adapterItem.leftDay)
-                holder.percent.setText(adapterItem.percentString + "%")
-                holder.progressBar.setProgress(adapterItem.percentString!!.toFloat().toInt())
+                holder.leftValue.text = adapterItem.leftDay
+                holder.percent.text = adapterItem.percentString + "%"
+                holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
             }
         }
 
@@ -127,20 +123,20 @@ constructor(  //array list
             val va: ValueAnimator =
                 if (isExpanded) ValueAnimator.ofInt(0, height) else ValueAnimator.ofInt(height, 0)
             // Animation이 실행되는 시간, n/1000초
-            va.setDuration(600)
+            va.duration = 600
             va.addUpdateListener(object : AnimatorUpdateListener {
                 public override fun onAnimationUpdate(animation: ValueAnimator) {
                     // value는 height 값
                     // imageView의 높이 변경
-                    itemView.findViewById<View>(R.id.view).getLayoutParams().height =
-                        animation.getAnimatedValue() as Int
+                    itemView.findViewById<View>(R.id.view).layoutParams.height =
+                        animation.animatedValue as Int
                     itemView.findViewById<View>(R.id.view).requestLayout()
                     // imageView가 실제로 사라지게하는 부분
-                    startValue.setVisibility(if (isExpanded) View.VISIBLE else View.GONE)
-                    endValue.setVisibility(if (isExpanded) View.VISIBLE else View.GONE)
-                    leftValue.setVisibility(if (isExpanded) View.VISIBLE else View.GONE)
-                    autoUpdate.setVisibility(if (isExpanded) View.VISIBLE else View.GONE)
-                    deleteButton.setVisibility(if (isExpanded) View.VISIBLE else View.GONE)
+                    startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                    endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                    leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                    autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                    deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
                     imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
                 }
             })
@@ -159,22 +155,20 @@ constructor(  //array list
             leftValue = view.findViewById(R.id.left_day)
             imageButton = view.findViewById(R.id.imageButton)
             deleteButton = view.findViewById(R.id.delete_button)
-            itemView.setOnClickListener(object : View.OnClickListener {
-                public override fun onClick(v: View) {
-                    val pos: Int = getAdapterPosition()
-                    if (selectedItems!!.get(getAdapterPosition())) {
-                        // 펼쳐진 Item을 클릭 시
-                        selectedItems!!.put(getAdapterPosition(), false)
-                    } else {
-                        // 직전의 클릭됐던 Item의 클릭상태를 지움
-                        selectedItems!!.put(pos, false)
-                        prePosition = pos
-                        // 클릭한 Item의 position을 저장
-                        selectedItems!!.put(getAdapterPosition(), true)
-                    }
-                    changeVisibility(selectedItems!!.get(getAdapterPosition()))
+            itemView.setOnClickListener {
+                val pos: Int = adapterPosition
+                if (selectedItems!!.get(adapterPosition)) {
+                    // 펼쳐진 Item을 클릭 시
+                    selectedItems!!.put(adapterPosition, false)
+                } else {
+                    // 직전의 클릭됐던 Item의 클릭상태를 지움
+                    selectedItems!!.put(pos, false)
+                    prePosition = pos
+                    // 클릭한 Item의 position을 저장
+                    selectedItems!!.put(adapterPosition, true)
                 }
-            })
+                changeVisibility(selectedItems!!.get(adapterPosition))
+            }
         }
     }
 

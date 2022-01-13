@@ -8,11 +8,10 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import me.relex.circleindicator.CircleIndicator2
 import android.content.DialogInterface
-import android.os.Looper
 import android.app.*
-import android.os.Handler
 import android.view.View
 import android.widget.*
+import kotlinx.coroutines.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.ArrayList
@@ -105,6 +104,8 @@ class MainActivity() : AppCompatActivity() {
             val alertDialog = builder.create()
             alertDialog.show()
         }
+
+        /*
         val handler = Handler(Looper.getMainLooper())
         //초단위, 현재시간 update Thread
         Thread {
@@ -112,7 +113,7 @@ class MainActivity() : AppCompatActivity() {
                 //핸들러
                 handler.post {
                     clock()
-                    topItemAdapter!!.notifyItemChanged(0, "update")
+                    topItemAdapter.notifyItemChanged(0, "update")
                     for (i in position.indices) {
                         bottomItemAdapter!!.notifyItemChanged(
                                 position[i], itemID[i]
@@ -126,15 +127,27 @@ class MainActivity() : AppCompatActivity() {
                 }
             }
         }.start()
+         */
+
+        GlobalScope.launch(Dispatchers.Main) {
+            while (true) {
+                dayText!!.text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
+                timeText!!.text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("a h:m:ss"))
+
+                topItemAdapter.notifyItemChanged(0, "update")
+                for (i in position.indices) {
+                    bottomItemAdapter!!.notifyItemChanged(
+                            position[i], itemID[i]
+                    )
+                }
+                delay(1000)
+            }
+
+        }
+
     }
 
-    fun clock() {
-        val currentDateTime = LocalDateTime.now()
-        val dateFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
-        val TimeFormatter = DateTimeFormatter.ofPattern("a h:m:ss")
-        dayText!!.text = currentDateTime.format(dateFormatter)
-        timeText!!.text = currentDateTime.format(TimeFormatter)
-    }
+
 
     override fun onBackPressed() {
         val tempTime = System.currentTimeMillis()
@@ -167,19 +180,18 @@ class MainActivity() : AppCompatActivity() {
         private var bottomRecyclerView: RecyclerView? = null
         private var bottomItemAdapter: BottomRecyclerView? = null
 
-
         fun GetDBItem() {
             bottomItemListArray.clear()
             position.clear()
             itemID.clear()
 
-            if (appDatabase!!.DatabaseDao().item.size != 0) {
+            if (appDatabase!!.DatabaseDao().item.isNotEmpty()) {
                 explanation!!.visibility = View.INVISIBLE
-                for (i in appDatabase!!.DatabaseDao().item.indices) {
-                    if ((appDatabase!!.DatabaseDao().item[i]?.type == "Time")) {
+                for (i in appDatabase.DatabaseDao().item.indices) {
+                    if ((appDatabase.DatabaseDao().item[i]?.type == "Time")) {
                         bottomItemListArray.add(
                                 ITEM_GENERATE.customTimeItem(
-                                        appDatabase!!.DatabaseDao().item[i]
+                                        appDatabase.DatabaseDao().item[i]
                                 )
                         )
                         position.add(i)
