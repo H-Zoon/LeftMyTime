@@ -1,7 +1,6 @@
 package com.devidea.timeleft
 
 import android.content.Intent
-import androidx.room.Room
 import androidx.appcompat.app.AppCompatActivity
 import androidx.recyclerview.widget.RecyclerView
 import android.os.Bundle
@@ -11,7 +10,6 @@ import me.relex.circleindicator.CircleIndicator2
 import android.content.DialogInterface
 import android.os.Looper
 import android.app.*
-import android.content.Context
 import android.os.Handler
 import android.view.View
 import android.widget.*
@@ -21,34 +19,26 @@ import java.util.ArrayList
 
 class MainActivity() : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem?>()
-
     private var backPressedTime: Long = 0
 
+
     override fun onCreate(savedInstanceState: Bundle?) {
-
-        /*
-        //database 객체 초기화
-        appDatabase = Room.databaseBuilder(applicationContext, AppDatabase::class.java, "ItemData")
-            .allowMainThreadQueries()
-            .fallbackToDestructiveMigration()
-            .build()
-
-         */
-
-
-        //기존 database instance의 싱글톤 디자인패턴 사용
-        val appDatabase = AppDatabase.getInstance(applicationContext)
-
 
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_main)
         explanation = findViewById(R.id.explanation)
+
         timeText = findViewById(R.id.time)
         dayText = findViewById(R.id.day)
 
-        var recyclerView: RecyclerView = findViewById(R.id.recyclerview)
+        bottomItemAdapter = BottomRecyclerView(bottomItemListArray)
+        bottomRecyclerView = findViewById(R.id.recyclerview2)
+        bottomRecyclerView!!.adapter = bottomItemAdapter
 
-        recyclerView.layoutManager = LinearLayoutManager(
+
+        val topRecyclerView: RecyclerView = findViewById(R.id.recyclerview)
+
+        topRecyclerView.layoutManager = LinearLayoutManager(
                 this,
                 RecyclerView.HORIZONTAL,
                 false
@@ -61,11 +51,11 @@ class MainActivity() : AppCompatActivity() {
 
         //recyclerView 관련 객체
         var topItemAdapter = TopRecyclerView(topItemListArray)
-        recyclerView.setAdapter(topItemAdapter)
+        topRecyclerView.adapter = topItemAdapter
 
         // PagerSnapHelper 추가 꼭 공부하기 !!
         val pagerSnapHelper = PagerSnapHelper()
-        pagerSnapHelper.attachToRecyclerView(recyclerView)
+        pagerSnapHelper.attachToRecyclerView(topRecyclerView)
 
         //인디케이터 활성화 꼭 공부하기!!
         val indicator = findViewById<CircleIndicator2>(R.id.indicator)
@@ -76,15 +66,14 @@ class MainActivity() : AppCompatActivity() {
 
         //커스텀 항목에 대한 추가
 
-        var customItemRecyclerView: RecyclerView = findViewById(R.id.recyclerview2)
-        customItemRecyclerView.layoutManager = LinearLayoutManager(
+        GetDBItem()
+
+        bottomRecyclerView!!.layoutManager = LinearLayoutManager(
                 this,
                 RecyclerView.VERTICAL,
                 false
         ) // 상하 스크롤 //
 
-
-        //GetDBItem()
         val button = findViewById<Button>(R.id.time_add)
         button.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)
@@ -164,19 +153,21 @@ class MainActivity() : AppCompatActivity() {
     companion object {
         private val bottomItemListArray = ArrayList<AdapterItem?>()
 
-        //하단 recyclerView 객체
-
-        private var customItemRecyclerView: RecyclerView? = null
-        private var bottomItemAdapter: BottomRecyclerView? = null
-
         private val appDatabase = AppDatabase.getInstance(App.context())
+        // 기존 database instance의 싱글톤 디자인패턴 사용
+
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
 
         private val position = ArrayList<Int>()
         private val itemID = ArrayList<Int>()
-        private var explanation: TextView? = null
-        private var dayText: TextView? = null
+
         private var timeText: TextView? = null
+        private var dayText: TextView? = null
+        private var explanation: TextView? = null
+        private var bottomRecyclerView: RecyclerView? = null
+        private var bottomItemAdapter: BottomRecyclerView? = null
+
+
         fun GetDBItem() {
             bottomItemListArray.clear()
             position.clear()
@@ -204,11 +195,9 @@ class MainActivity() : AppCompatActivity() {
             } else {
                 explanation!!.visibility = View.VISIBLE
             }
-
-
-            //사용자가 추가한 부분의 아이템
             bottomItemAdapter = BottomRecyclerView(bottomItemListArray)
-            customItemRecyclerView!!.adapter = bottomItemAdapter
+            bottomRecyclerView?.adapter = bottomItemAdapter
+
         }
     }
 }

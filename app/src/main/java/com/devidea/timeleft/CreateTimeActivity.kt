@@ -1,6 +1,5 @@
 package com.devidea.timeleft
 
-import android.annotation.SuppressLint
 import android.app.TimePickerDialog
 import android.content.DialogInterface
 import android.graphics.Color

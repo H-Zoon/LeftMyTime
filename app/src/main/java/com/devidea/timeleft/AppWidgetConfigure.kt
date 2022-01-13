@@ -1,64 +1,26 @@
 package com.devidea.timeleft
 
-import com.devidea.timeleft.EntityItemInfo
-import com.devidea.timeleft.MainActivity
-import android.appwidget.AppWidgetProvider
 import android.content.Intent
 import android.appwidget.AppWidgetManager
-import androidx.room.Room
-import com.devidea.timeleft.AppDatabase
-import com.devidea.timeleft.AppWidget
 import android.app.PendingIntent
-import android.app.AlarmManager
-import com.devidea.timeleft.R
-import com.devidea.timeleft.AdapterItem
-import androidx.room.Database
-import com.devidea.timeleft.EntityWidgetInfo
-import androidx.room.RoomDatabase
-import com.devidea.timeleft.DatabaseDao
-import androidx.room.Dao
-import com.devidea.timeleft.InterfaceItem
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import com.devidea.timeleft.TopRecyclerView
 import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
-import me.relex.circleindicator.CircleIndicator2
-import android.content.DialogInterface
-import com.devidea.timeleft.CreateTimeActivity
-import com.devidea.timeleft.CreateMonthActivity
-import android.os.Looper
-import com.devidea.timeleft.BottomRecyclerView
-import com.devidea.timeleft.ItemGenerate
-import androidx.room.PrimaryKey
-import android.view.ViewGroup
-import android.view.LayoutInflater
-import android.animation.ObjectAnimator
 import android.app.Activity
-import android.util.SparseBooleanArray
-import android.annotation.SuppressLint
-import android.animation.ValueAnimator
-import android.animation.ValueAnimator.AnimatorUpdateListener
-import com.devidea.timeleft.ItemSave
-import android.app.TimePickerDialog.OnTimeSetListener
-import android.app.TimePickerDialog
-import android.app.DatePickerDialog.OnDateSetListener
-import android.app.DatePickerDialog
 import android.content.Context
 import android.util.Log
 import android.view.View
 import android.widget.*
-import java.lang.Exception
 import java.util.ArrayList
 
-class AppWidgetConfigure constructor() : Activity() {
+class AppWidgetConfigure : Activity() {
     private val appDatabase = AppDatabase.getInstance(App.context())
 
+    /*
     var summitButton: Button? = null
     var spinner: Spinner? = null
     var checkBox: CheckBox? = null
     var radioGroup: RadioGroup? = null
+
+     */
     var value: String = "0"
     var AppWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
     var entityWidgetInfo: EntityWidgetInfo? = null
@@ -67,7 +29,6 @@ class AppWidgetConfigure constructor() : Activity() {
     //var Preview: TextView? = null
     public override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
-
 
         //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED)
@@ -87,12 +48,12 @@ class AppWidgetConfigure constructor() : Activity() {
             finish()
         }
         val mOnClickListener: View.OnClickListener = object : View.OnClickListener {
-            public override fun onClick(v: View) {
+            override fun onClick(v: View) {
                 Log.d("click", value)
                 val context: Context = this@AppWidgetConfigure
                 // appwidget 인스턴스 가져오기
                 val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
-                val views: RemoteViews = RemoteViews(
+                val views = RemoteViews(
                     context.getPackageName(),
                     R.layout.app_widget
                 )
@@ -104,26 +65,26 @@ class AppWidgetConfigure constructor() : Activity() {
                     context,
                     0,
                     intentR,
-                    PendingIntent.FLAG_UPDATE_CURRENT
+                    PendingIntent.FLAG_IMMUTABLE
                 )
                 views.setOnClickPendingIntent(R.id.refrash, pendingIntent)
                 val appIntent: Intent = Intent(context, MainActivity::class.java)
-                val pe: PendingIntent = PendingIntent.getActivity(context, 0, appIntent, 0)
+                val pe: PendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.percent, pe)
                 when (value) {
                     "embedYear" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().summery
+                            MainActivity.ITEM_GENERATE.yearItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.yearItem().percentString + "%"
+                            MainActivity.ITEM_GENERATE.yearItem().percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.Companion.ITEM_GENERATE.yearItem().percentString!!.toFloat().toInt(),
+                                MainActivity.ITEM_GENERATE.yearItem().percentString!!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -134,17 +95,17 @@ class AppWidgetConfigure constructor() : Activity() {
                     "embedMonth" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem().summery
+                            MainActivity.ITEM_GENERATE.monthItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.monthItem()
+                            MainActivity.ITEM_GENERATE.monthItem()
                                 .percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.Companion.ITEM_GENERATE.monthItem().percentString
+                                MainActivity.ITEM_GENERATE.monthItem().percentString
                                 !!.toFloat().toInt(),
                             false
                         )
@@ -156,16 +117,16 @@ class AppWidgetConfigure constructor() : Activity() {
                     "embedTime" -> {
                         views.setTextViewText(
                             R.id.summery,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().summery
+                            MainActivity.ITEM_GENERATE.timeItem().summery
                         )
                         views.setTextViewText(
                             R.id.percent,
-                            MainActivity.Companion.ITEM_GENERATE.timeItem().percentString + "%"
+                            MainActivity.ITEM_GENERATE.timeItem().percentString + "%"
                         )
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.Companion.ITEM_GENERATE.timeItem().percentString
+                                MainActivity.ITEM_GENERATE.timeItem().percentString
                                 !!.toFloat().toInt(),
                             false
                         )
@@ -186,10 +147,10 @@ class AppWidgetConfigure constructor() : Activity() {
                         val adapterItem: AdapterItem
                         if ((entityItemInfo.type == "Time")) {
                             adapterItem =
-                                MainActivity.Companion.ITEM_GENERATE.customTimeItem(entityItemInfo)
+                                MainActivity.ITEM_GENERATE.customTimeItem(entityItemInfo)
                         } else {
                             adapterItem =
-                                MainActivity.Companion.ITEM_GENERATE.customMonthItem(entityItemInfo)
+                                MainActivity.ITEM_GENERATE.customMonthItem(entityItemInfo)
                         }
                         views.setTextViewText(R.id.summery, adapterItem.summery)
                         views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
@@ -217,24 +178,24 @@ class AppWidgetConfigure constructor() : Activity() {
         }
         val radioGroupButtonChangeListener: RadioGroup.OnCheckedChangeListener =
             object : RadioGroup.OnCheckedChangeListener {
-                public override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
+                override fun onCheckedChanged(group: RadioGroup, checkedId: Int) {
                     var Preview: TextView = findViewById(R.id.summery_preview)
                     when (checkedId) {
                         R.id.yearButton -> {
                             Preview.setText(
-                                MainActivity.Companion.ITEM_GENERATE.yearItem().summery
+                                MainActivity.ITEM_GENERATE.yearItem().summery
                             )
                             value = "embedYear"
                         }
                         R.id.monthButton -> {
                             Preview.setText(
-                                MainActivity.Companion.ITEM_GENERATE.monthItem().summery
+                                MainActivity.ITEM_GENERATE.monthItem().summery
                             )
                             value = "embedMonth"
                         }
                         R.id.timeButton -> {
                             Preview.setText(
-                                MainActivity.Companion.ITEM_GENERATE.timeItem().summery
+                                MainActivity.ITEM_GENERATE.timeItem().summery
                             )
                             value = "embedTime"
                         }
@@ -246,7 +207,7 @@ class AppWidgetConfigure constructor() : Activity() {
         var spinner: Spinner = findViewById(R.id.spinner)
         var checkBox: CheckBox = findViewById(R.id.checkBox)
         var radioGroup: RadioGroup = findViewById(R.id.radioGroup)
-        var Preview: TextView = findViewById(R.id.summery_preview)
+        var Preview: TextView//? = null // = findViewById(R.id.summery_preview)
 
         radioGroup.setOnCheckedChangeListener(radioGroupButtonChangeListener)
         summitButton.setOnClickListener(mOnClickListener)
@@ -260,7 +221,7 @@ class AppWidgetConfigure constructor() : Activity() {
             )
         }
         checkBox.setOnClickListener(object : View.OnClickListener {
-            public override fun onClick(v: View) {
+            override fun onClick(v: View) {
                 if (appDatabase!!.DatabaseDao().item.size != 0) {
                     if (checkBox.isChecked()) {
                         for (i in 0 until radioGroup.getChildCount()) {
@@ -303,8 +264,7 @@ class AppWidgetConfigure constructor() : Activity() {
                     Log.d("value", value)
                 }
             }
-
-            public override fun onNothingSelected(parent: AdapterView<*>?) {}
+            override fun onNothingSelected(parent: AdapterView<*>?) {}
         })
 
 

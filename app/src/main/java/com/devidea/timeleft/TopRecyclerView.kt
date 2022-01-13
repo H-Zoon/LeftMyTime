@@ -1,6 +1,5 @@
 package com.devidea.timeleft
 
-
 import androidx.recyclerview.widget.RecyclerView
 import android.widget.TextView
 import android.view.ViewGroup

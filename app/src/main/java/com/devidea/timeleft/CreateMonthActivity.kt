@@ -1,6 +1,5 @@
 package com.devidea.timeleft
 
-
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.app.DatePickerDialog.OnDateSetListener

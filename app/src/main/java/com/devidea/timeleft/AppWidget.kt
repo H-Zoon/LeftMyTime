@@ -8,6 +8,7 @@ import android.app.PendingIntent
 import android.app.AlarmManager
 import android.widget.RemoteViews
 import android.content.Context
+import android.os.Build
 import android.os.SystemClock
 import android.util.Log
 import java.lang.Exception
@@ -46,9 +47,11 @@ class AppWidget : AppWidgetProvider() {
     override fun onEnabled(context: Context) {
         val intent = Intent(context, AppWidget::class.java)
         intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val pendingIntent =
-                PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_UPDATE_CURRENT)
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+
         alarmManager.setInexactRepeating(
                 AlarmManager.ELAPSED_REALTIME,
                 SystemClock.elapsedRealtime(),
@@ -61,7 +64,10 @@ class AppWidget : AppWidgetProvider() {
     override fun onDisabled(context: Context) {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AppWidget::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, 0)
+
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+
+
         alarmManager.cancel(pendingIntent) //알람 해제
         pendingIntent.cancel() //인텐트 해제
         Log.d("widget", "alert off")
@@ -88,11 +94,13 @@ class AppWidget : AppWidgetProvider() {
         val views = RemoteViews(context.packageName, R.layout.app_widget)
         val intentR = Intent(context, AppWidget::class.java)
         intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val pendingIntent =
-                PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_UPDATE_CURRENT)
+
+        val pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_IMMUTABLE)
+
         views.setOnClickPendingIntent(R.id.refrash, pendingIntent)
         val appIntent = Intent(context, MainActivity::class.java)
-        val pe = PendingIntent.getActivity(context, 0, appIntent, 0)
+
+        val pe = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
         views.setOnClickPendingIntent(R.id.percent, pe)
 
         if (type != null) {

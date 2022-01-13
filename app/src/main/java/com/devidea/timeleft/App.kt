@@ -14,6 +14,7 @@ class App : Application() {
         fun context() : Context {
             return instance!!.applicationContext
         }
+
     }
 
 }

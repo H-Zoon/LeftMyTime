@@ -1,6 +1,5 @@
 package com.devidea.timeleft
 
-
 import androidx.recyclerview.widget.RecyclerView
 import android.content.DialogInterface
 import android.view.ViewGroup
@@ -22,19 +21,20 @@ constructor(  //array list
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
     private val appDatabase = AppDatabase.getInstance(App.context())
-
+    var activityContext: Context? = null
     // Create new views (invoked by the layout manager)
-    public override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
-        context = viewGroup.getContext()
-        selectedItems = SparseBooleanArray(getItemCount())
-        // Create a new view, which defines the UI of the list item
-        val view: View = LayoutInflater.from(viewGroup.getContext())
+    override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
+        //activity context
+        activityContext = viewGroup.context
+        selectedItems = SparseBooleanArray(itemCount)
+
+        val view: View = LayoutInflater.from(activityContext)
             .inflate(R.layout.item_recyclerview_bottom, viewGroup, false)
         return ViewHolder(view)
     }
 
     @SuppressLint("SetTextI18n")
-    public override fun onBindViewHolder(viewHolder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
 
         viewHolder.startValue.text = arrayList[position]!!.startDay
         viewHolder.endValue.text = arrayList[position]!!.endDay
@@ -50,22 +50,22 @@ constructor(  //array list
         viewHolder.autoUpdate.setVisibility(View.GONE)
         viewHolder.deleteButton.setVisibility(View.GONE)
         viewHolder.deleteButton.setOnClickListener(object : View.OnClickListener {
-            public override fun onClick(v: View) {
-                val builder: AlertDialog.Builder = AlertDialog.Builder(context)
+            override fun onClick(v: View) {
+                val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK", object : DialogInterface.OnClickListener {
-                    public override fun onClick(dialog: DialogInterface, id: Int) {
+                    override fun onClick(dialog: DialogInterface, id: Int) {
                         appDatabase!!.DatabaseDao()
                             .deleteItem(arrayList.get(position)!!.id)
                         appDatabase!!.DatabaseDao().deleteCustomWidget(
                             arrayList.get(position)!!.id
                         )
-                        MainActivity.Companion.GetDBItem()
-                        Toast.makeText(context, "삭제되었습니다.", Toast.LENGTH_LONG).show()
+                        MainActivity.GetDBItem()
+                        Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                     }
                 })
                 builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
-                    public override fun onClick(dialog: DialogInterface, id: Int) {}
+                    override fun onClick(dialog: DialogInterface, id: Int) {}
                 })
                 selectedItems!!.put(position, false)
                 val alertDialog: AlertDialog = builder.create()
@@ -84,26 +84,26 @@ constructor(  //array list
 
     }
 
-    public override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
+    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
 
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
             for (payload: Any in payloads) {
                 val itemID: Int = payload as Int
-                val adapterItem: AdapterItem = MainActivity.Companion.ITEM_GENERATE.customTimeItem(
+                val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.customTimeItem(
                    appDatabase!!.DatabaseDao().getSelectItem(itemID)
                 )
                 holder.leftValue.setText(adapterItem.leftDay)
                 holder.percent.setText(adapterItem.percentString + "%")
-                holder.progressBar.setProgress(adapterItem.percentString!!.toFloat() as Int)
+                holder.progressBar.setProgress(adapterItem.percentString!!.toFloat().toInt())
             }
         }
 
 
     }
 
-    public override fun getItemCount(): Int {
+    override fun getItemCount(): Int {
         return arrayList.size
     }
 
@@ -120,7 +120,7 @@ constructor(  //array list
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정
             val dpValue: Int = 200
-            val d: Float = context!!.getResources().getDisplayMetrics().density
+            val d: Float = App.context().getResources().getDisplayMetrics().density
             val height: Int = (dpValue * d).toInt()
 
             // ValueAnimator.ofInt(int... values)는 View가 변할 값을 지정, 인자는 int 배열
@@ -182,7 +182,5 @@ constructor(  //array list
         // 직전에 클릭됐던 Item의 position
         private var prePosition: Int = -1
 
-        //context
-        private var context: Context? = null
     }
 }
