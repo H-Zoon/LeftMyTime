@@ -52,7 +52,6 @@ dependencies {
 
     // To use Kotlin annotation processing tool (kapt)
     kapt("androidx.room:room-compiler:2.4.1")
-
     implementation 'com.github.hannesa2:AndroidSlidingUpPanel:4.2.2'
 
 }

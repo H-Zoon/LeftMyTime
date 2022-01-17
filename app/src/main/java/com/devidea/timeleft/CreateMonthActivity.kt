@@ -73,7 +73,7 @@ class CreateMonthActivity constructor() : AppCompatActivity() {
                             inputDay!!.text.toString().toInt(),
                             AutoUpdateCheck!!.isChecked
                     )
-                    MainActivity.Companion.GetDBItem()
+                    MainActivity.Companion.refreshItem()
                     finish()
                 }
             } else {

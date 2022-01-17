@@ -64,8 +64,7 @@ class MainActivity() : AppCompatActivity() {
         topItemAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
 
         //커스텀 항목에 대한 추가
-
-        GetDBItem()
+        refreshItem()
 
         bottomRecyclerView!!.layoutManager = LinearLayoutManager(
                 this,
@@ -105,30 +104,6 @@ class MainActivity() : AppCompatActivity() {
             alertDialog.show()
         }
 
-        /*
-        val handler = Handler(Looper.getMainLooper())
-        //초단위, 현재시간 update Thread
-        Thread {
-            while (true) {
-                //핸들러
-                handler.post {
-                    clock()
-                    topItemAdapter.notifyItemChanged(0, "update")
-                    for (i in position.indices) {
-                        bottomItemAdapter!!.notifyItemChanged(
-                                position[i], itemID[i]
-                        )
-                    }
-                }
-                try {
-                    Thread.sleep(1000)
-                } catch (e: InterruptedException) {
-                    e.printStackTrace()
-                }
-            }
-        }.start()
-         */
-
         GlobalScope.launch(Dispatchers.Main) {
             while (true) {
                 dayText!!.text = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
@@ -142,12 +117,8 @@ class MainActivity() : AppCompatActivity() {
                 }
                 delay(1000)
             }
-
         }
-
     }
-
-
 
     override fun onBackPressed() {
         val tempTime = System.currentTimeMillis()
@@ -165,12 +136,10 @@ class MainActivity() : AppCompatActivity() {
 
     companion object {
         private val bottomItemListArray = ArrayList<AdapterItem?>()
-
         private val appDatabase = AppDatabase.getInstance(App.context())
         // 기존 database instance의 싱글톤 디자인패턴 사용
 
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
-
         private val position = ArrayList<Int>()
         private val itemID = ArrayList<Int>()
 
@@ -180,32 +149,33 @@ class MainActivity() : AppCompatActivity() {
         private var bottomRecyclerView: RecyclerView? = null
         private var bottomItemAdapter: BottomRecyclerView? = null
 
-        fun GetDBItem() {
+        fun refreshItem() {
             bottomItemListArray.clear()
             position.clear()
             itemID.clear()
-
-            if (appDatabase!!.DatabaseDao().item.isNotEmpty()) {
-                explanation!!.visibility = View.INVISIBLE
-                for (i in appDatabase.DatabaseDao().item.indices) {
-                    if ((appDatabase.DatabaseDao().item[i]?.type == "Time")) {
-                        bottomItemListArray.add(
+            CoroutineScope(Dispatchers.Main).launch {
+                if (appDatabase!!.DatabaseDao().item.isNotEmpty()) {
+                    explanation!!.visibility = View.INVISIBLE
+                    for (i in appDatabase.DatabaseDao().item.indices) {
+                        if ((appDatabase.DatabaseDao().item[i]?.type == "Time")) {
+                            bottomItemListArray.add(
                                 ITEM_GENERATE.customTimeItem(
-                                        appDatabase.DatabaseDao().item[i]
+                                    appDatabase.DatabaseDao().item[i]
                                 )
-                        )
-                        position.add(i)
-                        bottomItemListArray[i]?.let { itemID.add(it.id) }
-                    } else {
-                        bottomItemListArray.add(
+                            )
+                            position.add(i)
+                            bottomItemListArray[i]?.let { itemID.add(it.id) }
+                        } else {
+                            bottomItemListArray.add(
                                 ITEM_GENERATE.customMonthItem(
-                                        appDatabase!!.DatabaseDao().item[i]
+                                    appDatabase.DatabaseDao().item[i]
                                 )
-                        )
+                            )
+                        }
                     }
+                } else {
+                    explanation!!.visibility = View.VISIBLE
                 }
-            } else {
-                explanation!!.visibility = View.VISIBLE
             }
             bottomItemAdapter = BottomRecyclerView(bottomItemListArray)
             bottomRecyclerView?.adapter = bottomItemAdapter

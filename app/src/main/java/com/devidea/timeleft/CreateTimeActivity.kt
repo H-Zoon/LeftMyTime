@@ -72,7 +72,7 @@ class CreateTimeActivity : AppCompatActivity() {
                             endTime,
                             true
                     )
-                    MainActivity.GetDBItem()
+                    MainActivity.refreshItem()
                     finish()
                 } else {
                     Toast.makeText(this@CreateTimeActivity, "시간과 이름을 확인해주세요", Toast.LENGTH_LONG)

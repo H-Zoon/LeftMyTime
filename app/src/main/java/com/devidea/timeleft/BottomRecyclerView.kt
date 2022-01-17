@@ -1,7 +1,6 @@
 package com.devidea.timeleft
 
 import androidx.recyclerview.widget.RecyclerView
-import android.content.DialogInterface
 import android.view.ViewGroup
 import android.view.LayoutInflater
 import android.animation.ObjectAnimator
@@ -59,7 +58,7 @@ constructor(  //array list
                     appDatabase.DatabaseDao().deleteCustomWidget(
                             arrayList[position]!!.id
                     )
-                    MainActivity.GetDBItem()
+                    MainActivity.refreshItem()
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                 }
                 builder.setNegativeButton("Cancel") { dialog, id -> }
