@@ -86,11 +86,11 @@ class ItemGenerate : InterfaceItem {
 
 
     override fun customMonthItem(itemInfo: EntityItemInfo?): AdapterItem {
-        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-m-d")
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         var itemInfo = itemInfo
         val adapterItem = AdapterItem()
-        var startDate = LocalDate.parse(itemInfo!!.startValue)
-        var endDate = LocalDate.parse(itemInfo.endValue)
+        var startDate = LocalDate.parse(itemInfo!!.startValue,formatter)
+        var endDate = LocalDate.parse(itemInfo.endValue, formatter)
         val today = LocalDate.now()
         val id = itemInfo.id
 
