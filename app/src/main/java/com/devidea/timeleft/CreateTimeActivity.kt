@@ -28,6 +28,7 @@ class CreateTimeActivity : AppCompatActivity() {
                     startTime = "$time:$minute"
                 },
                 0, 0, false)
+            timePickerDialog.setTitle("시작시간 설정")
             timePickerDialog.show()
         }
 
@@ -35,6 +36,7 @@ class CreateTimeActivity : AppCompatActivity() {
             val timePickerDialog = TimePickerDialog(
                 this, { timePicker, time, minute ->
                     endTime = "$time:$minute"}, 0, 0, false)
+            timePickerDialog.setTitle("종료시간 설정")
             timePickerDialog.show()
         }
 
