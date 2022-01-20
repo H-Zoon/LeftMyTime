@@ -4,10 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginStart="25dp"
-    android:layout_marginTop="50dp"
-    android:layout_marginEnd="25dp"
     android:orientation="vertical"
+    android:padding="10dp"
     tools:context=".CreateTimeActivity">
 
     <TextView
@@ -18,33 +16,74 @@
         android:text="원하는 시간 범위 설정하기"
         android:textSize="30sp" />
 
-    <EditText
-        android:id="@+id/input_summery"
+    <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/line"
-        android:ems="10"
-        android:hint="이름을 입력해주세요" />
+        android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/input_start_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/line"
-        android:ems="10"
-        android:hint="시작시간" />
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content">
 
-    <EditText
-        android:id="@+id/input_end_time"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/line"
-        android:ems="10"
-        android:hint="종료시간" />
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="제목:" />
 
+            <EditText
+                android:id="@+id/input_summery"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:hint="이름을 입력해주세요" />
+        </TableRow>
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="시작시간: " />
+
+            <EditText
+                android:id="@+id/input_start_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:focusable="false"
+                android:hint="시작시간을 설정해주세요" />
+        </TableRow>
+
+
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="종료시간: " />
+
+            <EditText
+                android:id="@+id/input_end_time"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:focusable="false"
+                android:hint="종료시간을 설정해주세요" />
+
+        </TableRow>
+
+    </TableLayout>
 
     <Button
         android:id="@+id/save"

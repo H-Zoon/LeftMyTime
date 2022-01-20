@@ -86,6 +86,7 @@ class ItemGenerate : InterfaceItem {
 
 
     override fun customMonthItem(itemInfo: EntityItemInfo?): AdapterItem {
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-m-d")
         var itemInfo = itemInfo
         val adapterItem = AdapterItem()
         var startDate = LocalDate.parse(itemInfo!!.startValue)
@@ -104,30 +105,30 @@ class ItemGenerate : InterfaceItem {
         val lengthOfMonth = LocalDate.now().lengthOfMonth()
 
         //종료일로 넘어가고 자동 업데이트 체크한 경우
-        if (today.isAfter(endDate) && itemInfo!!.isAutoUpdate) {
+        if (today.isAfter(endDate) && itemInfo.isAutoUpdate) {
             //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
             appDatabase!!.DatabaseDao().updateItem(
                 endDate.toString(),
                 endDate.plusDays(lengthOfMonth.toLong()).toString(),
                 itemInfo.id
             )
-            itemInfo = appDatabase!!.DatabaseDao().getSelectItem(id)
+            itemInfo = appDatabase.DatabaseDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue)
             endDate = LocalDate.parse(itemInfo.endValue)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()
             sendDay = ChronoUnit.DAYS.between(startDate, today).toInt()
             leftDay = ChronoUnit.DAYS.between(today, endDate).toInt()
         }
-        val MonthPercent = sendDay.toFloat() / setDay * 100
+        val monthPercent = sendDay.toFloat() / setDay * 100
         adapterItem.startDay = "설정일: $startDate"
         adapterItem.endDay = "종료일: $endDate"
         adapterItem.leftDay = "남은일: D-$leftDay"
-        adapterItem.isAutoUpdate = itemInfo!!.isAutoUpdate
-        adapterItem.summery = itemInfo!!.summery
-        adapterItem.id = itemInfo!!.id
-        if (MonthPercent < 100) {
+        adapterItem.isAutoUpdate = itemInfo.isAutoUpdate
+        adapterItem.summery = itemInfo.summery
+        adapterItem.id = itemInfo.id
+        if (monthPercent < 100) {
             adapterItem.percentString =
-                String.format(Locale.getDefault(), "%.1f", MonthPercent)
+                String.format(Locale.getDefault(), "%.1f", monthPercent)
         } else {
             adapterItem.percentString = "100"
         }

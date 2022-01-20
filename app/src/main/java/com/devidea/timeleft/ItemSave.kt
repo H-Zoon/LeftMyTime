@@ -1,15 +1,13 @@
 package com.devidea.timeleft
 
-import java.time.LocalDate
-
 class ItemSave {
     private val appDatabase = AppDatabase.getInstance(App.context())
 
-    fun saveMonthItem(summery: String?, end: Int, autoUpdate: Boolean) {
+    fun saveMonthItem(summery: String, start: String, end: String, autoUpdate: Boolean) {
         val entityItemInfo = EntityItemInfo(
             "Month",
-            LocalDate.now().toString(),
-            LocalDate.now().plusDays(end.toLong()).toString(),
+            start,
+            end,
             summery,
             autoUpdate
         )
