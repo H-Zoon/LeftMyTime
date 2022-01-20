@@ -12,15 +12,18 @@ import android.app.*
 import android.content.Context
 import android.view.View
 import android.widget.*
+import kotlinx.coroutines.*
 import java.util.ArrayList
 
 class BottomRecyclerView     //CustomAdapter 생성자
 constructor(  //array list
-    private val arrayList: ArrayList<AdapterItem?>) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
+    private val arrayList: ArrayList<AdapterItem?>
+) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
     private val appDatabase = AppDatabase.getInstance(App.context())
     var activityContext: Context? = null
+
     // Create new views (invoked by the layout manager)
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
         //activity context
@@ -33,7 +36,10 @@ constructor(  //array list
     }
 
     @SuppressLint("SetTextI18n")
-    override fun onBindViewHolder(viewHolder: ViewHolder, @SuppressLint("RecyclerView") position: Int) {
+    override fun onBindViewHolder(
+        viewHolder: ViewHolder,
+        @SuppressLint("RecyclerView") position: Int
+    ) {
 
         viewHolder.startValue.text = arrayList[position]!!.startDay
         viewHolder.endValue.text = arrayList[position]!!.endDay
@@ -54,9 +60,9 @@ constructor(  //array list
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { dialog, id ->
                     appDatabase!!.DatabaseDao()
-                            .deleteItem(arrayList[position]!!.id)
+                        .deleteItem(arrayList[position]!!.id)
                     appDatabase.DatabaseDao().deleteCustomWidget(
-                            arrayList[position]!!.id
+                        arrayList[position]!!.id
                     )
                     MainActivity.refreshItem()
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
@@ -84,15 +90,18 @@ constructor(  //array list
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
-            for (payload: Any in payloads) {
-                val itemID: Int = payload as Int
+            val adapterItem: AdapterItem = payloads[0] as AdapterItem
+
+                /*
                 val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.customTimeItem(
-                   appDatabase!!.DatabaseDao().getSelectItem(itemID)
+                    appDatabase!!.DatabaseDao().getSelectItem(itemID)
                 )
+
+                 */
                 holder.leftValue.text = adapterItem.leftDay
                 holder.percent.text = adapterItem.percentString + "%"
                 holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
-            }
+
         }
 
 

@@ -9,7 +9,7 @@ import android.widget.*
 import java.time.LocalDate
 import java.time.temporal.ChronoUnit
 
-class CreateMonthActivity constructor() : AppCompatActivity() {
+class CreateMonthActivity : AppCompatActivity() {
 
     var inputSummery: EditText? = null
     var inputDay: EditText? = null
@@ -58,28 +58,16 @@ class CreateMonthActivity constructor() : AppCompatActivity() {
             }
         })
         save!!.setOnClickListener {
-            if (!((inputSummery!!.getText().toString() == "")) && !((inputDay!!.getText()
+            if (((inputSummery!!.getText().toString() == "")) && ((inputDay!!.getText()
                             .toString() == ""))
-            ) {
-                if (inputDay!!.getText().toString().toInt() > 1826) {
-                    Toast.makeText(
-                            this@CreateMonthActivity,
-                            "흠..감당하기엔 너무 멀지 않나요..?",
-                            Toast.LENGTH_LONG
-                    ).show()
-                } else {
+            )
                     itemSave.saveMonthItem(
                             inputSummery!!.text.toString(),
                             inputDay!!.text.toString().toInt(),
                             AutoUpdateCheck!!.isChecked
                     )
-                    MainActivity.Companion.refreshItem()
                     finish()
                 }
-            } else {
-                Toast.makeText(this@CreateMonthActivity, "제목과 날짜를 확인해주세요", Toast.LENGTH_LONG)
-                        .show()
-            }
-        }
+
     }
 }

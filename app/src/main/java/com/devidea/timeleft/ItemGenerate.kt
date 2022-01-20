@@ -3,6 +3,7 @@ package com.devidea.timeleft
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -54,8 +55,9 @@ class ItemGenerate : InterfaceItem {
     override fun customTimeItem(itemInfo: EntityItemInfo?): AdapterItem {
 
         val adapterItem = AdapterItem()
-        val startValue = LocalTime.parse(itemInfo!!.startValue) //시작시간
-        val endValue = LocalTime.parse(itemInfo.endValue) // 종료시간
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:m")
+        val startValue = LocalTime.parse(itemInfo!!.startValue, formatter) //시작시간
+        val endValue = LocalTime.parse(itemInfo.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
         adapterItem.isAutoUpdate = itemInfo!!.isAutoUpdate
         adapterItem.summery = itemInfo.summery

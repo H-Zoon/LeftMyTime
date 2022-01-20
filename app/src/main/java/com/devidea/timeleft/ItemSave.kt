@@ -1,7 +1,6 @@
 package com.devidea.timeleft
 
 import java.time.LocalDate
-import java.time.LocalTime
 
 class ItemSave {
     private val appDatabase = AppDatabase.getInstance(App.context())
@@ -14,17 +13,22 @@ class ItemSave {
             summery,
             autoUpdate
         )
-        appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
+        writeDatabase(entityItemInfo)
     }
 
     fun saveTimeItem(
-        summery: String?,
-        startValue: LocalTime?,
-        endValue: LocalTime?,
+        summery: String,
+        startValue: String,
+        endValue: String,
         autoUpdate: Boolean
     ) {
         val entityItemInfo =
-            EntityItemInfo("Time", startValue.toString(), endValue.toString(), summery, autoUpdate)
+            EntityItemInfo("Time", startValue, endValue, summery, autoUpdate)
+        writeDatabase(entityItemInfo)
+    }
+
+    private fun writeDatabase(entityItemInfo: EntityItemInfo) {
         appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
+        MainActivity.refreshItem()
     }
 }

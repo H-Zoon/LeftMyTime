@@ -40,7 +40,9 @@ constructor(  //array list
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
-            val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.timeItem()
+            //val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.timeItem()
+            val adapterItem: AdapterItem = payloads[0] as AdapterItem
+
             holder.percent.text = adapterItem.percentString + "%"
             holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
             holder.leftValue.text = adapterItem.leftDay

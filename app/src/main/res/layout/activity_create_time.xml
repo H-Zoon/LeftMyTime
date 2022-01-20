@@ -11,7 +11,6 @@
     tools:context=".CreateTimeActivity">
 
     <TextView
-        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginBottom="50dp"
@@ -28,58 +27,31 @@
         android:ems="10"
         android:hint="이름을 입력해주세요" />
 
-    <LinearLayout
+    <EditText
+        android:id="@+id/input_start_time"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:gravity="center"
-        android:orientation="horizontal"
-        android:weightSum="20">
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/line"
+        android:ems="10"
+        android:hint="시작시간" />
 
-        <TextView
-            android:id="@+id/time_range"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:gravity="start"
-            android:text="시간범위를 설정해주세요"
-            android:textSize="20sp" />
+    <EditText
+        android:id="@+id/input_end_time"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:background="@drawable/line"
+        android:ems="10"
+        android:hint="종료시간" />
 
-
-    </LinearLayout>
 
     <Button
-        android:id="@+id/clock"
-        style="@style/Widget.AppCompat.Button.Borderless"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_gravity="end"
-        android:gravity="center"
-        android:text="시간 설정하기"
-        android:textColor="@color/gray600" />
-
-
-    <LinearLayout
+        android:id="@+id/save"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginBottom="20dp"
-        android:gravity="bottom"
-        android:orientation="vertical">
-
-        <!--
-        <CheckBox
-            android:id="@+id/auto_update_check"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="매번 반복되는 일정이에요 (예 : 월급날, 생일)" />
-            -->
-
-        <Button
-            android:id="@+id/summit_time"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:background="@drawable/line"
-            android:text="저장" />
-    </LinearLayout>
+        android:layout_height="wrap_content"
+        android:background="@drawable/line"
+        android:text="저장" />
 
 
 </LinearLayout>
