@@ -18,10 +18,10 @@ class ItemGenerate : InterfaceItem {
         val now = LocalTime.now()
         val endValue = LocalTime.parse("23:59:59")
         val secondsValue = Duration.between(LocalTime.of(0, 0), now).seconds.toFloat()
-        val TimePercent = secondsValue / 86400 * 100
+        val timePercent = secondsValue / 86400 * 100
         adapterItem.summery = "오늘의 "
         adapterItem.percentString =
-            String.format(Locale.getDefault(), "%.1f", TimePercent)
+            String.format(Locale.getDefault(), "%.1f", timePercent)
         adapterItem.leftDay = "남은시간: " + LocalTime.ofSecondOfDay(
             Duration.between(
                 now,

@@ -24,6 +24,10 @@ class CreateMonthActivity : AppCompatActivity() {
         val inputUpdateRate = findViewById<EditText>(R.id.input_update_rate)
         val btnSave = findViewById<Button>(R.id.save)
 
+        //test
+        val t_f = findViewById<EditText>(R.id.test_f)
+        val t_r = findViewById<EditText>(R.id.test_r)
+
         val itemSave = ItemSave()
 
         inputStartDay.setOnClickListener { v ->
@@ -51,7 +55,7 @@ class CreateMonthActivity : AppCompatActivity() {
         //isInitialized is able instance variable, not a local variable.
         btnSave.setOnClickListener {
             if (::startDay.isInitialized && ::endDay.isInitialized && inputTitle.length()>0){
-                itemSave.saveMonthItem(inputTitle.text.toString(), startDay, endDay, 2, 20)
+                itemSave.saveMonthItem(inputTitle.text.toString(), startDay, endDay, t_f.text.toString().toInt(), t_r.text.toString().toInt())
                 finish()
             }else{
                 Toast.makeText(this,"입력확인",Toast.LENGTH_SHORT).show()

@@ -108,6 +108,29 @@
 
         </TableRow>
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <EditText
+                android:id="@+id/test_f"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:ems="10"
+                android:inputType="number"
+                android:hint="Flag 0,1,2" />
+
+            <EditText
+                android:id="@+id/test_r"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:ems="10"
+                android:inputType="number"
+                android:hint="rate" />
+
+        </TableRow>
 
     </TableLayout>
 
