@@ -9,10 +9,12 @@ import android.widget.RemoteViews
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
 
 class AppWidget : AppWidgetProvider() {
 
-    private val appDatabase = AppDatabase.getInstance(App.context())
+    private val appDatabase = AppDatabase.getDatabase(App.context())
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
@@ -21,7 +23,7 @@ class AppWidget : AppWidgetProvider() {
         Log.d("widget", "onReceive() action = $action")
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
 
-            appWidgetIds = appDatabase!!.DatabaseDao().get()!!
+            appWidgetIds = appDatabase!!.itemDao().get()!!
             if (appWidgetIds.isNotEmpty()) {
                 onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
             }
@@ -70,7 +72,7 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        appDatabase!!.DatabaseDao().delete(appWidgetIds[0])
+        appDatabase!!.itemDao().delete(appWidgetIds[0])
         Log.d("widget", "onDeleted done")
     }
 
@@ -81,7 +83,7 @@ class AppWidget : AppWidgetProvider() {
     ) {
         var type: String? = null
 
-        type = appDatabase!!.DatabaseDao().getType(appWidgetId)
+        type = appDatabase!!.itemDao().getType(appWidgetId)
 
 
         val views = RemoteViews(context.packageName, R.layout.app_widget)
@@ -157,15 +159,15 @@ class AppWidget : AppWidgetProvider() {
                     val adapterItem: AdapterItem
 
                     //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
-                    val entityItemInfo: EntityItemInfo =
-                            appDatabase.DatabaseDao().getSelectItem(
-                                    appDatabase.DatabaseDao()
+                    val itemEntity: ItemEntity =
+                            appDatabase.itemDao().getSelectItem(
+                                    appDatabase.itemDao()
                                             .getTypeID(appWidgetId)
                             )
                     adapterItem = if (type == "Time") {
-                        MainActivity.ITEM_GENERATE.customTimeItem(entityItemInfo)
+                        MainActivity.ITEM_GENERATE.customTimeItem(itemEntity)
                     } else {
-                        MainActivity.ITEM_GENERATE.customMonthItem(entityItemInfo)
+                        MainActivity.ITEM_GENERATE.customMonthItem(itemEntity)
                     }
                     views.setTextViewText(R.id.summery, adapterItem.summery)
                     views.setTextViewText(R.id.percent, adapterItem.percentString + "%")

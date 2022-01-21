@@ -12,7 +12,7 @@ import android.app.*
 import android.content.Context
 import android.view.View
 import android.widget.*
-import kotlinx.coroutines.*
+import com.devidea.timeleft.datadase.AppDatabase
 import java.util.ArrayList
 
 class BottomRecyclerView     //CustomAdapter 생성자
@@ -21,7 +21,7 @@ constructor(  //array list
 ) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
-    private val appDatabase = AppDatabase.getInstance(App.context())
+    private val appDatabase = AppDatabase.getDatabase(App.context())
     var activityContext: Context? = null
 
     // Create new views (invoked by the layout manager)
@@ -59,9 +59,9 @@ constructor(  //array list
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { dialog, id ->
-                    appDatabase!!.DatabaseDao()
+                    appDatabase!!.itemDao()
                         .deleteItem(arrayList[position]!!.id)
-                    appDatabase.DatabaseDao().deleteCustomWidget(
+                    appDatabase.itemDao().deleteCustomWidget(
                         arrayList[position]!!.id
                     )
                     MainActivity.refreshItem()

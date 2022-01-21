@@ -1,5 +1,7 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
@@ -9,7 +11,7 @@ import java.time.temporal.ChronoUnit
 import java.util.*
 
 class ItemGenerate : InterfaceItem {
-    private val appDatabase = AppDatabase.getInstance(App.context())
+    private val appDatabase = AppDatabase.getDatabase(App.context())
 
     override fun timeItem(): AdapterItem {
         val adapterItem = AdapterItem()
@@ -52,18 +54,18 @@ class ItemGenerate : InterfaceItem {
         return adapterItem
     }
 
-    override fun customTimeItem(itemInfo: EntityItemInfo?): AdapterItem {
+    override fun customTimeItem(itemEntity: ItemEntity?): AdapterItem {
 
         val adapterItem = AdapterItem()
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:m")
-        val startValue = LocalTime.parse(itemInfo!!.startValue, formatter) //시작시간
-        val endValue = LocalTime.parse(itemInfo.endValue, formatter) // 종료시간
+        val startValue = LocalTime.parse(itemEntity!!.startValue, formatter) //시작시간
+        val endValue = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
-        adapterItem.isAutoUpdate = itemInfo!!.isAutoUpdate
-        adapterItem.summery = itemInfo.summery
+        adapterItem.isAutoUpdate = itemEntity!!.isAutoUpdate
+        adapterItem.summery = itemEntity.summery
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
-        adapterItem.id = itemInfo.id
+        adapterItem.id = itemEntity.id
         if (time.isAfter(startValue) && time.isBefore(endValue)) {
             val range = Duration.between(startValue, endValue).seconds.toFloat()
             val sendTime = Duration.between(startValue, time).seconds.toFloat()
@@ -85,9 +87,9 @@ class ItemGenerate : InterfaceItem {
 
 
 
-    override fun customMonthItem(itemInfo: EntityItemInfo?): AdapterItem {
+    override fun customMonthItem(itemEntity: ItemEntity?): AdapterItem {
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-d")
-        var itemInfo = itemInfo
+        var itemInfo = itemEntity
         val adapterItem = AdapterItem()
         var startDate = LocalDate.parse(itemInfo!!.startValue,formatter)
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
@@ -107,12 +109,12 @@ class ItemGenerate : InterfaceItem {
         //종료일로 넘어가고 자동 업데이트 체크한 경우
         if (today.isAfter(endDate) && itemInfo.isAutoUpdate) {
             //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
-            appDatabase!!.DatabaseDao().updateItem(
+            appDatabase!!.itemDao().updateItem(
                 endDate.toString(),
                 endDate.plusDays(lengthOfMonth.toLong()).toString(),
                 itemInfo.id
             )
-            itemInfo = appDatabase.DatabaseDao().getSelectItem(id)
+            itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue)
             endDate = LocalDate.parse(itemInfo.endValue)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()

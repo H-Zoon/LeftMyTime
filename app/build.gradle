@@ -46,18 +46,19 @@ dependencies {
     implementation 'me.relex:circleindicator:2.1.6'
 
     //room
-    implementation 'androidx.room:room-runtime:2.4.1'
-    annotationProcessor("androidx.room:room-compiler:2.4.1")
+    implementation "androidx.room:room-runtime:$room_version"
+    kapt "androidx.room:room-compiler:$room_version"
+
+    // optional - Kotlin Extensions and Coroutines support for Room
+    implementation "androidx.room:room-ktx:$room_version"
 
     //coroutines
     implementation('org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.0-native-mt')
     implementation('androidx.lifecycle:lifecycle-viewmodel-ktx:2.4.0')
 
-    // To use Kotlin annotation processing tool (kapt)
-    kapt("androidx.room:room-compiler:2.4.1")
     implementation 'com.github.hannesa2:AndroidSlidingUpPanel:4.2.2'
 
-    implementation"org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
+    //implementation"org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
     implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.6.10"
 
 }

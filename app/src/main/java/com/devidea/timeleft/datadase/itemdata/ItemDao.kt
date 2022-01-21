@@ -1,25 +1,27 @@
-package com.devidea.timeleft
+package com.devidea.timeleft.datadase.itemdata
 
 import androidx.room.*
+import com.devidea.timeleft.EntityWidgetInfo
 
 @Dao
-interface DatabaseDao {
+interface ItemDao {
     @Insert
-    fun saveItem(entityItemInfo: EntityItemInfo?)
+    fun saveItem(itemEntity: ItemEntity?)
 
-    @get:Query("SELECT * FROM EntityItemInfo")
-    val item: List<EntityItemInfo?>
+    // AppWidgetConfigure에서 사용
+    @get:Query("SELECT * FROM ItemEntity")
+    val item: List<ItemEntity?>
 
-    @Query("DELETE FROM EntityItemInfo WHERE id = :ID")
+    @Query("DELETE FROM ItemEntity WHERE id = :ID")
     fun deleteItem(ID: Int)
 
-    @Query("SELECT * FROM EntityItemInfo WHERE id = :ID")
-    fun getSelectItem(ID: Int): EntityItemInfo
+    @Query("SELECT * FROM ItemEntity WHERE id = :ID")
+    fun getSelectItem(ID: Int): ItemEntity
 
-    @Query("UPDATE EntityItemInfo SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
+    @Query("UPDATE ItemEntity SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
     fun updateItem(updateStart: String?, updateEnd: String?, ID: Int)
 
-    //위젯엔티티
+    //위젯엔티티 삭제예정
     @Insert
     fun saveWidget(entityWidgetInfo: EntityWidgetInfo?)
 
@@ -37,4 +39,6 @@ interface DatabaseDao {
 
     @Query("DELETE FROM EntityWidgetInfo WHERE ItemID = :ID")
     fun deleteCustomWidget(ID: Int)
+
+
 }
