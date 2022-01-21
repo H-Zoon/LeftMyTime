@@ -86,23 +86,30 @@
 
         </TableRow>
 
+        <TableRow
+            android:layout_width="match_parent"
+            android:layout_height="match_parent">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="반복설정: " />
+
+            <EditText
+                android:id="@+id/input_update_rate"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:layout_weight="1"
+                android:ems="10"
+                android:focusable="false"
+                android:hint="반복없음" />
+
+        </TableRow>
+
+
     </TableLayout>
-
-    <Switch
-        android:id="@+id/update_switch"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="반복설정"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-    <EditText
-        android:id="@+id/input_update_rate"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginBottom="20dp"
-        android:ems="10"
-        android:inputType="number"
-        android:hint="반복일자" />
 
     <LinearLayout
         android:layout_width="match_parent"

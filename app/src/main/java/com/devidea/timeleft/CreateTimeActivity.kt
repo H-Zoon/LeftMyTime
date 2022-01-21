@@ -58,7 +58,7 @@ class CreateTimeActivity : AppCompatActivity() {
         //isInitialized is able instance variable, not a local variable.
         btnSave.setOnClickListener {
             if (::startTime.isInitialized && ::endTime.isInitialized && inputTitle.length() > 0) {
-                itemSave.saveTimeItem(inputTitle.text.toString(), startTime, endTime, true)
+                itemSave.saveTimeItem(inputTitle.text.toString(), startTime, endTime)
                 finish()
             } else {
                 Toast.makeText(this, "입력확인", Toast.LENGTH_SHORT).show()

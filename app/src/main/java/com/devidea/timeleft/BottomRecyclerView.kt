@@ -44,11 +44,13 @@ constructor(  //array list
         viewHolder.startValue.text = arrayList[position]!!.startDay
         viewHolder.endValue.text = arrayList[position]!!.endDay
         viewHolder.leftValue.text = arrayList[position]!!.leftDay
-        if (arrayList[position]!!.isAutoUpdate) {
-            viewHolder.autoUpdate.text = ((arrayList[position]!!.updateRate).toString()+"일 마다 반복되는 일정이에요")
-        } else {
-            viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
+
+        when(arrayList[position]!!.autoUpdateFlag){
+            1 -> viewHolder.autoUpdate.text = ((arrayList[position]!!.updateRate).toString()+"일후 반복되는 일정이에요")
+            2 -> viewHolder.autoUpdate.text = ("매 달"+(arrayList[position]!!.updateRate).toString()+"일에 반복되는 일정이에요")
+            else -> viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }
+
         viewHolder.startValue.visibility = View.GONE
         viewHolder.endValue.visibility = View.GONE
         viewHolder.leftValue.visibility = View.GONE

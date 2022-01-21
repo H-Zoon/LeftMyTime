@@ -9,7 +9,7 @@ data class ItemEntity(
     @NonNull var summery: String,
     @NonNull var startValue: String,
     @NonNull var endValue: String,
-    @NonNull var isAutoUpdate: Boolean,
+    @NonNull var autoUpdateFlag: Int,
     @NonNull var updateRate: Int
 ) {
     @PrimaryKey(autoGenerate = true)

@@ -6,7 +6,7 @@ class AdapterItem {
     var startDay: String? = null
     var endDay: String? = null
     var leftDay: String? = null
-    var isAutoUpdate = false
+    var autoUpdateFlag: Int? = null
     var updateRate: Int? = null
     var id = 0
 }

@@ -61,7 +61,7 @@ class ItemGenerate : InterfaceItem {
         val startValue = LocalTime.parse(itemEntity.startValue, formatter) //시작시간
         val endValue = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
-        adapterItem.isAutoUpdate = itemEntity.isAutoUpdate
+        adapterItem.autoUpdateFlag = itemEntity.autoUpdateFlag
         adapterItem.summery = itemEntity.summery
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
@@ -86,12 +86,11 @@ class ItemGenerate : InterfaceItem {
     }
 
 
-
     override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         var itemInfo = itemEntity
         val adapterItem = AdapterItem()
-        var startDate = LocalDate.parse(itemInfo.startValue,formatter)
+        var startDate = LocalDate.parse(itemInfo.startValue, formatter)
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
@@ -105,19 +104,31 @@ class ItemGenerate : InterfaceItem {
 
         //설정일까지 남은일
         var leftDay = ChronoUnit.DAYS.between(today, endDate).toInt()
-        val lengthOfMonth = LocalDate.now().lengthOfMonth()
 
         //종료일로 넘어가고 자동 업데이트 체크한 경우
-        if (today.isAfter(endDate) && itemInfo.isAutoUpdate) {
-            //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
-            appDatabase!!.itemDao().updateItem(
-                endDate.toString(),
-                endDate.plusDays(updateRate.toLong()).toString(),
-                itemInfo.id
-            )
-            itemInfo = appDatabase.itemDao().getSelectItem(id)
-            startDate = LocalDate.parse(itemInfo.startValue)
-            endDate = LocalDate.parse(itemInfo.endValue)
+        if (today.isAfter(endDate)) {
+            when (itemEntity.autoUpdateFlag) {
+                1 -> appDatabase!!.itemDao().updateItem(
+                    endDate.toString(),
+                        endDate.plusDays(updateRate.toLong()).toString(),
+                        itemInfo.id
+                )
+                2 -> if((endDate.plusMonths(1)).lengthOfMonth()>updateRate){
+                    appDatabase!!.itemDao().updateItem(
+                        endDate.toString(),
+                        LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(1).monthValue, updateRate).toString(),
+                        itemInfo.id)
+                    }else{
+                    appDatabase!!.itemDao().updateItem(
+                        endDate.toString(),
+                        LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(2).monthValue, updateRate).toString(),
+                        itemInfo.id)
+                }
+
+            }
+            itemInfo = appDatabase!!.itemDao().getSelectItem(id)
+            startDate = LocalDate.parse(itemInfo.startValue, formatter)
+            endDate = LocalDate.parse(itemInfo.endValue, formatter)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()
             sendDay = ChronoUnit.DAYS.between(startDate, today).toInt()
             leftDay = ChronoUnit.DAYS.between(today, endDate).toInt()
@@ -126,7 +137,7 @@ class ItemGenerate : InterfaceItem {
         adapterItem.startDay = "설정일: $startDate"
         adapterItem.endDay = "종료일: $endDate"
         adapterItem.leftDay = "남은일: D-$leftDay"
-        adapterItem.isAutoUpdate = itemInfo.isAutoUpdate
+        adapterItem.autoUpdateFlag = itemInfo.autoUpdateFlag
         adapterItem.summery = itemInfo.summery
         adapterItem.updateRate = updateRate
         adapterItem.id = itemInfo.id
