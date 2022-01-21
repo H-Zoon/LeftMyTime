@@ -6,14 +6,14 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 class ItemSave {
     private val appDatabase = AppDatabase.getDatabase(App.context())
 
-    fun saveMonthItem(summery: String, start: String, end: String, autoUpdate: Boolean) {
+    fun saveMonthItem(summery: String, start: String, end: String, autoUpdate: Boolean, updateRate: Int) {
         val entityItemInfo = ItemEntity(
             "Month",
             summery,
             start,
             end,
             autoUpdate,
-            null
+            updateRate
         )
         writeDatabase(entityItemInfo)
     }
@@ -25,7 +25,7 @@ class ItemSave {
         autoUpdate: Boolean
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, autoUpdate, null)
+            ItemEntity("Time", title, startValue, endValue, autoUpdate, 0)
         writeDatabase(entityItemInfo)
     }
 

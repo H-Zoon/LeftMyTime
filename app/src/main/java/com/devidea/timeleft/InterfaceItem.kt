@@ -6,6 +6,6 @@ open interface InterfaceItem {
     fun timeItem(): AdapterItem
     fun yearItem(): AdapterItem
     fun monthItem(): AdapterItem
-    fun customTimeItem(itemEntity: ItemEntity?): AdapterItem
-    fun customMonthItem(itemEntity: ItemEntity?): AdapterItem
+    fun customTimeItem(itemEntity: ItemEntity): AdapterItem
+    fun customMonthItem(itemEntity: ItemEntity): AdapterItem
 }

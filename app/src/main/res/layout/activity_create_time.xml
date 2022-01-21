@@ -5,18 +5,19 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:padding="10dp"
     tools:context=".CreateTimeActivity">
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
         android:layout_marginBottom="50dp"
         android:gravity="center"
         android:text="원하는 시간 범위 설정하기"
         android:textSize="30sp" />
 
     <TableLayout
+        android:padding="30dp"
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
 
@@ -48,6 +49,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="시작시간: " />
 
             <EditText
@@ -69,6 +71,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="종료시간: " />
 
             <EditText
@@ -85,12 +88,20 @@
 
     </TableLayout>
 
-    <Button
-        android:id="@+id/save"
+    <LinearLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="@drawable/line"
-        android:text="저장" />
+        android:layout_height="match_parent"
+        android:layout_marginBottom="20dp"
+        android:gravity="bottom"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/save"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:text="저장" />
+    </LinearLayout>
 
 
 </LinearLayout>

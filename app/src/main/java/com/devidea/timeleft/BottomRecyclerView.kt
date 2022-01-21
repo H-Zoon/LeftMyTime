@@ -45,7 +45,7 @@ constructor(  //array list
         viewHolder.endValue.text = arrayList[position]!!.endDay
         viewHolder.leftValue.text = arrayList[position]!!.leftDay
         if (arrayList[position]!!.isAutoUpdate) {
-            viewHolder.autoUpdate.text = "이후 반복되는 일정이에요"
+            viewHolder.autoUpdate.text = ((arrayList[position]!!.updateRate).toString()+"일 마다 반복되는 일정이에요")
         } else {
             viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }

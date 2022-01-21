@@ -16,7 +16,7 @@ import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 
-class MainActivity() : AppCompatActivity() {
+class MainActivity : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem?>()
     private var backPressedTime: Long = 0
 

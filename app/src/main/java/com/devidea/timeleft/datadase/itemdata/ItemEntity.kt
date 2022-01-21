@@ -10,7 +10,7 @@ data class ItemEntity(
     @NonNull var startValue: String,
     @NonNull var endValue: String,
     @NonNull var isAutoUpdate: Boolean,
-    var updateRate: Int?
+    @NonNull var updateRate: Int
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

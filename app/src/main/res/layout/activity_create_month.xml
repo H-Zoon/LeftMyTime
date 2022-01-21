@@ -3,9 +3,6 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:layout_marginStart="25dp"
-    android:layout_marginTop="50dp"
-    android:layout_marginEnd="25dp"
     android:orientation="vertical"
     tools:context=".CreateMonthActivity">
 
@@ -13,6 +10,7 @@
         android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:layout_marginTop="25dp"
         android:layout_marginBottom="50dp"
         android:gravity="center"
         android:text="원하는 날 설정하기"
@@ -20,7 +18,8 @@
 
     <TableLayout
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        android:padding="30dp">
 
         <TableRow
             android:layout_width="match_parent"
@@ -50,6 +49,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="시작시간: " />
 
             <EditText
@@ -71,6 +71,7 @@
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
+                android:gravity="center"
                 android:text="종료시간: " />
 
             <EditText
@@ -87,6 +88,22 @@
 
     </TableLayout>
 
+    <Switch
+        android:id="@+id/update_switch"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="반복설정"
+        tools:ignore="UseSwitchCompatOrMaterialXml" />
+
+    <EditText
+        android:id="@+id/input_update_rate"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginBottom="20dp"
+        android:ems="10"
+        android:inputType="number"
+        android:hint="반복일자" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -94,20 +111,13 @@
         android:gravity="bottom"
         android:orientation="vertical">
 
-
-        <Switch
-            android:id="@+id/switch1"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Switch" />
-
         <Button
             android:id="@+id/save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:background="@drawable/line"
             android:text="저장" />
-    </LinearLayout>
 
+    </LinearLayout>
 
 </LinearLayout>

@@ -54,14 +54,14 @@ class ItemGenerate : InterfaceItem {
         return adapterItem
     }
 
-    override fun customTimeItem(itemEntity: ItemEntity?): AdapterItem {
+    override fun customTimeItem(itemEntity: ItemEntity): AdapterItem {
 
         val adapterItem = AdapterItem()
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:m")
-        val startValue = LocalTime.parse(itemEntity!!.startValue, formatter) //시작시간
+        val startValue = LocalTime.parse(itemEntity.startValue, formatter) //시작시간
         val endValue = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
-        adapterItem.isAutoUpdate = itemEntity!!.isAutoUpdate
+        adapterItem.isAutoUpdate = itemEntity.isAutoUpdate
         adapterItem.summery = itemEntity.summery
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
@@ -87,12 +87,13 @@ class ItemGenerate : InterfaceItem {
 
 
 
-    override fun customMonthItem(itemEntity: ItemEntity?): AdapterItem {
+    override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         var itemInfo = itemEntity
         val adapterItem = AdapterItem()
-        var startDate = LocalDate.parse(itemInfo!!.startValue,formatter)
+        var startDate = LocalDate.parse(itemInfo.startValue,formatter)
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
+        val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
         val id = itemInfo.id
 
@@ -111,7 +112,7 @@ class ItemGenerate : InterfaceItem {
             //시작일: 종료일, 종료일: 종료일 + 설정일수로 UPDATE
             appDatabase!!.itemDao().updateItem(
                 endDate.toString(),
-                endDate.plusDays(lengthOfMonth.toLong()).toString(),
+                endDate.plusDays(updateRate.toLong()).toString(),
                 itemInfo.id
             )
             itemInfo = appDatabase.itemDao().getSelectItem(id)
@@ -127,6 +128,7 @@ class ItemGenerate : InterfaceItem {
         adapterItem.leftDay = "남은일: D-$leftDay"
         adapterItem.isAutoUpdate = itemInfo.isAutoUpdate
         adapterItem.summery = itemInfo.summery
+        adapterItem.updateRate = updateRate
         adapterItem.id = itemInfo.id
         if (monthPercent < 100) {
             adapterItem.percentString =
