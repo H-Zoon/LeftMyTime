@@ -10,6 +10,7 @@ import me.relex.circleindicator.CircleIndicator2
 import android.content.DialogInterface
 import android.app.*
 import android.widget.*
+import com.devidea.timeleft.datadase.AppDatabase
 import kotlinx.coroutines.*
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -116,7 +117,7 @@ class MainActivity() : AppCompatActivity() {
                     bottomItemAdapter!!.notifyItemChanged(
                         position[i],
                         ITEM_GENERATE.customTimeItem(
-                            appDatabase!!.DatabaseDao().getSelectItem(itemID[i])
+                            appDatabase!!.itemDao().getSelectItem(itemID[i])
                         )
                     )
                 }
@@ -142,7 +143,7 @@ class MainActivity() : AppCompatActivity() {
 
     companion object {
         private val bottomItemListArray = ArrayList<AdapterItem?>()
-        private val appDatabase = AppDatabase.getInstance(App.context())
+        private val appDatabase = AppDatabase.getDatabase(App.context())
         // 기존 database instance의 싱글톤 디자인패턴 사용
 
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
@@ -161,13 +162,13 @@ class MainActivity() : AppCompatActivity() {
             position.clear()
             itemID.clear()
 
-            if (appDatabase!!.DatabaseDao().item.isNotEmpty()) {
+            if (appDatabase!!.itemDao().item.isNotEmpty()) {
                 //explanation!!.visibility = View.INVISIBLE
-                for (i in appDatabase.DatabaseDao().item.indices) {
-                    if ((appDatabase.DatabaseDao().item[i]?.type == "Time")) {
+                for (i in appDatabase.itemDao().item.indices) {
+                    if ((appDatabase.itemDao().item[i]?.type == "Time")) {
                         bottomItemListArray.add(
                             ITEM_GENERATE.customTimeItem(
-                                appDatabase.DatabaseDao().item[i]
+                                appDatabase.itemDao().item[i]
                             )
                         )
                         position.add(i)
@@ -175,7 +176,7 @@ class MainActivity() : AppCompatActivity() {
                     } else {
                         bottomItemListArray.add(
                             ITEM_GENERATE.customMonthItem(
-                                appDatabase.DatabaseDao().item[i]
+                                appDatabase.itemDao().item[i]
                             )
                         )
                     }

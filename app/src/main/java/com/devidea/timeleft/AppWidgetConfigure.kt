@@ -9,10 +9,12 @@ import android.content.Context
 import android.util.Log
 import android.view.View
 import android.widget.*
+import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.util.ArrayList
 
 class AppWidgetConfigure : Activity() {
-    private val appDatabase = AppDatabase.getInstance(App.context())
+    private val appDatabase = AppDatabase.getDatabase(App.context())
 
     var value: String = "0"
     var AppWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -81,7 +83,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        appDatabase!!.DatabaseDao()
+                        appDatabase!!.itemDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "embedMonth" -> {
@@ -103,7 +105,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        appDatabase!!.DatabaseDao()
+                        appDatabase!!.itemDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "embedTime" -> {
@@ -124,7 +126,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
-                        appDatabase!!.DatabaseDao()
+                        appDatabase!!.itemDao()
                             .saveWidget(entityWidgetInfo)
                     }
                     "0" -> {
@@ -133,16 +135,16 @@ class AppWidgetConfigure : Activity() {
                         finish()
                     }
                     else -> {
-                        val entityItemInfo: EntityItemInfo =
-                            appDatabase!!.DatabaseDao()
+                        val itemEntity: ItemEntity =
+                            appDatabase!!.itemDao()
                                 .getSelectItem(value.toInt())
                         val adapterItem: AdapterItem
-                        if ((entityItemInfo.type == "Time")) {
+                        if ((itemEntity.type == "Time")) {
                             adapterItem =
-                                MainActivity.ITEM_GENERATE.customTimeItem(entityItemInfo)
+                                MainActivity.ITEM_GENERATE.customTimeItem(itemEntity)
                         } else {
                             adapterItem =
-                                MainActivity.ITEM_GENERATE.customMonthItem(entityItemInfo)
+                                MainActivity.ITEM_GENERATE.customMonthItem(itemEntity)
                         }
                         views.setTextViewText(R.id.summery, adapterItem.summery)
                         views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
@@ -156,9 +158,9 @@ class AppWidgetConfigure : Activity() {
                         entityWidgetInfo = EntityWidgetInfo(
                             AppWidgetId,
                             adapterItem.id,
-                            entityItemInfo.type
+                            itemEntity.type
                         )
-                        appDatabase.DatabaseDao()
+                        appDatabase.itemDao()
                             .saveWidget(entityWidgetInfo)
                     }
                 }
@@ -197,22 +199,22 @@ class AppWidgetConfigure : Activity() {
         summitButton.setOnClickListener(mOnClickListener)
         spinner.isEnabled = false
         val itemName: ArrayList<String?> = ArrayList()
-        val entityItemInfo: List<EntityItemInfo?> =
-            appDatabase!!.DatabaseDao().item
-        for (i in appDatabase.DatabaseDao().item.indices) {
+        val itemEntity: List<ItemEntity?> =
+            appDatabase!!.itemDao().item
+        for (i in appDatabase.itemDao().item.indices) {
             itemName.add(
-                appDatabase.DatabaseDao().item[i]?.summery
+                appDatabase.itemDao().item[i]?.summery
             )
         }
         checkBox.setOnClickListener {
-            if (appDatabase.DatabaseDao().item.isNotEmpty()) {
+            if (appDatabase.itemDao().item.isNotEmpty()) {
                 if (checkBox.isChecked()) {
                     for (i in 0 until radioGroup.getChildCount()) {
                         radioGroup.getChildAt(i).setEnabled(false)
                     }
-                    value = entityItemInfo[0]!!.id.toString()
+                    value = itemEntity[0]!!.id.toString()
                     Preview = findViewById(R.id.summery_preview)
-                    Preview.text = entityItemInfo[0]!!.summery
+                    Preview.text = itemEntity[0]!!.summery
                     spinner.setSelection(0)
                     isFirstSelected = true
                     spinner.isEnabled = true
@@ -239,10 +241,10 @@ class AppWidgetConfigure : Activity() {
                     id: Long
             ) {
                 Preview = findViewById(R.id.summery_preview)
-                Preview.text = entityItemInfo[position]!!.summery
+                Preview.text = itemEntity[position]!!.summery
                 if (isFirstSelected) {
-                    Preview.text = entityItemInfo[position]!!.summery
-                    value = entityItemInfo[position]!!.id.toString()
+                    Preview.text = itemEntity[position]!!.summery
+                    value = itemEntity[position]!!.id.toString()
                     Log.d("value", value)
                 }
             }

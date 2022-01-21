@@ -1,32 +1,36 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
+
 class ItemSave {
-    private val appDatabase = AppDatabase.getInstance(App.context())
+    private val appDatabase = AppDatabase.getDatabase(App.context())
 
     fun saveMonthItem(summery: String, start: String, end: String, autoUpdate: Boolean) {
-        val entityItemInfo = EntityItemInfo(
+        val entityItemInfo = ItemEntity(
             "Month",
+            summery,
             start,
             end,
-            summery,
-            autoUpdate
+            autoUpdate,
+            null
         )
         writeDatabase(entityItemInfo)
     }
 
     fun saveTimeItem(
-        summery: String,
+        title: String,
         startValue: String,
         endValue: String,
         autoUpdate: Boolean
     ) {
         val entityItemInfo =
-            EntityItemInfo("Time", startValue, endValue, summery, autoUpdate)
+            ItemEntity("Time", title, startValue, endValue, autoUpdate, null)
         writeDatabase(entityItemInfo)
     }
 
-    private fun writeDatabase(entityItemInfo: EntityItemInfo) {
-        appDatabase!!.DatabaseDao().saveItem(entityItemInfo)
+    private fun writeDatabase(itemEntity: ItemEntity) {
+        appDatabase!!.itemDao().saveItem(itemEntity)
         MainActivity.refreshItem()
     }
 }
