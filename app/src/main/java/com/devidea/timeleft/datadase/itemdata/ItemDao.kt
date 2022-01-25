@@ -1,7 +1,6 @@
 package com.devidea.timeleft.datadase.itemdata
 
 import androidx.room.*
-import com.devidea.timeleft.EntityWidgetInfo
 
 @Dao
 interface ItemDao {
@@ -23,21 +22,21 @@ interface ItemDao {
 
     //위젯엔티티 삭제예정
     @Insert
-    fun saveWidget(entityWidgetInfo: EntityWidgetInfo?)
+    fun saveWidget(widgetEntity: WidgetEntity?)
 
-    @Query("SELECT widgetID FROM EntityWidgetInfo")
+    @Query("SELECT widgetID FROM WidgetEntity")
     fun get(): IntArray?
 
-    @Query("SELECT type FROM EntityWidgetInfo WHERE widgetID = :ID")
+    @Query("SELECT type FROM WidgetEntity WHERE widgetID = :ID")
     fun getType(ID: Int): String?
 
-    @Query("SELECT ItemID FROM EntityWidgetInfo WHERE widgetID = :ID")
+    @Query("SELECT ItemID FROM WidgetEntity WHERE widgetID = :ID")
     fun getTypeID(ID: Int): Int
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE widgetID = :ID")
+    @Query("DELETE FROM WidgetEntity WHERE widgetID = :ID")
     fun delete(ID: Int)
 
-    @Query("DELETE FROM EntityWidgetInfo WHERE ItemID = :ID")
+    @Query("DELETE FROM WidgetEntity WHERE ItemID = :ID")
     fun deleteCustomWidget(ID: Int)
 
 

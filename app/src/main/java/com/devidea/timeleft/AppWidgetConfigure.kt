@@ -11,6 +11,7 @@ import android.view.View
 import android.widget.*
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 import java.util.ArrayList
 
 class AppWidgetConfigure : Activity() {
@@ -18,7 +19,7 @@ class AppWidgetConfigure : Activity() {
 
     var value: String = "0"
     var AppWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
-    var entityWidgetInfo: EntityWidgetInfo? = null
+    var widgetEntity: WidgetEntity? = null
     var context: Context = this@AppWidgetConfigure
     var isFirstSelected: Boolean = false
     public override fun onCreate(icicle: Bundle?) {
@@ -82,9 +83,9 @@ class AppWidgetConfigure : Activity() {
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
-                        entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
+                        widgetEntity = WidgetEntity(AppWidgetId, -1, value)
                         appDatabase!!.itemDao()
-                            .saveWidget(entityWidgetInfo)
+                            .saveWidget(widgetEntity)
                     }
                     "embedMonth" -> {
                         views.setTextViewText(
@@ -104,9 +105,9 @@ class AppWidgetConfigure : Activity() {
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
-                        entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
+                        widgetEntity = WidgetEntity(AppWidgetId, -1, value)
                         appDatabase!!.itemDao()
-                            .saveWidget(entityWidgetInfo)
+                            .saveWidget(widgetEntity)
                     }
                     "embedTime" -> {
                         views.setTextViewText(
@@ -125,9 +126,9 @@ class AppWidgetConfigure : Activity() {
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
-                        entityWidgetInfo = EntityWidgetInfo(AppWidgetId, -1, value)
+                        widgetEntity = WidgetEntity(AppWidgetId, -1, value)
                         appDatabase!!.itemDao()
-                            .saveWidget(entityWidgetInfo)
+                            .saveWidget(widgetEntity)
                     }
                     "0" -> {
                         setResult(RESULT_CANCELED)
@@ -155,16 +156,16 @@ class AppWidgetConfigure : Activity() {
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
-                        entityWidgetInfo = EntityWidgetInfo(
+                        widgetEntity = WidgetEntity(
                             AppWidgetId,
                             adapterItem.id,
                             itemEntity.type
                         )
                         appDatabase.itemDao()
-                            .saveWidget(entityWidgetInfo)
+                            .saveWidget(widgetEntity)
                     }
                 }
-                val resultValue: Intent = Intent()
+                val resultValue = Intent()
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetId)
                 setResult(RESULT_OK, resultValue)
                 finish()

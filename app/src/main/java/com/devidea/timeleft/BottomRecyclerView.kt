@@ -94,12 +94,6 @@ constructor(  //array list
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-                /*
-                val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.customTimeItem(
-                    appDatabase!!.DatabaseDao().getSelectItem(itemID)
-                )
-
-                 */
                 holder.leftValue.text = adapterItem.leftDay
                 holder.percent.text = adapterItem.percentString + "%"
                 holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
