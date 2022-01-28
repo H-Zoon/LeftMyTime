@@ -16,9 +16,6 @@ import java.time.temporal.ChronoUnit
 //사용자가 날짜 지정하기를 선택한 경우 진입하는 activity
 class CreateMonthActivity : AppCompatActivity() {
 
-
-
-
     lateinit var startDay : String
     lateinit var endDay : String
     var UPDATEFLAG = 0
@@ -65,7 +62,7 @@ class CreateMonthActivity : AppCompatActivity() {
         inputEndDay.setOnClickListener { v ->
             val timePickerDialog = DatePickerDialog(
                 this, {datePicker, year, month, day ->
-                    var monthis = month+1
+                    val monthis = month+1
                     endDay = "$year-$monthis-$day"
                     inputEndDay.setText(endDay)
                       },

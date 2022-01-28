@@ -81,11 +81,8 @@ class AppWidget : AppWidgetProvider() {
             appWidgetManager: AppWidgetManager,
             appWidgetId: Int
     ) {
-        var type: String? = null
 
-        type = appDatabase!!.itemDao().getType(appWidgetId)
-
-
+        val type = appDatabase!!.itemDao().getType(appWidgetId)
         val views = RemoteViews(context.packageName, R.layout.app_widget)
         val intentR = Intent(context, AppWidget::class.java)
         intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE

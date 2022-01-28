@@ -33,10 +33,10 @@ class ItemGenerate : InterfaceItem {
 
     override fun yearItem(): AdapterItem {
         val adapterItem = AdapterItem()
-        val YearPercent = LocalDate.now().dayOfYear.toFloat() / LocalDate.now().lengthOfYear()
+        val yearPercent = LocalDate.now().dayOfYear.toFloat() / LocalDate.now().lengthOfYear()
             .toFloat() * 100
         adapterItem.summery = LocalDate.now().year.toString() + "년의 "
-        adapterItem.percentString = String.format(Locale.getDefault(), "%.1f", YearPercent)
+        adapterItem.percentString = String.format(Locale.getDefault(), "%.1f", yearPercent)
         adapterItem.leftDay = "남은일: " + (LocalDate.now()
             .lengthOfYear() - LocalDate.now().dayOfYear) + "일"
         return adapterItem

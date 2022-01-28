@@ -172,19 +172,19 @@ class AppWidgetConfigure : Activity() {
             }
         }
         val radioGroupButtonChangeListener: RadioGroup.OnCheckedChangeListener =
-                RadioGroup.OnCheckedChangeListener { group, checkedId ->
-                    val Preview: TextView = findViewById(R.id.summery_preview)
+                RadioGroup.OnCheckedChangeListener { _, checkedId ->
+                    val preView: TextView = findViewById(R.id.summery_preview)
                     when (checkedId) {
                         R.id.yearButton -> {
-                            Preview.text = MainActivity.ITEM_GENERATE.yearItem().summery
+                            preView.text = MainActivity.ITEM_GENERATE.yearItem().summery
                             value = "embedYear"
                         }
                         R.id.monthButton -> {
-                            Preview.text = MainActivity.ITEM_GENERATE.monthItem().summery
+                            preView.text = MainActivity.ITEM_GENERATE.monthItem().summery
                             value = "embedMonth"
                         }
                         R.id.timeButton -> {
-                            Preview.text = MainActivity.ITEM_GENERATE.timeItem().summery
+                            preView.text = MainActivity.ITEM_GENERATE.timeItem().summery
                             value = "embedTime"
                         }
                     }
@@ -204,12 +204,12 @@ class AppWidgetConfigure : Activity() {
             appDatabase!!.itemDao().item
         for (i in appDatabase.itemDao().item.indices) {
             itemName.add(
-                appDatabase.itemDao().item[i]?.summery
+                appDatabase.itemDao().item[i].summery
             )
         }
         checkBox.setOnClickListener {
             if (appDatabase.itemDao().item.isNotEmpty()) {
-                if (checkBox.isChecked()) {
+                if (checkBox.isChecked) {
                     for (i in 0 until radioGroup.getChildCount()) {
                         radioGroup.getChildAt(i).setEnabled(false)
                     }

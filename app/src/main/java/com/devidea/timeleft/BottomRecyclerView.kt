@@ -45,9 +45,11 @@ constructor(  //array list
         viewHolder.endValue.text = arrayList[position]!!.endDay
         viewHolder.leftValue.text = arrayList[position]!!.leftDay
 
-        when(arrayList[position]!!.autoUpdateFlag){
-            1 -> viewHolder.autoUpdate.text = ((arrayList[position]!!.updateRate).toString()+"일후 반복되는 일정이에요")
-            2 -> viewHolder.autoUpdate.text = ("매 달"+(arrayList[position]!!.updateRate).toString()+"일에 반복되는 일정이에요")
+        when (arrayList[position]!!.autoUpdateFlag) {
+            1 -> viewHolder.autoUpdate.text =
+                ((arrayList[position]!!.updateRate).toString() + "일후 반복되는 일정이에요")
+            2 -> viewHolder.autoUpdate.text =
+                ("매 달" + (arrayList[position]!!.updateRate).toString() + "일에 반복되는 일정이에요")
             else -> viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }
 
@@ -60,7 +62,7 @@ constructor(  //array list
             deleteButton.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
-                builder.setPositiveButton("OK") { dialog, id ->
+                builder.setPositiveButton("OK") { _, _ ->
                     appDatabase!!.itemDao()
                         .deleteItem(arrayList[position]!!.id)
                     appDatabase.itemDao().deleteCustomWidget(
@@ -94,9 +96,9 @@ constructor(  //array list
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-                holder.leftValue.text = adapterItem.leftDay
-                holder.percent.text = adapterItem.percentString + "%"
-                holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
+            holder.leftValue.text = adapterItem.leftDay
+            holder.percent.text = adapterItem.percentString + "%"
+            holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
 
         }
 
@@ -128,22 +130,19 @@ constructor(  //array list
                 if (isExpanded) ValueAnimator.ofInt(0, height) else ValueAnimator.ofInt(height, 0)
             // Animation이 실행되는 시간, n/1000초
             va.duration = 600
-            va.addUpdateListener(object : AnimatorUpdateListener {
-                public override fun onAnimationUpdate(animation: ValueAnimator) {
-                    // value는 height 값
-                    // imageView의 높이 변경
-                    itemView.findViewById<View>(R.id.view).layoutParams.height =
-                        animation.animatedValue as Int
-                    itemView.findViewById<View>(R.id.view).requestLayout()
-                    // imageView가 실제로 사라지게하는 부분
-                    startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
-                }
-            })
+            va.addUpdateListener { animation -> // value는 height 값
+                // imageView의 높이 변경
+                itemView.findViewById<View>(R.id.view).layoutParams.height =
+                    animation.animatedValue as Int
+                itemView.findViewById<View>(R.id.view).requestLayout()
+                // imageView가 실제로 사라지게하는 부분
+                startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
+            }
             // Animation start
             va.start()
         }

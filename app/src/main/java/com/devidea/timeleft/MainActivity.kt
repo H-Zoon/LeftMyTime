@@ -6,124 +6,114 @@ import androidx.recyclerview.widget.RecyclerView
 import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
-import me.relex.circleindicator.CircleIndicator2
-import android.content.DialogInterface
 import android.app.*
 import android.widget.*
+import androidx.activity.viewModels
+import androidx.lifecycle.Observer
+import androidx.lifecycle.ViewModelProvider
+import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.viewmodels.TimeLeftViewModel
 import kotlinx.coroutines.*
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem?>()
     private var backPressedTime: Long = 0
 
+    private lateinit var binding: ActivityMainBinding //activity_main.xml
+    private lateinit var viewModel : TimeLeftViewModel
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
-        explanation = findViewById(R.id.explanation)
+        binding = ActivityMainBinding.inflate(layoutInflater)
+        viewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(TimeLeftViewModel::class.java)
+        val view = binding.root
+        setContentView(view)
 
-        timeText = findViewById(R.id.time)
-        dayText = findViewById(R.id.day)
+        initTopRecyclerView()
+        initBottomRecyclerView()
 
-        bottomItemAdapter = BottomRecyclerView(bottomItemListArray)
-        bottomRecyclerView = findViewById(R.id.recyclerview2)
-        bottomRecyclerView!!.adapter = bottomItemAdapter
-        bottomRecyclerView!!.isNestedScrollingEnabled = false
 
-        val topRecyclerView: RecyclerView = findViewById(R.id.recyclerview)
+        viewModel.currentValue.observe(this, Observer {
+            binding.day.text = it.toString()
+        })
 
-        topRecyclerView.layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.HORIZONTAL,
+        viewModel.currentValue2.observe(this, Observer {
+            binding.time.text = it.toString()
+        })
+
+
+
+        binding.timeAdd.setOnClickListener {
+            val itemName = arrayOfNulls<String>(2)
+            itemName[0] = "시간범위 지정하기"
+            itemName[1] = "날짜 지정하기"
+            AlertDialog.Builder(this)
+                .setTitle("원하시는 종류를 선택해주세요")
+                .setItems(itemName) { _, which ->
+                    when (which) {
+                        0 -> startActivity(
+                            Intent(
+                                applicationContext,
+                                CreateTimeActivity::class.java
+                            )
+                        )
+                        1 -> startActivity(
+                            Intent(
+                                applicationContext,
+                                CreateMonthActivity::class.java
+                            )
+                        )
+                    }
+                }
+                .create().show()
+        }
+
+        /* 이 함수 ViewModel 로 옮기면 성공.
+        topItemAdapter.notifyItemChanged(0, ITEM_GENERATE.timeItem())
+
+                for (i in position.indices) {
+                    bottomItemAdapter.notifyItemChanged(
+                        position[i],
+                        ITEM_GENERATE.customTimeItem(
+                            itemList[position[i]]
+                        )
+                    )
+
+         */
+
+    }
+
+    private fun initTopRecyclerView() {
+        binding.recyclerview.layoutManager = LinearLayoutManager(
+            this, RecyclerView.HORIZONTAL,
             false
-        ) // 좌우 스크롤 //
-
+        )
 
         topItemListArray.add(ITEM_GENERATE.timeItem())
         topItemListArray.add(ITEM_GENERATE.monthItem())
         topItemListArray.add(ITEM_GENERATE.yearItem())
 
-        //recyclerView 관련 객체
         val topItemAdapter = TopRecyclerView(topItemListArray)
-        topRecyclerView.adapter = topItemAdapter
+        binding.recyclerview.adapter = topItemAdapter
 
-        // PagerSnapHelper 추가 꼭 공부하기 !!
         val pagerSnapHelper = PagerSnapHelper()
-        pagerSnapHelper.attachToRecyclerView(topRecyclerView)
+        pagerSnapHelper.attachToRecyclerView(binding.recyclerview)
 
-        //인디케이터 활성화 꼭 공부하기!!
-        val indicator = findViewById<CircleIndicator2>(R.id.indicator)
-        //indicator.attachToRecyclerView(recyclerView, pagerSnapHelper)
+        binding.indicator.attachToRecyclerView(binding.recyclerview, pagerSnapHelper)
+        topItemAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
+    }
 
-        //인디케이터 활성화 꼭 공부하기!!
-        topItemAdapter.registerAdapterDataObserver(indicator.adapterDataObserver)
-
-        //커스텀 항목에 대한 추가
-        refreshItem()
-
-        bottomRecyclerView!!.layoutManager = LinearLayoutManager(
+    private fun initBottomRecyclerView() {
+        binding.recyclerview2.layoutManager = LinearLayoutManager(
             this,
             RecyclerView.VERTICAL,
             false
-        ) // 상하 스크롤 //
-
-        val button = findViewById<Button>(R.id.time_add)
-        button.setOnClickListener {
-            val itemName = arrayOfNulls<String>(2)
-            itemName[0] = "시간범위 지정하기"
-            itemName[1] = "날짜 지정하기"
-            val builder = AlertDialog.Builder(this@MainActivity)
-            builder.setTitle("원하시는 종류를 선택해주세요")
-            builder.setItems(itemName, DialogInterface.OnClickListener { dialog, which ->
-                when (which) {
-                    0 -> startActivity(
-                        Intent(
-                            applicationContext,
-                            CreateTimeActivity::class.java
-                        )
-                    )
-                    1 -> startActivity(
-                        Intent(
-                            applicationContext,
-                            CreateMonthActivity::class.java
-                        )
-                    )
-                }
-            })
-            builder.setNegativeButton("Cancel", object : DialogInterface.OnClickListener {
-                override fun onClick(dialog: DialogInterface, id: Int) {
-                    Toast.makeText(applicationContext, "취소", Toast.LENGTH_SHORT).show()
-                }
-            })
-            val alertDialog = builder.create()
-            alertDialog.show()
-        }
-
-        CoroutineScope(Dispatchers.Main).launch {
-            while (true) {
-                //상단 시계
-                dayText!!.text =
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
-                timeText!!.text =
-                    LocalDateTime.now().format(DateTimeFormatter.ofPattern("a h:m:ss"))
-
-                topItemAdapter.notifyItemChanged(0, ITEM_GENERATE.timeItem())
-
-                for (i in position.indices) {
-                    bottomItemAdapter!!.notifyItemChanged(
-                        position[i],
-                        ITEM_GENERATE.customTimeItem(
-                            appDatabase!!.itemDao().getSelectItem(itemID[i])
-                        )
-                    )
-                }
-                delay(1000)
-            }
-        }
+        )
+        val bottomItemAdapter = BottomRecyclerView(refreshItem())
+        binding.recyclerview2.adapter = bottomItemAdapter
 
     }
 
@@ -133,7 +123,7 @@ class MainActivity : AppCompatActivity() {
 
         //뒤로가기 버튼 리스너에 쓰이는 변수
         val FINISH_INTERVAL_TIME: Long = 2000
-        if (0 <= intervalTime && FINISH_INTERVAL_TIME >= intervalTime) {
+        if (intervalTime in 0..FINISH_INTERVAL_TIME) {
             finish()
         } else {
             backPressedTime = tempTime
@@ -144,46 +134,36 @@ class MainActivity : AppCompatActivity() {
     companion object {
         private val bottomItemListArray = ArrayList<AdapterItem?>()
         private val appDatabase = AppDatabase.getDatabase(App.context())
+        lateinit var itemList: List<ItemEntity>
         // 기존 database instance의 싱글톤 디자인패턴 사용
 
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
         private val position = ArrayList<Int>()
-        private val itemID = ArrayList<Int>()
 
-        private var timeText: TextView? = null
-        private var dayText: TextView? = null
-        private var explanation: TextView? = null
-        private var bottomRecyclerView: RecyclerView? = null
-        private var bottomItemAdapter: BottomRecyclerView? = null
-
-        fun refreshItem() {
-
-            bottomItemListArray.clear()
+// 이 함수 ViewModel 로 옮기면 성공.
+        fun refreshItem(): ArrayList<AdapterItem?> {
             position.clear()
-            itemID.clear()
+            itemList = appDatabase!!.itemDao().item
 
-            if (appDatabase!!.itemDao().item.isNotEmpty()) {
-                //explanation!!.visibility = View.INVISIBLE
-                for (i in appDatabase.itemDao().item.indices) {
-                    if ((appDatabase.itemDao().item[i]?.type == "Time")) {
-                        bottomItemListArray.add(
-                            ITEM_GENERATE.customTimeItem(
-                                appDatabase.itemDao().item[i]
-                            )
+            for (i in itemList.indices) {
+                if ((itemList[i].type == "Time")) {
+                    bottomItemListArray.add(
+                        ITEM_GENERATE.customTimeItem(
+                            itemList[i]
                         )
-                        position.add(i)
-                        bottomItemListArray[i]?.let { itemID.add(it.id) }
-                    } else {
-                        bottomItemListArray.add(
-                            ITEM_GENERATE.customMonthItem(
-                                appDatabase.itemDao().item[i]
-                            )
+                    )
+                    position.add(i)
+                } else {
+                    bottomItemListArray.add(
+                        ITEM_GENERATE.customMonthItem(
+                            itemList[i]
                         )
-                    }
+                    )
                 }
             }
-            bottomItemAdapter = BottomRecyclerView(bottomItemListArray)
-            bottomRecyclerView?.adapter = bottomItemAdapter
+            return bottomItemListArray
         }
     }
+
+
 }

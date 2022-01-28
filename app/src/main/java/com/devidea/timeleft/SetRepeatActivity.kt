@@ -5,10 +5,7 @@ import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
-import android.widget.LinearLayout
-import android.widget.RadioGroup
+import android.widget.*
 
 class SetRepeatActivity : AppCompatActivity() {
 
@@ -47,11 +44,9 @@ class SetRepeatActivity : AppCompatActivity() {
         btnSave.setOnClickListener {
             val intent = Intent().apply {
                 putExtra("flag", flag)
-                if (flag == 1) {
-                    putExtra("value", inputValue.text.toString().toInt())
-                } else {
-                    putExtra("value", inputValue2.text.toString().toInt())
-
+                when(flag){
+                    1 -> putExtra("value", inputValue.text.toString().toInt())
+                    2 -> putExtra("value", inputValue2.text.toString().toInt())
                 }
             }
             setResult(Activity.RESULT_OK, intent)
