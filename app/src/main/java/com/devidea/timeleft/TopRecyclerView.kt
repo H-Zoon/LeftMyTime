@@ -10,7 +10,7 @@ import android.view.View
 import java.util.ArrayList
 
 internal class TopRecyclerView
-constructor(private val arrayList: ArrayList<AdapterItem?>) :
+constructor(private val arrayList: ArrayList<AdapterItem>) :
     RecyclerView.Adapter<TopRecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
         val view: View = LayoutInflater.from(viewGroup.context)
@@ -20,10 +20,10 @@ constructor(private val arrayList: ArrayList<AdapterItem?>) :
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
 
-        viewHolder.summery.text = arrayList[position]!!.summery
-        val percent_buf: String? = arrayList[position]!!.percentString
+        viewHolder.summery.text = arrayList[position].summery
+        val percent_buf: String? = arrayList[position].percentString
         viewHolder.percent.text = percent_buf + "%"
-        viewHolder.leftValue.text = arrayList[position]!!.leftDay
+        viewHolder.leftValue.text = arrayList[position].leftDay
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
             .setDuration(1500)

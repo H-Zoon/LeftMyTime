@@ -30,7 +30,7 @@ class ItemSave {
     }
 
     private fun writeDatabase(itemEntity: ItemEntity) {
-        appDatabase!!.itemDao().saveItem(itemEntity)
-        MainActivity.refreshItem()
+        appDatabase.itemDao().saveItem(itemEntity)
+        //MainActivity.refreshItem()
     }
 }

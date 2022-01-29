@@ -1,4 +1,4 @@
-package com.devidea.timeleft
+package com.devidea.timeleft.widget
 
 import android.content.Intent
 import android.appwidget.AppWidgetManager
@@ -9,6 +9,10 @@ import android.content.Context
 import android.util.Log
 import android.view.View
 import android.widget.*
+import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.App
+import com.devidea.timeleft.MainActivity
+import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.datadase.itemdata.WidgetEntity

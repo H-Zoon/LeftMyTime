@@ -8,5 +8,5 @@
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
     android:initialKeyguardLayout="@layout/app_widget"
-    android:configure="com.devidea.timeleft.AppWidgetConfigure">
+    android:configure="com.devidea.timeleft.widget.AppWidgetConfigure">
 </appwidget-provider>

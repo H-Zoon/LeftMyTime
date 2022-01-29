@@ -8,43 +8,46 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import android.app.*
 import android.widget.*
-import androidx.activity.viewModels
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
+import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
 import kotlinx.coroutines.*
+import java.time.LocalDateTime.*
+import java.time.format.DateTimeFormatter
 import java.util.ArrayList
 
 class MainActivity : AppCompatActivity() {
-    private val topItemListArray = ArrayList<AdapterItem?>()
+    private val topItemListArray = ArrayList<AdapterItem>()
     private var backPressedTime: Long = 0
 
     private lateinit var binding: ActivityMainBinding //activity_main.xml
-    private lateinit var viewModel : TimeLeftViewModel
+    private lateinit var viewModel: TimeLeftViewModel
+
+    companion object {
+        val ITEM_GENERATE: InterfaceItem = ItemGenerate()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityMainBinding.inflate(layoutInflater)
-        viewModel = ViewModelProvider(this, ViewModelProvider.NewInstanceFactory()).get(TimeLeftViewModel::class.java)
+        viewModel = ViewModelProvider(
+            this,
+            TimeLeftViewModelFactory(AppDatabase.getDatabase(App.context()).itemDao())
+        )[TimeLeftViewModel::class.java]
         val view = binding.root
         setContentView(view)
 
         initTopRecyclerView()
         initBottomRecyclerView()
 
+        binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
-        viewModel.currentValue.observe(this, Observer {
-            binding.day.text = it.toString()
-        })
-
-        viewModel.currentValue2.observe(this, Observer {
+        viewModel.timeValue.observe(this, {
             binding.time.text = it.toString()
         })
-
-
 
         binding.timeAdd.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)
@@ -71,19 +74,6 @@ class MainActivity : AppCompatActivity() {
                 .create().show()
         }
 
-        /* 이 함수 ViewModel 로 옮기면 성공.
-        topItemAdapter.notifyItemChanged(0, ITEM_GENERATE.timeItem())
-
-                for (i in position.indices) {
-                    bottomItemAdapter.notifyItemChanged(
-                        position[i],
-                        ITEM_GENERATE.customTimeItem(
-                            itemList[position[i]]
-                        )
-                    )
-
-         */
-
     }
 
     private fun initTopRecyclerView() {
@@ -104,6 +94,11 @@ class MainActivity : AppCompatActivity() {
 
         binding.indicator.attachToRecyclerView(binding.recyclerview, pagerSnapHelper)
         topItemAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
+
+        viewModel.recyclerViewValue.observe(this, {
+            topItemAdapter.notifyItemChanged(0, it)
+        })
+
     }
 
     private fun initBottomRecyclerView() {
@@ -115,6 +110,12 @@ class MainActivity : AppCompatActivity() {
         val bottomItemAdapter = BottomRecyclerView(refreshItem())
         binding.recyclerview2.adapter = bottomItemAdapter
 
+        CoroutineScope(Dispatchers.Main).launch {
+            while (true) {
+                bottomItemAdapter.updateList(refreshItem())
+                delay(1000)
+            }
+        }
     }
 
     override fun onBackPressed() {
@@ -122,8 +123,8 @@ class MainActivity : AppCompatActivity() {
         val intervalTime = tempTime - backPressedTime
 
         //뒤로가기 버튼 리스너에 쓰이는 변수
-        val FINISH_INTERVAL_TIME: Long = 2000
-        if (intervalTime in 0..FINISH_INTERVAL_TIME) {
+        val INTERVAL_TIME: Long = 2000
+        if (intervalTime in 0..INTERVAL_TIME) {
             finish()
         } else {
             backPressedTime = tempTime
@@ -131,39 +132,26 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    companion object {
-        private val bottomItemListArray = ArrayList<AdapterItem?>()
-        private val appDatabase = AppDatabase.getDatabase(App.context())
-        lateinit var itemList: List<ItemEntity>
-        // 기존 database instance의 싱글톤 디자인패턴 사용
+    fun refreshItem(): ArrayList<AdapterItem> {
+        val ItemListArray = ArrayList<AdapterItem>()
+        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
 
-        val ITEM_GENERATE: InterfaceItem = ItemGenerate()
-        private val position = ArrayList<Int>()
-
-// 이 함수 ViewModel 로 옮기면 성공.
-        fun refreshItem(): ArrayList<AdapterItem?> {
-            position.clear()
-            itemList = appDatabase!!.itemDao().item
-
-            for (i in itemList.indices) {
-                if ((itemList[i].type == "Time")) {
-                    bottomItemListArray.add(
-                        ITEM_GENERATE.customTimeItem(
-                            itemList[i]
-                        )
+        for (i in itemList.indices) {
+            if ((itemList[i].type == "Time")) {
+                ItemListArray.add(
+                    ITEM_GENERATE.customTimeItem(
+                        itemList[i]
                     )
-                    position.add(i)
-                } else {
-                    bottomItemListArray.add(
-                        ITEM_GENERATE.customMonthItem(
-                            itemList[i]
-                        )
+                )
+            } else {
+                ItemListArray.add(
+                    ITEM_GENERATE.customMonthItem(
+                        itemList[i]
                     )
-                }
+                )
             }
-            return bottomItemListArray
         }
+        return ItemListArray
     }
-
 
 }

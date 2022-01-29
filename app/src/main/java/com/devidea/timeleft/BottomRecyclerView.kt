@@ -7,26 +7,33 @@ import android.animation.ObjectAnimator
 import android.util.SparseBooleanArray
 import android.annotation.SuppressLint
 import android.animation.ValueAnimator
-import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.app.*
 import android.content.Context
 import android.view.View
 import android.widget.*
+import androidx.recyclerview.widget.DiffUtil
 import com.devidea.timeleft.datadase.AppDatabase
-import java.util.ArrayList
+import java.util.*
 
 class BottomRecyclerView     //CustomAdapter 생성자
 constructor(  //array list
-    private val arrayList: ArrayList<AdapterItem?>
+    private val items: ArrayList<AdapterItem>
 ) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
     private val appDatabase = AppDatabase.getDatabase(App.context())
     var activityContext: Context? = null
 
-    // Create new views (invoked by the layout manager)
+    fun updateList(items: ArrayList<AdapterItem>) {
+        val subjectDiffUtilCallback = DiffutilClass(this.items, items, this)
+        val diffResult: DiffUtil.DiffResult = DiffUtil.calculateDiff(subjectDiffUtilCallback)
+
+        this.items.clear()
+        this.items.addAll(items)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
-        //activity context
         activityContext = viewGroup.context
         selectedItems = SparseBooleanArray(itemCount)
 
@@ -41,15 +48,15 @@ constructor(  //array list
         @SuppressLint("RecyclerView") position: Int
     ) {
 
-        viewHolder.startValue.text = arrayList[position]!!.startDay
-        viewHolder.endValue.text = arrayList[position]!!.endDay
-        viewHolder.leftValue.text = arrayList[position]!!.leftDay
+        viewHolder.startValue.text = items[position].startDay
+        viewHolder.endValue.text = items[position].endDay
+        viewHolder.leftValue.text = items[position].leftDay
 
-        when (arrayList[position]!!.autoUpdateFlag) {
+        when (items[position].autoUpdateFlag) {
             1 -> viewHolder.autoUpdate.text =
-                ((arrayList[position]!!.updateRate).toString() + "일후 반복되는 일정이에요")
+                ((items[position].updateRate).toString() + "일후 반복되는 일정이에요")
             2 -> viewHolder.autoUpdate.text =
-                ("매 달" + (arrayList[position]!!.updateRate).toString() + "일에 반복되는 일정이에요")
+                ("매 달" + (items[position].updateRate).toString() + "일에 반복되는 일정이에요")
             else -> viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }
 
@@ -63,12 +70,11 @@ constructor(  //array list
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
-                    appDatabase!!.itemDao()
-                        .deleteItem(arrayList[position]!!.id)
+                    appDatabase.itemDao()
+                        .deleteItem(items[position].id)
                     appDatabase.itemDao().deleteCustomWidget(
-                        arrayList[position]!!.id
+                        items[position].id
                     )
-                    MainActivity.refreshItem()
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                 }
                 builder.setNegativeButton("Cancel") { dialog, id -> }
@@ -77,9 +83,9 @@ constructor(  //array list
                 alertDialog.show()
             }
         }
-        val summery_buf: String? = arrayList[position]!!.summery
+        val summery_buf: String? = items[position].summery
         viewHolder.summery.text = summery_buf
-        val percent_buf: String? = arrayList[position]!!.percentString
+        val percent_buf: String? = items[position].percentString
         viewHolder.percent.text = percent_buf + "%"
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
@@ -88,6 +94,7 @@ constructor(  //array list
 
 
     }
+
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
 
@@ -102,11 +109,12 @@ constructor(  //array list
 
         }
 
-
     }
 
+
+
     override fun getItemCount(): Int {
-        return arrayList.size
+        return items.size
     }
 
     inner class ViewHolder constructor(view: View) : RecyclerView.ViewHolder(view) {
@@ -119,6 +127,7 @@ constructor(  //array list
         val autoUpdate: TextView
         val deleteButton: Button
         private val imageButton: Button
+
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정
             val dpValue: Int = 200
@@ -147,6 +156,7 @@ constructor(  //array list
             va.start()
         }
 
+
         //ViewHolder
         init {
             summery = view.findViewById(R.id.summery)
@@ -158,6 +168,7 @@ constructor(  //array list
             leftValue = view.findViewById(R.id.left_day)
             imageButton = view.findViewById(R.id.imageButton)
             deleteButton = view.findViewById(R.id.delete_button)
+
             itemView.setOnClickListener {
                 val pos: Int = adapterPosition
                 if (selectedItems!!.get(adapterPosition)) {
@@ -173,6 +184,7 @@ constructor(  //array list
                 changeVisibility(selectedItems!!.get(adapterPosition))
             }
         }
+
     }
 
     companion object {

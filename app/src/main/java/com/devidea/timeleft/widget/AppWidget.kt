@@ -1,4 +1,4 @@
-package com.devidea.timeleft
+package com.devidea.timeleft.widget
 
 import android.appwidget.AppWidgetProvider
 import android.content.Intent
@@ -9,6 +9,10 @@ import android.widget.RemoteViews
 import android.content.Context
 import android.os.SystemClock
 import android.util.Log
+import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.App
+import com.devidea.timeleft.MainActivity
+import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 
@@ -99,15 +103,15 @@ class AppWidget : AppWidgetProvider() {
             when (type) {
                 "embedYear" -> {
                     views.setTextViewText(
-                            R.id.summery,
+                        R.id.summery,
                             MainActivity.ITEM_GENERATE.yearItem().summery
                     )
                     views.setTextViewText(
-                            R.id.percent,
+                        R.id.percent,
                             MainActivity.ITEM_GENERATE.yearItem().percentString + "%"
                     )
                     views.setProgressBar(
-                            R.id.progress,
+                        R.id.progress,
                             100,
                             MainActivity.ITEM_GENERATE.yearItem().percentString
                             !!.toFloat().toInt(),
@@ -117,16 +121,16 @@ class AppWidget : AppWidgetProvider() {
                 }
                 "embedMonth" -> {
                     views.setTextViewText(
-                            R.id.summery,
+                        R.id.summery,
                             MainActivity.ITEM_GENERATE.monthItem().summery
                     )
                     views.setTextViewText(
-                            R.id.percent,
+                        R.id.percent,
                             MainActivity.ITEM_GENERATE.monthItem()
                                     .percentString + "%"
                     )
                     views.setProgressBar(
-                            R.id.progress,
+                        R.id.progress,
                             100,
                             MainActivity.ITEM_GENERATE.monthItem().percentString
                             !!.toFloat().toInt(),
@@ -136,15 +140,15 @@ class AppWidget : AppWidgetProvider() {
                 }
                 "embedTime" -> {
                     views.setTextViewText(
-                            R.id.summery,
+                        R.id.summery,
                             MainActivity.ITEM_GENERATE.timeItem().summery
                     )
                     views.setTextViewText(
-                            R.id.percent,
+                        R.id.percent,
                             MainActivity.ITEM_GENERATE.timeItem().percentString + "%"
                     )
                     views.setProgressBar(
-                            R.id.progress,
+                        R.id.progress,
                             100,
                             MainActivity.ITEM_GENERATE.timeItem().percentString
                             !!.toFloat().toInt(),
@@ -169,7 +173,7 @@ class AppWidget : AppWidgetProvider() {
                     views.setTextViewText(R.id.summery, adapterItem.summery)
                     views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
                     views.setProgressBar(
-                            R.id.progress,
+                        R.id.progress,
                             100,
                             adapterItem.percentString!!.toFloat().toInt(),
                             false

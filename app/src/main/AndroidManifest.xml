@@ -28,7 +28,7 @@
         </activity>
 
         <receiver
-            android:name=".AppWidget"
+            android:name=".widget.AppWidget"
             android:exported="false"
             android:label="기본위젯">
             <intent-filter>
@@ -41,7 +41,7 @@
         </receiver>
 
         <activity
-            android:name=".AppWidgetConfigure"
+            android:name=".widget.AppWidgetConfigure"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
