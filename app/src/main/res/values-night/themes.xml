@@ -33,8 +33,4 @@
         <item name="android:padding">40dp</item>
     </style>
 
-    <style name="activity_background">
-        <item name="android:background">@color/dark200</item>
-    </style>
-
 </resources>

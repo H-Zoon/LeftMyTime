@@ -2,12 +2,21 @@ package com.devidea.timeleft
 
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 // 각 항목에 대한 값은 entity 의 주석 확인
 class ItemSave {
     private val appDatabase = AppDatabase.getDatabase(App.context())
 
-    fun saveMonthItem(summery: String, start: String, end: String, autoUpdateFlag: Int, updateRate: Int) {
+    fun saveMonthItem(
+        summery: String,
+        start: String,
+        end: String,
+        autoUpdateFlag: Int,
+        updateRate: Int
+    ) {
         val entityItemInfo = ItemEntity(
             "Month",
             summery,
@@ -30,7 +39,8 @@ class ItemSave {
     }
 
     private fun writeDatabase(itemEntity: ItemEntity) {
-        appDatabase.itemDao().saveItem(itemEntity)
-        //MainActivity.refreshItem()
+        CoroutineScope(Dispatchers.IO).launch {
+            appDatabase.itemDao().saveItem(itemEntity)
+        }
     }
 }

@@ -12,6 +12,5 @@
     <color name="light_blue_600">#FF039BE5</color>
     <color name="light_blue_900">#FF01579B</color>
 
-    <color name="activity_background">#11909090</color>
-    <color name="item_background">#FFFFFFFF</color>
+    <color name="activity_background">#FFF8F8F8</color>
 </resources>

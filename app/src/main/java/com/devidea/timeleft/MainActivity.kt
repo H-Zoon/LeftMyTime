@@ -134,8 +134,8 @@ class MainActivity : AppCompatActivity() {
 
     fun refreshItem(): ArrayList<AdapterItem> {
         val ItemListArray = ArrayList<AdapterItem>()
-        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
 
+        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
             if ((itemList[i].type == "Time")) {
                 ItemListArray.add(
@@ -151,6 +151,7 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
         return ItemListArray
     }
 

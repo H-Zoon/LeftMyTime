@@ -7,13 +7,14 @@
         <item name="colorOnPrimary">@color/white</item>
 
         <!-- Status bar color. -->
-        <item name="android:statusBarColor" tools:targetApi="l">@color/white</item>
+        <item name="android:statusBarColor" tools:targetApi="l">@color/activity_background</item>
         <item name="android:windowLightStatusBar">true</item>
 
         <!-- Customize your theme here. -->
         <item name="android:fontFamily">@font/nanumsquareround</item>
         <item name="android:textColor">@color/black</item>
         <item name="android:timePickerStyle">@style/MyTimePickerDialogStyle</item>
+        <item name="android:windowBackground">@color/activity_background</item>
     </style>
 
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
@@ -31,10 +32,6 @@
     <style name="MyTimePickerDialogStyle" parent="android:Widget.Material.Light.TimePicker">
         <item name="android:timePickerMode">spinner</item>
         <item name="android:padding">40dp</item>
-    </style>
-
-    <style name="activity_background">
-        <item name="android:background">@color/activity_background</item>
     </style>
 
 </resources>
