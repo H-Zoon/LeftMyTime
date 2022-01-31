@@ -5,24 +5,24 @@
 
         <variable
             name="activity"
-            type="com.devidea.timeleft.activity.CreateTimeActivity" />
+            type="com.devidea.timeleft.activity.CreateDayActivity" />
     </data>
 
     <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-        xmlns:app="http://schemas.android.com/apk/res-auto"
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:orientation="vertical"
-        tools:context=".activity.CreateTimeActivity">
+        tools:context=".activity.CreateDayActivity">
 
         <TextView
+            android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
             android:layout_marginBottom="50dp"
             android:gravity="center"
-            android:text="원하는 시간 범위 설정하기"
+            android:text="원하는 날 설정하기"
             android:textSize="30sp" />
 
         <TableLayout
@@ -62,7 +62,7 @@
                     android:text="시작시간: " />
 
                 <EditText
-                    android:id="@+id/input_start_time"
+                    android:id="@+id/input_start_day"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
@@ -70,7 +70,7 @@
                     android:ems="10"
                     android:focusable="false"
                     android:hint="시작시간을 설정해주세요"
-                    android:onClick="@{activity::setStartTime}" />
+                    android:onClick="@{activity::setStartDay}" />
             </TableRow>
 
 
@@ -85,7 +85,7 @@
                     android:text="종료시간: " />
 
                 <EditText
-                    android:id="@+id/input_end_time"
+                    android:id="@+id/input_end_day"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="20dp"
@@ -93,11 +93,23 @@
                     android:ems="10"
                     android:focusable="false"
                     android:hint="종료시간을 설정해주세요"
-                    android:onClick="@{activity::setEndTime}" />
+                    android:onClick="@{activity::setEndDay}" />
 
             </TableRow>
 
         </TableLayout>
+
+        <EditText
+            android:id="@+id/input_update_rate"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="30dp"
+            android:layout_marginEnd="30dp"
+            android:layout_marginBottom="20dp"
+            android:ems="10"
+            android:focusable="false"
+            android:hint="반복없음"
+            android:onClick="@{activity::setRepeatRate}" />
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -111,10 +123,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:background="@drawable/line"
-                android:text="저장"
-                android:onClick="@{activity::save}"/>
-        </LinearLayout>
+                android:onClick="@{activity::save}"
+                android:text="저장" />
 
+        </LinearLayout>
 
     </LinearLayout>
 </layout>

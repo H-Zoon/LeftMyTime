@@ -11,7 +11,7 @@ import android.os.SystemClock
 import android.util.Log
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
-import com.devidea.timeleft.MainActivity
+import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -27,7 +27,7 @@ class AppWidget : AppWidgetProvider() {
         Log.d("widget", "onReceive() action = $action")
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
 
-            appWidgetIds = appDatabase!!.itemDao().get()!!
+            appWidgetIds = appDatabase.itemDao().get()!!
             if (appWidgetIds.isNotEmpty()) {
                 onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
             }
@@ -76,7 +76,7 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        appDatabase!!.itemDao().delete(appWidgetIds[0])
+        appDatabase.itemDao().delete(appWidgetIds[0])
         Log.d("widget", "onDeleted done")
     }
 
@@ -86,7 +86,7 @@ class AppWidget : AppWidgetProvider() {
             appWidgetId: Int
     ) {
 
-        val type = appDatabase!!.itemDao().getType(appWidgetId)
+        val type = appDatabase.itemDao().getType(appWidgetId)
         val views = RemoteViews(context.packageName, R.layout.app_widget)
         val intentR = Intent(context, AppWidget::class.java)
         intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE

@@ -13,12 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
-            android:name=".SetRepeatActivity"
+            android:name=".activity.SetRepeatActivity"
             android:exported="false" />
-        <activity android:name=".CreateTimeActivity" />
-        <activity android:name=".CreateMonthActivity" />
+        <activity android:name=".activity.CreateTimeActivity" />
+        <activity android:name=".activity.CreateDayActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

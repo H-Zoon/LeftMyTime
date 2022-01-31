@@ -1,4 +1,4 @@
-package com.devidea.timeleft
+package com.devidea.timeleft.activity
 
 import android.content.Intent
 import androidx.appcompat.app.AppCompatActivity
@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.PagerSnapHelper
 import android.app.*
 import android.widget.*
 import androidx.lifecycle.ViewModelProvider
+import com.devidea.timeleft.*
+import com.devidea.timeleft.TopRecyclerView
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -66,7 +68,7 @@ class MainActivity : AppCompatActivity() {
                         1 -> startActivity(
                             Intent(
                                 applicationContext,
-                                CreateMonthActivity::class.java
+                                CreateDayActivity::class.java
                             )
                         )
                     }

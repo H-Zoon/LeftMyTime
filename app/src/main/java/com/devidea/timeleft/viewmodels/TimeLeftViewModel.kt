@@ -2,7 +2,7 @@ package com.devidea.timeleft.viewmodels
 
 import androidx.lifecycle.*
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.MainActivity.Companion.ITEM_GENERATE
+import com.devidea.timeleft.activity.MainActivity.Companion.ITEM_GENERATE
 import com.devidea.timeleft.datadase.itemdata.ItemDao
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch

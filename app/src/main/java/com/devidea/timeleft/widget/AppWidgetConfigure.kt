@@ -11,7 +11,7 @@ import android.view.View
 import android.widget.*
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
-import com.devidea.timeleft.MainActivity
+import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -34,8 +34,8 @@ class AppWidgetConfigure : Activity() {
         //위젯 레이아웃 설정
         setContentView(R.layout.appwidget_configure)
         // Intent에서 widget id 가져오기
-        val intent: Intent = getIntent()
-        val extras: Bundle? = intent.getExtras()
+        val intent: Intent = intent
+        val extras: Bundle? = intent.extras
         if (extras != null) {
             AppWidgetId = extras.getInt(
                 AppWidgetManager.EXTRA_APPWIDGET_ID,
@@ -53,12 +53,12 @@ class AppWidgetConfigure : Activity() {
                 // appwidget 인스턴스 가져오기
                 val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
                 val views = RemoteViews(
-                    context.getPackageName(),
+                    context.packageName,
                     R.layout.app_widget
                 )
 
                 //위젯에 새로고침 버튼 추가
-                val intentR: Intent = Intent(context, AppWidget::class.java)
+                val intentR = Intent(context, AppWidget::class.java)
                 intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
                 val pendingIntent: PendingIntent = PendingIntent.getBroadcast(
                     context,
@@ -67,7 +67,7 @@ class AppWidgetConfigure : Activity() {
                     PendingIntent.FLAG_IMMUTABLE
                 )
                 views.setOnClickPendingIntent(R.id.refrash, pendingIntent)
-                val appIntent: Intent = Intent(context, MainActivity::class.java)
+                val appIntent = Intent(context, MainActivity::class.java)
                 val pe: PendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.percent, pe)
                 when (value) {
@@ -88,7 +88,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         widgetEntity = WidgetEntity(AppWidgetId, -1, value)
-                        appDatabase!!.itemDao()
+                        appDatabase.itemDao()
                             .saveWidget(widgetEntity)
                     }
                     "embedMonth" -> {
@@ -110,7 +110,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         widgetEntity = WidgetEntity(AppWidgetId, -1, value)
-                        appDatabase!!.itemDao()
+                        appDatabase.itemDao()
                             .saveWidget(widgetEntity)
                     }
                     "embedTime" -> {
@@ -131,7 +131,7 @@ class AppWidgetConfigure : Activity() {
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
                         widgetEntity = WidgetEntity(AppWidgetId, -1, value)
-                        appDatabase!!.itemDao()
+                        appDatabase.itemDao()
                             .saveWidget(widgetEntity)
                     }
                     "0" -> {
@@ -141,7 +141,7 @@ class AppWidgetConfigure : Activity() {
                     }
                     else -> {
                         val itemEntity: ItemEntity =
-                            appDatabase!!.itemDao()
+                            appDatabase.itemDao()
                                 .getSelectItem(value.toInt())
                         val adapterItem: AdapterItem
                         if ((itemEntity.type == "Time")) {
@@ -205,7 +205,7 @@ class AppWidgetConfigure : Activity() {
         spinner.isEnabled = false
         val itemName: ArrayList<String?> = ArrayList()
         val itemEntity: List<ItemEntity?> =
-            appDatabase!!.itemDao().item
+            appDatabase.itemDao().item
         for (i in appDatabase.itemDao().item.indices) {
             itemName.add(
                 appDatabase.itemDao().item[i].summery
