@@ -11,7 +11,7 @@
         <item name="android:windowLightStatusBar">false</item>
 
         <!-- Customize your theme here. -->
-        <item name="android:fontFamily">@font/nanumsquareround</item>
+        <item name="android:fontFamily">@font/nanum_square_round_r</item>
         <item name="android:textColor">@color/white</item>
         <item name="android:timePickerStyle">@style/MyTimePickerDialogStyle</item>
     </style>
@@ -20,7 +20,7 @@
         <item name="colorPrimary">@color/white</item>
         <item name="android:backgroundTint">#CC000000</item>
         <item name="android:textColor">@color/white</item>
-        <item name="android:fontFamily">@font/nanumsquareround</item>
+        <item name="android:fontFamily">@font/nanum_square_round_r</item>
     </style>
 
     <style name="Style.Color.Button" parent="">
@@ -31,6 +31,10 @@
     <style name="MyTimePickerDialogStyle" parent="android:Widget.Material.Light.TimePicker">
         <item name="android:timePickerMode">spinner</item>
         <item name="android:padding">40dp</item>
+    </style>
+
+    <style name="itemBackgroundTint" parent="">
+        <item name="android:backgroundTint">@color/dark200</item>
     </style>
 
 </resources>

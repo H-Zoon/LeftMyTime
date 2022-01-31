@@ -126,7 +126,7 @@ constructor(  //array list
         val leftValue: TextView
         val autoUpdate: TextView
         val deleteButton: Button
-        private val imageButton: Button
+        private val imageButton: ImageView
 
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정

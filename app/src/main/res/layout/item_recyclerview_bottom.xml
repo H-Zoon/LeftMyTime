@@ -6,7 +6,8 @@
     android:layout_marginLeft="10dp"
     android:layout_marginTop="10dp"
     android:layout_marginRight="10dp"
-    android:background="@drawable/line"
+    android:background="@drawable/line_stroke"
+    android:padding="10dp"
     android:orientation="vertical">
 
     <LinearLayout
@@ -14,21 +15,21 @@
         android:layout_height="match_parent"
         android:layout_marginLeft="10dp"
         android:layout_marginRight="10dp"
-        android:layout_marginBottom="10dp"
         android:orientation="vertical">
 
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:gravity="center"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:layout_marginBottom="10dp">
 
             <TextView
                 android:id="@+id/summery"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="TextView"
-                android:textSize="20sp" />
+                android:fontFamily="@font/nanum_square_round_b"
+                android:textSize="35sp" />
 
             <View
                 android:layout_width="0dp"
@@ -36,31 +37,41 @@
                 android:layout_weight="1" />
 
 
-            <Button
+            <ImageView
                 android:id="@+id/imageButton"
                 android:layout_width="25dp"
                 android:layout_height="25dp"
                 android:background="@drawable/baseline_expand_more_black_36"
-                style="@style/Style.Color.Button"
-                android:text="Button" />
+                style="@style/Style.Color.Button" />
         </LinearLayout>
 
 
-        <TextView
-            android:id="@+id/percent_text"
+        <LinearLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="10dp"
-            android:text="TextView"
-            android:textSize="40sp" />
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:layout_gravity="bottom"
+            android:gravity="center">
 
-        <ProgressBar
-            android:id="@+id/progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar" />
+            <TextView
+                android:id="@+id/percent_text"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="TextView"
+                android:layout_marginEnd="20dp"
+                android:textSize="20sp" />
+
+            <ProgressBar
+                android:id="@+id/progress"
+                style="?android:attr/progressBarStyleHorizontal"
+                android:layout_width="match_parent"
+                android:layout_height="10dp"
+                android:max="100"
+                android:progressDrawable="@drawable/progressbar" />
+
+        </LinearLayout>
+
+
 
     </LinearLayout>
 
