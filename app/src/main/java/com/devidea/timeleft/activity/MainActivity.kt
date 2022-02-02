@@ -134,19 +134,19 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    fun refreshItem(): ArrayList<AdapterItem> {
-        val ItemListArray = ArrayList<AdapterItem>()
+    private fun refreshItem(): ArrayList<AdapterItem> {
+        val itemListArray = ArrayList<AdapterItem>()
 
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
             if ((itemList[i].type == "Time")) {
-                ItemListArray.add(
+                itemListArray.add(
                     ITEM_GENERATE.customTimeItem(
                         itemList[i]
                     )
                 )
             } else {
-                ItemListArray.add(
+                itemListArray.add(
                     ITEM_GENERATE.customMonthItem(
                         itemList[i]
                     )
@@ -154,7 +154,7 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        return ItemListArray
+        return itemListArray
     }
 
 }

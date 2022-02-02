@@ -130,8 +130,8 @@ constructor(  //array list
 
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정
-            val dpValue: Int = 200
-            val d: Float = App.context().getResources().getDisplayMetrics().density
+            val dpValue = 200
+            val d: Float = App.context().resources.displayMetrics.density
             val height: Int = (dpValue * d).toInt()
 
             // ValueAnimator.ofInt(int... values)는 View가 변할 값을 지정, 인자는 int 배열
