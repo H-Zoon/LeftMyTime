@@ -33,10 +33,10 @@ class ItemGenerate : InterfaceItem {
 
     override fun yearItem(): AdapterItem {
         val adapterItem = AdapterItem()
-        val YearPercent = LocalDate.now().dayOfYear.toFloat() / LocalDate.now().lengthOfYear()
+        val yearPercent = LocalDate.now().dayOfYear.toFloat() / LocalDate.now().lengthOfYear()
             .toFloat() * 100
         adapterItem.summery = LocalDate.now().year.toString() + "년의 "
-        adapterItem.percentString = String.format(Locale.getDefault(), "%.1f", YearPercent)
+        adapterItem.percentString = String.format(Locale.getDefault(), "%.1f", yearPercent)
         adapterItem.leftDay = "남은일: " + (LocalDate.now()
             .lengthOfYear() - LocalDate.now().dayOfYear) + "일"
         return adapterItem
@@ -108,25 +108,25 @@ class ItemGenerate : InterfaceItem {
         //종료일로 넘어가고 자동 업데이트 체크한 경우
         if (today.isAfter(endDate)) {
             when (itemEntity.autoUpdateFlag) {
-                1 -> appDatabase!!.itemDao().updateItem(
+                1 -> appDatabase.itemDao().updateItem(
                     endDate.toString(),
                         endDate.plusDays(updateRate.toLong()).toString(),
                         itemInfo.id
                 )
                 2 -> if((endDate.plusMonths(1)).lengthOfMonth()>updateRate){
-                    appDatabase!!.itemDao().updateItem(
+                    appDatabase.itemDao().updateItem(
                         endDate.toString(),
                         LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(1).monthValue, updateRate).toString(),
                         itemInfo.id)
                     }else{
-                    appDatabase!!.itemDao().updateItem(
+                    appDatabase.itemDao().updateItem(
                         endDate.toString(),
                         LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(2).monthValue, updateRate).toString(),
                         itemInfo.id)
                 }
 
             }
-            itemInfo = appDatabase!!.itemDao().getSelectItem(id)
+            itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)
             endDate = LocalDate.parse(itemInfo.endValue, formatter)
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()

@@ -2,7 +2,7 @@ package com.devidea.timeleft
 
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 
-open interface InterfaceItem {
+interface InterfaceItem {
     fun timeItem(): AdapterItem
     fun yearItem(): AdapterItem
     fun monthItem(): AdapterItem

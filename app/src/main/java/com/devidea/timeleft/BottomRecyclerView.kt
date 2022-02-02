@@ -7,26 +7,33 @@ import android.animation.ObjectAnimator
 import android.util.SparseBooleanArray
 import android.annotation.SuppressLint
 import android.animation.ValueAnimator
-import android.animation.ValueAnimator.AnimatorUpdateListener
 import android.app.*
 import android.content.Context
 import android.view.View
 import android.widget.*
+import androidx.recyclerview.widget.DiffUtil
 import com.devidea.timeleft.datadase.AppDatabase
-import java.util.ArrayList
+import java.util.*
 
 class BottomRecyclerView     //CustomAdapter 생성자
 constructor(  //array list
-    private val arrayList: ArrayList<AdapterItem?>
+    private val items: ArrayList<AdapterItem>
 ) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
     private val appDatabase = AppDatabase.getDatabase(App.context())
     var activityContext: Context? = null
 
-    // Create new views (invoked by the layout manager)
+    fun updateList(items: ArrayList<AdapterItem>) {
+        val subjectDiffUtilCallback = DiffutilClass(this.items, items, this)
+        val diffResult: DiffUtil.DiffResult = DiffUtil.calculateDiff(subjectDiffUtilCallback)
+
+        this.items.clear()
+        this.items.addAll(items)
+        diffResult.dispatchUpdatesTo(this)
+    }
+
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
-        //activity context
         activityContext = viewGroup.context
         selectedItems = SparseBooleanArray(itemCount)
 
@@ -41,13 +48,15 @@ constructor(  //array list
         @SuppressLint("RecyclerView") position: Int
     ) {
 
-        viewHolder.startValue.text = arrayList[position]!!.startDay
-        viewHolder.endValue.text = arrayList[position]!!.endDay
-        viewHolder.leftValue.text = arrayList[position]!!.leftDay
+        viewHolder.startValue.text = items[position].startDay
+        viewHolder.endValue.text = items[position].endDay
+        viewHolder.leftValue.text = items[position].leftDay
 
-        when(arrayList[position]!!.autoUpdateFlag){
-            1 -> viewHolder.autoUpdate.text = ((arrayList[position]!!.updateRate).toString()+"일후 반복되는 일정이에요")
-            2 -> viewHolder.autoUpdate.text = ("매 달"+(arrayList[position]!!.updateRate).toString()+"일에 반복되는 일정이에요")
+        when (items[position].autoUpdateFlag) {
+            1 -> viewHolder.autoUpdate.text =
+                ((items[position].updateRate).toString() + "일후 반복되는 일정이에요")
+            2 -> viewHolder.autoUpdate.text =
+                ("매 달" + (items[position].updateRate).toString() + "일에 반복되는 일정이에요")
             else -> viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
         }
 
@@ -60,13 +69,12 @@ constructor(  //array list
             deleteButton.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
-                builder.setPositiveButton("OK") { dialog, id ->
-                    appDatabase!!.itemDao()
-                        .deleteItem(arrayList[position]!!.id)
+                builder.setPositiveButton("OK") { _, _ ->
+                    appDatabase.itemDao()
+                        .deleteItem(items[position].id)
                     appDatabase.itemDao().deleteCustomWidget(
-                        arrayList[position]!!.id
+                        items[position].id
                     )
-                    MainActivity.refreshItem()
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                 }
                 builder.setNegativeButton("Cancel") { dialog, id -> }
@@ -75,9 +83,9 @@ constructor(  //array list
                 alertDialog.show()
             }
         }
-        val summery_buf: String? = arrayList[position]!!.summery
+        val summery_buf: String? = items[position].summery
         viewHolder.summery.text = summery_buf
-        val percent_buf: String? = arrayList[position]!!.percentString
+        val percent_buf: String? = items[position].percentString
         viewHolder.percent.text = percent_buf + "%"
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
@@ -87,6 +95,7 @@ constructor(  //array list
 
     }
 
+
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
 
         if (payloads.isEmpty()) {
@@ -94,17 +103,18 @@ constructor(  //array list
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-                holder.leftValue.text = adapterItem.leftDay
-                holder.percent.text = adapterItem.percentString + "%"
-                holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
+            holder.leftValue.text = adapterItem.leftDay
+            holder.percent.text = adapterItem.percentString + "%"
+            holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
 
         }
 
-
     }
 
+
+
     override fun getItemCount(): Int {
-        return arrayList.size
+        return items.size
     }
 
     inner class ViewHolder constructor(view: View) : RecyclerView.ViewHolder(view) {
@@ -116,11 +126,12 @@ constructor(  //array list
         val leftValue: TextView
         val autoUpdate: TextView
         val deleteButton: Button
-        private val imageButton: Button
+        private val imageButton: ImageView
+
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정
-            val dpValue: Int = 200
-            val d: Float = App.context().getResources().getDisplayMetrics().density
+            val dpValue = 200
+            val d: Float = App.context().resources.displayMetrics.density
             val height: Int = (dpValue * d).toInt()
 
             // ValueAnimator.ofInt(int... values)는 View가 변할 값을 지정, 인자는 int 배열
@@ -128,25 +139,23 @@ constructor(  //array list
                 if (isExpanded) ValueAnimator.ofInt(0, height) else ValueAnimator.ofInt(height, 0)
             // Animation이 실행되는 시간, n/1000초
             va.duration = 600
-            va.addUpdateListener(object : AnimatorUpdateListener {
-                public override fun onAnimationUpdate(animation: ValueAnimator) {
-                    // value는 height 값
-                    // imageView의 높이 변경
-                    itemView.findViewById<View>(R.id.view).layoutParams.height =
-                        animation.animatedValue as Int
-                    itemView.findViewById<View>(R.id.view).requestLayout()
-                    // imageView가 실제로 사라지게하는 부분
-                    startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                    imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
-                }
-            })
+            va.addUpdateListener { animation -> // value는 height 값
+                // imageView의 높이 변경
+                itemView.findViewById<View>(R.id.view).layoutParams.height =
+                    animation.animatedValue as Int
+                itemView.findViewById<View>(R.id.view).requestLayout()
+                // imageView가 실제로 사라지게하는 부분
+                startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
+            }
             // Animation start
             va.start()
         }
+
 
         //ViewHolder
         init {
@@ -159,6 +168,7 @@ constructor(  //array list
             leftValue = view.findViewById(R.id.left_day)
             imageButton = view.findViewById(R.id.imageButton)
             deleteButton = view.findViewById(R.id.delete_button)
+
             itemView.setOnClickListener {
                 val pos: Int = adapterPosition
                 if (selectedItems!!.get(adapterPosition)) {
@@ -174,6 +184,7 @@ constructor(  //array list
                 changeVisibility(selectedItems!!.get(adapterPosition))
             }
         }
+
     }
 
     companion object {

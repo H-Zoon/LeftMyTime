@@ -13,12 +13,12 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
-            android:name=".SetRepeatActivity"
+            android:name=".activity.SetRepeatActivity"
             android:exported="false" />
-        <activity android:name=".CreateTimeActivity" />
-        <activity android:name=".CreateMonthActivity" />
+        <activity android:name=".activity.CreateTimeActivity" />
+        <activity android:name=".activity.CreateDayActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -28,7 +28,7 @@
         </activity>
 
         <receiver
-            android:name=".AppWidget"
+            android:name=".widget.AppWidget"
             android:exported="false"
             android:label="기본위젯">
             <intent-filter>
@@ -41,7 +41,7 @@
         </receiver>
 
         <activity
-            android:name=".AppWidgetConfigure"
+            android:name=".widget.AppWidgetConfigure"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />

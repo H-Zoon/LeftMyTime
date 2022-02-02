@@ -9,13 +9,10 @@ import android.widget.ProgressBar
 import android.view.View
 import java.util.ArrayList
 
-internal class TopRecyclerView     //CustomAdapter 생성자
-constructor(  //array list
-    private val arrayList: ArrayList<AdapterItem?>
-) : RecyclerView.Adapter<TopRecyclerView.ViewHolder>() {
-    // Create new views (invoked by the layout manager)
+internal class TopRecyclerView
+constructor(private val arrayList: ArrayList<AdapterItem>) :
+    RecyclerView.Adapter<TopRecyclerView.ViewHolder>() {
     override fun onCreateViewHolder(viewGroup: ViewGroup, viewType: Int): ViewHolder {
-        // Create a new view, which defines the UI of the list item
         val view: View = LayoutInflater.from(viewGroup.context)
             .inflate(R.layout.item_recyclerview_top, viewGroup, false)
         return ViewHolder(view)
@@ -23,10 +20,10 @@ constructor(  //array list
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
 
-        viewHolder.summery.text = arrayList[position]!!.summery
-        val percent_buf: String? = arrayList[position]!!.percentString
+        viewHolder.summery.text = arrayList[position].summery
+        val percent_buf: String? = arrayList[position].percentString
         viewHolder.percent.text = percent_buf + "%"
-        viewHolder.leftValue.text = arrayList[position]!!.leftDay
+        viewHolder.leftValue.text = arrayList[position].leftDay
         val percent: Int = percent_buf!!.toFloat().toInt()
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
             .setDuration(1500)
@@ -40,15 +37,12 @@ constructor(  //array list
         if (payloads.isEmpty()) {
             super.onBindViewHolder(holder, position, payloads)
         } else {
-            //val adapterItem: AdapterItem = MainActivity.ITEM_GENERATE.timeItem()
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
             holder.percent.text = adapterItem.percentString + "%"
             holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
             holder.leftValue.text = adapterItem.leftDay
         }
-
-
     }
 
     override fun getItemCount(): Int {

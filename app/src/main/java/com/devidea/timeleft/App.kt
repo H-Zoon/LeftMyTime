@@ -2,6 +2,7 @@ package com.devidea.timeleft
 
 import android.app.Application
 import android.content.Context
+import com.devidea.timeleft.datadase.AppDatabase
 
 class App : Application() {
 
@@ -14,7 +15,6 @@ class App : Application() {
         fun context() : Context {
             return instance!!.applicationContext
         }
-
     }
 
 }

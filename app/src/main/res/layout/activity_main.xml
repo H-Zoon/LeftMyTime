@@ -1,17 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<com.sothree.slidinguppanel.SlidingUpPanelLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/main_panel"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:gravity="bottom"
-    app:umanoDragView="@id/bottomLayout"
-
-    app:umanoOverlay="true"
-    app:umanoPanelHeight="100dp"
-    app:umanoShadowHeight="10dp"
-    tools:context=".MainActivity">
+    android:animateLayoutChanges="true"
+    tools:context=".activity.MainActivity">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -72,55 +66,68 @@
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-
-    <LinearLayout
-        android:id="@+id/bottomLayout"
-        style="@style/background"
+    <androidx.cardview.widget.CardView
+        android:id="@+id/bottom_sheet"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:orientation="vertical">
+        android:descendantFocusability="beforeDescendants"
+        android:focusableInTouchMode="true"
+        android:orientation="vertical"
+        android:padding="10dp"
+        app:behavior_hideable="false"
+        app:behavior_peekHeight="100dp"
+        app:cardCornerRadius="30dp"
+        app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior">
 
-        <Button
-            android:id="@+id/button"
-            android:layout_width="wrap_content"
-            android:layout_height="10dp"
-            android:layout_gravity="center"
-            android:layout_marginTop="10dp"
-            android:background="@drawable/line" />
-
-
-        <Button
-            android:id="@+id/time_add"
-            style="@style/Style.Color.Button"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
-            android:layout_gravity="end"
-            android:layout_marginTop="20dp"
-            android:layout_marginEnd="10dp"
-            android:background="@drawable/outline_add_black_48" />
-
-        <FrameLayout
+        <LinearLayout
+            android:id="@+id/bottomLayout"
             android:layout_width="match_parent"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:orientation="vertical">
 
-            <TextView
-                android:id="@+id/explanation"
+            <Button
+                android:id="@+id/button"
                 android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_gravity="top|center"
+                android:layout_height="10dp"
+                android:layout_gravity="center"
+                android:layout_marginTop="10dp"
+                android:background="@drawable/line" />
+
+
+            <Button
+                android:id="@+id/time_add"
+                style="@style/Style.Color.Button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_gravity="end"
                 android:layout_marginTop="20dp"
-                android:gravity="center"
-                android:text="아직 추가된 항목이 없어요 \n + 버튼을 눌러 추가해보세요."
-                android:textSize="20sp"
-                android:visibility="invisible" />
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/outline_add_black_48" />
 
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/recyclerview2"
+            <FrameLayout
                 android:layout_width="match_parent"
-                android:layout_height="match_parent"
-                android:overScrollMode="never" />
-        </FrameLayout>
+                android:layout_height="match_parent">
 
-    </LinearLayout>
+                <TextView
+                    android:id="@+id/explanation"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="top|center"
+                    android:layout_marginTop="20dp"
+                    android:gravity="center"
+                    android:text="아직 추가된 항목이 없어요 \n + 버튼을 눌러 추가해보세요."
+                    android:textSize="20sp"
+                    android:visibility="invisible" />
 
-</com.sothree.slidinguppanel.SlidingUpPanelLayout>
+                <androidx.recyclerview.widget.RecyclerView
+                    android:id="@+id/recyclerview2"
+                    android:layout_width="match_parent"
+                    android:layout_height="match_parent"
+                    android:overScrollMode="never" />
+            </FrameLayout>
+
+        </LinearLayout>
+
+    </androidx.cardview.widget.CardView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
