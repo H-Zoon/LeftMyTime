@@ -1,5 +1,32 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="DesignSurface">
+    <option name="filePathToZoomLevelMap">
+      <map>
+        <entry key="..\:/Users/jun/AppData/Local/Android/Sdk/platforms/android-32/data/res/drawable/ratingbar_indicator_material.xml" value="0.21927083333333333" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/black_indicator.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/circle_inner.xml" value="0.21822916666666667" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/circle_outer.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/gray_indicator.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line_stroke.xml" value="0.378125" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line_widget.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/progressbar.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/progressbar_widget.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_create_day.xml" value="0.3619791666666667" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_create_month.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_create_time.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_main.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_repeat_set.xml" value="0.3619791666666667" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_set_repeat.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/app_widget.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/appwidget_configure.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_bottom.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_top.xml" value="0.20208333333333334" />
+      </map>
+    </option>
+  </component>
   <component name="NullableNotNullManager">
     <option name="myDefaultNullable" value="androidx.annotation.Nullable" />
     <option name="myDefaultNotNull" value="androidx.annotation.NonNull" />
@@ -25,7 +52,7 @@
     </option>
     <option name="myNotNulls">
       <value>
-        <list size="13">
+        <list size="14">
           <item index="0" class="java.lang.String" itemvalue="org.jetbrains.annotations.NotNull" />
           <item index="1" class="java.lang.String" itemvalue="edu.umd.cs.findbugs.annotations.NonNull" />
           <item index="2" class="java.lang.String" itemvalue="android.support.annotation.NonNull" />
@@ -39,6 +66,7 @@
           <item index="10" class="java.lang.String" itemvalue="org.eclipse.jdt.annotation.NonNull" />
           <item index="11" class="java.lang.String" itemvalue="io.reactivex.annotations.NonNull" />
           <item index="12" class="java.lang.String" itemvalue="io.reactivex.rxjava3.annotations.NonNull" />
+          <item index="13" class="java.lang.String" itemvalue="lombok.NonNull" />
         </list>
       </value>
     </option>

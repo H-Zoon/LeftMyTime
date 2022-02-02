@@ -4,6 +4,7 @@
     package="com.devidea.timeleft">
 
     <application
+        android:name=".App"
         android:allowBackup="false"
         android:fullBackupContent="false"
         android:icon="@mipmap/ic_launcher"
@@ -11,20 +12,23 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
-
-        <activity android:name=".CreateTimeActivity" />
-        <activity android:name=".CreateMonthActivity" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activity.SetRepeatActivity"
+            android:exported="false" />
+        <activity android:name=".activity.CreateTimeActivity" />
+        <activity android:name=".activity.CreateDayActivity" />
+        <activity
+            android:name=".activity.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
+
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
 
         <receiver
-            android:name=".AppWidget"
+            android:name=".widget.AppWidget"
             android:exported="false"
             android:label="기본위젯">
             <intent-filter>
@@ -34,17 +38,15 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info" />
-
         </receiver>
 
         <activity
-            android:name=".AppWidgetConfigure"
+            android:name=".widget.AppWidgetConfigure"
             android:exported="false">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>
         </activity>
-
     </application>
 
 </manifest>
