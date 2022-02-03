@@ -46,14 +46,13 @@ class MainActivity : AppCompatActivity() {
         initTopRecyclerView()
         initBottomRecyclerView()
 
-        //test
-        ItemAlarmManager().alarmInit()
-
         binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
         viewModel.timeValue.observe(this, {
             binding.time.text = it.toString()
         })
+        //test
+        ItemAlarmManager().alarmInit()
 
         binding.timeAdd.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)

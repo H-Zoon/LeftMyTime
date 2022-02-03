@@ -25,6 +25,14 @@ class CreateTimeActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_time)
         binding.activity = this
 
+        binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
+            if (compoundButton.isChecked) {
+                binding.inputLayout1.visibility = View.VISIBLE
+            } else {
+                binding.inputLayout1.visibility = View.GONE
+            }
+        }
+
     }
 
     fun setStartTime (v: View){
@@ -61,7 +69,7 @@ class CreateTimeActivity : AppCompatActivity() {
     //isInitialized is able instance variable, not a local variable.
     fun save(v: View){
         if (::startTime.isInitialized && ::endTime.isInitialized && binding.inputSummery.length() > 0) {
-            ItemSave().saveTimeItem(binding.inputSummery.text.toString(), startTime, endTime)
+            ItemSave().saveTimeItem(binding.inputSummery.text.toString(), startTime, endTime, 0, binding.editText.text.toString().toInt())
             finish()
         } else {
             Toast.makeText(this, "입력확인", Toast.LENGTH_SHORT).show()

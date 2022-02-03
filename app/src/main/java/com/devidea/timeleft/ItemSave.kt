@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import kotlinx.coroutines.CoroutineScope
@@ -34,9 +35,11 @@ class ItemSave {
         title: String,
         startValue: String,
         endValue: String,
+        autoUpdateFlag: Int,
+        alarmRate: Int
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, 0, 0, 0)
+            ItemEntity("Time", title, startValue, endValue, autoUpdateFlag, 0, alarmRate)
         writeDatabase(entityItemInfo)
     }
 
@@ -44,5 +47,8 @@ class ItemSave {
         CoroutineScope(Dispatchers.IO).launch {
             appDatabase.itemDao().saveItem(itemEntity)
         }
+
+        //test
+        ItemAlarmManager().alarmInit()
     }
 }

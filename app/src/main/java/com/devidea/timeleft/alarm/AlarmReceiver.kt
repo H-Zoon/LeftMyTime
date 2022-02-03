@@ -20,8 +20,6 @@ class AlarmReceiver : BroadcastReceiver() {
 
     companion object {
         const val TAG = "AlarmReceiver"
-
-        //const val NOTIFICATION_ID = 0
         const val PRIMARY_CHANNEL_ID = "devidea_timeleft_alarm"
     }
 
@@ -47,13 +45,15 @@ class AlarmReceiver : BroadcastReceiver() {
             context,
             0,
             contentIntent,
-            PendingIntent.FLAG_MUTABLE
+            PendingIntent.FLAG_IMMUTABLE
         )
+
+
         val builder =
             NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
                 .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("TimeLeft 에 설정된 알림")
-                .setContentText(title)
+                .setContentTitle("일정 종료 알림")
+                .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
                 .setContentIntent(contentPendingIntent)
                 .setPriority(NotificationCompat.PRIORITY_HIGH)
                 .setAutoCancel(true)
