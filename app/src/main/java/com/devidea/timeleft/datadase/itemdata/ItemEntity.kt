@@ -26,7 +26,8 @@ data class ItemEntity(
     @NonNull var startValue: String,
     @NonNull var endValue: String,
     @NonNull var autoUpdateFlag: Int,
-    @NonNull var updateRate: Int
+    @NonNull var updateRate: Int,
+    @NonNull var alarmRate: Int
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0

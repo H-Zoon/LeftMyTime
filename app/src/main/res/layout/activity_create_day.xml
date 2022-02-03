@@ -103,6 +103,7 @@
             android:id="@+id/input_update_rate"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
             android:ems="10"
             android:focusable="false"
             android:hint="반복없음"
@@ -112,7 +113,8 @@
             android:id="@+id/switch1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="알림"
+            android:layout_marginTop="10dp"
+            android:text="알림 설정하기"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
 
 
@@ -122,7 +124,7 @@
             android:layout_height="wrap_content"
             android:layout_gravity="center"
             android:orientation="horizontal"
-            android:visibility="visible">
+            android:visibility="gone">
 
             <TextView
                 android:layout_width="wrap_content"

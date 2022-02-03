@@ -12,6 +12,7 @@ import android.content.Context
 import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.DiffUtil
+import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import java.util.*
 
@@ -70,6 +71,7 @@ constructor(  //array list
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
+                    ItemAlarmManager().alarmDelete(items[position].id)
                     appDatabase.itemDao()
                         .deleteItem(items[position].id)
                     appDatabase.itemDao().deleteCustomWidget(

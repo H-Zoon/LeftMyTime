@@ -15,7 +15,8 @@ class ItemSave {
         start: String,
         end: String,
         autoUpdateFlag: Int,
-        updateRate: Int
+        updateRate: Int,
+        alarmRate: Int
     ) {
         val entityItemInfo = ItemEntity(
             "Month",
@@ -23,7 +24,8 @@ class ItemSave {
             start,
             end,
             autoUpdateFlag,
-            updateRate
+            updateRate,
+            alarmRate
         )
         writeDatabase(entityItemInfo)
     }
@@ -34,7 +36,7 @@ class ItemSave {
         endValue: String,
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, 0, 0)
+            ItemEntity("Time", title, startValue, endValue, 0, 0, 0)
         writeDatabase(entityItemInfo)
     }
 
