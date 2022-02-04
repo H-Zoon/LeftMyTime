@@ -127,13 +127,23 @@
                 android:layout_height="wrap_content"
                 android:ems="3"
                 android:gravity="center"
-                android:inputType="number" />
+                android:inputType="number"
+                android:text="0"/>
 
             <TextView
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="시간 전 알람을 설정합니다." />
         </LinearLayout>
+
+        <Switch
+            android:id="@+id/switch2"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:text="주말에도 알람받기"
+            android:visibility="gone"
+            tools:ignore="UseSwitchCompatOrMaterialXml" />
 
         <LinearLayout
             android:layout_width="match_parent"

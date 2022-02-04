@@ -15,6 +15,7 @@ import com.devidea.timeleft.App
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.datadase.AppDatabase
+import java.time.LocalDate
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -27,7 +28,7 @@ class AlarmReceiver : BroadcastReceiver() {
 
     override fun onReceive(context: Context, intent: Intent) {
         Log.d(TAG, "Received intent : $intent")
-        Log.d("Received intent", intent.getIntExtra("id",0).toString())
+        Log.d("Received intent", intent.getIntExtra("id", 0).toString())
         notificationManager = context.getSystemService(
             Context.NOTIFICATION_SERVICE
         ) as NotificationManager
@@ -38,28 +39,35 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun deliverNotification(context: Context, intent: Intent) {
-        val NOTIFICATION_ID = intent.getIntExtra("id",0)
-        val title = AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(NOTIFICATION_ID).summery
+        val NOTIFICATION_ID = intent.getIntExtra("id", 0)
+        val title =
+            AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(NOTIFICATION_ID).summery
         val contentIntent = Intent(context, MainActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(
             context,
-            0,
+            NOTIFICATION_ID,
             contentIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        Log.d("weektest1", intent.getIntExtra("flag", 0).toString())
+        if (2 == intent.getIntExtra("flag", 0)) {
+            Log.d("weektest2", "ifin")
+            if ((LocalDate.now()).dayOfWeek.value != 6 && (LocalDate.now()).dayOfWeek.value != 7 ){
+                Log.d("weektest2", (LocalDate.now()).dayOfWeek.value.toString())
+                val builder =
+                    NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
+                        .setSmallIcon(R.drawable.ic_launcher_foreground)
+                        .setContentTitle("일정 종료 알림")
+                        .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
+                        .setContentIntent(contentPendingIntent)
+                        .setPriority(NotificationCompat.PRIORITY_HIGH)
+                        .setAutoCancel(true)
+                        .setDefaults(NotificationCompat.DEFAULT_ALL)
 
-        val builder =
-            NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
-                .setSmallIcon(R.drawable.ic_launcher_foreground)
-                .setContentTitle("일정 종료 알림")
-                .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
-                .setContentIntent(contentPendingIntent)
-                .setPriority(NotificationCompat.PRIORITY_HIGH)
-                .setAutoCancel(true)
-                .setDefaults(NotificationCompat.DEFAULT_ALL)
-
-        notificationManager.notify(intent.getIntExtra("id",0), builder.build())
+                notificationManager.notify(NOTIFICATION_ID, builder.build())
+            }
+        }
     }
 
     private fun createNotificationChannel() {

@@ -65,7 +65,10 @@ class ItemGenerate : InterfaceItem {
         adapterItem.summery = itemEntity.summery
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
-        adapterItem.alarmRate = itemEntity.alarmRate
+
+        adapterItem.alarmFlag = itemEntity.alarmFlag
+        adapterItem.alarmRate = itemEntity.alarmRate.toString() + "시간"
+
         adapterItem.id = itemEntity.id
         if (time.isAfter(startValue) && time.isBefore(endValue)) {
             val range = Duration.between(startValue, endValue).seconds.toFloat()
@@ -95,7 +98,10 @@ class ItemGenerate : InterfaceItem {
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
-        adapterItem.alarmRate = itemEntity.alarmRate
+
+
+        adapterItem.alarmFlag = itemEntity.alarmFlag
+        adapterItem.alarmRate = itemEntity.alarmRate.toString() + "일"
         val id = itemInfo.id
 
         //설정일

@@ -26,12 +26,14 @@ class ItemAlarmManager {
     fun alarmInit() {
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
-            if ((itemList[i].alarmRate != 0)) {
+            if ((itemList[i].alarmFlag != 0)) {
                 //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                intent.putExtra("id", itemList[i].id)
+                intent.putExtra("flag", itemList[i].alarmFlag)
                     this.pendingIntent = PendingIntent.getBroadcast(
                         App.context(),
                         itemList[i].id,
-                        intent.putExtra("id", itemList[i].id),
+                        intent,
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
 
@@ -63,9 +65,10 @@ class ItemAlarmManager {
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
                         }
 
-                        alarmManager.set(
+                        alarmManager.setRepeating(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
+                            AlarmManager.INTERVAL_DAY,
                             pendingIntent
                         )
                     }

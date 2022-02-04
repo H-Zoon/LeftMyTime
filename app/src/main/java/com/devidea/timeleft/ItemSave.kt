@@ -12,20 +12,22 @@ class ItemSave {
     private val appDatabase = AppDatabase.getDatabase(App.context())
 
     fun saveMonthItem(
-        summery: String,
-        start: String,
-        end: String,
+        title: String,
+        startValue: String,
+        endValue: String,
         autoUpdateFlag: Int,
         updateRate: Int,
+        alarmFlag: Int,
         alarmRate: Int
     ) {
         val entityItemInfo = ItemEntity(
             "Month",
-            summery,
-            start,
-            end,
+            title,
+            startValue,
+            endValue,
             autoUpdateFlag,
             updateRate,
+            alarmFlag,
             alarmRate
         )
         writeDatabase(entityItemInfo)
@@ -35,11 +37,11 @@ class ItemSave {
         title: String,
         startValue: String,
         endValue: String,
-        autoUpdateFlag: Int,
+        alarmFlag: Int,
         alarmRate: Int
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, autoUpdateFlag, 0, alarmRate)
+            ItemEntity("Time", title, startValue, endValue, 3, 0, alarmFlag, alarmRate)
         writeDatabase(entityItemInfo)
     }
 

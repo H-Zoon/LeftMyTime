@@ -10,7 +10,8 @@ class AdapterItem {
     var leftDay: String? = null
     var autoUpdateFlag: Int? = null
     var updateRate: Int? = null
-    var alarmRate: Int? = null
+    var alarmFlag: Int? = null
+    var alarmRate: String? = null
     var id = 0
 
 }

@@ -19,8 +19,9 @@ class CreateDayActivity : AppCompatActivity() {
 
     lateinit var startDay : String
     lateinit var endDay : String
-    var UPDATEFLAG = 0
-    var UPDATEVALUE = 0
+    var updateFlag = 0
+    var updateValue = 0
+    var alarmFlag = 0
 
     private lateinit var binding: ActivityCreateDayBinding
 
@@ -33,8 +34,10 @@ class CreateDayActivity : AppCompatActivity() {
         binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked){
                 binding.inputLayout1.visibility = View.VISIBLE
+                alarmFlag = 1
             }else{
                 binding.inputLayout1.visibility = View.GONE
+                alarmFlag = 0
             }
         }
 
@@ -44,12 +47,12 @@ class CreateDayActivity : AppCompatActivity() {
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { a_result ->
             if (a_result.resultCode == Activity.RESULT_OK) {
                 a_result.data?.let {
-                    UPDATEFLAG = it.getIntExtra("flag", 0)
-                    UPDATEVALUE = it.getIntExtra("value", 0)
-                    when(UPDATEFLAG){
+                    updateFlag = it.getIntExtra("flag", 0)
+                    updateValue = it.getIntExtra("value", 0)
+                    when(updateFlag){
                         0 -> binding.inputUpdateRate.setText("반복없음")
-                        1 -> binding.inputUpdateRate.setText("이후 $UPDATEVALUE 일마다 반복")
-                        2 -> binding.inputUpdateRate.setText("매달 $UPDATEVALUE 일에 반복")
+                        1 -> binding.inputUpdateRate.setText("이후 $updateValue 일마다 반복")
+                        2 -> binding.inputUpdateRate.setText("매달 $updateValue 일에 반복")
                     }
                 }
             }
@@ -84,7 +87,7 @@ class CreateDayActivity : AppCompatActivity() {
     //isInitialized is able instance variable, not a local variable.
     fun save(v: View) {
         if (::startDay.isInitialized && ::endDay.isInitialized && binding.inputSummery.length()>0){
-            ItemSave().saveMonthItem(binding.inputSummery.text.toString(), startDay, endDay, UPDATEFLAG, UPDATEVALUE, binding.editText.text.toString().toInt())
+            ItemSave().saveMonthItem(binding.inputSummery.text.toString(), startDay, endDay, updateFlag, updateValue, alarmFlag, binding.editText.text.toString().toInt())
             finish()
         }else{
             Toast.makeText(this,"입력확인",Toast.LENGTH_SHORT).show()
