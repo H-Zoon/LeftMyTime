@@ -27,22 +27,14 @@ class ItemAlarmManager {
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
             if ((itemList[i].alarmRate != 0)) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+                //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                     this.pendingIntent = PendingIntent.getBroadcast(
                         App.context(),
                         itemList[i].id,
                         intent.putExtra("id", itemList[i].id),
                         PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
-                    Log.d(TAG, "verS save")
-                } else {
-                    this.pendingIntent = PendingIntent.getBroadcast(
-                        App.context(),
-                        itemList[i].id,
-                        intent.putExtra("id", itemList[i].id),
-                        PendingIntent.FLAG_UPDATE_CURRENT
-                    )
-                }
+
                 when (itemList[i].type) {
                     "Month" -> {
                         Log.d(TAG, "Month")
@@ -78,7 +70,8 @@ class ItemAlarmManager {
                         )
                     }
                 }
-            } else {
+            }
+            /* else {
                 val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
 
                 val pendingIntent =
@@ -86,12 +79,14 @@ class ItemAlarmManager {
                         App.context(),
                         itemList[i].id,
                         intent.putExtra("id", itemList[i].id),
-                        PendingIntent.FLAG_NO_CREATE
+                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
                     )
                 if (pendingIntent != null && alarmManager != null) {
                     alarmManager.cancel(pendingIntent)
                 }
             }
+
+             */
         }
     }
 
@@ -101,9 +96,9 @@ class ItemAlarmManager {
             App.context(),
             id,
             intent.putExtra("id", id),
-            PendingIntent.FLAG_NO_CREATE
+            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
         )
-        if (pendingIntent != null && alarmManager != null) {
+        if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
             Log.d(TAG, "delete")
         }

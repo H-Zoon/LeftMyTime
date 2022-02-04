@@ -46,9 +46,10 @@ class ItemSave {
     private fun writeDatabase(itemEntity: ItemEntity) {
         CoroutineScope(Dispatchers.IO).launch {
             appDatabase.itemDao().saveItem(itemEntity)
+            //test
+            ItemAlarmManager().alarmInit()
         }
 
-        //test
-        ItemAlarmManager().alarmInit()
+
     }
 }

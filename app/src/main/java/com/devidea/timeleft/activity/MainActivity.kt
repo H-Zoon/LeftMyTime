@@ -51,8 +51,6 @@ class MainActivity : AppCompatActivity() {
         viewModel.timeValue.observe(this, {
             binding.time.text = it.toString()
         })
-        //test
-        ItemAlarmManager().alarmInit()
 
         binding.timeAdd.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)

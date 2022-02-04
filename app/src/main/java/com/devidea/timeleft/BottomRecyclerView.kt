@@ -9,10 +9,13 @@ import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.app.*
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.DiffUtil
+import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.alarm.ItemAlarmManager
+import com.devidea.timeleft.databinding.ItemRecyclerviewBottomBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import java.util.*
 
@@ -20,6 +23,7 @@ class BottomRecyclerView     //CustomAdapter 생성자
 constructor(  //array list
     private val items: ArrayList<AdapterItem>
 ) : RecyclerView.Adapter<BottomRecyclerView.ViewHolder>() {
+
     // Item의 클릭 상태를 저장할 array 객체
     private var selectedItems: SparseBooleanArray? = null
     private val appDatabase = AppDatabase.getDatabase(App.context())
@@ -38,9 +42,14 @@ constructor(  //array list
         activityContext = viewGroup.context
         selectedItems = SparseBooleanArray(itemCount)
 
-        val view: View = LayoutInflater.from(activityContext)
+        /*val view: View = LayoutInflater.from(activityContext)
             .inflate(R.layout.item_recyclerview_bottom, viewGroup, false)
         return ViewHolder(view)
+
+         */
+
+        val binding = ItemRecyclerviewBottomBinding.inflate(LayoutInflater.from(viewGroup.context), viewGroup, false)
+        return ViewHolder(binding)
     }
 
     @SuppressLint("SetTextI18n")
@@ -49,25 +58,37 @@ constructor(  //array list
         @SuppressLint("RecyclerView") position: Int
     ) {
 
-        viewHolder.startValue.text = items[position].startDay
-        viewHolder.endValue.text = items[position].endDay
-        viewHolder.leftValue.text = items[position].leftDay
+        viewHolder.binding.startDay.text = items[position].startDay
+        viewHolder.binding.endDay.text = items[position].endDay
+        viewHolder.binding.leftDay.text = items[position].leftDay
+
 
         when (items[position].autoUpdateFlag) {
-            1 -> viewHolder.autoUpdate.text =
+            1 -> viewHolder.binding.updateIs.text =
                 ((items[position].updateRate).toString() + "일후 반복되는 일정이에요")
-            2 -> viewHolder.autoUpdate.text =
+            2 -> viewHolder.binding.updateIs.text =
                 ("매 달" + (items[position].updateRate).toString() + "일에 반복되는 일정이에요")
-            else -> viewHolder.autoUpdate.text = "100% 달성후 끝나는 일정이에요"
+            else -> viewHolder.binding.updateIs.text = "100% 달성후 끝나는 일정이에요"
         }
 
+        Log.d(TAG, items[position].alarmRate.toString())
+
+        when (items[position].alarmRate) {
+            0 -> viewHolder.binding.alarmIs.text = "알림 설정되지않음"
+
+            else -> viewHolder.binding.alarmIs.text = "알림 설정됨"
+        }
+
+        /*
         viewHolder.startValue.visibility = View.GONE
         viewHolder.endValue.visibility = View.GONE
         viewHolder.leftValue.visibility = View.GONE
-        viewHolder.autoUpdate.visibility = View.GONE
+        //viewHolder.autoUpdate.visibility = View.GONE
         viewHolder.deleteButton.visibility = View.GONE
+
+         */
         with(viewHolder) {
-            deleteButton.setOnClickListener {
+            viewHolder.binding.deleteButton.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
@@ -86,11 +107,11 @@ constructor(  //array list
             }
         }
         val summery_buf: String? = items[position].summery
-        viewHolder.summery.text = summery_buf
+        viewHolder.binding.summery.text = summery_buf
         val percent_buf: String? = items[position].percentString
-        viewHolder.percent.text = percent_buf + "%"
+        viewHolder.binding.percentText.text = percent_buf + "%"
         val percent: Int = percent_buf!!.toFloat().toInt()
-        ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
+        ObjectAnimator.ofInt(viewHolder.binding.progress, "progress", percent)
             .setDuration(1500)
             .start()
 
@@ -98,16 +119,16 @@ constructor(  //array list
     }
 
 
-    override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {
+    override fun onBindViewHolder(viewHolder: ViewHolder, position: Int, payloads: List<Any>) {
 
         if (payloads.isEmpty()) {
-            super.onBindViewHolder(holder, position, payloads)
+            super.onBindViewHolder(viewHolder, position, payloads)
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-            holder.leftValue.text = adapterItem.leftDay
-            holder.percent.text = adapterItem.percentString + "%"
-            holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
+            viewHolder.binding.leftDay.text = adapterItem.leftDay
+            viewHolder.binding.percentText.text = adapterItem.percentString + "%"
+            viewHolder.binding.progress.progress = adapterItem.percentString!!.toFloat().toInt()
 
         }
 
@@ -119,7 +140,8 @@ constructor(  //array list
         return items.size
     }
 
-    inner class ViewHolder constructor(view: View) : RecyclerView.ViewHolder(view) {
+    inner class ViewHolder(val binding: ItemRecyclerviewBottomBinding) : RecyclerView.ViewHolder(binding.root) {
+        /*
         val summery: TextView
         val percent: TextView
         val progressBar: ProgressBar
@@ -130,9 +152,11 @@ constructor(  //array list
         val deleteButton: Button
         private val imageButton: ImageView
 
+         */
+
         private fun changeVisibility(isExpanded: Boolean) {
             // height 값을 dp로 지정
-            val dpValue = 200
+            val dpValue = 150
             val d: Float = App.context().resources.displayMetrics.density
             val height: Int = (dpValue * d).toInt()
 
@@ -147,12 +171,12 @@ constructor(  //array list
                     animation.animatedValue as Int
                 itemView.findViewById<View>(R.id.view).requestLayout()
                 // imageView가 실제로 사라지게하는 부분
-                startValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                endValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                leftValue.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                imageButton.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
+                binding.startDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.endDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.leftDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                //autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.imageView.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
             }
             // Animation start
             va.start()
@@ -161,15 +185,18 @@ constructor(  //array list
 
         //ViewHolder
         init {
-            summery = view.findViewById(R.id.summery)
-            percent = view.findViewById(R.id.percent_text)
-            progressBar = view.findViewById(R.id.progress)
-            startValue = view.findViewById(R.id.start_day)
-            endValue = view.findViewById(R.id.end_day)
-            autoUpdate = view.findViewById(R.id.update_is)
-            leftValue = view.findViewById(R.id.left_day)
-            imageButton = view.findViewById(R.id.imageButton)
-            deleteButton = view.findViewById(R.id.delete_button)
+            /*
+            summery = binding.findViewById(R.id.summery)
+            percent = binding.findViewById(R.id.percent_text)
+            progressBar = binding.findViewById(R.id.progress)
+            startValue = binding.findViewById(R.id.start_day)
+            endValue = binding.findViewById(R.id.end_day)
+            autoUpdate = binding.findViewById(R.id.update_is)
+            leftValue = binding.findViewById(R.id.left_day)
+            imageButton = binding.findViewById(R.id.imageView)
+            deleteButton = binding.findViewById(R.id.delete_button)
+
+             */
 
             itemView.setOnClickListener {
                 val pos: Int = adapterPosition
