@@ -40,6 +40,9 @@
                 android:resource="@xml/app_widget_info" />
         </receiver>
 
+        <receiver android:name=".alarm.AlarmReceiver"
+            android:exported="false"/>
+
         <activity
             android:name=".widget.AppWidgetConfigure"
             android:exported="false">

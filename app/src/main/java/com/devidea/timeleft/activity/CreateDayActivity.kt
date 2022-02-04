@@ -30,6 +30,14 @@ class CreateDayActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_day)
         binding.activity = this
 
+        binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
+            if (compoundButton.isChecked){
+                binding.inputLayout1.visibility = View.VISIBLE
+            }else{
+                binding.inputLayout1.visibility = View.GONE
+            }
+        }
+
     }
 
     private val preContractStartActivityResult =
@@ -76,7 +84,7 @@ class CreateDayActivity : AppCompatActivity() {
     //isInitialized is able instance variable, not a local variable.
     fun save(v: View) {
         if (::startDay.isInitialized && ::endDay.isInitialized && binding.inputSummery.length()>0){
-            ItemSave().saveMonthItem(binding.inputSummery.text.toString(), startDay, endDay, UPDATEFLAG, UPDATEVALUE)
+            ItemSave().saveMonthItem(binding.inputSummery.text.toString(), startDay, endDay, UPDATEFLAG, UPDATEVALUE, binding.editText.text.toString().toInt())
             finish()
         }else{
             Toast.makeText(this,"입력확인",Toast.LENGTH_SHORT).show()
