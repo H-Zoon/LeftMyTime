@@ -50,11 +50,11 @@ class AlarmReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        Log.d("weektest1", intent.getIntExtra("flag", 0).toString())
+        Log.d("Receiverflag", intent.getIntExtra("flag", 0).toString())
         if (2 == intent.getIntExtra("flag", 0)) {
             Log.d("weektest2", "ifin")
-            if ((LocalDate.now()).dayOfWeek.value != 6 && (LocalDate.now()).dayOfWeek.value != 7 ){
-                Log.d("weektest2", (LocalDate.now()).dayOfWeek.value.toString())
+            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7 ){
+                Log.d("weektest3", (LocalDate.now()).dayOfWeek.value.toString())
                 val builder =
                     NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
                         .setSmallIcon(R.drawable.ic_launcher_foreground)

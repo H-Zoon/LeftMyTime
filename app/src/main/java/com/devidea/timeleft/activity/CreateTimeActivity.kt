@@ -35,7 +35,7 @@ class CreateTimeActivity : AppCompatActivity() {
             if (compoundButton.isChecked) {
                 binding.inputLayout1.visibility = View.VISIBLE
                 binding.switch2.visibility = View.VISIBLE
-                alarmFlag = 2
+                alarmFlag = 1
             } else {
                 binding.inputLayout1.visibility = View.GONE
                 binding.switch2.visibility = View.GONE
@@ -46,10 +46,10 @@ class CreateTimeActivity : AppCompatActivity() {
         binding.switch2.setOnCheckedChangeListener { compoundButton, b ->
             alarmFlag = if (compoundButton.isChecked) {
                 Log.d(TAG, "1")
-                1
+                2
             } else {
                 Log.d(TAG, "0")
-                2
+                1
             }
         }
 

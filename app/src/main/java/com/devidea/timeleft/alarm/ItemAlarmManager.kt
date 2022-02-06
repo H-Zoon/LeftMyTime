@@ -30,6 +30,7 @@ class ItemAlarmManager {
                 //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
                 intent.putExtra("id", itemList[i].id)
                 intent.putExtra("flag", itemList[i].alarmFlag)
+                Log.d("flag", itemList[i].alarmFlag.toString())
                     this.pendingIntent = PendingIntent.getBroadcast(
                         App.context(),
                         itemList[i].id,
@@ -39,7 +40,6 @@ class ItemAlarmManager {
 
                 when (itemList[i].type) {
                     "Month" -> {
-                        Log.d(TAG, "Month")
                         val triggerTime = LocalDate.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("yyyy-M-d")
@@ -54,21 +54,21 @@ class ItemAlarmManager {
                     }
 
                     "Time" -> {
-                        Log.d(TAG, "Time")
+
                         val triggerTime = LocalTime.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("H:m")
                         ).minusHours(itemList[i].alarmRate.toLong())
-
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
-                        }
 
+                        }
                         alarmManager.setRepeating(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
-                            AlarmManager.INTERVAL_DAY,
+                            //AlarmManager.INTERVAL_DAY,
+                            1000 * 60,
                             pendingIntent
                         )
                     }

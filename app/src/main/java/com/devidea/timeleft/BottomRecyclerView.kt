@@ -73,7 +73,7 @@ constructor(  //array list
             3 -> viewHolder.binding.updateIs.text = "매일 시작시간이 되면 반복."
         }
 
-        Log.d("flag", items[position].alarmFlag.toString())
+        Log.d("Viewflag", items[position].alarmFlag.toString())
 
         when (items[position].alarmFlag) {
             0 -> viewHolder.binding.alarmIs.text = "알림 설정되지않음."
@@ -81,7 +81,7 @@ constructor(  //array list
             1 -> viewHolder.binding.alarmIs.text = items[position].alarmRate + "전 알림 설정됨."
 
             2 -> viewHolder.binding.alarmIs.text =
-                items[position].alarmRate + "전 알림 설정됨. 주말에는 알림없음."
+                items[position].alarmRate + "전 주말에도 알림."
         }
 
         with(viewHolder) {
