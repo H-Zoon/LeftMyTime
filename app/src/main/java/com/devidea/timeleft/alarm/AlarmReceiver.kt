@@ -67,6 +67,18 @@ class AlarmReceiver : BroadcastReceiver() {
 
                 notificationManager.notify(NOTIFICATION_ID, builder.build())
             }
+        }else{
+            val builder =
+                NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
+                    .setSmallIcon(R.drawable.ic_launcher_foreground)
+                    .setContentTitle("일정 종료 알림")
+                    .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
+                    .setContentIntent(contentPendingIntent)
+                    .setPriority(NotificationCompat.PRIORITY_HIGH)
+                    .setAutoCancel(true)
+                    .setDefaults(NotificationCompat.DEFAULT_ALL)
+
+            notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
 

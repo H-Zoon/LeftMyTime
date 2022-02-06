@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
@@ -132,8 +133,9 @@ class ItemGenerate : InterfaceItem {
                         LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(2).monthValue, updateRate).toString(),
                         itemInfo.id)
                 }
-
             }
+            ItemAlarmManager().alarmInit()
+
             itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)
             endDate = LocalDate.parse(itemInfo.endValue, formatter)

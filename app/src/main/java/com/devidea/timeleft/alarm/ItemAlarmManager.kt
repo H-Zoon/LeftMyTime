@@ -54,7 +54,6 @@ class ItemAlarmManager {
                     }
 
                     "Time" -> {
-
                         val triggerTime = LocalTime.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("H:m")
@@ -67,8 +66,7 @@ class ItemAlarmManager {
                         alarmManager.setRepeating(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
-                            //AlarmManager.INTERVAL_DAY,
-                            1000 * 60,
+                            AlarmManager.INTERVAL_DAY,
                             pendingIntent
                         )
                     }

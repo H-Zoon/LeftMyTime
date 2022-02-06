@@ -89,11 +89,11 @@ constructor(  //array list
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
-                    ItemAlarmManager().alarmDelete(items[position].id)
+                    ItemAlarmManager().alarmDelete(items[viewHolder.adapterPosition].id)
                     appDatabase.itemDao()
-                        .deleteItem(items[position].id)
+                        .deleteItem(items[viewHolder.adapterPosition].id)
                     appDatabase.itemDao().deleteCustomWidget(
-                        items[position].id
+                        items[viewHolder.adapterPosition].id
                     )
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                 }
