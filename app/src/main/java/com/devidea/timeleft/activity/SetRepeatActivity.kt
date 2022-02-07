@@ -45,15 +45,31 @@ class SetRepeatActivity : AppCompatActivity() {
         }
 
         binding.save.setOnClickListener {
-            val intent = Intent().apply {
-                putExtra("flag", flag)
-                when(flag){
-                    1 -> putExtra("value", binding.editText.text.toString().toInt())
-                    2 -> putExtra("value", binding.editText2.text.toString().toInt())
+            if (flag == 1 && binding.editText.length() > 0) {
+                val intent = Intent().apply {
+                    putExtra("flag", flag)
+                    putExtra("value", binding.editText.text.toString().toInt())
                 }
+                setResult(Activity.RESULT_OK, intent)
+                finish()
+            } else if (flag == 2 && binding.editText2.length() > 0) {
+                if (binding.editText2.text.toString().toInt() < 32) {
+                    val intent = Intent().apply {
+                        putExtra("flag", flag)
+                        putExtra("value", binding.editText2.text.toString().toInt())
+                    }
+
+                    setResult(Activity.RESULT_OK, intent)
+                    finish()
+                } else {
+                    Toast.makeText(this, "31보다 큰 값이 입력되었습니다.", Toast.LENGTH_SHORT).show()
+                }
+
+            } else {
+                Toast.makeText(this, "입력을 확인해주세요.", Toast.LENGTH_SHORT).show()
             }
-            setResult(Activity.RESULT_OK, intent)
-            finish()
+
+
         }
 
 

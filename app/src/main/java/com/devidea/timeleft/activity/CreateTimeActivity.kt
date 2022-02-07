@@ -14,6 +14,9 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.databinding.ActivityCreateTimeBinding
 import com.devidea.timeleft.databinding.ActivityMainBinding
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class CreateTimeActivity : AppCompatActivity() {
     lateinit var startTime: String
@@ -21,7 +24,6 @@ class CreateTimeActivity : AppCompatActivity() {
 
     var alarmFlag = 0
 
-    var flag = 0
     private lateinit var binding: ActivityCreateTimeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -55,7 +57,7 @@ class CreateTimeActivity : AppCompatActivity() {
 
     }
 
-    fun setStartTime (v: View){
+    fun setStartTime(v: View) {
         val timePickerDialog = TimePickerDialog(
             this, { timePicker, time, minute ->
                 startTime = "$time:$minute"
@@ -71,7 +73,7 @@ class CreateTimeActivity : AppCompatActivity() {
         timePickerDialog.show()
     }
 
-   fun setEndTime(v: View){
+    fun setEndTime(v: View) {
         val timePickerDialog = TimePickerDialog(
             this, { timePicker, time, minute ->
                 endTime = "$time:$minute"
@@ -87,13 +89,43 @@ class CreateTimeActivity : AppCompatActivity() {
     }
 
     //isInitialized is able instance variable, not a local variable.
-    fun save(v: View){
+    fun save(v: View) {
         if (::startTime.isInitialized && ::endTime.isInitialized && binding.inputSummery.length() > 0) {
-            Log.d("flag", flag.toString())
-            ItemSave().saveTimeItem(binding.inputSummery.text.toString(), startTime, endTime, alarmFlag, binding.editText.text.toString().toInt())
-            finish()
+            if (alarmFlag == 0) {
+                ItemSave().saveTimeItem(
+                    binding.inputSummery.text.toString(),
+                    startTime,
+                    endTime,
+                    0,
+                    0
+                )
+                finish()
+            } else {
+                if (binding.editText.length() > 0) {
+
+                    val start = LocalTime.parse(startTime, DateTimeFormatter.ofPattern("H:m"))
+                    val end = LocalTime.parse(endTime, DateTimeFormatter.ofPattern("H:m"))
+                    if (Duration.between(start, end).toHours() > binding.editText.text.toString()
+                            .toInt()
+                    ) {
+                        ItemSave().saveTimeItem(
+                            binding.inputSummery.text.toString(),
+                            startTime,
+                            endTime,
+                            alarmFlag,
+                            binding.editText.text.toString().toInt()
+                        )
+                        finish()
+                    } else {
+                        Toast.makeText(this, "알람시간이 설정시간보다 큽니다", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "알람시간을 입력해주세요", Toast.LENGTH_SHORT).show()
+                }
+            }
+
         } else {
-            Toast.makeText(this, "입력확인", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "입력을 확인해주세요", Toast.LENGTH_SHORT).show()
         }
     }
 

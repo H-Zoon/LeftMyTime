@@ -27,8 +27,6 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var notificationManager: NotificationManager
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Received intent : $intent")
-        Log.d("Received intent", intent.getIntExtra("id", 0).toString())
         notificationManager = context.getSystemService(
             Context.NOTIFICATION_SERVICE
         ) as NotificationManager
@@ -47,49 +45,37 @@ class AlarmReceiver : BroadcastReceiver() {
             context,
             NOTIFICATION_ID,
             contentIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        Log.d("Receiverflag", intent.getIntExtra("flag", 0).toString())
-        if (2 == intent.getIntExtra("flag", 0)) {
-            Log.d("weektest2", "ifin")
-            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7 ){
-                Log.d("weektest3", (LocalDate.now()).dayOfWeek.value.toString())
-                val builder =
-                    NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
-                        .setSmallIcon(R.drawable.ic_launcher_foreground)
-                        .setContentTitle("일정 종료 알림")
-                        .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
-                        .setContentIntent(contentPendingIntent)
-                        .setPriority(NotificationCompat.PRIORITY_HIGH)
-                        .setAutoCancel(true)
-                        .setDefaults(NotificationCompat.DEFAULT_ALL)
+        val builder =
+            NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_launcher_foreground)
+                .setContentTitle("일정 종료 알림")
+                .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
+                .setContentIntent(contentPendingIntent)
+                .setPriority(NotificationCompat.PRIORITY_HIGH)
+                .setAutoCancel(true)
+                .setDefaults(NotificationCompat.DEFAULT_ALL)
 
+
+        if (2 == intent.getIntExtra("flag", 0)) {
+            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
                 notificationManager.notify(NOTIFICATION_ID, builder.build())
             }
-        }else{
-            val builder =
-                NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
-                    .setSmallIcon(R.drawable.ic_launcher_foreground)
-                    .setContentTitle("일정 종료 알림")
-                    .setContentText("$title 의 설정한 알림입니다. 확인하려면 터치하세요")
-                    .setContentIntent(contentPendingIntent)
-                    .setPriority(NotificationCompat.PRIORITY_HIGH)
-                    .setAutoCancel(true)
-                    .setDefaults(NotificationCompat.DEFAULT_ALL)
-
+        } else {
             notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
 
-    fun createNotificationChannel() {
+    private fun createNotificationChannel() {
         val notificationChannel = NotificationChannel(
             PRIMARY_CHANNEL_ID,
-            "Stand up notification",
-            NotificationManager.IMPORTANCE_HIGH
+            "TimeLeft notification",
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         notificationChannel.enableLights(true)
-        //notificationChannel.lightColor = Color.RED
+        notificationChannel.lightColor = Color.RED
         notificationChannel.enableVibration(true)
         notificationChannel.description = "AlarmManager"
         notificationManager.createNotificationChannel(

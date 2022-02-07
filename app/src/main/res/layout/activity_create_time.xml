@@ -127,8 +127,7 @@
                 android:layout_height="wrap_content"
                 android:ems="3"
                 android:gravity="center"
-                android:inputType="number"
-                android:text="0"/>
+                android:inputType="number" />
 
             <TextView
                 android:layout_width="wrap_content"
