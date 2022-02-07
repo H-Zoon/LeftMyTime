@@ -7,10 +7,12 @@ import android.os.Bundle
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import android.app.*
+import android.content.Context
 import android.widget.*
 import androidx.lifecycle.ViewModelProvider
 import com.devidea.timeleft.*
 import com.devidea.timeleft.TopRecyclerView
+import com.devidea.timeleft.alarm.AlarmReceiver
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase

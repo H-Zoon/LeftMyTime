@@ -47,7 +47,7 @@ class AlarmReceiver : BroadcastReceiver() {
             context,
             NOTIFICATION_ID,
             contentIntent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_IMMUTABLE
         )
 
         Log.d("Receiverflag", intent.getIntExtra("flag", 0).toString())
@@ -82,18 +82,19 @@ class AlarmReceiver : BroadcastReceiver() {
         }
     }
 
-    private fun createNotificationChannel() {
+    fun createNotificationChannel() {
         val notificationChannel = NotificationChannel(
             PRIMARY_CHANNEL_ID,
             "Stand up notification",
             NotificationManager.IMPORTANCE_HIGH
         )
         notificationChannel.enableLights(true)
-        notificationChannel.lightColor = Color.RED
+        //notificationChannel.lightColor = Color.RED
         notificationChannel.enableVibration(true)
-        notificationChannel.description = "AlarmManager Tests"
+        notificationChannel.description = "AlarmManager"
         notificationManager.createNotificationChannel(
             notificationChannel
         )
     }
+
 }

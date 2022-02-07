@@ -19,11 +19,11 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ItemAlarmManager {
-    private val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
     val intent = Intent(App.context(), AlarmReceiver::class.java)
     private lateinit var pendingIntent: PendingIntent
 
     fun alarmInit() {
+        val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
             if ((itemList[i].alarmFlag != 0)) {
@@ -44,7 +44,8 @@ class ItemAlarmManager {
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("yyyy-M-d")
                         ).atStartOfDay().minusDays(itemList[i].alarmRate.toLong())
-
+                        Log.d("milli  M",  triggerTime.atZone(ZoneId.systemDefault())
+                            .toInstant().toEpochMilli().toString())
                         alarmManager.set(
                             AlarmManager.RTC_WAKEUP,
                             triggerTime.atZone(ZoneId.systemDefault())
@@ -61,14 +62,27 @@ class ItemAlarmManager {
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
-
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
                         }
-                        alarmManager.setRepeating(
-                            AlarmManager.RTC_WAKEUP,
+
+                        Log.d("Timeto",  triggerTime.hour.toString())
+                        Log.d("milli  T",  calendar.timeInMillis.toString())
+                        Log.d("milliyto",  System.currentTimeMillis().toString())
+
+                        alarmManager.setRepeating( AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
                             AlarmManager.INTERVAL_DAY,
+                            pendingIntent)
+
+                         /*
+                        alarmManager.setExactAndAllowWhileIdle(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.timeInMillis,
                             pendingIntent
                         )
+
+                         */
                     }
                 }
             }
@@ -92,6 +106,7 @@ class ItemAlarmManager {
     }
 
     fun alarmDelete(id: Int) {
+        val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
         Log.d(TAG, "delete call")
         val pendingIntent = PendingIntent.getBroadcast(
             App.context(),

@@ -2,6 +2,8 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     package="com.devidea.timeleft">
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED"/>
 
     <application
         android:name=".App"
@@ -41,7 +43,8 @@
         </receiver>
 
         <receiver android:name=".alarm.AlarmReceiver"
-            android:exported="false"/>
+            android:exported="false"
+            android:process =":remote" />
 
         <activity
             android:name=".widget.AppWidgetConfigure"
