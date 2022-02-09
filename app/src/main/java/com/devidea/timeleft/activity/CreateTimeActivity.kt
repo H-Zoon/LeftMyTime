@@ -105,8 +105,12 @@ class CreateTimeActivity : AppCompatActivity() {
 
                     val start = LocalTime.parse(startTime, DateTimeFormatter.ofPattern("H:m"))
                     val end = LocalTime.parse(endTime, DateTimeFormatter.ofPattern("H:m"))
-                    if (Duration.between(start, end).toHours() > binding.editText.text.toString()
-                            .toInt()
+                    Log.d(TAG, start.toString())
+                    Log.d(TAG, end.toString())
+                    Log.d(TAG, Duration.between(start, end).toMillis().toString())
+                    Log.d(TAG, (binding.editText.text.toString().toInt() * 1000 * 3600).toString())
+                    if (Duration.between(start, end).toMillis() > binding.editText.text.toString().toInt() * 1000 * 3600
+
                     ) {
                         ItemSave().saveTimeItem(
                             binding.inputSummery.text.toString(),
