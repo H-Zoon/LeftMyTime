@@ -6,14 +6,9 @@ import android.content.Context.ALARM_SERVICE
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import android.content.Intent
-import android.os.Build
-import android.os.SystemClock
 import android.util.Log
-import android.widget.Toast
 import com.devidea.timeleft.App
-import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -31,6 +26,7 @@ class ItemAlarmManager {
 
                 intent.putExtra("id", itemList[i].id)
                 intent.putExtra("flag", itemList[i].alarmFlag)
+                intent.action = "com.devidea.timeleft.alarm"
                 this.pendingIntent = PendingIntent.getBroadcast(
                     App.context(),
                     itemList[i].id,
@@ -44,10 +40,7 @@ class ItemAlarmManager {
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("yyyy-M-d")
                         ).atStartOfDay().minusDays(itemList[i].alarmRate.toLong())
-                        Log.d(
-                            "milli  M", triggerTime.atZone(ZoneId.systemDefault())
-                                .toInstant().toEpochMilli().toString()
-                        )
+
                         alarmManager.set(
                             AlarmManager.RTC_WAKEUP,
                             triggerTime.atZone(ZoneId.systemDefault())
@@ -61,21 +54,24 @@ class ItemAlarmManager {
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("H:m")
                         ).minusHours(itemList[i].alarmRate.toLong())
+
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
+
                         }
                         if (calendar.before(Calendar.getInstance())) {
                             calendar.add(Calendar.DATE, 1);
                         }
 
-                        alarmManager.setRepeating(
+                        intent.putExtra("type", "Time")
+                        intent.putExtra("timeInMillis", calendar.timeInMillis)
+
+                        alarmManager.setExactAndAllowWhileIdle(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
-                            AlarmManager.INTERVAL_DAY,
                             pendingIntent
                         )
-
                     }
                 }
             }

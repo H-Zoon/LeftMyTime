@@ -48,6 +48,8 @@ class MainActivity : AppCompatActivity() {
         initTopRecyclerView()
         initBottomRecyclerView()
 
+        ItemAlarmManager().alarmInit()
+
         binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
         viewModel.timeValue.observe(this, {

@@ -1,5 +1,6 @@
 package com.devidea.timeleft.alarm
 
+import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -27,16 +28,23 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var notificationManager: NotificationManager
 
     override fun onReceive(context: Context, intent: Intent) {
+
+        val action = intent.action
+        Log.d("onReceive", "onReceive() action = $action")
+
         notificationManager = context.getSystemService(
             Context.NOTIFICATION_SERVICE
         ) as NotificationManager
 
         createNotificationChannel()
         deliverNotification(context, intent)
-
     }
 
     private fun deliverNotification(context: Context, intent: Intent) {
+
+        val action = intent.action
+        Log.d("deliverNotification", "onReceive() action = $action")
+
         val NOTIFICATION_ID = intent.getIntExtra("id", 0)
         val title =
             AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(NOTIFICATION_ID).summery
@@ -58,15 +66,36 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
 
-
-        if (2 == intent.getIntExtra("flag", 0)) {
-            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
-                notificationManager.notify(NOTIFICATION_ID, builder.build())
+        if ("Time" == intent.getStringExtra("Type")) {
+            if (2 == intent.getIntExtra("flag", 0)) {
+                if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
+                    notificationManager.notify(NOTIFICATION_ID, builder.build())
+                }
             }
+            Foo(intent)
         } else {
             notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
+
+    private fun Foo(intent: Intent) {
+        val day : Long = 86400000
+        val setDay : Long = intent.getStringExtra("timeInMillis")!!.toLong()
+        val pendingIntent = PendingIntent.getBroadcast(
+            App.context(),
+            intent.getIntExtra("id", 0),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = App.context().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            setDay + day,
+            pendingIntent
+        )
+    }
+
 
     private fun createNotificationChannel() {
         val notificationChannel = NotificationChannel(

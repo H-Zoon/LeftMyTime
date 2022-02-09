@@ -106,20 +106,17 @@ class CreateDayActivity : AppCompatActivity() {
 
                 1 -> {
                     if (binding.editText.length() > 0) {
-                        if (updateRate > binding.editText.toString().toInt()) {
-                            ItemSave().saveMonthItem(
-                                binding.inputSummery.text.toString(),
-                                startDay,
-                                endDay,
-                                updateFlag,
-                                updateRate,
-                                alarmFlag,
-                                binding.editText.toString().toInt()
-                            )
-                            finish()
-                        }
-                    } else {
-                        Toast.makeText(this, "알람시간이 설정시간보다 큽니다", Toast.LENGTH_SHORT).show()
+
+                        ItemSave().saveMonthItem(
+                            binding.inputSummery.text.toString(),
+                            startDay,
+                            endDay,
+                            updateFlag,
+                            updateRate,
+                            alarmFlag,
+                            binding.editText.text.toString().toInt()
+                        )
+                        finish()
                     }
                 }
             }
