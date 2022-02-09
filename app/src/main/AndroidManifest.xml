@@ -16,6 +16,9 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
         <activity
+            android:name=".activity.SettingActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.SetRepeatActivity"
             android:exported="false" />
         <activity android:name=".activity.CreateTimeActivity" />
@@ -42,7 +45,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info" />
         </receiver>
-
         <receiver
             android:name=".alarm.AlarmReceiver"
             android:exported="false"

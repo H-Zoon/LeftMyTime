@@ -8,13 +8,12 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.devidea.timeleft.App
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.activity.MainActivity.Companion.prefs
 import com.devidea.timeleft.datadase.AppDatabase
 import java.time.LocalDate
 
@@ -36,9 +35,12 @@ class AlarmReceiver : BroadcastReceiver() {
             Context.NOTIFICATION_SERVICE
         ) as NotificationManager
 
-        createNotificationChannel()
-        deliverNotification(context, intent)
+        if (!prefs.getBoolean("pause", false)) {
+            createNotificationChannel()
+            deliverNotification(context, intent)
+        }
     }
+
 
     private fun deliverNotification(context: Context, intent: Intent) {
 
@@ -79,8 +81,8 @@ class AlarmReceiver : BroadcastReceiver() {
     }
 
     private fun Foo(intent: Intent) {
-        val day : Long = 86400000
-        val setDay : Long = intent.getStringExtra("timeInMillis")!!.toLong()
+        val day: Long = 86400000
+        val setDay: Long = intent.getStringExtra("timeInMillis")!!.toLong()
         val pendingIntent = PendingIntent.getBroadcast(
             App.context(),
             intent.getIntExtra("id", 0),
