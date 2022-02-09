@@ -8,8 +8,12 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
 import android.app.*
 import android.content.Context
+import android.content.SharedPreferences
 import android.widget.*
+import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
+import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.PreferenceManager
 import com.devidea.timeleft.*
 import com.devidea.timeleft.TopRecyclerView
 import com.devidea.timeleft.alarm.AlarmReceiver
@@ -33,6 +37,7 @@ class MainActivity : AppCompatActivity() {
 
     companion object {
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
+        val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.context())
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -48,7 +53,16 @@ class MainActivity : AppCompatActivity() {
         initTopRecyclerView()
         initBottomRecyclerView()
 
-        ItemAlarmManager().alarmInit()
+
+        if (prefs.getString("theme", "") != "") {
+            when (prefs.getString("theme", "")) {
+                "밝게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+
+                "어둡게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+
+                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            }
+        }
 
         binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
@@ -79,6 +93,11 @@ class MainActivity : AppCompatActivity() {
                     }
                 }
                 .create().show()
+        }
+
+        binding.setting.setOnClickListener {
+            val intent = Intent(application, SettingActivity::class.java)
+            startActivity(intent)
         }
 
     }

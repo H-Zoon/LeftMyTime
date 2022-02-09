@@ -104,6 +104,15 @@
                 android:layout_marginEnd="10dp"
                 android:background="@drawable/outline_add_black_48" />
 
+            <Button
+                android:id="@+id/setting"
+                style="@style/Style.Color.Button"
+                android:layout_width="40dp"
+                android:layout_height="40dp"
+                android:layout_marginTop="20dp"
+                android:layout_marginEnd="10dp"
+                android:background="@drawable/outline_add_black_48" />
+
             <FrameLayout
                 android:layout_width="match_parent"
                 android:layout_height="match_parent">

@@ -68,10 +68,6 @@ class SetRepeatActivity : AppCompatActivity() {
             } else {
                 Toast.makeText(this, "입력을 확인해주세요.", Toast.LENGTH_SHORT).show()
             }
-
-
         }
-
-
     }
 }

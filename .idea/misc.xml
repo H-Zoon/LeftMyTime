@@ -20,10 +20,15 @@
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_main.xml" value="0.20208333333333334" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_repeat_set.xml" value="0.3619791666666667" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_set_repeat.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/activity_setting.xml" value="0.17291666666666666" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/app_widget.xml" value="0.20208333333333334" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/appwidget_configure.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/fragment_blank.xml" value="0.203125" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/fragment_description.xml" value="0.18125" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_bottom.xml" value="0.20208333333333334" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_top.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/xml/nested_setting_preference.xml" value="0.203125" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/xml/settings_preference.xml" value="0.1875" />
       </map>
     </option>
   </component>
