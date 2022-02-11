@@ -8,6 +8,7 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import android.content.Intent
 import android.util.Log
 import com.devidea.timeleft.App
+import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -55,6 +56,8 @@ class ItemAlarmManager {
                             DateTimeFormatter.ofPattern("H:m")
                         ).minusHours(itemList[i].alarmRate.toLong())
 
+                        Log.d(TAG,triggerTime.hour.toString())
+
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
@@ -63,13 +66,24 @@ class ItemAlarmManager {
                         if (calendar.before(Calendar.getInstance())) {
                             calendar.add(Calendar.DATE, 1);
                         }
+                        /*
 
                         intent.putExtra("type", "Time")
                         intent.putExtra("timeInMillis", calendar.timeInMillis)
 
+                         */
+
+                        /*
                         alarmManager.setExactAndAllowWhileIdle(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
+                            pendingIntent
+                        )
+                         */
+                        alarmManager.setRepeating(
+                            AlarmManager.RTC_WAKEUP,
+                            calendar.timeInMillis,
+                            AlarmManager.INTERVAL_DAY,
                             pendingIntent
                         )
                     }

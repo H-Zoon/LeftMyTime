@@ -74,11 +74,12 @@ class AlarmReceiver : BroadcastReceiver() {
                     notificationManager.notify(NOTIFICATION_ID, builder.build())
                 }
             }
-            Foo(intent)
+
         } else {
             notificationManager.notify(NOTIFICATION_ID, builder.build())
         }
     }
+    /*
 
     private fun Foo(intent: Intent) {
         val day: Long = 86400000
@@ -98,6 +99,7 @@ class AlarmReceiver : BroadcastReceiver() {
         )
     }
 
+     */
 
     private fun createNotificationChannel() {
         val notificationChannel = NotificationChannel(

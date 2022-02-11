@@ -3,7 +3,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.devidea.timeleft">
 
-    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
 
     <application
@@ -35,10 +35,9 @@
 
         <receiver
             android:name=".alarm.AlarmReceiver"
-            android:exported="false"
-            android:process=":remote">
+            android:exported="false">
             <intent-filter>
-                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="com.devidea.timeleft.alarm" />
             </intent-filter>
         </receiver>
 
@@ -47,7 +46,7 @@
             android:exported="false"
             android:label="기본위젯">
             <intent-filter>
-                <action android:name="com.devidea.timeleft.alarm" />
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
 
             <meta-data

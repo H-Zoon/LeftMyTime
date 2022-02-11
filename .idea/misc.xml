@@ -9,6 +9,8 @@
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/circle_inner.xml" value="0.21822916666666667" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/circle_outer.xml" value="0.2109375" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/gray_indicator.xml" value="0.2109375" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/ic_baseline_add_24.xml" value="0.2085" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/ic_baseline_settings_24.xml" value="0.2085" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line.xml" value="0.2109375" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line_stroke.xml" value="0.378125" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/line_widget.xml" value="0.2109375" />
@@ -27,6 +29,8 @@
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/fragment_description.xml" value="0.18125" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_bottom.xml" value="0.20208333333333334" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_top.xml" value="0.20208333333333334" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/mipmap-anydpi-v26/ic_launcher.xml" value="0.1945" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.1945" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/xml/nested_setting_preference.xml" value="0.203125" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/xml/settings_preference.xml" value="0.1875" />
       </map>

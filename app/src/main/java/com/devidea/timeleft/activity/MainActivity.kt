@@ -1,23 +1,21 @@
 package com.devidea.timeleft.activity
 
-import android.content.Intent
-import androidx.appcompat.app.AppCompatActivity
-import androidx.recyclerview.widget.RecyclerView
-import android.os.Bundle
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
 import android.app.*
-import android.content.Context
-import android.content.SharedPreferences
+import android.content.*
+import android.net.Uri
+import android.os.Build
+import android.os.Bundle
+import android.os.PowerManager
+import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import android.widget.*
+import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
-import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
+import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.PagerSnapHelper
+import androidx.recyclerview.widget.RecyclerView
 import com.devidea.timeleft.*
-import com.devidea.timeleft.TopRecyclerView
-import com.devidea.timeleft.alarm.AlarmReceiver
-import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -26,7 +24,7 @@ import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
 import kotlinx.coroutines.*
 import java.time.LocalDateTime.*
 import java.time.format.DateTimeFormatter
-import java.util.ArrayList
+
 
 class MainActivity : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem>()
@@ -58,10 +56,6 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        initTopRecyclerView()
-        initBottomRecyclerView()
-
-
         if (prefs.getString("theme", "") != "") {
             when (prefs.getString("theme", "")) {
                 "밝게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
@@ -71,6 +65,32 @@ class MainActivity : AppCompatActivity() {
                 else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
             }
         }
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
+            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+            val packageName = packageName
+            if (!powerManager.isIgnoringBatteryOptimizations(packageName) && 0 == prefs.getInt("POWER_SERVICE", 0)) {
+                AlertDialog.Builder(this)
+                    .setTitle("더 정확한 알림과 위젯활용")
+                    .setMessage("TimeLeft의 알람 기능과 위젯 업데이트를 위해 배터리 최적화를 해제하여야 합니다.")
+                    .setPositiveButton("확인") { _, _ ->
+                        val intent = Intent()
+                        intent.action = ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+                        intent.data = Uri.parse("package:$packageName")
+                        startActivity(intent)
+                    }
+                    .setNegativeButton("다시보지않음") { _, _ ->
+                        with(prefs.edit()) {
+                            putInt("POWER_SERVICE", 1)
+                            apply()
+                        }
+                    }
+                    .create().show()
+            }
+        }
+
+        initTopRecyclerView()
+        initBottomRecyclerView()
 
         binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
