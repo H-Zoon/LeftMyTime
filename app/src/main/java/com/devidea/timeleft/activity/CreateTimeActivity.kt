@@ -11,6 +11,9 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_ABLE
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_FOR_WEEKEND
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_UNABLE
 import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.databinding.ActivityCreateTimeBinding
 import com.devidea.timeleft.databinding.ActivityMainBinding
@@ -22,7 +25,7 @@ class CreateTimeActivity : AppCompatActivity() {
     lateinit var startTime: String
     lateinit var endTime: String
 
-    var alarmFlag = 0
+    var alarmFlag = ALARM_FLAG_UNABLE
 
     private lateinit var binding: ActivityCreateTimeBinding
 
@@ -33,25 +36,24 @@ class CreateTimeActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_time)
         binding.activity = this
 
-        binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
+        binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked) {
-                binding.inputLayout1.visibility = View.VISIBLE
-                binding.switch2.visibility = View.VISIBLE
-                alarmFlag = 1
+                binding.alarmRateDateLayout.visibility = View.VISIBLE
+                binding.alarmWeekendSwitch.visibility = View.VISIBLE
+                alarmFlag = ALARM_FLAG_ABLE
             } else {
-                binding.inputLayout1.visibility = View.GONE
-                binding.switch2.visibility = View.GONE
-                alarmFlag = 0
+                binding.alarmRateDateLayout.visibility = View.GONE
+                binding.alarmWeekendSwitch.visibility = View.GONE
+                alarmFlag = ALARM_FLAG_UNABLE
             }
         }
 
-        binding.switch2.setOnCheckedChangeListener { compoundButton, b ->
+        binding.alarmWeekendSwitch.setOnCheckedChangeListener { compoundButton, b ->
             alarmFlag = if (compoundButton.isChecked) {
-                Log.d(TAG, "1")
-                2
+                ALARM_FLAG_FOR_WEEKEND
             } else {
                 Log.d(TAG, "0")
-                1
+                ALARM_FLAG_ABLE
             }
         }
 
@@ -96,20 +98,20 @@ class CreateTimeActivity : AppCompatActivity() {
                     binding.inputSummery.text.toString(),
                     startTime,
                     endTime,
-                    0,
+                    ALARM_FLAG_UNABLE,
                     0
                 )
                 finish()
             } else {
-                if (binding.editText.length() > 0) {
+                if (binding.alarmRateDateEditText.length() > 0) {
 
                     val start = LocalTime.parse(startTime, DateTimeFormatter.ofPattern("H:m"))
                     val end = LocalTime.parse(endTime, DateTimeFormatter.ofPattern("H:m"))
                     Log.d(TAG, start.toString())
                     Log.d(TAG, end.toString())
                     Log.d(TAG, Duration.between(start, end).toMillis().toString())
-                    Log.d(TAG, (binding.editText.text.toString().toInt() * 1000 * 3600).toString())
-                    if (Duration.between(start, end).toMillis() > binding.editText.text.toString().toInt() * 1000 * 3600
+                    Log.d(TAG, (binding.alarmRateDateEditText.text.toString().toInt() * 1000 * 3600).toString())
+                    if (Duration.between(start, end).toMillis() > binding.alarmRateDateEditText.text.toString().toInt() * 1000 * 3600
 
                     ) {
                         ItemSave().saveTimeItem(
@@ -117,7 +119,7 @@ class CreateTimeActivity : AppCompatActivity() {
                             startTime,
                             endTime,
                             alarmFlag,
-                            binding.editText.text.toString().toInt()
+                            binding.alarmRateDateEditText.text.toString().toInt()
                         )
                         finish()
                     } else {

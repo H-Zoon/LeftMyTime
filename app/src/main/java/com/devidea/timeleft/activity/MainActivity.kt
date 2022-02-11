@@ -38,6 +38,14 @@ class MainActivity : AppCompatActivity() {
     companion object {
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
         val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.context())
+        const val UPDATE_FLAG_UNABLE = 0
+        const val UPDATE_FLAG_FOR_DAY = 1
+        const val UPDATE_FLAG_FOR_MONTH = 2
+        const val UPDATE_FLAG_FOR_TIME = 3
+
+        const val ALARM_FLAG_UNABLE = 0
+        const val ALARM_FLAG_ABLE = 1
+        const val ALARM_FLAG_FOR_WEEKEND = 2
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -66,9 +74,9 @@ class MainActivity : AppCompatActivity() {
 
         binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
 
-        viewModel.timeValue.observe(this, {
+        viewModel.timeValue.observe(this) {
             binding.time.text = it.toString()
-        })
+        }
 
         binding.timeAdd.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)
@@ -121,9 +129,9 @@ class MainActivity : AppCompatActivity() {
         binding.indicator.attachToRecyclerView(binding.recyclerview, pagerSnapHelper)
         topItemAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
 
-        viewModel.recyclerViewValue.observe(this, {
+        viewModel.recyclerViewValue.observe(this) {
             topItemAdapter.notifyItemChanged(0, it)
-        })
+        }
 
     }
 

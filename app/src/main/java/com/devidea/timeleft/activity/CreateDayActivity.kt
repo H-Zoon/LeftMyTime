@@ -11,6 +11,11 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_ABLE
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_UNABLE
+import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_DAY
+import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_MONTH
+import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_UNABLE
 import com.devidea.timeleft.databinding.ActivityCreateDayBinding
 import java.time.LocalDate
 
@@ -19,9 +24,9 @@ class CreateDayActivity : AppCompatActivity() {
 
     lateinit var startDay: String
     lateinit var endDay: String
-    var updateFlag = 0
+    var updateFlag = UPDATE_FLAG_UNABLE
     var updateRate = 0
-    var alarmFlag = 0
+    var alarmFlag = ALARM_FLAG_UNABLE
 
     private lateinit var binding: ActivityCreateDayBinding
 
@@ -31,13 +36,13 @@ class CreateDayActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_day)
         binding.activity = this
 
-        binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
+        binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked) {
-                binding.inputLayout1.visibility = View.VISIBLE
-                alarmFlag = 1
+                binding.alarmRateDateLayout.visibility = View.VISIBLE
+                alarmFlag = ALARM_FLAG_ABLE
             } else {
-                binding.inputLayout1.visibility = View.GONE
-                alarmFlag = 0
+                binding.alarmRateDateLayout.visibility = View.GONE
+                alarmFlag = ALARM_FLAG_UNABLE
             }
         }
 
@@ -50,9 +55,9 @@ class CreateDayActivity : AppCompatActivity() {
                     updateFlag = it.getIntExtra("flag", 0)
                     updateRate = it.getIntExtra("value", 0)
                     when (updateFlag) {
-                        0 -> binding.inputUpdateRate.setText("반복없음")
-                        1 -> binding.inputUpdateRate.setText("이후 $updateRate 일마다 반복")
-                        2 -> binding.inputUpdateRate.setText("매달 $updateRate 일에 반복")
+                        UPDATE_FLAG_UNABLE -> binding.inputUpdateRate.setText("반복없음")
+                        UPDATE_FLAG_FOR_DAY -> binding.inputUpdateRate.setText("이후 $updateRate 일마다 반복")
+                        UPDATE_FLAG_FOR_MONTH -> binding.inputUpdateRate.setText("매달 $updateRate 일에 반복")
                     }
                 }
             }
@@ -98,14 +103,14 @@ class CreateDayActivity : AppCompatActivity() {
                         endDay,
                         updateFlag,
                         updateRate,
-                        0,
+                        ALARM_FLAG_UNABLE,
                         0
                     )
                     finish()
                 }
 
                 1 -> {
-                    if (binding.editText.length() > 0) {
+                    if (binding.alarmRateDateEditText.length() > 0) {
 
                         ItemSave().saveMonthItem(
                             binding.inputSummery.text.toString(),
@@ -114,7 +119,7 @@ class CreateDayActivity : AppCompatActivity() {
                             updateFlag,
                             updateRate,
                             alarmFlag,
-                            binding.editText.text.toString().toInt()
+                            binding.alarmRateDateEditText.text.toString().toInt()
                         )
                         finish()
                     }
