@@ -16,10 +16,16 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.datadase.itemdata.WidgetEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.ArrayList
+
 
 class AppWidgetConfigure : Activity() {
     private val appDatabase = AppDatabase.getDatabase(App.context())
+
+    lateinit var itemEntity: List<ItemEntity>
 
     var value: String = "0"
     var AppWidgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -28,6 +34,9 @@ class AppWidgetConfigure : Activity() {
     var isFirstSelected: Boolean = false
     public override fun onCreate(icicle: Bundle?) {
         super.onCreate(icicle)
+        CoroutineScope(Dispatchers.IO).launch {
+            itemEntity = appDatabase.itemDao().item
+        }
 
         //setResult = canceled 설정. 최종 summit 전 뒤로가기시 widget 취소
         setResult(RESULT_CANCELED)
@@ -204,8 +213,7 @@ class AppWidgetConfigure : Activity() {
         summitButton.setOnClickListener(mOnClickListener)
         spinner.isEnabled = false
         val itemName: ArrayList<String?> = ArrayList()
-        val itemEntity: List<ItemEntity?> =
-            appDatabase.itemDao().item
+
         for (i in appDatabase.itemDao().item.indices) {
             itemName.add(
                 appDatabase.itemDao().item[i].summery
