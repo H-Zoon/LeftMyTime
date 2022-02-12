@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
 
     private lateinit var binding: ActivityMainBinding //activity_main.xml
     private lateinit var viewModel: TimeLeftViewModel
+    private lateinit var bottomItemAdapter: BottomRecyclerView
 
     companion object {
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
@@ -66,10 +67,17 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-            val packageName = packageName
-            if (!powerManager.isIgnoringBatteryOptimizations(packageName) && 0 == prefs.getInt("POWER_SERVICE", 0)) {
+
+        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
+        val packageName = packageName
+
+        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
+            with(prefs.edit()) {
+                putBoolean("power_service", false)
+                apply()
+            }
+
+            if (0 == prefs.getInt("POWER_SERVICE_NO_SHOW", 0)) {
                 AlertDialog.Builder(this)
                     .setTitle("더 정확한 알림과 위젯활용")
                     .setMessage("TimeLeft의 알람 기능과 위젯 업데이트를 위해 배터리 최적화를 해제하여야 합니다.")
@@ -81,13 +89,19 @@ class MainActivity : AppCompatActivity() {
                     }
                     .setNegativeButton("다시보지않음") { _, _ ->
                         with(prefs.edit()) {
-                            putInt("POWER_SERVICE", 1)
+                            putInt("POWER_SERVICE_NO_SHOW", 1)
                             apply()
                         }
                     }
                     .create().show()
             }
+        } else {
+            with(prefs.edit()) {
+                putBoolean("power_service", true)
+                apply()
+            }
         }
+
 
         initTopRecyclerView()
         initBottomRecyclerView()
@@ -128,6 +142,32 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
+
+        CoroutineScope(Dispatchers.IO).launch {
+            while (true) {
+                val itemListArray = ArrayList<AdapterItem>()
+
+                val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
+                for (i in itemList.indices) {
+                    if ((itemList[i].type == "Time")) {
+                        itemListArray.add(
+                            ITEM_GENERATE.customTimeItem(
+                                itemList[i]
+                            )
+                        )
+                    } else {
+                        itemListArray.add(
+                            ITEM_GENERATE.customMonthItem(
+                                itemList[i]
+                            )
+                        )
+                    }
+                }
+                CoroutineScope(Dispatchers.Main).launch {
+                    bottomItemAdapter.updateList(itemListArray)
+                    delay(1000) }
+            }
+        }
     }
 
     private fun initTopRecyclerView() {
@@ -161,15 +201,9 @@ class MainActivity : AppCompatActivity() {
             RecyclerView.VERTICAL,
             false
         )
-        val bottomItemAdapter = BottomRecyclerView(refreshItem())
+        bottomItemAdapter = BottomRecyclerView(ArrayList())
         binding.recyclerview2.adapter = bottomItemAdapter
 
-        CoroutineScope(Dispatchers.Main).launch {
-            while (true) {
-                bottomItemAdapter.updateList(refreshItem())
-                delay(1000)
-            }
-        }
     }
 
     override fun onBackPressed() {
@@ -186,27 +220,12 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    /*
     private fun refreshItem(): ArrayList<AdapterItem> {
-        val itemListArray = ArrayList<AdapterItem>()
-
-        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
-        for (i in itemList.indices) {
-            if ((itemList[i].type == "Time")) {
-                itemListArray.add(
-                    ITEM_GENERATE.customTimeItem(
-                        itemList[i]
-                    )
-                )
-            } else {
-                itemListArray.add(
-                    ITEM_GENERATE.customMonthItem(
-                        itemList[i]
-                    )
-                )
-            }
-        }
 
         return itemListArray
     }
+
+     */
 
 }

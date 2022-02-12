@@ -17,7 +17,11 @@ import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.databinding.ItemRecyclerviewBottomBinding
 import com.devidea.timeleft.datadase.AppDatabase
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import java.util.*
+
 /**
 이 BottomRecyclerView 는 ViewBinding 을 통해 작성되었습니다.
  */
@@ -89,12 +93,7 @@ constructor(  //array list
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
-                    ItemAlarmManager().alarmDelete(items[viewHolder.adapterPosition].id)
-                    appDatabase.itemDao()
-                        .deleteItem(items[viewHolder.adapterPosition].id)
-                    appDatabase.itemDao().deleteCustomWidget(
-                        items[viewHolder.adapterPosition].id
-                    )
+                    delete(items[viewHolder.adapterPosition].id)
                     Toast.makeText(App.context(), "삭제되었습니다.", Toast.LENGTH_LONG).show()
                 }
                 builder.setNegativeButton("Cancel") { dialog, id -> }
@@ -193,5 +192,14 @@ constructor(  //array list
         // 직전에 클릭됐던 Item의 position
         private var prePosition: Int = -1
 
+    }
+
+    private fun delete(id: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            ItemAlarmManager().alarmDelete(id)
+            appDatabase.itemDao()
+                .deleteItem(id)
+            appDatabase.itemDao().deleteCustomWidget(id)
+        }
     }
 }

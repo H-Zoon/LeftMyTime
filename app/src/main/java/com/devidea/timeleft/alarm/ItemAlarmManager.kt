@@ -61,11 +61,15 @@ class ItemAlarmManager {
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
-
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
                         }
+                        /*
                         if (calendar.before(Calendar.getInstance())) {
                             calendar.add(Calendar.DATE, 1);
                         }
+
+                         */
                         /*
 
                         intent.putExtra("type", "Time")
