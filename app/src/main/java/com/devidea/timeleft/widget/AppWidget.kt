@@ -22,7 +22,6 @@ import kotlinx.coroutines.launch
 class AppWidget : AppWidgetProvider() {
 
     private val appDatabase = AppDatabase.getDatabase(App.context())
-    private val appWidgetIds: IntArray? = appDatabase.itemDao().get()
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
@@ -30,8 +29,11 @@ class AppWidget : AppWidgetProvider() {
         Log.d("widget", "onReceive() action = $action")
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
 
-            if (appWidgetIds != null) {
-                onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
+            CoroutineScope(Dispatchers.IO).launch {
+                val appWidgetIds: IntArray? = appDatabase.itemDao().get()
+                if (appWidgetIds != null && appWidgetIds.isNotEmpty()) {
+                    onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
+                }
             }
         }
     }
@@ -81,7 +83,7 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        appDatabase.itemDao().delete(appWidgetIds[0])
+        CoroutineScope(Dispatchers.IO).launch { appDatabase.itemDao().delete(appWidgetIds[0]) }
         Log.d("widget", "onDeleted done")
     }
 
@@ -91,7 +93,12 @@ class AppWidget : AppWidgetProvider() {
         appWidgetId: Int
     ) {
 
-        val type = appDatabase.itemDao().getType(appWidgetId)
+        var type = ""
+
+        CoroutineScope(Dispatchers.IO).launch {
+            type = appDatabase.itemDao().getType(appWidgetId)!!
+        }
+
         val views = RemoteViews(context.packageName, R.layout.app_widget)
         val updateIntent = Intent(context, AppWidget::class.java)
         updateIntent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
@@ -108,79 +115,80 @@ class AppWidget : AppWidgetProvider() {
             PendingIntent.FLAG_IMMUTABLE
         )
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
+        when (type) {
+            "embedYear" -> {
+                val year = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    year.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    year.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    year.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
+            "embedMonth" -> {
+                val month = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    month.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    month.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    month.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
+            "embedTime" -> {
+                val time = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    time.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    time.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    time.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
+            else -> {
+                //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
 
-        if (type != null) {
-            when (type) {
-                "embedYear" -> {
-                    val year = MainActivity.ITEM_GENERATE.yearItem()
-                    views.setTextViewText(
-                        R.id.summery,
-                        year.summery
+                CoroutineScope(Dispatchers.IO).launch {
+                    val itemEntity = appDatabase.itemDao().getSelectItem(
+                        appDatabase.itemDao()
+                            .getTypeID(appWidgetId)
                     )
-                    views.setTextViewText(
-                        R.id.percent,
-                        year.percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                        100,
-                        year.percentString
-                        !!.toFloat().toInt(),
-                        false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                "embedMonth" -> {
-                    val month = MainActivity.ITEM_GENERATE.yearItem()
-                    views.setTextViewText(
-                        R.id.summery,
-                        month.summery
-                    )
-                    views.setTextViewText(
-                        R.id.percent,
-                        month.percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                        100,
-                        month.percentString
-                        !!.toFloat().toInt(),
-                        false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                "embedTime" -> {
-                    val time = MainActivity.ITEM_GENERATE.yearItem()
-                    views.setTextViewText(
-                        R.id.summery,
-                        time.summery
-                    )
-                    views.setTextViewText(
-                        R.id.percent,
-                        time.percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                        100,
-                        time.percentString
-                        !!.toFloat().toInt(),
-                        false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                else -> {
-                    //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
-                    CoroutineScope(Dispatchers.IO).launch {  }
-                    val itemEntity: ItemEntity =
-                        appDatabase.itemDao().getSelectItem(
-                            appDatabase.itemDao()
-                                .getTypeID(appWidgetId)
-                        )
+
+
                     val adapterItem = if (type == "Time") {
                         MainActivity.ITEM_GENERATE.customTimeItem(itemEntity)
                     } else {
                         MainActivity.ITEM_GENERATE.customMonthItem(itemEntity)
                     }
+
                     views.setTextViewText(R.id.summery, adapterItem.summery)
                     views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
                     views.setProgressBar(
@@ -192,11 +200,11 @@ class AppWidget : AppWidgetProvider() {
 
                     appWidgetManager.updateAppWidget(appWidgetId, views)
                 }
-
             }
         }
-        //Log.d("widget", type + "update done")
     }
 
-
+    //Log.d("widget", type + "update done")
 }
+
+

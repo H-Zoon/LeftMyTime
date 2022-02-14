@@ -1,6 +1,5 @@
 package com.devidea.timeleft.alarm
 
-import android.app.AlarmManager
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
@@ -48,8 +47,7 @@ class AlarmReceiver : BroadcastReceiver() {
         Log.d("deliverNotification", "onReceive() action = $action")
 
         val NOTIFICATION_ID = intent.getIntExtra("id", 0)
-        val title =
-            AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(NOTIFICATION_ID).summery
+        val title = intent.getStringExtra("title")
         val contentIntent = Intent(context, MainActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(
             context,
@@ -68,13 +66,10 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
 
-        if ("Time" == intent.getStringExtra("Type")) {
-            if (2 == intent.getIntExtra("flag", 0)) {
-                if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
-                    notificationManager.notify(NOTIFICATION_ID, builder.build())
-                }
+        if (2 == intent.getIntExtra("flag", 0)) {
+            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
+                notificationManager.notify(NOTIFICATION_ID, builder.build())
             }
-
         } else {
             notificationManager.notify(NOTIFICATION_ID, builder.build())
         }

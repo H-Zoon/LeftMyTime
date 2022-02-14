@@ -77,7 +77,8 @@ class AppWidgetConfigure : Activity() {
                 )
                 views.setOnClickPendingIntent(R.id.refrash, pendingIntent)
                 val appIntent = Intent(context, MainActivity::class.java)
-                val pe: PendingIntent = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
+                val pe: PendingIntent =
+                    PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
                 views.setOnClickPendingIntent(R.id.percent, pe)
                 when (value) {
                     "embedYear" -> {
@@ -92,7 +93,7 @@ class AppWidgetConfigure : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.ITEM_GENERATE.yearItem().percentString!!.toFloat().toInt(),
+                            MainActivity.ITEM_GENERATE.yearItem().percentString!!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -113,8 +114,8 @@ class AppWidgetConfigure : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.ITEM_GENERATE.monthItem().percentString
-                                !!.toFloat().toInt(),
+                            MainActivity.ITEM_GENERATE.monthItem().percentString
+                            !!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -134,8 +135,8 @@ class AppWidgetConfigure : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                MainActivity.ITEM_GENERATE.timeItem().percentString
-                                !!.toFloat().toInt(),
+                            MainActivity.ITEM_GENERATE.timeItem().percentString
+                            !!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -165,7 +166,7 @@ class AppWidgetConfigure : Activity() {
                         views.setProgressBar(
                             R.id.progress,
                             100,
-                                adapterItem.percentString!!.toFloat().toInt(),
+                            adapterItem.percentString!!.toFloat().toInt(),
                             false
                         )
                         appWidgetManager.updateAppWidget(AppWidgetId, views)
@@ -185,23 +186,23 @@ class AppWidgetConfigure : Activity() {
             }
         }
         val radioGroupButtonChangeListener: RadioGroup.OnCheckedChangeListener =
-                RadioGroup.OnCheckedChangeListener { _, checkedId ->
-                    val preView: TextView = findViewById(R.id.summery_preview)
-                    when (checkedId) {
-                        R.id.yearButton -> {
-                            preView.text = MainActivity.ITEM_GENERATE.yearItem().summery
-                            value = "embedYear"
-                        }
-                        R.id.monthButton -> {
-                            preView.text = MainActivity.ITEM_GENERATE.monthItem().summery
-                            value = "embedMonth"
-                        }
-                        R.id.timeButton -> {
-                            preView.text = MainActivity.ITEM_GENERATE.timeItem().summery
-                            value = "embedTime"
-                        }
+            RadioGroup.OnCheckedChangeListener { _, checkedId ->
+                val preView: TextView = findViewById(R.id.summery_preview)
+                when (checkedId) {
+                    R.id.yearButton -> {
+                        preView.text = MainActivity.ITEM_GENERATE.yearItem().summery
+                        value = "embedYear"
+                    }
+                    R.id.monthButton -> {
+                        preView.text = MainActivity.ITEM_GENERATE.monthItem().summery
+                        value = "embedMonth"
+                    }
+                    R.id.timeButton -> {
+                        preView.text = MainActivity.ITEM_GENERATE.timeItem().summery
+                        value = "embedTime"
                     }
                 }
+            }
 
         val summitButton: Button = findViewById(R.id.summit_button)
         val spinner: Spinner = findViewById(R.id.spinner)
@@ -214,33 +215,36 @@ class AppWidgetConfigure : Activity() {
         spinner.isEnabled = false
         val itemName: ArrayList<String?> = ArrayList()
 
-        for (i in appDatabase.itemDao().item.indices) {
-            itemName.add(
-                appDatabase.itemDao().item[i].summery
-            )
-        }
-        checkBox.setOnClickListener {
-            if (appDatabase.itemDao().item.isNotEmpty()) {
-                if (checkBox.isChecked) {
-                    for (i in 0 until radioGroup.getChildCount()) {
-                        radioGroup.getChildAt(i).setEnabled(false)
+        CoroutineScope(Dispatchers.IO).launch {
+            for (i in appDatabase.itemDao().item.indices) {
+                itemName.add(
+                    appDatabase.itemDao().item[i].title
+                )
+            }
+
+            checkBox.setOnClickListener {
+                if (appDatabase.itemDao().item.isNotEmpty()) {
+                    if (checkBox.isChecked) {
+                        for (i in 0 until radioGroup.getChildCount()) {
+                            radioGroup.getChildAt(i).setEnabled(false)
+                        }
+                        value = itemEntity[0].id.toString()
+                        Preview = findViewById(R.id.summery_preview)
+                        Preview.text = itemEntity[0].title
+                        spinner.setSelection(0)
+                        isFirstSelected = true
+                        spinner.isEnabled = true
+                    } else {
+                        for (i in 0 until radioGroup.getChildCount()) {
+                            radioGroup.getChildAt(i).isEnabled = true
+                        }
+                        isFirstSelected = false
+                        spinner.isEnabled = false
                     }
-                    value = itemEntity[0]!!.id.toString()
-                    Preview = findViewById(R.id.summery_preview)
-                    Preview.text = itemEntity[0]!!.summery
-                    spinner.setSelection(0)
-                    isFirstSelected = true
-                    spinner.isEnabled = true
                 } else {
-                    for (i in 0 until radioGroup.getChildCount()) {
-                        radioGroup.getChildAt(i).isEnabled = true
-                    }
-                    isFirstSelected = false
-                    spinner.isEnabled = false
+                    checkBox.isChecked = false
+                    Toast.makeText(context, "저장된 항목이 없습니다.", Toast.LENGTH_SHORT).show()
                 }
-            } else {
-                checkBox.isChecked = false
-                Toast.makeText(context, "저장된 항목이 없습니다.", Toast.LENGTH_SHORT).show()
             }
         }
         val adapter: ArrayAdapter<String?> =
@@ -248,19 +252,20 @@ class AppWidgetConfigure : Activity() {
         spinner.adapter = adapter
         spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(
-                    parent: AdapterView<*>?,
-                    view: View,
-                    position: Int,
-                    id: Long
+                parent: AdapterView<*>?,
+                view: View,
+                position: Int,
+                id: Long
             ) {
                 Preview = findViewById(R.id.summery_preview)
-                Preview.text = itemEntity[position]!!.summery
+                Preview.text = itemEntity[position].title
                 if (isFirstSelected) {
-                    Preview.text = itemEntity[position]!!.summery
-                    value = itemEntity[position]!!.id.toString()
+                    Preview.text = itemEntity[position].title
+                    value = itemEntity[position].id.toString()
                     Log.d("value", value)
                 }
             }
+
             override fun onNothingSelected(parent: AdapterView<*>?) {}
         }
 

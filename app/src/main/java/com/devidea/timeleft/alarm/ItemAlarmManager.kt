@@ -6,9 +6,7 @@ import android.content.Context.ALARM_SERVICE
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import android.content.Intent
-import android.util.Log
 import com.devidea.timeleft.App
-import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.ZoneId
@@ -25,9 +23,11 @@ class ItemAlarmManager {
         for (i in itemList.indices) {
             if ((itemList[i].alarmFlag != 0)) {
 
+                intent.putExtra("title", itemList[i].title)
                 intent.putExtra("id", itemList[i].id)
                 intent.putExtra("flag", itemList[i].alarmFlag)
                 intent.action = "com.devidea.timeleft.alarm"
+
                 this.pendingIntent = PendingIntent.getBroadcast(
                     App.context(),
                     itemList[i].id,
@@ -56,34 +56,13 @@ class ItemAlarmManager {
                             DateTimeFormatter.ofPattern("H:m")
                         ).minusHours(itemList[i].alarmRate.toLong())
 
-                        Log.d(TAG,triggerTime.hour.toString())
-
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
                             set(Calendar.MINUTE, 0)
                             set(Calendar.SECOND, 0)
                         }
-                        /*
-                        if (calendar.before(Calendar.getInstance())) {
-                            calendar.add(Calendar.DATE, 1);
-                        }
 
-                         */
-                        /*
-
-                        intent.putExtra("type", "Time")
-                        intent.putExtra("timeInMillis", calendar.timeInMillis)
-
-                         */
-
-                        /*
-                        alarmManager.setExactAndAllowWhileIdle(
-                            AlarmManager.RTC_WAKEUP,
-                            calendar.timeInMillis,
-                            pendingIntent
-                        )
-                         */
                         alarmManager.setRepeating(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,

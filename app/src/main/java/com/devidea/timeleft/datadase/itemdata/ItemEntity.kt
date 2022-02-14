@@ -23,7 +23,7 @@ alarmRate = 알람이 울리는 값
 @Entity
 data class ItemEntity(
     @NonNull var type: String,
-    @NonNull var summery: String,
+    @NonNull var title: String,
     @NonNull var startValue: String,
     @NonNull var endValue: String,
     @NonNull var autoUpdateFlag: Int,
