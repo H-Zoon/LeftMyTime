@@ -15,7 +15,7 @@ autoUpdateFlag 2 = 일정끝난 후 다음달 updateRate 일에 반복
 
 alarmFlag 0 = 알람없음
 alarmFlag 1 = 알람있음
-alarmFlag 2 = 주말에는 알람없음
+alarmFlag 2 = 주말에도 알람
 
 alarmRate = 알람이 울리는 값
 */
@@ -23,7 +23,7 @@ alarmRate = 알람이 울리는 값
 @Entity
 data class ItemEntity(
     @NonNull var type: String,
-    @NonNull var summery: String,
+    @NonNull var title: String,
     @NonNull var startValue: String,
     @NonNull var endValue: String,
     @NonNull var autoUpdateFlag: Int,

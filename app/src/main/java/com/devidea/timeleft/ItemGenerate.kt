@@ -63,7 +63,7 @@ class ItemGenerate : InterfaceItem {
         val endValue = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
         adapterItem.autoUpdateFlag = itemEntity.autoUpdateFlag
-        adapterItem.summery = itemEntity.summery
+        adapterItem.summery = itemEntity.title
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
 
@@ -148,7 +148,7 @@ class ItemGenerate : InterfaceItem {
         adapterItem.endDay = "종료일: $endDate"
         adapterItem.leftDay = "남은일: D-$leftDay"
         adapterItem.autoUpdateFlag = itemInfo.autoUpdateFlag
-        adapterItem.summery = itemInfo.summery
+        adapterItem.summery = itemInfo.title
         adapterItem.updateRate = updateRate
         adapterItem.id = itemInfo.id
         if (monthPercent < 100) {

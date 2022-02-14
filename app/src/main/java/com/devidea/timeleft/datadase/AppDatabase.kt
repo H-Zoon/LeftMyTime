@@ -9,7 +9,7 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 
 @Database(
-    entities = [WidgetEntity::class, ItemEntity::class],
+    entities = [ItemEntity::class],
     version = 3,
     exportSchema = false
 )
@@ -26,7 +26,7 @@ abstract class AppDatabase : RoomDatabase() {
                     context,
                     AppDatabase::class.java,
                     "app_database"
-                ).allowMainThreadQueries()
+                )//.allowMainThreadQueries()
                     .build()
                 INSTANCE = instance
 

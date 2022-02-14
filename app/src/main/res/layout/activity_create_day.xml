@@ -17,7 +17,6 @@
         tools:context=".activity.CreateDayActivity">
 
         <TextView
-            android:id="@+id/textView"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="25dp"
@@ -110,7 +109,7 @@
             android:onClick="@{activity::setRepeatRate}" />
 
         <Switch
-            android:id="@+id/switch1"
+            android:id="@+id/alarm_switch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="10dp"
@@ -119,7 +118,7 @@
 
 
         <LinearLayout
-            android:id="@+id/input_layout1"
+            android:id="@+id/alarm_rate_date_layout"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
@@ -132,7 +131,7 @@
                 android:text="일정이 끝나기" />
 
             <EditText
-                android:id="@+id/editText"
+                android:id="@+id/alarm_rate_date_edit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:ems="3"
