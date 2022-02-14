@@ -8,7 +8,7 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="하나를 선택해주세요."
+        android:text="종류를 선택해주세요."
         android:textSize="30sp" />
 
     <LinearLayout
@@ -28,14 +28,14 @@
             android:layout_gravity="end"
             android:layout_marginTop="5dp"
             android:layout_marginEnd="5dp"
-            android:background="@drawable/baseline_refresh_black_36" />
+            android:background="@drawable/ic_baseline_refresh_24" />
 
         <TextView
             android:id="@+id/summery_preview"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_gravity="center"
-            android:text="제목"
+            android:text="제목이 표시됩니다."
             android:textSize="15sp" />
 
         <TextView
@@ -53,6 +53,7 @@
             android:layout_height="20dp"
             android:layout_marginTop="10dp"
             android:max="100"
+            android:padding="1dp"
             android:progress="75"
             android:progressDrawable="@drawable/progressbar_widget" />
 
@@ -84,18 +85,20 @@
             android:text="시간 지나감 보기"
             android:textSize="20sp" />
 
-    </RadioGroup>
+        <RadioButton
+            android:id="@+id/userItemButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="내가 만든 항목 보기"
+            android:textSize="20sp" />
 
-    <CheckBox
-        android:id="@+id/checkBox"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="내가만든 항목 보기" />
+    </RadioGroup>
 
     <Spinner
         android:id="@+id/spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+        android:enabled="false" />
 
     <View
         android:layout_width="wrap_content"
@@ -104,7 +107,7 @@
 
 
     <Button
-        android:id="@+id/summit_button"
+        android:id="@+id/save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
 

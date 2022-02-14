@@ -21,6 +21,7 @@ interface ItemDao {
     fun updateItem(updateStart: String?, updateEnd: String?, ID: Int)
 
     //위젯엔티티 삭제예정
+    /*
     @Insert
     fun saveWidget(widgetEntity: WidgetEntity?)
 
@@ -39,5 +40,5 @@ interface ItemDao {
     @Query("DELETE FROM WidgetEntity WHERE ItemID = :ID")
     fun deleteCustomWidget(ID: Int)
 
-
+     */
 }

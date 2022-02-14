@@ -9,7 +9,7 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 
 @Database(
-    entities = [WidgetEntity::class, ItemEntity::class],
+    entities = [ItemEntity::class],
     version = 3,
     exportSchema = false
 )

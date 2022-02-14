@@ -199,7 +199,7 @@ constructor(  //array list
             ItemAlarmManager().alarmDelete(id)
             appDatabase.itemDao()
                 .deleteItem(id)
-            appDatabase.itemDao().deleteCustomWidget(id)
+            //appDatabase.itemDao().deleteCustomWidget(id)
         }
     }
 }

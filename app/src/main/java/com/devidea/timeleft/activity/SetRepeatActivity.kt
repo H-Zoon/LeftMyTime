@@ -20,10 +20,10 @@ class SetRepeatActivity : AppCompatActivity() {
 
         var flag = 0
 
-        val radioGroup = findViewById<RadioGroup>(R.id.radio_group)
+        //val radioGroup = findViewById<RadioGroup>(R.id.radio_group)
 
         //람다식 방법
-        radioGroup.setOnCheckedChangeListener { group, checkedId ->
+        binding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
             when (checkedId) {
                 R.id.alarm_rate_unable_radio_button -> {
                     flag = 0
