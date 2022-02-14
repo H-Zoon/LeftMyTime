@@ -7,14 +7,14 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.graphics.Color
-import android.os.Build
-import android.os.Bundle
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import com.devidea.timeleft.App
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.activity.MainActivity.Companion.prefs
 import com.devidea.timeleft.datadase.AppDatabase
+import java.time.LocalDate
 
 class AlarmReceiver : BroadcastReceiver() {
 
@@ -26,28 +26,35 @@ class AlarmReceiver : BroadcastReceiver() {
     lateinit var notificationManager: NotificationManager
 
     override fun onReceive(context: Context, intent: Intent) {
-        Log.d(TAG, "Received intent : $intent")
-        Log.d("Received intent", intent.getIntExtra("id",0).toString())
+
+        val action = intent.action
+        Log.d("onReceive", "onReceive() action = $action")
+
         notificationManager = context.getSystemService(
             Context.NOTIFICATION_SERVICE
         ) as NotificationManager
 
-        createNotificationChannel()
-        deliverNotification(context, intent)
-
+        if (!prefs.getBoolean("pause", false)) {
+            createNotificationChannel()
+            deliverNotification(context, intent)
+        }
     }
 
+
     private fun deliverNotification(context: Context, intent: Intent) {
-        val NOTIFICATION_ID = intent.getIntExtra("id",0)
-        val title = AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(NOTIFICATION_ID).summery
+
+        val action = intent.action
+        Log.d("deliverNotification", "onReceive() action = $action")
+
+        val NOTIFICATION_ID = intent.getIntExtra("id", 0)
+        val title = intent.getStringExtra("title")
         val contentIntent = Intent(context, MainActivity::class.java)
         val contentPendingIntent = PendingIntent.getActivity(
             context,
-            0,
+            NOTIFICATION_ID,
             contentIntent,
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
 
         val builder =
             NotificationCompat.Builder(context, PRIMARY_CHANNEL_ID)
@@ -59,21 +66,49 @@ class AlarmReceiver : BroadcastReceiver() {
                 .setAutoCancel(true)
                 .setDefaults(NotificationCompat.DEFAULT_ALL)
 
-        notificationManager.notify(intent.getIntExtra("id",0), builder.build())
+        if (2 == intent.getIntExtra("flag", 0)) {
+            if ((LocalDate.now()).dayOfWeek.value != 6 || (LocalDate.now()).dayOfWeek.value != 7) {
+                notificationManager.notify(NOTIFICATION_ID, builder.build())
+            }
+        } else {
+            notificationManager.notify(NOTIFICATION_ID, builder.build())
+        }
     }
+    /*
+
+    private fun Foo(intent: Intent) {
+        val day: Long = 86400000
+        val setDay: Long = intent.getStringExtra("timeInMillis")!!.toLong()
+        val pendingIntent = PendingIntent.getBroadcast(
+            App.context(),
+            intent.getIntExtra("id", 0),
+            intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+        )
+        val alarmManager = App.context().getSystemService(Context.ALARM_SERVICE) as AlarmManager
+
+        alarmManager.setExactAndAllowWhileIdle(
+            AlarmManager.RTC_WAKEUP,
+            setDay + day,
+            pendingIntent
+        )
+    }
+
+     */
 
     private fun createNotificationChannel() {
         val notificationChannel = NotificationChannel(
             PRIMARY_CHANNEL_ID,
-            "Stand up notification",
-            NotificationManager.IMPORTANCE_HIGH
+            "TimeLeft notification",
+            NotificationManager.IMPORTANCE_DEFAULT
         )
         notificationChannel.enableLights(true)
         notificationChannel.lightColor = Color.RED
         notificationChannel.enableVibration(true)
-        notificationChannel.description = "AlarmManager Tests"
+        notificationChannel.description = "AlarmManager"
         notificationManager.createNotificationChannel(
             notificationChannel
         )
     }
+
 }

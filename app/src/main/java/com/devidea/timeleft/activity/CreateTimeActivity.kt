@@ -2,6 +2,7 @@ package com.devidea.timeleft.activity
 
 import android.app.TimePickerDialog
 import android.os.Bundle
+import android.util.Log
 import android.view.View
 import android.widget.Button
 import android.widget.EditText
@@ -10,12 +11,22 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_ABLE
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_FOR_WEEKEND
+import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_UNABLE
+import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.databinding.ActivityCreateTimeBinding
 import com.devidea.timeleft.databinding.ActivityMainBinding
+import java.time.Duration
+import java.time.LocalTime
+import java.time.format.DateTimeFormatter
 
 class CreateTimeActivity : AppCompatActivity() {
     lateinit var startTime: String
     lateinit var endTime: String
+
+    var alarmFlag = ALARM_FLAG_UNABLE
+
     private lateinit var binding: ActivityCreateTimeBinding
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -25,17 +36,30 @@ class CreateTimeActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_time)
         binding.activity = this
 
-        binding.switch1.setOnCheckedChangeListener { compoundButton, b ->
+        binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked) {
-                binding.inputLayout1.visibility = View.VISIBLE
+                binding.alarmRateDateLayout.visibility = View.VISIBLE
+                binding.alarmWeekendSwitch.visibility = View.VISIBLE
+                alarmFlag = ALARM_FLAG_ABLE
             } else {
-                binding.inputLayout1.visibility = View.GONE
+                binding.alarmRateDateLayout.visibility = View.GONE
+                binding.alarmWeekendSwitch.visibility = View.GONE
+                alarmFlag = ALARM_FLAG_UNABLE
+            }
+        }
+
+        binding.alarmWeekendSwitch.setOnCheckedChangeListener { compoundButton, b ->
+            alarmFlag = if (compoundButton.isChecked) {
+                ALARM_FLAG_FOR_WEEKEND
+            } else {
+                Log.d(TAG, "0")
+                ALARM_FLAG_ABLE
             }
         }
 
     }
 
-    fun setStartTime (v: View){
+    fun setStartTime(v: View) {
         val timePickerDialog = TimePickerDialog(
             this, { timePicker, time, minute ->
                 startTime = "$time:$minute"
@@ -51,7 +75,7 @@ class CreateTimeActivity : AppCompatActivity() {
         timePickerDialog.show()
     }
 
-   fun setEndTime(v: View){
+    fun setEndTime(v: View) {
         val timePickerDialog = TimePickerDialog(
             this, { timePicker, time, minute ->
                 endTime = "$time:$minute"
@@ -67,12 +91,47 @@ class CreateTimeActivity : AppCompatActivity() {
     }
 
     //isInitialized is able instance variable, not a local variable.
-    fun save(v: View){
+    fun save(v: View) {
         if (::startTime.isInitialized && ::endTime.isInitialized && binding.inputSummery.length() > 0) {
-            ItemSave().saveTimeItem(binding.inputSummery.text.toString(), startTime, endTime, 0, binding.editText.text.toString().toInt())
-            finish()
+            if (alarmFlag == 0) {
+                ItemSave().saveTimeItem(
+                    binding.inputSummery.text.toString(),
+                    startTime,
+                    endTime,
+                    ALARM_FLAG_UNABLE,
+                    0
+                )
+                finish()
+            } else {
+                if (binding.alarmRateDateEditText.length() > 0) {
+
+                    val start = LocalTime.parse(startTime, DateTimeFormatter.ofPattern("H:m"))
+                    val end = LocalTime.parse(endTime, DateTimeFormatter.ofPattern("H:m"))
+                    Log.d(TAG, start.toString())
+                    Log.d(TAG, end.toString())
+                    Log.d(TAG, Duration.between(start, end).toMillis().toString())
+                    Log.d(TAG, (binding.alarmRateDateEditText.text.toString().toInt() * 1000 * 3600).toString())
+                    if (Duration.between(start, end).toMillis() > binding.alarmRateDateEditText.text.toString().toInt() * 1000 * 3600
+
+                    ) {
+                        ItemSave().saveTimeItem(
+                            binding.inputSummery.text.toString(),
+                            startTime,
+                            endTime,
+                            alarmFlag,
+                            binding.alarmRateDateEditText.text.toString().toInt()
+                        )
+                        finish()
+                    } else {
+                        Toast.makeText(this, "알람시간이 설정시간보다 큽니다", Toast.LENGTH_SHORT).show()
+                    }
+                } else {
+                    Toast.makeText(this, "알람시간을 입력해주세요", Toast.LENGTH_SHORT).show()
+                }
+            }
+
         } else {
-            Toast.makeText(this, "입력확인", Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, "입력을 확인해주세요", Toast.LENGTH_SHORT).show()
         }
     }
 

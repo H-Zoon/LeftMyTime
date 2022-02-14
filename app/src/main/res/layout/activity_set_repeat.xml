@@ -8,7 +8,6 @@
     tools:context=".activity.SetRepeatActivity">
 
     <TextView
-        android:id="@+id/textView"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="25dp"
@@ -24,20 +23,20 @@
         android:padding="30dp">
 
         <RadioButton
-            android:id="@+id/radioButton"
+            android:id="@+id/alarm_rate_unable_radio_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:checked="true"
             android:text="반복안함" />
 
         <RadioButton
-            android:id="@+id/radioButton2"
+            android:id="@+id/alarm_rate_date_radio_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="일수 기준으로 반복" />
 
         <LinearLayout
-            android:id="@+id/input_layout1"
+            android:id="@+id/alarm_rate_date_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
@@ -50,7 +49,7 @@
                 android:text="일정이 끝난뒤" />
 
             <EditText
-                android:id="@+id/editText"
+                android:id="@+id/alarm_rate_date_edit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"
@@ -64,13 +63,13 @@
         </LinearLayout>
 
         <RadioButton
-            android:id="@+id/radioButton3"
+            android:id="@+id/alarm_rate_month_radio_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="다음달의 해당 일자로 반복" />
 
         <LinearLayout
-            android:id="@+id/input_layout2"
+            android:id="@+id/alarm_rate_month_layout"
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:gravity="center"
@@ -83,7 +82,7 @@
                 android:text="일정이 끝난뒤 매달" />
 
             <EditText
-                android:id="@+id/editText2"
+                android:id="@+id/alarm_rate_month_edit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:gravity="center"

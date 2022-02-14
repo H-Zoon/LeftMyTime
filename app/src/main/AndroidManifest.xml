@@ -3,6 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.devidea.timeleft">
 
+    <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
+    <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+
     <application
         android:name=".App"
         android:allowBackup="false"
@@ -12,6 +15,9 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.MyApplication">
+        <activity
+            android:name=".activity.SettingActivity"
+            android:exported="false" />
         <activity
             android:name=".activity.SetRepeatActivity"
             android:exported="false" />
@@ -28,6 +34,14 @@
         </activity>
 
         <receiver
+            android:name=".alarm.AlarmReceiver"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="com.devidea.timeleft.alarm" />
+            </intent-filter>
+        </receiver>
+
+        <receiver
             android:name=".widget.AppWidget"
             android:exported="false"
             android:label="기본위젯">
@@ -39,9 +53,6 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info" />
         </receiver>
-
-        <receiver android:name=".alarm.AlarmReceiver"
-            android:exported="false"/>
 
         <activity
             android:name=".widget.AppWidgetConfigure"

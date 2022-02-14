@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_TIME
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -12,20 +13,22 @@ class ItemSave {
     private val appDatabase = AppDatabase.getDatabase(App.context())
 
     fun saveMonthItem(
-        summery: String,
-        start: String,
-        end: String,
+        title: String,
+        startValue: String,
+        endValue: String,
         autoUpdateFlag: Int,
         updateRate: Int,
+        alarmFlag: Int,
         alarmRate: Int
     ) {
         val entityItemInfo = ItemEntity(
             "Month",
-            summery,
-            start,
-            end,
+            title,
+            startValue,
+            endValue,
             autoUpdateFlag,
             updateRate,
+            alarmFlag,
             alarmRate
         )
         writeDatabase(entityItemInfo)
@@ -35,11 +38,11 @@ class ItemSave {
         title: String,
         startValue: String,
         endValue: String,
-        autoUpdateFlag: Int,
+        alarmFlag: Int,
         alarmRate: Int
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, autoUpdateFlag, 0, alarmRate)
+            ItemEntity("Time", title, startValue, endValue, UPDATE_FLAG_FOR_TIME, 0, alarmFlag, alarmRate)
         writeDatabase(entityItemInfo)
     }
 

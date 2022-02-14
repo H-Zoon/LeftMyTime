@@ -9,6 +9,10 @@ import android.widget.ProgressBar
 import android.view.View
 import java.util.ArrayList
 
+/**
+이 TopRecyclerView 는 ViewHolder 의 Binding 을 통해 작성되었습니다.
+ */
+
 internal class TopRecyclerView
 constructor(private val arrayList: ArrayList<AdapterItem>) :
     RecyclerView.Adapter<TopRecyclerView.ViewHolder>() {

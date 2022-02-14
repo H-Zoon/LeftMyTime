@@ -1,48 +1,52 @@
 package com.devidea.timeleft.widget
 
-import android.appwidget.AppWidgetProvider
-import android.content.Intent
-import android.appwidget.AppWidgetManager
-import android.app.PendingIntent
+import android.app.Activity
 import android.app.AlarmManager
-import android.widget.RemoteViews
+import android.app.PendingIntent
+import android.appwidget.AppWidgetManager
+import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
+import android.content.Intent
 import android.os.SystemClock
 import android.util.Log
+import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
-import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.R
+import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.activity.MainActivity.Companion.prefs
 import com.devidea.timeleft.datadase.AppDatabase
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+
 
 class AppWidget : AppWidgetProvider() {
-
-    private val appDatabase = AppDatabase.getDatabase(App.context())
 
     override fun onReceive(context: Context, intent: Intent) {
         super.onReceive(context, intent)
         val action = intent.action
-        val appWidgetIds: IntArray
-        Log.d("widget", "onReceive() action = $action")
         if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
-
-            appWidgetIds = appDatabase.itemDao().get()!!
-            if (appWidgetIds.isNotEmpty()) {
-                onUpdate(context, AppWidgetManager.getInstance(context), appWidgetIds)
-            }
+            onUpdate(
+                context,
+                AppWidgetManager.getInstance(context),
+                AppWidgetManager.getInstance(context).getAppWidgetIds(
+                    ComponentName(context, javaClass)
+                )
+            )
         }
     }
 
+
     override fun onUpdate(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetIds: IntArray
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
         // There may be multiple widgets active, so update all of them
         for (appWidgetId in appWidgetIds) {
-            Log.d("widget", "appWidgetId is $appWidgetId")
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
     }
@@ -50,15 +54,16 @@ class AppWidget : AppWidgetProvider() {
     override fun onEnabled(context: Context) {
         val intent = Intent(context, AppWidget::class.java)
         intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent =
+            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
 
         alarmManager.setInexactRepeating(
-                AlarmManager.ELAPSED_REALTIME,
-                SystemClock.elapsedRealtime(),
-                AlarmManager.INTERVAL_FIFTEEN_MINUTES,
-                pendingIntent
+            AlarmManager.ELAPSED_REALTIME,
+            SystemClock.elapsedRealtime(),
+            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+            pendingIntent
         )
         Log.d("widget", "alert on")
     }
@@ -67,7 +72,8 @@ class AppWidget : AppWidgetProvider() {
         val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
         val intent = Intent(context, AppWidget::class.java)
 
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
+        val pendingIntent =
+            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
 
         alarmManager.cancel(pendingIntent) //알람 해제
         pendingIntent.cancel() //인텐트 해제
@@ -76,116 +82,134 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
         super.onDeleted(context, appWidgetIds)
-        appDatabase.itemDao().delete(appWidgetIds[0])
-        Log.d("widget", "onDeleted done")
+        with(prefs.edit()) {
+            remove(appWidgetIds[0].toString())
+            apply()
+        }
     }
 
     private fun updateAppWidget(
-            context: Context,
-            appWidgetManager: AppWidgetManager,
-            appWidgetId: Int
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int
     ) {
 
-        val type = appDatabase.itemDao().getType(appWidgetId)
         val views = RemoteViews(context.packageName, R.layout.app_widget)
-        val intentR = Intent(context, AppWidget::class.java)
-        intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
 
-        val pendingIntent = PendingIntent.getBroadcast(context, 0, intentR, PendingIntent.FLAG_IMMUTABLE)
+        val updateIntent = Intent(context, AppWidget::class.java)
+        updateIntent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
 
-        views.setOnClickPendingIntent(R.id.refrash, pendingIntent)
-        val appIntent = Intent(context, MainActivity::class.java)
+        val updatePendingIntent =
+            PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        val pe = PendingIntent.getActivity(context, 0, appIntent, PendingIntent.FLAG_IMMUTABLE)
-        views.setOnClickPendingIntent(R.id.percent, pe)
+        views.setOnClickPendingIntent(R.id.refrash, updatePendingIntent)
 
-        if (type != null) {
-            when (type) {
-                "embedYear" -> {
-                    views.setTextViewText(
-                        R.id.summery,
-                            MainActivity.ITEM_GENERATE.yearItem().summery
-                    )
-                    views.setTextViewText(
-                        R.id.percent,
-                            MainActivity.ITEM_GENERATE.yearItem().percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                            100,
-                            MainActivity.ITEM_GENERATE.yearItem().percentString
-                            !!.toFloat().toInt(),
-                            false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                "embedMonth" -> {
-                    views.setTextViewText(
-                        R.id.summery,
-                            MainActivity.ITEM_GENERATE.monthItem().summery
-                    )
-                    views.setTextViewText(
-                        R.id.percent,
-                            MainActivity.ITEM_GENERATE.monthItem()
-                                    .percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                            100,
-                            MainActivity.ITEM_GENERATE.monthItem().percentString
-                            !!.toFloat().toInt(),
-                            false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                "embedTime" -> {
-                    views.setTextViewText(
-                        R.id.summery,
-                            MainActivity.ITEM_GENERATE.timeItem().summery
-                    )
-                    views.setTextViewText(
-                        R.id.percent,
-                            MainActivity.ITEM_GENERATE.timeItem().percentString + "%"
-                    )
-                    views.setProgressBar(
-                        R.id.progress,
-                            100,
-                            MainActivity.ITEM_GENERATE.timeItem().percentString
-                            !!.toFloat().toInt(),
-                            false
-                    )
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-                else -> {
-                    val adapterItem: AdapterItem
+        val activityPendingIntent = PendingIntent.getActivity(
+            context,
+            0,
+            Intent(context, MainActivity::class.java),
+            PendingIntent.FLAG_IMMUTABLE
+        )
 
-                    //widgetID를 통해 TypeID 검색후 getSelectItem 쿼리를 통해 해당 아이템 객체 불러옴
-                    val itemEntity: ItemEntity =
-                            appDatabase.itemDao().getSelectItem(
-                                    appDatabase.itemDao()
-                                            .getTypeID(appWidgetId)
-                            )
-                    adapterItem = if (type == "Time") {
-                        MainActivity.ITEM_GENERATE.customTimeItem(itemEntity)
-                    } else {
-                        MainActivity.ITEM_GENERATE.customMonthItem(itemEntity)
-                    }
-                    views.setTextViewText(R.id.summery, adapterItem.summery)
-                    views.setTextViewText(R.id.percent, adapterItem.percentString + "%")
-                    views.setProgressBar(
-                        R.id.progress,
-                            100,
-                            adapterItem.percentString!!.toFloat().toInt(),
-                            false
-                    )
-
-                    appWidgetManager.updateAppWidget(appWidgetId, views)
-                }
-
+        views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
+        when (prefs.getString(appWidgetId.toString(), "")) {
+            "embedYear" -> {
+                val year = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    year.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    year.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    year.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
             }
+            "embedMonth" -> {
+                val month = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    month.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    month.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    month.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
+            "embedTime" -> {
+                val time = MainActivity.ITEM_GENERATE.yearItem()
+                views.setTextViewText(
+                    R.id.summery,
+                    time.summery
+                )
+                views.setTextViewText(
+                    R.id.percent,
+                    time.percentString + "%"
+                )
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    time.percentString
+                    !!.toFloat().toInt(),
+                    false
+                )
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+            }
+
+            else -> customWidgetInit(views, appWidgetManager, appWidgetId)
         }
-        //Log.d("widget", type + "update done")
     }
 
+    private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+        CoroutineScope(Dispatchers.IO).launch {
+            var item = AdapterItem()
+            val itemList =
+                AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
+            if(itemList != null) {
+                if ((itemList.type == "Time")) {
+                    item = MainActivity.ITEM_GENERATE.customTimeItem(itemList)
+
+                } else {
+                    item =
+                        MainActivity.ITEM_GENERATE.customMonthItem(itemList)
+
+                }
+            }else{
+                with(prefs.edit()) {
+                    remove(appWidgetId.toString())
+                    apply()
+                }
+                return@launch
+            }
+            views.setTextViewText(R.id.summery, item.summery)
+            views.setTextViewText(R.id.percent, item.percentString + "%")
+            views.setProgressBar(
+                R.id.progress,
+                100,
+                item.percentString!!.toFloat().toInt(),
+                false
+            )
+
+            appWidgetManager.updateAppWidget(appWidgetId, views)
+
+        }
+    }
 
 }
+
+

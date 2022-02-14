@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
@@ -62,10 +63,13 @@ class ItemGenerate : InterfaceItem {
         val endValue = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
         adapterItem.autoUpdateFlag = itemEntity.autoUpdateFlag
-        adapterItem.summery = itemEntity.summery
+        adapterItem.summery = itemEntity.title
         adapterItem.startDay = "설정시간: $startValue"
         adapterItem.endDay = "종료시간: $endValue"
-        adapterItem.alarmRate = itemEntity.alarmRate
+
+        adapterItem.alarmFlag = itemEntity.alarmFlag
+        adapterItem.alarmRate = itemEntity.alarmRate.toString() + "시간"
+
         adapterItem.id = itemEntity.id
         if (time.isAfter(startValue) && time.isBefore(endValue)) {
             val range = Duration.between(startValue, endValue).seconds.toFloat()
@@ -95,7 +99,10 @@ class ItemGenerate : InterfaceItem {
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
-        adapterItem.alarmRate = itemEntity.alarmRate
+
+
+        adapterItem.alarmFlag = itemEntity.alarmFlag
+        adapterItem.alarmRate = itemEntity.alarmRate.toString() + "일"
         val id = itemInfo.id
 
         //설정일
@@ -126,8 +133,9 @@ class ItemGenerate : InterfaceItem {
                         LocalDate.of(endDate.plusMonths(1).year,endDate.plusMonths(2).monthValue, updateRate).toString(),
                         itemInfo.id)
                 }
-
             }
+            ItemAlarmManager().alarmInit()
+
             itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)
             endDate = LocalDate.parse(itemInfo.endValue, formatter)
@@ -140,7 +148,7 @@ class ItemGenerate : InterfaceItem {
         adapterItem.endDay = "종료일: $endDate"
         adapterItem.leftDay = "남은일: D-$leftDay"
         adapterItem.autoUpdateFlag = itemInfo.autoUpdateFlag
-        adapterItem.summery = itemInfo.summery
+        adapterItem.summery = itemInfo.title
         adapterItem.updateRate = updateRate
         adapterItem.id = itemInfo.id
         if (monthPercent < 100) {

@@ -6,38 +6,37 @@ import android.content.Context.ALARM_SERVICE
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import android.content.Intent
-import android.os.Build
-import android.os.SystemClock
-import android.util.Log
 import com.devidea.timeleft.App
-import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ItemAlarmManager {
-    private val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
     val intent = Intent(App.context(), AlarmReceiver::class.java)
     private lateinit var pendingIntent: PendingIntent
 
     fun alarmInit() {
+        val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
-            if ((itemList[i].alarmRate != 0)) {
-                //if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-                    this.pendingIntent = PendingIntent.getBroadcast(
-                        App.context(),
-                        itemList[i].id,
-                        intent.putExtra("id", itemList[i].id),
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                    )
+            if ((itemList[i].alarmFlag != 0)) {
+
+                intent.putExtra("title", itemList[i].title)
+                intent.putExtra("id", itemList[i].id)
+                intent.putExtra("flag", itemList[i].alarmFlag)
+                intent.action = "com.devidea.timeleft.alarm"
+
+                this.pendingIntent = PendingIntent.getBroadcast(
+                    App.context(),
+                    itemList[i].id,
+                    intent,
+                    PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+                )
 
                 when (itemList[i].type) {
                     "Month" -> {
-                        Log.d(TAG, "Month")
                         val triggerTime = LocalDate.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("yyyy-M-d")
@@ -52,7 +51,6 @@ class ItemAlarmManager {
                     }
 
                     "Time" -> {
-                        Log.d(TAG, "Time")
                         val triggerTime = LocalTime.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("H:m")
@@ -61,37 +59,24 @@ class ItemAlarmManager {
                         val calendar: Calendar = Calendar.getInstance().apply {
                             timeInMillis = System.currentTimeMillis()
                             set(Calendar.HOUR_OF_DAY, triggerTime.hour)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
                         }
 
-                        alarmManager.set(
+                        alarmManager.setRepeating(
                             AlarmManager.RTC_WAKEUP,
                             calendar.timeInMillis,
+                            AlarmManager.INTERVAL_DAY,
                             pendingIntent
                         )
                     }
                 }
             }
-            /* else {
-                val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
-
-                val pendingIntent =
-                    PendingIntent.getBroadcast(
-                        App.context(),
-                        itemList[i].id,
-                        intent.putExtra("id", itemList[i].id),
-                        PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-                    )
-                if (pendingIntent != null && alarmManager != null) {
-                    alarmManager.cancel(pendingIntent)
-                }
-            }
-
-             */
         }
     }
 
     fun alarmDelete(id: Int) {
-        Log.d(TAG, "delete call")
+        val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
         val pendingIntent = PendingIntent.getBroadcast(
             App.context(),
             id,
@@ -100,10 +85,6 @@ class ItemAlarmManager {
         )
         if (pendingIntent != null) {
             alarmManager.cancel(pendingIntent)
-            Log.d(TAG, "delete")
         }
-
     }
-
-
 }
