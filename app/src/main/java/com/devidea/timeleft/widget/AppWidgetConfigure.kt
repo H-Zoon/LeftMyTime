@@ -46,7 +46,7 @@ class AppWidgetConfigure : Activity() {
         setContentView(binding.root)
 
         CoroutineScope(Dispatchers.IO).launch {
-            itemList = AppDatabase.getDatabase(App.context()).itemDao().item
+            itemList = AppDatabase.getDatabase(App.context()).itemDao().getAll()
             if (itemList.isNotEmpty()) {
                 items = ArrayList()
                 ids = ArrayList()

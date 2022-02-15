@@ -19,7 +19,7 @@ class ItemAlarmManager {
 
     fun alarmInit() {
         val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
-        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
+        val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().getAll()
         for (i in itemList.indices) {
             if ((itemList[i].alarmFlag != 0)) {
 

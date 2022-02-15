@@ -7,10 +7,12 @@ import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.asLiveData
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.PagerSnapHelper
@@ -22,6 +24,9 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
 import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
 import kotlinx.coroutines.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.flow
 import java.time.LocalDateTime.*
 import java.time.format.DateTimeFormatter
 
@@ -102,7 +107,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
         initTopRecyclerView()
         initBottomRecyclerView()
 
@@ -142,33 +146,8 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
-        CoroutineScope(Dispatchers.IO).launch {
-            while (true) {
-                val itemListArray = ArrayList<AdapterItem>()
-
-                val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
-                for (i in itemList.indices) {
-                    if ((itemList[i].type == "Time")) {
-                        itemListArray.add(
-                            ITEM_GENERATE.customTimeItem(
-                                itemList[i]
-                            )
-                        )
-                    } else {
-                        itemListArray.add(
-                            ITEM_GENERATE.customMonthItem(
-                                itemList[i]
-                            )
-                        )
-                    }
-                }
-                CoroutineScope(Dispatchers.Main).launch {
-                    bottomItemAdapter.updateList(itemListArray)
-                    delay(1000) }
-            }
-        }
     }
+
 
     private fun initTopRecyclerView() {
         binding.recyclerview.layoutManager = LinearLayoutManager(
@@ -201,9 +180,50 @@ class MainActivity : AppCompatActivity() {
             RecyclerView.VERTICAL,
             false
         )
-        bottomItemAdapter = BottomRecyclerView(ArrayList())
+        bottomItemAdapter = BottomRecyclerView(ArrayList<AdapterItem>())
         binding.recyclerview2.adapter = bottomItemAdapter
 
+        CoroutineScope(Dispatchers.Main).launch {
+            initItem().collect() {
+                Log.d("Flow", "call")
+                bottomItemAdapter.updateList(it)
+            }
+        }
+
+
+        /*
+        CoroutineScope(Dispatchers.Main).launch {
+            while (true) {
+                bottomItemAdapter.updateList(itemListArray)
+                delay(1000)
+            }
+        }
+         */
+    }
+
+    private fun initItem(): Flow<ArrayList<AdapterItem>> = flow {
+        AppDatabase.getDatabase(App.context()).itemDao().getAllFlow().collect() {
+            val itemListArray = ArrayList<AdapterItem>()
+            Log.d("Flow", "flow")
+            for (i in it.indices) {
+                Log.d("Flow", it[i].type)
+                if ((it[i].type == "Time")) {
+                    itemListArray.add(
+                        ITEM_GENERATE.customTimeItem(
+                            it[i]
+                        )
+                    )
+                } else {
+                    itemListArray.add(
+                        ITEM_GENERATE.customMonthItem(
+                            it[i]
+                        )
+                    )
+                }
+
+            }
+            emit(itemListArray)
+        }
     }
 
     override fun onBackPressed() {
@@ -219,13 +239,5 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
     }
-
-    /*
-    private fun refreshItem(): ArrayList<AdapterItem> {
-
-        return itemListArray
-    }
-
-     */
 
 }

@@ -1,15 +1,18 @@
 package com.devidea.timeleft.datadase.itemdata
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemDao {
     @Insert
     fun saveItem(itemEntity: ItemEntity)
 
-    // AppWidgetConfigure에서 사용
-    @get:Query("SELECT * FROM ItemEntity")
-    val item: List<ItemEntity>
+    @Query("SELECT * FROM ItemEntity")
+    fun getAllFlow(): Flow<List<ItemEntity>>
+
+    @Query("SELECT * FROM ItemEntity")
+    fun getAll(): List<ItemEntity>
 
     @Query("DELETE FROM ItemEntity WHERE id = :ID")
     fun deleteItem(ID: Int)
