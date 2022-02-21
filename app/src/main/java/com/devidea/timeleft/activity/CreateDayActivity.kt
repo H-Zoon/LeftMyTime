@@ -11,8 +11,6 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_ABLE
-import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_UNABLE
 import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_DAY
 import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_MONTH
 import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_UNABLE
@@ -26,7 +24,7 @@ class CreateDayActivity : AppCompatActivity() {
     lateinit var endDay: String
     var updateFlag = UPDATE_FLAG_UNABLE
     var updateRate = 0
-    var alarmFlag = ALARM_FLAG_UNABLE
+    var alarmFlag = false
 
     private lateinit var binding: ActivityCreateDayBinding
 
@@ -39,10 +37,10 @@ class CreateDayActivity : AppCompatActivity() {
         binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked) {
                 binding.alarmRateDateLayout.visibility = View.VISIBLE
-                alarmFlag = ALARM_FLAG_ABLE
+                alarmFlag = true
             } else {
                 binding.alarmRateDateLayout.visibility = View.GONE
-                alarmFlag = ALARM_FLAG_UNABLE
+                alarmFlag = false
             }
         }
 
@@ -96,20 +94,20 @@ class CreateDayActivity : AppCompatActivity() {
     fun save(v: View) {
         if (::startDay.isInitialized && ::endDay.isInitialized && binding.inputSummery.length() > 0) {
             when (alarmFlag) {
-                0 -> {
+                false -> {
                     ItemSave().saveMonthItem(
                         binding.inputSummery.text.toString(),
                         startDay,
                         endDay,
                         updateFlag,
                         updateRate,
-                        ALARM_FLAG_UNABLE,
+                        false,
                         0
                     )
                     finish()
                 }
 
-                1 -> {
+                 true -> {
                     if (binding.alarmRateDateEditText.length() > 0) {
 
                         ItemSave().saveMonthItem(
@@ -118,7 +116,7 @@ class CreateDayActivity : AppCompatActivity() {
                             endDay,
                             updateFlag,
                             updateRate,
-                            alarmFlag,
+                            true,
                             binding.alarmRateDateEditText.text.toString().toInt()
                         )
                         finish()

@@ -65,7 +65,6 @@ class AppWidget : AppWidgetProvider() {
             AlarmManager.INTERVAL_FIFTEEN_MINUTES,
             pendingIntent
         )
-        Log.d("widget", "alert on")
     }
 
     override fun onDisabled(context: Context) {
@@ -77,7 +76,6 @@ class AppWidget : AppWidgetProvider() {
 
         alarmManager.cancel(pendingIntent) //알람 해제
         pendingIntent.cancel() //인텐트 해제
-        Log.d("widget", "alert off")
     }
 
     override fun onDeleted(context: Context, appWidgetIds: IntArray) {
@@ -114,58 +112,55 @@ class AppWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
         when (prefs.getString(appWidgetId.toString(), "")) {
             "embedYear" -> {
-                val year = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.yearItem()
                 views.setTextViewText(
                     R.id.summery,
-                    year.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    year.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    year.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             "embedMonth" -> {
-                val month = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.monthItem()
                 views.setTextViewText(
                     R.id.summery,
-                    month.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    month.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    month.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             "embedTime" -> {
-                val time = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.timeItem()
                 views.setTextViewText(
                     R.id.summery,
-                    time.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    time.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    time.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -177,36 +172,36 @@ class AppWidget : AppWidgetProvider() {
 
     private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            var item = AdapterItem()
-            val itemList =
-                AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
-            if(itemList != null) {
-                if ((itemList.type == "Time")) {
-                    item = MainActivity.ITEM_GENERATE.customTimeItem(itemList)
+            try {
+                val item : AdapterItem?
+                val itemList =
+                    AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
+
+                item = if ((itemList.type == "Time")) {
+                    MainActivity.ITEM_GENERATE.customTimeItem(itemList)
 
                 } else {
-                    item =
-                        MainActivity.ITEM_GENERATE.customMonthItem(itemList)
+                    MainActivity.ITEM_GENERATE.customMonthItem(itemList)
 
                 }
-            }else{
+
+                views.setTextViewText(R.id.summery, item.title)
+                views.setTextViewText(R.id.percent, item.percent.toString() + "%")
+                views.setProgressBar(
+                    R.id.progress,
+                    100,
+                    item.percent.toInt(),
+                    false
+                )
+
+                appWidgetManager.updateAppWidget(appWidgetId, views)
+
+            }catch (e : NullPointerException){
                 with(prefs.edit()) {
                     remove(appWidgetId.toString())
                     apply()
                 }
-                return@launch
             }
-            views.setTextViewText(R.id.summery, item.summery)
-            views.setTextViewText(R.id.percent, item.percentString + "%")
-            views.setProgressBar(
-                R.id.progress,
-                100,
-                item.percentString!!.toFloat().toInt(),
-                false
-            )
-
-            appWidgetManager.updateAppWidget(appWidgetId, views)
-
         }
     }
 

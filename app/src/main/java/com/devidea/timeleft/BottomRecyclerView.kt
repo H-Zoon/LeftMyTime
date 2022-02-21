@@ -63,33 +63,16 @@ constructor(  //array list
         @SuppressLint("RecyclerView") position: Int
     ) {
 
-        viewHolder.binding.startDay.text = items[position].startDay
-        viewHolder.binding.endDay.text = items[position].endDay
-        viewHolder.binding.leftDay.text = items[position].leftDay
-
-
-        when (items[position].autoUpdateFlag) {
-            0 -> viewHolder.binding.updateIs.text = "100% 달성후 끝나는 일정."
-            1 -> viewHolder.binding.updateIs.text = "종료 후 " +
-                    ((items[position].updateRate).toString() + "일 뒤 반복되는 일정.")
-            2 -> viewHolder.binding.updateIs.text =
-                ("매 달" + (items[position].updateRate).toString() + "일에 반복되는 일정.")
-            3 -> viewHolder.binding.updateIs.text = "매일 시작시간이 되면 반복."
-        }
-
-        Log.d("Viewflag", items[position].alarmFlag.toString())
-
-        when (items[position].alarmFlag) {
-            0 -> viewHolder.binding.alarmIs.text = "알림 설정되지않음."
-
-            1 -> viewHolder.binding.alarmIs.text = items[position].alarmRate + "전 알림 설정됨."
-
-            2 -> viewHolder.binding.alarmIs.text =
-                items[position].alarmRate + "전 주말에도 알림."
-        }
+        viewHolder.binding.title.text = items[position].title
+        viewHolder.binding.start.text = items[position].startString
+        viewHolder.binding.end.text = items[position].endString
+        viewHolder.binding.left.text = items[position].leftString
+        viewHolder.binding.percent.text = items[position].percent.toString() + "%"
+        viewHolder.binding.updateInfo.text = items[position].updateInfo
+        viewHolder.binding.alarmInfo.text = items[position].alarmInfo
 
         with(viewHolder) {
-            viewHolder.binding.deleteButton.setOnClickListener {
+            viewHolder.binding.delete.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
                 builder.setMessage("정말 삭제할까요?")
                 builder.setPositiveButton("OK") { _, _ ->
@@ -102,18 +85,15 @@ constructor(  //array list
                 alertDialog.show()
             }
         }
-        val summery_buf: String? = items[position].summery
-        viewHolder.binding.summery.text = summery_buf
-        val percent_buf: String? = items[position].percentString
-        viewHolder.binding.percentText.text = percent_buf + "%"
-        val percent: Int = percent_buf!!.toFloat().toInt()
-        ObjectAnimator.ofInt(viewHolder.binding.progress, "progress", percent)
+
+        ObjectAnimator.ofInt(
+            viewHolder.binding.progress,
+            "progress",
+            items[position].percent.toInt()
+        )
             .setDuration(1500)
             .start()
-
-
     }
-
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int, payloads: List<Any>) {
 
@@ -122,14 +102,11 @@ constructor(  //array list
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-            viewHolder.binding.leftDay.text = adapterItem.leftDay
-            viewHolder.binding.percentText.text = adapterItem.percentString + "%"
-            viewHolder.binding.progress.progress = adapterItem.percentString!!.toFloat().toInt()
-
+            viewHolder.binding.left.text = adapterItem.leftString
+            viewHolder.binding.percent.text = adapterItem.percent.toString() + "%"
+            viewHolder.binding.progress.progress = adapterItem.percent.toInt()
         }
-
     }
-
 
     override fun getItemCount(): Int {
         return items.size
@@ -155,17 +132,16 @@ constructor(  //array list
                     animation.animatedValue as Int
                 itemView.findViewById<View>(R.id.view).requestLayout()
                 // imageView가 실제로 사라지게하는 부분
-                binding.startDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                binding.endDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                binding.leftDay.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.start.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.end.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.left.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 //autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                binding.deleteButton.visibility = if (isExpanded) View.VISIBLE else View.GONE
+                binding.delete.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 binding.imageView.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
             }
             // Animation start
             va.start()
         }
-
 
         //ViewHolder
         init {

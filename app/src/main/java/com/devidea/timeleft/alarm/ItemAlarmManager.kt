@@ -21,11 +21,9 @@ class ItemAlarmManager {
         val alarmManager = App.context().getSystemService(ALARM_SERVICE) as AlarmManager
         val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
         for (i in itemList.indices) {
-            if ((itemList[i].alarmFlag != 0)) {
-
+            if (itemList[i].alarmFlag) {
                 intent.putExtra("title", itemList[i].title)
                 intent.putExtra("id", itemList[i].id)
-                intent.putExtra("flag", itemList[i].alarmFlag)
                 intent.action = "com.devidea.timeleft.alarm"
 
                 this.pendingIntent = PendingIntent.getBroadcast(
@@ -51,6 +49,7 @@ class ItemAlarmManager {
                     }
 
                     "Time" -> {
+                        intent.putExtra("weekend", itemList[i].weekendAlarm)
                         val triggerTime = LocalTime.parse(
                             itemList[i].endValue,
                             DateTimeFormatter.ofPattern("H:m")

@@ -103,12 +103,12 @@ class AppWidgetConfigure : Activity() {
             when (value) {
                 "embedYear" -> {
                     val item = MainActivity.ITEM_GENERATE.yearItem()
-                    views.setTextViewText(R.id.summery, item.summery)
-                    views.setTextViewText(R.id.percent, item.percentString + "%")
+                    views.setTextViewText(R.id.summery, item.title)
+                    views.setTextViewText(R.id.percent, item.percent.toString() + "%")
                     views.setProgressBar(
                         R.id.progress,
                         100,
-                        item.percentString!!.toFloat().toInt(),
+                        item.percent.toInt(),
                         false
                     )
                     appWidgetManager.updateAppWidget(widgetId, views)
@@ -116,12 +116,12 @@ class AppWidgetConfigure : Activity() {
                 }
                 "embedMonth" -> {
                     val item = MainActivity.ITEM_GENERATE.monthItem()
-                    views.setTextViewText(R.id.summery, item.summery)
-                    views.setTextViewText(R.id.percent, item.percentString + "%")
+                    views.setTextViewText(R.id.summery, item.title)
+                    views.setTextViewText(R.id.percent, item.percent.toString() + "%")
                     views.setProgressBar(
                         R.id.progress,
                         100,
-                        item.percentString!!.toFloat().toInt(),
+                        item.percent.toInt(),
                         false
                     )
 
@@ -130,15 +130,14 @@ class AppWidgetConfigure : Activity() {
                 }
                 "embedTime" -> {
                     val item = MainActivity.ITEM_GENERATE.timeItem()
-                    views.setTextViewText(R.id.summery, item.summery)
-                    views.setTextViewText(R.id.percent, item.percentString + "%")
+                    views.setTextViewText(R.id.summery, item.title)
+                    views.setTextViewText(R.id.percent, item.percent.toString() + "%")
                     views.setProgressBar(
                         R.id.progress,
                         100,
-                        item.percentString!!.toFloat().toInt(),
+                        item.percent.toInt(),
                         false
                     )
-
                     appWidgetManager.updateAppWidget(widgetId, views)
 
                 }
@@ -170,17 +169,17 @@ class AppWidgetConfigure : Activity() {
             val preView: TextView = findViewById(R.id.summery_preview)
             when (checkedId) {
                 R.id.yearButton -> {
-                    preView.text = MainActivity.ITEM_GENERATE.yearItem().summery
+                    preView.text = MainActivity.ITEM_GENERATE.yearItem().title
                     value = "embedYear"
                     binding.spinner.isEnabled = false
                 }
                 R.id.monthButton -> {
-                    preView.text = MainActivity.ITEM_GENERATE.monthItem().summery
+                    preView.text = MainActivity.ITEM_GENERATE.monthItem().title
                     value = "embedMonth"
                     binding.spinner.isEnabled = false
                 }
                 R.id.timeButton -> {
-                    preView.text = MainActivity.ITEM_GENERATE.timeItem().summery
+                    preView.text = MainActivity.ITEM_GENERATE.timeItem().title
                     value = "embedTime"
                     binding.spinner.isEnabled = false
                 }
@@ -226,12 +225,12 @@ class AppWidgetConfigure : Activity() {
                     MainActivity.ITEM_GENERATE.customMonthItem(itemList)
 
             }
-            views.setTextViewText(R.id.summery, item.summery)
-            views.setTextViewText(R.id.percent, item.percentString + "%")
+            views.setTextViewText(R.id.summery, item.title)
+            views.setTextViewText(R.id.percent, item.percent.toString() + "%")
             views.setProgressBar(
                 R.id.progress,
                 100,
-                item.percentString!!.toFloat().toInt(),
+                item.percent.toInt(),
                 false
             )
 

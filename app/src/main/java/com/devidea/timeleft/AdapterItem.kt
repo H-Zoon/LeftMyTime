@@ -1,17 +1,13 @@
 package com.devidea.timeleft
 
-import androidx.annotation.NonNull
 
 class AdapterItem {
-    var summery: String? = null
-    var percentString: String? = null
-    var startDay: String? = null
-    var endDay: String? = null
-    var leftDay: String? = null
-    var autoUpdateFlag: Int? = null
-    var updateRate: Int? = null
-    var alarmFlag: Int? = null
-    var alarmRate: String? = null
     var id = 0
-
+    lateinit var title: String
+    var percent: Float = .2f
+    lateinit var startString: String
+    lateinit var endString: String
+    lateinit var leftString: String
+    lateinit var updateInfo: String
+    lateinit var alarmInfo: String
 }

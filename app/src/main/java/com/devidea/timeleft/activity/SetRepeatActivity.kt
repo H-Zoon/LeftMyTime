@@ -14,15 +14,11 @@ class SetRepeatActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        //setContentView(R.layout.activity_set_repeat)
         binding = ActivitySetRepeatBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
         var flag = 0
 
-        //val radioGroup = findViewById<RadioGroup>(R.id.radio_group)
-
-        //람다식 방법
         binding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
             when (checkedId) {
                 R.id.alarm_rate_unable_radio_button -> {
