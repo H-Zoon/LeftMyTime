@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import android.util.Log
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -113,17 +114,8 @@ class ItemGenerate : InterfaceItem {
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
 
-
-        when (itemEntity.updateFlag) {
-            0 -> adapterItem.updateInfo = "100% 달성후 끝나는 일정."
-            1 -> adapterItem.updateInfo = "종료 후 " +
-                    itemEntity.alarmRate + "일 뒤 반복되는 일정."
-            2 -> adapterItem.updateInfo =
-                "매 달" + itemEntity.alarmRate + "일에 반복되는 일정."
-        }
-
         if (itemEntity.alarmFlag) {
-            adapterItem.alarmInfo = itemEntity.alarmRate.toString() + "시간전 알림설정"
+            adapterItem.alarmInfo = itemEntity.alarmRate.toString() + "일전 알림설정"
         } else {
             adapterItem.alarmInfo = "알람없음"
         }
@@ -174,23 +166,34 @@ class ItemGenerate : InterfaceItem {
             itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)
             endDate = LocalDate.parse(itemInfo.endValue, formatter)
+
             setDay = ChronoUnit.DAYS.between(startDate, endDate).toInt()
             sendDay = ChronoUnit.DAYS.between(startDate, today).toInt()
             leftDay = ChronoUnit.DAYS.between(today, endDate).toInt()
         }
 
-        adapterItem.percent =
-            String.format(
-                Locale.getDefault(),
-                "%.1f",
-                leftDay.toFloat() / setDay * 100
-            )
-                .toFloat()
+        val monthPercent = sendDay.toFloat() / setDay * 100
+
+        if (monthPercent < 100) {
+            adapterItem.percent =
+                String.format(Locale.getDefault(), "%.1f", monthPercent).toFloat()
+        } else {
+            adapterItem.percent = 100F
+        }
 
         adapterItem.title = itemEntity.title
         adapterItem.startString = "설정일: $startDate"
         adapterItem.endString = "종료일: $endDate"
         adapterItem.leftString = "남은일: D-$leftDay"
+
+        when (itemEntity.updateFlag) {
+            0 -> adapterItem.updateInfo = "100% 달성후 끝나는 일정."
+            1 -> adapterItem.updateInfo = "종료 후 " +
+                    itemEntity.alarmRate + "일 뒤 반복되는 일정."
+            2 -> adapterItem.updateInfo =
+                "매 달" + itemEntity.alarmRate + "일에 반복되는 일정."
+        }
+
         adapterItem.id = itemEntity.id
 
 

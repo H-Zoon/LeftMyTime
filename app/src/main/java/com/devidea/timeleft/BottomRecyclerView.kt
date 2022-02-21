@@ -71,8 +71,6 @@ constructor(  //array list
         viewHolder.binding.updateInfo.text = items[position].updateInfo
         viewHolder.binding.alarmInfo.text = items[position].alarmInfo
 
-
-
         with(viewHolder) {
             viewHolder.binding.delete.setOnClickListener {
                 val builder: AlertDialog.Builder = AlertDialog.Builder(activityContext)
@@ -88,8 +86,6 @@ constructor(  //array list
             }
         }
 
-
-
         ObjectAnimator.ofInt(
             viewHolder.binding.progress,
             "progress",
@@ -97,10 +93,7 @@ constructor(  //array list
         )
             .setDuration(1500)
             .start()
-
-
     }
-
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int, payloads: List<Any>) {
 
@@ -112,11 +105,8 @@ constructor(  //array list
             viewHolder.binding.left.text = adapterItem.leftString
             viewHolder.binding.percent.text = adapterItem.percent.toString() + "%"
             viewHolder.binding.progress.progress = adapterItem.percent.toInt()
-
         }
-
     }
-
 
     override fun getItemCount(): Int {
         return items.size
@@ -152,7 +142,6 @@ constructor(  //array list
             // Animation start
             va.start()
         }
-
 
         //ViewHolder
         init {
