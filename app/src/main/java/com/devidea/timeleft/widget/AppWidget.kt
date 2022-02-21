@@ -114,58 +114,55 @@ class AppWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
         when (prefs.getString(appWidgetId.toString(), "")) {
             "embedYear" -> {
-                val year = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.yearItem()
                 views.setTextViewText(
                     R.id.summery,
-                    year.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    year.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    year.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             "embedMonth" -> {
-                val month = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.monthItem()
                 views.setTextViewText(
                     R.id.summery,
-                    month.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    month.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    month.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
             }
             "embedTime" -> {
-                val time = MainActivity.ITEM_GENERATE.yearItem()
+                val item = MainActivity.ITEM_GENERATE.timeItem()
                 views.setTextViewText(
                     R.id.summery,
-                    time.summery
+                    item.title
                 )
                 views.setTextViewText(
                     R.id.percent,
-                    time.percentString + "%"
+                    item.percent.toString() + "%"
                 )
                 views.setProgressBar(
                     R.id.progress,
                     100,
-                    time.percentString
-                    !!.toFloat().toInt(),
+                    item.percent.toInt(),
                     false
                 )
                 appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -196,12 +193,12 @@ class AppWidget : AppWidgetProvider() {
                 }
                 return@launch
             }
-            views.setTextViewText(R.id.summery, item.summery)
-            views.setTextViewText(R.id.percent, item.percentString + "%")
+            views.setTextViewText(R.id.summery, item.title)
+            views.setTextViewText(R.id.percent, item.percent.toString() + "%")
             views.setProgressBar(
                 R.id.progress,
                 100,
-                item.percentString!!.toFloat().toInt(),
+                item.percent.toInt(),
                 false
             )
 

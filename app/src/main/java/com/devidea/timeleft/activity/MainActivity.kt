@@ -42,9 +42,6 @@ class MainActivity : AppCompatActivity() {
         const val UPDATE_FLAG_FOR_MONTH = 2
         const val UPDATE_FLAG_FOR_TIME = 3
 
-        const val ALARM_FLAG_UNABLE = 0
-        const val ALARM_FLAG_ABLE = 1
-        const val ALARM_FLAG_FOR_WEEKEND = 2
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -219,13 +216,4 @@ class MainActivity : AppCompatActivity() {
             Toast.makeText(applicationContext, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
     }
-
-    /*
-    private fun refreshItem(): ArrayList<AdapterItem> {
-
-        return itemListArray
-    }
-
-     */
-
 }

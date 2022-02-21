@@ -4,19 +4,13 @@ import android.app.TimePickerDialog
 import android.os.Bundle
 import android.util.Log
 import android.view.View
-import android.widget.Button
-import android.widget.EditText
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_ABLE
-import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_FOR_WEEKEND
-import com.devidea.timeleft.activity.MainActivity.Companion.ALARM_FLAG_UNABLE
 import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
 import com.devidea.timeleft.databinding.ActivityCreateTimeBinding
-import com.devidea.timeleft.databinding.ActivityMainBinding
 import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -25,7 +19,8 @@ class CreateTimeActivity : AppCompatActivity() {
     lateinit var startTime: String
     lateinit var endTime: String
 
-    var alarmFlag = ALARM_FLAG_UNABLE
+    var alarmFlag = false
+    var weekendFlag = false
 
     private lateinit var binding: ActivityCreateTimeBinding
 
@@ -40,20 +35,20 @@ class CreateTimeActivity : AppCompatActivity() {
             if (compoundButton.isChecked) {
                 binding.alarmRateDateLayout.visibility = View.VISIBLE
                 binding.alarmWeekendSwitch.visibility = View.VISIBLE
-                alarmFlag = ALARM_FLAG_ABLE
+                alarmFlag = true
             } else {
                 binding.alarmRateDateLayout.visibility = View.GONE
                 binding.alarmWeekendSwitch.visibility = View.GONE
-                alarmFlag = ALARM_FLAG_UNABLE
+                alarmFlag = false
             }
         }
 
         binding.alarmWeekendSwitch.setOnCheckedChangeListener { compoundButton, b ->
-            alarmFlag = if (compoundButton.isChecked) {
-                ALARM_FLAG_FOR_WEEKEND
+            if (compoundButton.isChecked) {
+                weekendFlag = true
             } else {
                 Log.d(TAG, "0")
-                ALARM_FLAG_ABLE
+                weekendFlag = false
             }
         }
 
@@ -93,13 +88,14 @@ class CreateTimeActivity : AppCompatActivity() {
     //isInitialized is able instance variable, not a local variable.
     fun save(v: View) {
         if (::startTime.isInitialized && ::endTime.isInitialized && binding.inputSummery.length() > 0) {
-            if (alarmFlag == 0) {
+            if (!alarmFlag) {
                 ItemSave().saveTimeItem(
                     binding.inputSummery.text.toString(),
                     startTime,
                     endTime,
-                    ALARM_FLAG_UNABLE,
-                    0
+                    false,
+                    0,
+                    false
                 )
                 finish()
             } else {
@@ -119,7 +115,8 @@ class CreateTimeActivity : AppCompatActivity() {
                             startTime,
                             endTime,
                             alarmFlag,
-                            binding.alarmRateDateEditText.text.toString().toInt()
+                            binding.alarmRateDateEditText.text.toString().toInt(),
+                            weekendFlag
                         )
                         finish()
                     } else {

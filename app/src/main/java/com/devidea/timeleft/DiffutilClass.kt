@@ -27,10 +27,10 @@ class DiffutilClass(
     override fun areContentsTheSame(oldItemPosition: Int, newItemPosition: Int): Boolean {
         //Log.d("areContentsTheSame",(oldTiles[oldItemPosition].leftDay == newTiles[newItemPosition].leftDay).toString() )
         //Log.d("leftDay",(oldTiles[oldItemPosition].leftDay).toString() + (newTiles[newItemPosition].leftDay.toString()) )
-        return oldTiles[oldItemPosition].leftDay == newTiles[newItemPosition].leftDay
+        return oldTiles[oldItemPosition].leftString == newTiles[newItemPosition].leftString
     }
     //페이로드 반환
-    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any? {
+    override fun getChangePayload(oldItemPosition: Int, newItemPosition: Int): Any {
         //Log.d("getChangePayload",oldItemPosition.toString() )
         //adapter.notifyItemChanged(oldItemPosition, newTiles[newItemPosition])
         return adapter.notifyItemChanged(oldItemPosition, newTiles[newItemPosition])

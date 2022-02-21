@@ -24,12 +24,10 @@ constructor(private val arrayList: ArrayList<AdapterItem>) :
 
     override fun onBindViewHolder(viewHolder: ViewHolder, position: Int) {
 
-        viewHolder.summery.text = arrayList[position].summery
-        val percent_buf: String? = arrayList[position].percentString
-        viewHolder.percent.text = percent_buf + "%"
-        viewHolder.leftValue.text = arrayList[position].leftDay
-        val percent: Int = percent_buf!!.toFloat().toInt()
-        ObjectAnimator.ofInt(viewHolder.progressBar, "progress", percent)
+        viewHolder.title.text = arrayList[position].title
+        viewHolder.percent.text = arrayList[position].percent.toString() + "%"
+        viewHolder.leftValue.text = arrayList[position].leftString
+        ObjectAnimator.ofInt(viewHolder.progressBar, "progress", arrayList[position].percent.toInt())
             .setDuration(1500)
             .start()
 
@@ -43,9 +41,9 @@ constructor(private val arrayList: ArrayList<AdapterItem>) :
         } else {
             val adapterItem: AdapterItem = payloads[0] as AdapterItem
 
-            holder.percent.text = adapterItem.percentString + "%"
-            holder.progressBar.progress = adapterItem.percentString!!.toFloat().toInt()
-            holder.leftValue.text = adapterItem.leftDay
+            holder.percent.text = adapterItem.percent.toString() + "%"
+            holder.progressBar.progress = adapterItem.percent.toInt()
+            holder.leftValue.text = adapterItem.leftString
         }
     }
 
@@ -54,14 +52,14 @@ constructor(private val arrayList: ArrayList<AdapterItem>) :
     }
 
     class ViewHolder constructor(view: View) : RecyclerView.ViewHolder(view) {
-        val summery: TextView
+        val title: TextView
         val percent: TextView
         val progressBar: ProgressBar
         val leftValue: TextView
 
         //ViewHolder
         init {
-            summery = view.findViewById<View>(R.id.summery) as TextView
+            title = view.findViewById<View>(R.id.title) as TextView
             percent = view.findViewById<View>(R.id.percent_text) as TextView
             progressBar = view.findViewById<View>(R.id.progress) as ProgressBar
             leftValue = view.findViewById(R.id.left_day)

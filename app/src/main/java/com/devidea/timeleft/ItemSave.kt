@@ -16,9 +16,9 @@ class ItemSave {
         title: String,
         startValue: String,
         endValue: String,
-        autoUpdateFlag: Int,
+        updateFlag: Int,
         updateRate: Int,
-        alarmFlag: Int,
+        alarmFlag: Boolean,
         alarmRate: Int
     ) {
         val entityItemInfo = ItemEntity(
@@ -26,10 +26,11 @@ class ItemSave {
             title,
             startValue,
             endValue,
-            autoUpdateFlag,
+            updateFlag,
             updateRate,
             alarmFlag,
-            alarmRate
+            alarmRate,
+            false
         )
         writeDatabase(entityItemInfo)
     }
@@ -38,11 +39,22 @@ class ItemSave {
         title: String,
         startValue: String,
         endValue: String,
-        alarmFlag: Int,
-        alarmRate: Int
+        alarmFlag: Boolean,
+        alarmRate: Int,
+        weekendFlag: Boolean
     ) {
         val entityItemInfo =
-            ItemEntity("Time", title, startValue, endValue, UPDATE_FLAG_FOR_TIME, 0, alarmFlag, alarmRate)
+            ItemEntity(
+                "Time",
+                title,
+                startValue,
+                endValue,
+                UPDATE_FLAG_FOR_TIME,
+                0,
+                alarmFlag,
+                alarmRate,
+                weekendFlag
+            )
         writeDatabase(entityItemInfo)
     }
 
