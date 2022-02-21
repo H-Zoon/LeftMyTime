@@ -1,6 +1,5 @@
 package com.devidea.timeleft.widget
 
-import android.app.Activity
 import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
@@ -9,7 +8,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
-import android.util.Log
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
@@ -20,7 +18,6 @@ import com.devidea.timeleft.datadase.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-
 
 class AppWidget : AppWidgetProvider() {
 

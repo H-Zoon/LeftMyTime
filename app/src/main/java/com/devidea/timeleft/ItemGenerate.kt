@@ -1,6 +1,5 @@
 package com.devidea.timeleft
 
-import android.util.Log
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity

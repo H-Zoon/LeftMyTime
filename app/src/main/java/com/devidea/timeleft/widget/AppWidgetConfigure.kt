@@ -24,7 +24,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 class AppWidgetConfigure : Activity() {
     private lateinit var binding: AppwidgetConfigureBinding
     private lateinit var value: String
@@ -44,6 +43,7 @@ class AppWidgetConfigure : Activity() {
 
         binding = AppwidgetConfigureBinding.inflate(layoutInflater)
         setContentView(binding.root)
+        binding.spinner.isEnabled = false
 
         CoroutineScope(Dispatchers.IO).launch {
             itemList = AppDatabase.getDatabase(App.context()).itemDao().item
@@ -144,7 +144,6 @@ class AppWidgetConfigure : Activity() {
 
                 "custom" -> {
                     customWidgetInit(views, appWidgetManager)
-
                 }
 
                 else -> {
@@ -197,13 +196,12 @@ class AppWidgetConfigure : Activity() {
             }
 
             override fun onNothingSelected(p0: AdapterView<*>?) {
-                TODO("Not yet implemented")
+
             }
 
         }
 
     }
-
 
     private fun adapterInit() {
         val adapter: ArrayAdapter<String?> =
@@ -212,17 +210,17 @@ class AppWidgetConfigure : Activity() {
     }
 
     private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager) {
+        lateinit var item: AdapterItem
         CoroutineScope(Dispatchers.IO).launch {
-            var item = AdapterItem()
+
             val itemList =
                 AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(id.toInt())
 
-            if ((itemList.type == "Time")) {
-                item = MainActivity.ITEM_GENERATE.customTimeItem(itemList)
+            item = if ((itemList.type == "Time")) {
+                MainActivity.ITEM_GENERATE.customTimeItem(itemList)
 
             } else {
-                item =
-                    MainActivity.ITEM_GENERATE.customMonthItem(itemList)
+                MainActivity.ITEM_GENERATE.customMonthItem(itemList)
 
             }
             views.setTextViewText(R.id.summery, item.title)

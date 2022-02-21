@@ -3,7 +3,6 @@ package com.devidea.timeleft.activity
 import android.app.*
 import android.content.*
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.os.PowerManager
 import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
