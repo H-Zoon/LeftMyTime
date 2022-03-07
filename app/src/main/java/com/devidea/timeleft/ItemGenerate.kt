@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import android.util.Log
 import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -40,8 +41,9 @@ class ItemGenerate : InterfaceItem {
         adapterItem.percent = String.format(
             Locale.getDefault(),
             "%.1f",
-            LocalDate.now().dayOfYear.toFloat() / LocalDate.now().lengthOfYear()
+            (LocalDate.now().dayOfYear.toFloat()/ LocalDate.now().lengthOfYear().toFloat()) * 100
         ).toFloat()
+
         adapterItem.leftString = "남은일: " + (LocalDate.now()
             .lengthOfYear() - LocalDate.now().dayOfYear) + "일"
         return adapterItem

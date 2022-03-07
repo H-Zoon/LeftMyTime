@@ -138,12 +138,12 @@ class MainActivity : AppCompatActivity() {
             startActivity(intent)
         }
 
-
         CoroutineScope(Dispatchers.IO).launch {
             while (true) {
                 val itemListArray = ArrayList<AdapterItem>()
 
-                val itemList: List<ItemEntity> = AppDatabase.getDatabase(App.context()).itemDao().item
+                val itemList: List<ItemEntity> =
+                    AppDatabase.getDatabase(App.context()).itemDao().item
                 for (i in itemList.indices) {
                     if ((itemList[i].type == "Time")) {
                         itemListArray.add(
@@ -161,7 +161,8 @@ class MainActivity : AppCompatActivity() {
                 }
                 CoroutineScope(Dispatchers.Main).launch {
                     bottomItemAdapter.updateList(itemListArray)
-                    delay(1000) }
+                }
+                delay(1000)
             }
         }
     }

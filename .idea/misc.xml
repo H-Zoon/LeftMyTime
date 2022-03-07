@@ -3,7 +3,23 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/drawable/black_indicator.xml" value="0.173" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/drawable/circle_inner.xml" value="0.173" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/drawable/circle_outer.xml" value="0.173" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/drawable/gray_indicator.xml" value="0.173" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/activity_create_time.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/activity_main.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/activity_set_repeat.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/activity_setting.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/app_widget.xml" value="0.22192028985507245" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/appwidget_configure.xml" value="0.22192028985507245" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/fragment_description.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_bottom.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/layout/item_recyclerview_top.xml" value="0.24947916666666667" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/mipmap-anydpi-v26/ic_launcher_round.xml" value="0.185" />
+        <entry key="..\:/Users/jun/AndroidStudioProjects/LeftMyTime/app/src/main/res/xml/settings_preference.xml" value="0.3619791666666667" />
         <entry key="..\:/Users/jun/AppData/Local/Android/Sdk/platforms/android-32/data/res/drawable/ratingbar_indicator_material.xml" value="0.21927083333333333" />
+        <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable-anydpi/ic_stat_name.xml" value="0.1245" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable-v24/ic_launcher_foreground.xml" value="0.2109375" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/black_indicator.xml" value="0.2109375" />
         <entry key="..\:/Users/jun/StudioProjects/LeftMyTime/app/src/main/res/drawable/circle_inner.xml" value="0.21822916666666667" />
