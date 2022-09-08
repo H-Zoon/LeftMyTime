@@ -81,7 +81,7 @@
             android:gravity="end"
             android:textColor="@color/gray600"
             android:text="TextView" />
-
+<!--
         <TextView
             android:id="@+id/alarmInfo"
             android:layout_width="match_parent"
@@ -89,6 +89,7 @@
             android:gravity="end"
             android:textColor="@color/gray600"
             android:text="TextView" />
+            -->
     </LinearLayout>
 
     <LinearLayout

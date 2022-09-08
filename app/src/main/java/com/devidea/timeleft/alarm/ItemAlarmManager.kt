@@ -14,6 +14,7 @@ import java.time.format.DateTimeFormatter
 import java.util.*
 
 class ItemAlarmManager {
+    /*
     val intent = Intent(App.context(), AlarmReceiver::class.java)
     private lateinit var pendingIntent: PendingIntent
 
@@ -86,4 +87,6 @@ class ItemAlarmManager {
             alarmManager.cancel(pendingIntent)
         }
     }
+
+     */
 }

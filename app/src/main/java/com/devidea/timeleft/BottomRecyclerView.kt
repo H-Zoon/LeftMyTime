@@ -69,7 +69,7 @@ constructor(  //array list
         viewHolder.binding.left.text = items[position].leftString
         viewHolder.binding.percent.text = items[position].percent.toString() + "%"
         viewHolder.binding.updateInfo.text = items[position].updateInfo
-        viewHolder.binding.alarmInfo.text = items[position].alarmInfo
+        //viewHolder.binding.alarmInfo.text = items[position].alarmInfo
 
         with(viewHolder) {
             viewHolder.binding.delete.setOnClickListener {
@@ -172,7 +172,7 @@ constructor(  //array list
 
     private fun delete(id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            ItemAlarmManager().alarmDelete(id)
+            //ItemAlarmManager().alarmDelete(id)
             appDatabase.itemDao()
                 .deleteItem(id)
             //appDatabase.itemDao().deleteCustomWidget(id)

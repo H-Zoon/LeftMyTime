@@ -6,6 +6,7 @@ import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
 import java.time.LocalDate
+import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
@@ -31,6 +32,8 @@ class ItemGenerate : InterfaceItem {
                 endValue
             ).seconds
         )
+        adapterItem.widgetString =  adapterItem.leftString.substring(0,  adapterItem.leftString.length - 3)
+
         return adapterItem
     }
 
@@ -81,12 +84,6 @@ class ItemGenerate : InterfaceItem {
         adapterItem.updateInfo = "설정시간 이후 자동으로 시작"
         adapterItem.id = itemEntity.id
 
-        if (itemEntity.alarmFlag) {
-            adapterItem.alarmInfo = itemEntity.alarmRate.toString() + "시간전 알림설정"
-        } else {
-            adapterItem.alarmInfo = "알람없음"
-        }
-
         if (time.isAfter(startTime) && time.isBefore(endTime)) {
             val range = Duration.between(startTime, endTime).seconds.toFloat()
             val sendTime = Duration.between(startTime, time).seconds.toFloat()
@@ -102,6 +99,9 @@ class ItemGenerate : InterfaceItem {
             adapterItem.percent = 100.toFloat()
             adapterItem.leftString = "설정시간이 지나면 계산해 드릴께요"
         }
+
+        adapterItem.widgetString =  adapterItem.leftString.substring(0,  adapterItem.leftString.length - 3)
+
         return adapterItem
     }
 
@@ -115,11 +115,14 @@ class ItemGenerate : InterfaceItem {
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
 
+        /*
         if (itemEntity.alarmFlag) {
             adapterItem.alarmInfo = itemEntity.alarmRate.toString() + "일전 알림설정"
         } else {
             adapterItem.alarmInfo = "알람없음"
         }
+
+         */
 
         val id = itemInfo.id
 
@@ -162,7 +165,7 @@ class ItemGenerate : InterfaceItem {
                     )
                 }
             }
-            ItemAlarmManager().alarmInit()
+            //ItemAlarmManager().alarmInit()
 
             itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)
@@ -190,13 +193,12 @@ class ItemGenerate : InterfaceItem {
         when (itemEntity.updateFlag) {
             0 -> adapterItem.updateInfo = "100% 달성후 끝나는 일정."
             1 -> adapterItem.updateInfo = "종료 후 " +
-                    itemEntity.alarmRate + "일 뒤 반복되는 일정."
+                    itemEntity.updateRate + "일 뒤 반복되는 일정."
             2 -> adapterItem.updateInfo =
-                "매 달" + itemEntity.alarmRate + "일에 반복되는 일정."
+                "매 달 " + itemEntity.updateRate + "일에 반복되는 일정."
         }
 
         adapterItem.id = itemEntity.id
-
 
         return adapterItem
     }

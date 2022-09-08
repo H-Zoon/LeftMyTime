@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetManager
 import android.app.PendingIntent
 import android.os.Bundle
 import android.app.Activity
+import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.provider.Settings.Global.putInt
@@ -101,66 +102,24 @@ class AppWidgetConfigure : Activity() {
 
             try {
                 when (value) {
-                    "embedYear" -> {
-                        val item = MainActivity.ITEM_GENERATE.yearItem()
-                        views.setTextViewText(R.id.summery, item.title)
-                        views.setTextViewText(R.id.percent, item.percent.toString() + "%")
-                        views.setProgressBar(
-                            R.id.progress,
-                            100,
-                            item.percent.toInt(),
-                            false
-                        )
-                        appWidgetManager.updateAppWidget(widgetId, views)
+                    "embedYear" -> appWidgetManager.updateAppWidget(widgetId, views)
 
-                    }
-                    "embedMonth" -> {
-                        val item = MainActivity.ITEM_GENERATE.monthItem()
-                        views.setTextViewText(R.id.summery, item.title)
-                        views.setTextViewText(R.id.percent, item.percent.toString() + "%")
-                        views.setProgressBar(
-                            R.id.progress,
-                            100,
-                            item.percent.toInt(),
-                            false
-                        )
+                    "embedMonth" -> appWidgetManager.updateAppWidget(widgetId, views)
 
-                        appWidgetManager.updateAppWidget(widgetId, views)
+                    "embedTime" -> appWidgetManager.updateAppWidget(widgetId, views)
 
-                    }
-                    "embedTime" -> {
-                        val item = MainActivity.ITEM_GENERATE.timeItem()
-                        views.setTextViewText(R.id.summery, item.title)
-                        views.setTextViewText(R.id.percent, item.percent.toString() + "%")
-                        views.setProgressBar(
-                            R.id.progress,
-                            100,
-                            item.percent.toInt(),
-                            false
-                        )
-                        appWidgetManager.updateAppWidget(widgetId, views)
-
-                    }
-
-                    "custom" -> {
-                        customWidgetInit(views, appWidgetManager)
-                    }
-
-                    else -> {
-                        setResult(RESULT_CANCELED)
-                        Toast.makeText(context, "취소되었습니다", Toast.LENGTH_SHORT).show()
-                        finish()
-                    }
+                    "custom" -> customWidgetInit(views, appWidgetManager)
                 }
 
                 with(MainActivity.prefs.edit()) {
                     putString(widgetId.toString(), value)
-                    apply()
-                }
+                    putBoolean(widgetId.toString() + "option", binding.option.isChecked)
+                }.apply()
 
                 val resultValue = Intent()
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                 setResult(RESULT_OK, resultValue)
+                AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
                 finish()
 
             } catch (e: Exception) {
@@ -169,27 +128,21 @@ class AppWidgetConfigure : Activity() {
 
         }
 
-
         binding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
-            //val preView: TextView = findViewById(R.id.summery_preview)
             when (checkedId) {
                 R.id.yearButton -> {
-                    //preView.text = MainActivity.ITEM_GENERATE.yearItem().title
                     value = "embedYear"
                     binding.spinner.isEnabled = false
                 }
                 R.id.monthButton -> {
-                    //preView.text = MainActivity.ITEM_GENERATE.monthItem().title
                     value = "embedMonth"
                     binding.spinner.isEnabled = false
                 }
                 R.id.timeButton -> {
-                    //preView.text = MainActivity.ITEM_GENERATE.timeItem().title
                     value = "embedTime"
                     binding.spinner.isEnabled = false
                 }
                 R.id.userItemButton -> {
-                    //preView.text = "제목이 표시됩니다"
                     value = "custom"
                     binding.spinner.isEnabled = true
                 }
@@ -215,38 +168,29 @@ class AppWidgetConfigure : Activity() {
     }
 
     private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager) {
-        lateinit var item: AdapterItem
-        CoroutineScope(Dispatchers.IO).launch {
 
+        CoroutineScope(Dispatchers.IO).launch {
             val itemList =
                 AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(id.toInt())
 
-            item = if ((itemList.type == "Time")) {
+            if ((itemList.type == "Time")) {
                 MainActivity.ITEM_GENERATE.customTimeItem(itemList)
 
             } else {
                 MainActivity.ITEM_GENERATE.customMonthItem(itemList)
-
             }
-            views.setTextViewText(R.id.summery, item.title)
-            views.setTextViewText(R.id.percent, item.percent.toString() + "%")
-            views.setProgressBar(
-                R.id.progress,
-                100,
-                item.percent.toInt(),
-                false
-            )
 
             appWidgetManager.updateAppWidget(widgetId, views)
 
             with(MainActivity.prefs.edit()) {
-                putString(widgetId.toString(), id)
-                apply()
+                putString(widgetId.toString(), id).apply()
             }
 
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
             setResult(RESULT_OK, resultValue)
+
+            AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
             finish()
         }
     }

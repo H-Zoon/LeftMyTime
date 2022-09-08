@@ -9,5 +9,5 @@ class AdapterItem {
     lateinit var endString: String
     lateinit var leftString: String
     lateinit var updateInfo: String
-    lateinit var alarmInfo: String
+    lateinit var widgetString: String
 }

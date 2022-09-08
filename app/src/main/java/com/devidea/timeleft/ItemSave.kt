@@ -28,9 +28,9 @@ class ItemSave {
             endValue,
             updateFlag,
             updateRate,
-            alarmFlag,
-            alarmRate,
-            false
+            //alarmFlag,
+            //alarmRate,
+            //false
         )
         writeDatabase(entityItemInfo)
     }
@@ -50,10 +50,13 @@ class ItemSave {
                 startValue,
                 endValue,
                 UPDATE_FLAG_FOR_TIME,
-                0,
+                0
+                        /*
                 alarmFlag,
                 alarmRate,
                 weekendFlag
+
+                         */
             )
         writeDatabase(entityItemInfo)
     }
@@ -62,7 +65,7 @@ class ItemSave {
         CoroutineScope(Dispatchers.IO).launch {
             appDatabase.itemDao().saveItem(itemEntity)
             //test
-            ItemAlarmManager().alarmInit()
+            //ItemAlarmManager().alarmInit()
         }
 
 

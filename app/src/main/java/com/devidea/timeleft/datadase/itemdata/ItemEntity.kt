@@ -1,7 +1,9 @@
 package com.devidea.timeleft.datadase.itemdata
 
 import androidx.annotation.NonNull
+import androidx.annotation.Nullable
 import androidx.room.*
+import com.devidea.timeleft.widget.AppWidget
 
 
 @Entity
@@ -12,9 +14,7 @@ data class ItemEntity(
     @NonNull var endValue: String,
     @NonNull var updateFlag: Int,
     @NonNull var updateRate: Int,
-    @NonNull var alarmFlag: Boolean,
-    @NonNull var alarmRate: Int,
-    @NonNull var weekendAlarm: Boolean
+
 ) {
     @PrimaryKey(autoGenerate = true)
     var id: Int = 0
