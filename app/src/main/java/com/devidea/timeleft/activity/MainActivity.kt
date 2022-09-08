@@ -63,42 +63,6 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
-
-        val powerManager = getSystemService(Context.POWER_SERVICE) as PowerManager
-        val packageName = packageName
-
-        if (!powerManager.isIgnoringBatteryOptimizations(packageName)) {
-            with(prefs.edit()) {
-                putBoolean("power_service", false)
-                apply()
-            }
-
-            if (0 == prefs.getInt("POWER_SERVICE_NO_SHOW", 0)) {
-                AlertDialog.Builder(this)
-                    .setTitle("더 정확한 알림과 위젯활용")
-                    .setMessage("TimeLeft의 알람 기능과 위젯 업데이트를 위해 배터리 최적화를 해제하여야 합니다.")
-                    .setPositiveButton("확인") { _, _ ->
-                        val intent = Intent()
-                        intent.action = ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
-                        intent.data = Uri.parse("package:$packageName")
-                        startActivity(intent)
-                    }
-                    .setNegativeButton("다시보지않음") { _, _ ->
-                        with(prefs.edit()) {
-                            putInt("POWER_SERVICE_NO_SHOW", 1)
-                            apply()
-                        }
-                    }
-                    .create().show()
-            }
-        } else {
-            with(prefs.edit()) {
-                putBoolean("power_service", true)
-                apply()
-            }
-        }
-
-
         initTopRecyclerView()
         initBottomRecyclerView()
 
