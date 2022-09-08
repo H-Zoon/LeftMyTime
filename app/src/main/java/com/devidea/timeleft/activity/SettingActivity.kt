@@ -6,8 +6,6 @@ import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import com.devidea.timeleft.R
 import com.devidea.timeleft.SettingPreferenceFragment
-import com.devidea.timeleft.databinding.ActivityMainBinding
-import com.devidea.timeleft.databinding.ActivitySetRepeatBinding
 import com.devidea.timeleft.databinding.ActivitySettingBinding
 
 private lateinit var binding: ActivitySettingBinding //activity_main.xml

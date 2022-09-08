@@ -24,7 +24,6 @@ class CreateDayActivity : AppCompatActivity() {
     lateinit var endDay: String
     var updateFlag = UPDATE_FLAG_UNABLE
     var updateRate = 0
-    var alarmFlag = false
 
     private lateinit var binding: ActivityCreateDayBinding
 

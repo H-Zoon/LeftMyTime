@@ -1,22 +1,15 @@
 package com.devidea.timeleft
 
-import android.app.AlertDialog
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings
 import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
 import android.util.Log
-import androidx.appcompat.app.ActionBar
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat.getSystemService
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.PreferenceManager
-import com.devidea.timeleft.activity.MainActivity
 
 class SettingPreferenceFragment : PreferenceFragmentCompat() {
     // 저장되는 데이터에 접근하기 위한 SharedPreferences
@@ -39,7 +32,6 @@ class SettingPreferenceFragment : PreferenceFragmentCompat() {
         if (rootKey == null) {
             // Preference 객체 초기화
             themePreference = findPreference("theme")
-            //languagePreference = findPreference("language")
             pausePreference = findPreference("pause")
             powerPreference = findPreference("power_service")
 
@@ -91,9 +83,7 @@ class SettingPreferenceFragment : PreferenceFragmentCompat() {
                         "어둡게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
 
                         else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-
                     }
-
                 }
                 "pause" ->{
 

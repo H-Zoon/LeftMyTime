@@ -9,12 +9,9 @@ import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.app.*
 import android.content.Context
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.DiffUtil
-import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
-import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.databinding.ItemRecyclerviewBottomBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import kotlinx.coroutines.CoroutineScope

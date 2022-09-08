@@ -6,7 +6,6 @@ import androidx.room.RoomDatabase
 import android.content.Context
 import com.devidea.timeleft.datadase.itemdata.ItemDao
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
-import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 
 @Database(
     entities = [ItemEntity::class],

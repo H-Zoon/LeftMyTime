@@ -1,12 +1,9 @@
 package com.devidea.timeleft
 
-import android.util.Log
-import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
 import java.time.LocalDate
-import java.time.LocalDateTime
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
