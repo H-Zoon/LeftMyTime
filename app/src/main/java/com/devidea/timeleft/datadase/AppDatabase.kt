@@ -10,7 +10,7 @@ import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 
 @Database(
     entities = [ItemEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
