@@ -65,11 +65,8 @@ class CreateTimeActivity : AppCompatActivity() {
                 ItemSave().saveTimeItem(
                     binding.inputSummery.text.toString(),
                     startTime,
-                    endTime,
-                    false,
-                    0,
-                    false
-                )
+                    endTime)
+
                 finish()
             }
 

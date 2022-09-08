@@ -89,8 +89,6 @@ class CreateDayActivity : AppCompatActivity() {
                 endDay,
                 updateFlag,
                 updateRate,
-                false,
-                0
             )
             finish()
 
