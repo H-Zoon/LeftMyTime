@@ -31,6 +31,7 @@ class CreateTimeActivity : AppCompatActivity() {
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_time)
         binding.activity = this
 
+        /*
         binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
             if (compoundButton.isChecked) {
                 binding.alarmRateDateLayout.visibility = View.VISIBLE
@@ -51,6 +52,8 @@ class CreateTimeActivity : AppCompatActivity() {
                 weekendFlag = false
             }
         }
+
+         */
 
     }
 
@@ -98,7 +101,8 @@ class CreateTimeActivity : AppCompatActivity() {
                     false
                 )
                 finish()
-            } else {
+            }
+            /*else {
                 if (binding.alarmRateDateEditText.length() > 0) {
 
                     val start = LocalTime.parse(startTime, DateTimeFormatter.ofPattern("H:m"))
@@ -126,7 +130,7 @@ class CreateTimeActivity : AppCompatActivity() {
                     Toast.makeText(this, "알람시간을 입력해주세요", Toast.LENGTH_SHORT).show()
                 }
             }
-
+             */
         } else {
             Toast.makeText(this, "입력을 확인해주세요", Toast.LENGTH_SHORT).show()
         }

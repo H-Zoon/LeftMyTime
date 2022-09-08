@@ -108,6 +108,7 @@
             android:hint="반복없음"
             android:onClick="@{activity::setRepeatRate}" />
 
+        <!--
         <Switch
             android:id="@+id/alarm_switch"
             android:layout_width="match_parent"
@@ -143,23 +144,15 @@
                 android:layout_height="wrap_content"
                 android:text="일 전 알람을 설정합니다." />
         </LinearLayout>
+        -->
 
-        <LinearLayout
+        <Button
+            android:id="@+id/save"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="20dp"
-            android:gravity="bottom"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/line"
-                android:onClick="@{activity::save}"
-                android:text="저장" />
-
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:onClick="@{activity::save}"
+            android:text="저장" />
 
     </LinearLayout>
 </layout>

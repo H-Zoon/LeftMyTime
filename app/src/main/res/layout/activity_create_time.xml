@@ -1,9 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
-
     <data>
-
         <variable
             name="activity"
             type="com.devidea.timeleft.activity.CreateTimeActivity" />
@@ -98,6 +96,7 @@
 
         </TableLayout>
 
+        <!--
         <Switch
             android:id="@+id/alarm_switch"
             android:layout_width="match_parent"
@@ -142,21 +141,14 @@
             android:text="주말에도 알람받기"
             android:visibility="gone"
             tools:ignore="UseSwitchCompatOrMaterialXml" />
+        -->
 
-        <LinearLayout
+        <Button
+            android:id="@+id/save"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="20dp"
-            android:gravity="bottom"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/line"
-                android:onClick="@{activity::save}"
-                android:text="저장" />
-        </LinearLayout>
+            android:layout_height="wrap_content"
+            android:background="@drawable/line"
+            android:onClick="@{activity::save}"
+            android:text="저장" />
     </LinearLayout>
 </layout>
