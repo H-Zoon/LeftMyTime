@@ -104,11 +104,16 @@ class AppWidgetConfigure : Activity() {
                     "custom" -> customWidgetInit(views, appWidgetManager)
                 }
 
-                with(MainActivity.prefs.edit()) {
-                    putString(widgetId.toString(), value)
-                    putBoolean(widgetId.toString() + "option", binding.option.isChecked)
-                }.apply()
-
+                if (value == "custom") {
+                    with(MainActivity.prefs.edit()) {
+                        putBoolean(widgetId.toString() + "option", binding.option.isChecked)
+                    }.apply()
+                } else {
+                    with(MainActivity.prefs.edit()) {
+                        putString(widgetId.toString(), value)
+                        putBoolean(widgetId.toString() + "option", binding.option.isChecked)
+                    }.apply()
+                }
                 val resultValue = Intent()
                 resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                 setResult(RESULT_OK, resultValue)
@@ -187,6 +192,4 @@ class AppWidgetConfigure : Activity() {
             finish()
         }
     }
-
-
 }
