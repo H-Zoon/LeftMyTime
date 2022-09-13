@@ -108,58 +108,13 @@
             android:hint="반복없음"
             android:onClick="@{activity::setRepeatRate}" />
 
-        <Switch
-            android:id="@+id/alarm_switch"
+        <Button
+            android:id="@+id/save"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:text="알림 설정하기"
-            tools:ignore="UseSwitchCompatOrMaterialXml" />
-
-
-        <LinearLayout
-            android:id="@+id/alarm_rate_date_layout"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:orientation="horizontal"
-            android:visibility="gone">
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="일정이 끝나기" />
-
-            <EditText
-                android:id="@+id/alarm_rate_date_edit_text"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:ems="3"
-                android:gravity="center"
-                android:inputType="number" />
-
-            <TextView
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="일 전 알람을 설정합니다." />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="match_parent"
-            android:layout_marginBottom="20dp"
-            android:gravity="bottom"
-            android:orientation="vertical">
-
-            <Button
-                android:id="@+id/save"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:background="@drawable/line"
-                android:onClick="@{activity::save}"
-                android:text="저장" />
-
-        </LinearLayout>
+            android:background="@drawable/line"
+            android:onClick="@{activity::save}"
+            android:text="저장" />
 
     </LinearLayout>
 </layout>

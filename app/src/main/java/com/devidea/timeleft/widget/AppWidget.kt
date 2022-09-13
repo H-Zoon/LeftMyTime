@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.os.SystemClock
+import android.util.Log
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
@@ -35,7 +36,6 @@ class AppWidget : AppWidgetProvider() {
         }
     }
 
-
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -59,7 +59,7 @@ class AppWidget : AppWidgetProvider() {
         alarmManager.setInexactRepeating(
             AlarmManager.ELAPSED_REALTIME,
             SystemClock.elapsedRealtime(),
-            AlarmManager.INTERVAL_FIFTEEN_MINUTES,
+            1000,
             pendingIntent
         )
     }
@@ -83,7 +83,7 @@ class AppWidget : AppWidgetProvider() {
         }
     }
 
-    private fun updateAppWidget(
+    fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
@@ -114,10 +114,17 @@ class AppWidget : AppWidgetProvider() {
                     R.id.summery,
                     item.title
                 )
-                views.setTextViewText(
-                    R.id.percent,
-                    item.percent.toString() + "%"
-                )
+                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.leftString
+                    )
+                }else {
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.percent.toString() + "%"
+                    )
+                }
                 views.setProgressBar(
                     R.id.progress,
                     100,
@@ -132,10 +139,17 @@ class AppWidget : AppWidgetProvider() {
                     R.id.summery,
                     item.title
                 )
-                views.setTextViewText(
-                    R.id.percent,
-                    item.percent.toString() + "%"
-                )
+                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.leftString
+                    )
+                }else {
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.percent.toString() + "%"
+                    )
+                }
                 views.setProgressBar(
                     R.id.progress,
                     100,
@@ -150,10 +164,17 @@ class AppWidget : AppWidgetProvider() {
                     R.id.summery,
                     item.title
                 )
-                views.setTextViewText(
-                    R.id.percent,
-                    item.percent.toString() + "%"
-                )
+                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.widgetString
+                    )
+                }else {
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.percent.toString() + "%"
+                    )
+                }
                 views.setProgressBar(
                     R.id.progress,
                     100,
@@ -183,7 +204,24 @@ class AppWidget : AppWidgetProvider() {
                 }
 
                 views.setTextViewText(R.id.summery, item.title)
-                views.setTextViewText(R.id.percent, item.percent.toString() + "%")
+                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
+                    if ((itemList.type == "Time")){
+                        views.setTextViewText(
+                            R.id.percent,
+                            item.widgetString
+                        )
+                    }else {
+                        views.setTextViewText(
+                            R.id.percent,
+                            item.leftString
+                        )
+                    }
+                }else {
+                    views.setTextViewText(
+                        R.id.percent,
+                        item.percent.toString() + "%"
+                    )
+                }
                 views.setProgressBar(
                     R.id.progress,
                     100,

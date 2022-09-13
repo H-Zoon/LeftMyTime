@@ -1,8 +1,6 @@
 package com.devidea.timeleft
 
-import android.util.Log
 import androidx.recyclerview.widget.DiffUtil
-import com.devidea.timeleft.databinding.ActivityMainBinding
 import java.util.ArrayList
 
 class DiffutilClass(

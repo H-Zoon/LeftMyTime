@@ -24,7 +24,6 @@ class CreateDayActivity : AppCompatActivity() {
     lateinit var endDay: String
     var updateFlag = UPDATE_FLAG_UNABLE
     var updateRate = 0
-    var alarmFlag = false
 
     private lateinit var binding: ActivityCreateDayBinding
 
@@ -33,16 +32,6 @@ class CreateDayActivity : AppCompatActivity() {
         setContentView(R.layout.activity_create_day)
         binding = DataBindingUtil.setContentView(this, R.layout.activity_create_day)
         binding.activity = this
-
-        binding.alarmSwitch.setOnCheckedChangeListener { compoundButton, b ->
-            if (compoundButton.isChecked) {
-                binding.alarmRateDateLayout.visibility = View.VISIBLE
-                alarmFlag = true
-            } else {
-                binding.alarmRateDateLayout.visibility = View.GONE
-                alarmFlag = false
-            }
-        }
 
     }
 
@@ -93,36 +82,15 @@ class CreateDayActivity : AppCompatActivity() {
     //isInitialized is able instance variable, not a local variable.
     fun save(v: View) {
         if (::startDay.isInitialized && ::endDay.isInitialized && binding.inputSummery.length() > 0) {
-            when (alarmFlag) {
-                false -> {
-                    ItemSave().saveMonthItem(
-                        binding.inputSummery.text.toString(),
-                        startDay,
-                        endDay,
-                        updateFlag,
-                        updateRate,
-                        false,
-                        0
-                    )
-                    finish()
-                }
 
-                 true -> {
-                    if (binding.alarmRateDateEditText.length() > 0) {
-
-                        ItemSave().saveMonthItem(
-                            binding.inputSummery.text.toString(),
-                            startDay,
-                            endDay,
-                            updateFlag,
-                            updateRate,
-                            true,
-                            binding.alarmRateDateEditText.text.toString().toInt()
-                        )
-                        finish()
-                    }
-                }
-            }
+            ItemSave().saveMonthItem(
+                binding.inputSummery.text.toString(),
+                startDay,
+                endDay,
+                updateFlag,
+                updateRate,
+            )
+            finish()
 
         } else {
             Toast.makeText(this, "입력을 확인해주세요", Toast.LENGTH_SHORT).show()

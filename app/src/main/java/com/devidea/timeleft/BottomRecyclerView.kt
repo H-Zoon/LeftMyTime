@@ -9,12 +9,9 @@ import android.annotation.SuppressLint
 import android.animation.ValueAnimator
 import android.app.*
 import android.content.Context
-import android.util.Log
 import android.view.View
 import android.widget.*
 import androidx.recyclerview.widget.DiffUtil
-import com.devidea.timeleft.alarm.AlarmReceiver.Companion.TAG
-import com.devidea.timeleft.alarm.ItemAlarmManager
 import com.devidea.timeleft.databinding.ItemRecyclerviewBottomBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import kotlinx.coroutines.CoroutineScope
@@ -69,7 +66,7 @@ constructor(  //array list
         viewHolder.binding.left.text = items[position].leftString
         viewHolder.binding.percent.text = items[position].percent.toString() + "%"
         viewHolder.binding.updateInfo.text = items[position].updateInfo
-        viewHolder.binding.alarmInfo.text = items[position].alarmInfo
+        //viewHolder.binding.alarmInfo.text = items[position].alarmInfo
 
         with(viewHolder) {
             viewHolder.binding.delete.setOnClickListener {
@@ -172,7 +169,7 @@ constructor(  //array list
 
     private fun delete(id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            ItemAlarmManager().alarmDelete(id)
+            //ItemAlarmManager().alarmDelete(id)
             appDatabase.itemDao()
                 .deleteItem(id)
             //appDatabase.itemDao().deleteCustomWidget(id)

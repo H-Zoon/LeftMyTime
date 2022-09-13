@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:padding="30dp"
     tools:context=".activity.SetRepeatActivity">
 
     <TextView
@@ -19,8 +20,7 @@
     <RadioGroup
         android:id="@+id/radio_group"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:padding="30dp">
+        android:layout_height="wrap_content">
 
         <RadioButton
             android:id="@+id/alarm_rate_unable_radio_button"
@@ -52,8 +52,8 @@
                 android:id="@+id/alarm_rate_date_edit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:ems="3"
+                android:gravity="center"
                 android:inputType="number" />
 
             <TextView
@@ -85,8 +85,8 @@
                 android:id="@+id/alarm_rate_month_edit_text"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:gravity="center"
                 android:ems="3"
+                android:gravity="center"
                 android:inputType="number" />
 
             <TextView

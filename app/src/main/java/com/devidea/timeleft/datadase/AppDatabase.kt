@@ -6,11 +6,10 @@ import androidx.room.RoomDatabase
 import android.content.Context
 import com.devidea.timeleft.datadase.itemdata.ItemDao
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
-import com.devidea.timeleft.datadase.itemdata.WidgetEntity
 
 @Database(
     entities = [ItemEntity::class],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
