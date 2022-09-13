@@ -98,8 +98,6 @@ class ItemGenerate : InterfaceItem {
             adapterItem.widgetString = "남은시간: 00:00"
         }
 
-
-
         return adapterItem
     }
 

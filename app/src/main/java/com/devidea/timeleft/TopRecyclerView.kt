@@ -30,8 +30,6 @@ constructor(private val arrayList: ArrayList<AdapterItem>) :
         ObjectAnimator.ofInt(viewHolder.progressBar, "progress", arrayList[position].percent.toInt())
             .setDuration(1500)
             .start()
-
-
     }
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int, payloads: List<Any>) {

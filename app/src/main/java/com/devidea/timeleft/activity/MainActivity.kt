@@ -3,7 +3,6 @@ package com.devidea.timeleft.activity
 import android.app.*
 import android.content.*
 import android.os.Bundle
-import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.core.content.ContextCompat
@@ -25,8 +24,6 @@ import java.time.format.DateTimeFormatter
 
 class MainActivity : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem>()
-    private var backPressedTime: Long = 0
-
     private lateinit var binding: ActivityMainBinding //activity_main.xml
     private lateinit var viewModel: TimeLeftViewModel
     private lateinit var bottomItemAdapter: BottomRecyclerView
@@ -205,21 +202,6 @@ class MainActivity : AppCompatActivity() {
                 }.apply()
 
             }
-        }
-    }
-
-
-    override fun onBackPressed() {
-        val tempTime = System.currentTimeMillis()
-        val intervalTime = tempTime - backPressedTime
-
-        //뒤로가기 버튼 리스너에 쓰이는 변수
-        val INTERVAL_TIME: Long = 2000
-        if (intervalTime in 0..INTERVAL_TIME) {
-            finish()
-        } else {
-            backPressedTime = tempTime
-            Toast.makeText(applicationContext, "한번 더 누르면 종료됩니다.", Toast.LENGTH_SHORT).show()
         }
     }
 }
