@@ -12,7 +12,6 @@ import java.util.*
 
 class ItemGenerate : InterfaceItem {
 
-
     private val appDatabase = AppDatabase.getDatabase(App.context())
 
     override fun timeItem(): AdapterItem {
@@ -102,7 +101,6 @@ class ItemGenerate : InterfaceItem {
         return adapterItem
     }
 
-
     override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
         val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         var itemInfo = itemEntity
@@ -111,15 +109,6 @@ class ItemGenerate : InterfaceItem {
         var endDate = LocalDate.parse(itemInfo.endValue, formatter)
         val updateRate = itemEntity.updateRate
         val today = LocalDate.now()
-
-        /*
-        if (itemEntity.alarmFlag) {
-            adapterItem.alarmInfo = itemEntity.alarmRate.toString() + "일전 알림설정"
-        } else {
-            adapterItem.alarmInfo = "알람없음"
-        }
-
-         */
 
         val id = itemInfo.id
 
@@ -162,7 +151,6 @@ class ItemGenerate : InterfaceItem {
                     )
                 }
             }
-            //ItemAlarmManager().alarmInit()
 
             itemInfo = appDatabase.itemDao().getSelectItem(id)
             startDate = LocalDate.parse(itemInfo.startValue, formatter)

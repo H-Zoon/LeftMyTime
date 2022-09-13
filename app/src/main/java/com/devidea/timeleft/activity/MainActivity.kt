@@ -3,7 +3,6 @@ package com.devidea.timeleft.activity
 import android.app.*
 import android.content.*
 import android.os.Bundle
-import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -207,7 +206,6 @@ class MainActivity : AppCompatActivity() {
 
             }
         }
-        Log.d("theme", prefs.getString("theme", "").toString())
     }
 
 
