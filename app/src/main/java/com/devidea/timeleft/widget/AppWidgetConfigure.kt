@@ -107,7 +107,6 @@ class AppWidgetConfigure : Activity() {
                 }
 
                 if (value != "custom") {
-
                     with(MainActivity.prefs.edit()) {
                         putString(widgetId.toString(), value)
                         putBoolean(widgetId.toString() + "option", binding.option.isChecked)
