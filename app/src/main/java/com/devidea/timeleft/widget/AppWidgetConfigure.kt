@@ -6,6 +6,7 @@ import android.app.PendingIntent
 import android.os.Bundle
 import android.app.Activity
 import android.content.Context
+import android.util.Log
 import android.view.View
 import android.widget.*
 import com.devidea.timeleft.App
@@ -49,6 +50,8 @@ class AppWidgetConfigure : Activity() {
                     ids.add(itemList[i].id)
                 }
                 adapterInit()
+            }else{
+                binding.userItemButton.isEnabled = false
             }
         }
 
@@ -121,7 +124,7 @@ class AppWidgetConfigure : Activity() {
                 finish()
 
             } catch (e: Exception) {
-
+                Toast.makeText(this, "하나를 정해주세요", Toast.LENGTH_SHORT).show()
             }
 
         }

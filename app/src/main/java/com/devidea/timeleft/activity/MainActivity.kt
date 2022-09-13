@@ -2,13 +2,12 @@ package com.devidea.timeleft.activity
 
 import android.app.*
 import android.content.*
-import android.net.Uri
 import android.os.Bundle
-import android.os.PowerManager
-import android.provider.Settings.ACTION_REQUEST_IGNORE_BATTERY_OPTIMIZATIONS
+import android.util.Log
 import android.widget.*
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -53,13 +52,23 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        if (prefs.getString("theme", "") != "") {
-            when (prefs.getString("theme", "")) {
-                "밝게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+        when (prefs.getString("theme", "auto")) {
+            "light" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            }
 
-                "어둡게" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            "dark" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_dark_mode_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            }
 
-                else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+            "auto" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_hdr_auto_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
             }
         }
 
@@ -98,8 +107,7 @@ class MainActivity : AppCompatActivity() {
         }
 
         binding.setting.setOnClickListener {
-            val intent = Intent(application, SettingActivity::class.java)
-            startActivity(intent)
+            nightModeChanger()
         }
 
         CoroutineScope(Dispatchers.IO).launch {
@@ -166,6 +174,42 @@ class MainActivity : AppCompatActivity() {
         binding.recyclerview2.adapter = bottomItemAdapter
 
     }
+
+    private fun nightModeChanger() {
+
+        when (prefs.getString("theme", "auto")) {
+            "light" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_dark_mode_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+                with(prefs.edit()) {
+                    putString("theme", "dark")
+                }.apply()
+
+            }
+
+            "dark" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_hdr_auto_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+                with(prefs.edit()) {
+                    putString("theme", "auto")
+                }.apply()
+            }
+
+            "auto" -> {
+                binding.setting.background =
+                    ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+                with(prefs.edit()) {
+                    putString("theme", "light")
+                }.apply()
+
+            }
+        }
+        Log.d("theme", prefs.getString("theme", "").toString())
+    }
+
 
     override fun onBackPressed() {
         val tempTime = System.currentTimeMillis()

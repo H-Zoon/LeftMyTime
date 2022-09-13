@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -7,64 +8,24 @@
     android:padding="30dp">
 
     <TextView
+        android:id="@+id/title_text"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="종류를 선택해주세요."
-        android:textSize="30sp" />
-<!--
-    <LinearLayout
-        android:layout_width="140dp"
-        android:layout_height="wrap_content"
-        android:layout_gravity="center"
-        android:layout_marginTop="20dp"
-        android:layout_marginBottom="20dp"
-        android:background="@drawable/line_widget"
-        android:orientation="vertical">
+        android:text="항목을 선택하세요"
+        android:textSize="30sp"
+        app:layout_constraintBottom_toTopOf="@id/option"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintVertical_chainStyle="spread_inside" />
 
-        <Button
-            android:id="@+id/refrash"
-            style="@style/Style.Color.Button"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="end"
-            android:layout_marginTop="5dp"
-            android:layout_marginEnd="5dp"
-            android:background="@drawable/ic_baseline_refresh_24" />
-
-        <TextView
-            android:id="@+id/summery_preview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="제목이 표시됩니다."
-            android:textSize="15sp" />
-
-        <TextView
-            android:id="@+id/percent"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:text="75%"
-            android:textSize="30sp" />
-
-        <ProgressBar
-            android:id="@+id/progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="20dp"
-            android:layout_marginTop="10dp"
-            android:max="100"
-            android:padding="1dp"
-            android:progress="75"
-            android:progressDrawable="@drawable/progressbar_widget" />
-
-    </LinearLayout>
-    -->
 
     <RadioGroup
-        android:id="@+id/radioGroup"
+        android:id="@+id/radio_group"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/spinner"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        app:layout_constraintVertical_bias="0.2"
+        app:layout_constraintVertical_chainStyle="packed">
 
         <RadioButton
             android:id="@+id/yearButton"
@@ -97,28 +58,30 @@
     </RadioGroup>
 
     <Spinner
-        android:id="@+id/spinner"
+        android:id="@id/spinner"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
-
-    <View
-        android:layout_width="match_parent"
-        android:layout_height="2dp"
-        android:background="@color/gray400"/>
+        android:layout_height="wrap_content"
+        app:layout_constraintBottom_toTopOf="@id/option"
+        app:layout_constraintTop_toBottomOf="@id/radio_group" />
 
     <Switch
         android:id="@+id/option"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:text="남은 시간으로 표시하기"
-        tools:ignore="UseSwitchCompatOrMaterialXml" />
+        android:text="남은 시간으로 보기"
+        app:layout_constraintBottom_toTopOf="@id/save"
+        app:layout_constraintTop_toBottomOf="@id/title_text"
+        tools:ignore="UseSwitchCompatOrMaterialXml"
+        tools:layout_editor_absoluteX="64dp" />
 
     <Button
-        android:id="@+id/save"
+        android:id="@id/save"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@drawable/line"
-        android:text="저장" />
+        android:text="저장"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/option"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
 
-</LinearLayout>
+</androidx.constraintlayout.widget.ConstraintLayout>
