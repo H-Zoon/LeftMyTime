@@ -49,7 +49,7 @@ class AppWidgetConfigure : Activity() {
                     ids.add(itemList[i].id)
                 }
                 adapterInit()
-            }else{
+            } else {
                 binding.userItemButton.isEnabled = false
             }
         }
@@ -106,21 +106,19 @@ class AppWidgetConfigure : Activity() {
                     "custom" -> customWidgetInit(views, appWidgetManager)
                 }
 
-                if (value == "custom") {
-                    with(MainActivity.prefs.edit()) {
-                        putBoolean(widgetId.toString() + "option", binding.option.isChecked)
-                    }.apply()
-                } else {
+                if (value != "custom") {
+
                     with(MainActivity.prefs.edit()) {
                         putString(widgetId.toString(), value)
                         putBoolean(widgetId.toString() + "option", binding.option.isChecked)
                     }.apply()
+
+                    val resultValue = Intent()
+                    resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                    setResult(RESULT_OK, resultValue)
+                    AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
+                    finish()
                 }
-                val resultValue = Intent()
-                resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-                setResult(RESULT_OK, resultValue)
-                AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
-                finish()
 
             } catch (e: Exception) {
                 Toast.makeText(this, "하나를 정해주세요", Toast.LENGTH_SHORT).show()
@@ -183,8 +181,9 @@ class AppWidgetConfigure : Activity() {
             appWidgetManager.updateAppWidget(widgetId, views)
 
             with(MainActivity.prefs.edit()) {
-                putString(widgetId.toString(), id).apply()
-            }
+                putString(widgetId.toString(), id)
+                putBoolean(widgetId.toString() + "option", binding.option.isChecked)
+            }.apply()
 
             val resultValue = Intent()
             resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)

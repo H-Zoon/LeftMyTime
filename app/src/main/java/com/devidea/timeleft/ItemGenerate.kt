@@ -91,12 +91,14 @@ class ItemGenerate : InterfaceItem {
             )
             adapterItem.percent =
                 String.format(Locale.getDefault(), "%.1f", sendTime / range * 100).toFloat()
+            adapterItem.widgetString =  adapterItem.leftString.substring(0,  adapterItem.leftString.length - 3)
         } else {
             adapterItem.percent = 100.toFloat()
             adapterItem.leftString = "설정시간이 지나면 계산해 드릴께요"
+            adapterItem.widgetString = "남은시간: 00:00"
         }
 
-        adapterItem.widgetString =  adapterItem.leftString.substring(0,  adapterItem.leftString.length - 3)
+
 
         return adapterItem
     }
