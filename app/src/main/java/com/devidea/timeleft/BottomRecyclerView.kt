@@ -14,6 +14,7 @@ import android.widget.*
 import androidx.recyclerview.widget.DiffUtil
 import com.devidea.timeleft.databinding.ItemRecyclerviewBottomBinding
 import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.widget.AppWidget
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -66,7 +67,6 @@ constructor(  //array list
         viewHolder.binding.left.text = items[position].leftString
         viewHolder.binding.percent.text = items[position].percent.toString() + "%"
         viewHolder.binding.updateInfo.text = items[position].updateInfo
-        //viewHolder.binding.alarmInfo.text = items[position].alarmInfo
 
         with(viewHolder) {
             viewHolder.binding.delete.setOnClickListener {
@@ -132,7 +132,6 @@ constructor(  //array list
                 binding.start.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 binding.end.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 binding.left.visibility = if (isExpanded) View.VISIBLE else View.GONE
-                //autoUpdate.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 binding.delete.visibility = if (isExpanded) View.VISIBLE else View.GONE
                 binding.imageView.setBackgroundResource(if (isExpanded) R.drawable.baseline_expand_less_black_36 else R.drawable.baseline_expand_more_black_36)
             }
@@ -169,10 +168,10 @@ constructor(  //array list
 
     private fun delete(id: Int) {
         CoroutineScope(Dispatchers.IO).launch {
-            //ItemAlarmManager().alarmDelete(id)
             appDatabase.itemDao()
                 .deleteItem(id)
-            //appDatabase.itemDao().deleteCustomWidget(id)
         }
+        val widget = arrayOf(id)
+        AppWidget().onDeleted(App.context(), widget.toIntArray())
     }
 }

@@ -74,12 +74,11 @@ class AppWidget : AppWidgetProvider() {
         pendingIntent.cancel() //인텐트 해제
     }
 
-    override fun onDeleted(context: Context, appWidgetIds: IntArray) {
+    override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
         with(prefs.edit()) {
-            remove(appWidgetIds[0].toString())
-            apply()
-        }
+            remove(appWidgetIds.toString())
+        }.apply()
     }
 
     fun updateAppWidget(
