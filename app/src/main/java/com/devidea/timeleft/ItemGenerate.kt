@@ -19,8 +19,6 @@ class ItemGenerate : InterfaceItem {
         val adapterItem = AdapterItem()
         val now = LocalTime.now()
         val endValue = LocalTime.parse("23:59:59")
-        Log.d("now", now.toString())
-        Log.d("end", endValue.toString())
         val secondsValue = Duration.between(LocalTime.of(0, 0, 0), now).seconds.toFloat()
         adapterItem.title = "오늘의 "
         adapterItem.percent =
