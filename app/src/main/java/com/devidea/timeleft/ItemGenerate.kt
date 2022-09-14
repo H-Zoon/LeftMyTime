@@ -1,5 +1,6 @@
 package com.devidea.timeleft
 
+import android.util.Log
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.Duration
@@ -18,7 +19,9 @@ class ItemGenerate : InterfaceItem {
         val adapterItem = AdapterItem()
         val now = LocalTime.now()
         val endValue = LocalTime.parse("23:59:59")
-        val secondsValue = Duration.between(LocalTime.of(0, 0), now).seconds.toFloat()
+        Log.d("now", now.toString())
+        Log.d("end", endValue.toString())
+        val secondsValue = Duration.between(LocalTime.of(0, 0, 0), now).seconds.toFloat()
         adapterItem.title = "오늘의 "
         adapterItem.percent =
             String.format(Locale.getDefault(), "%.1f", secondsValue / 86400 * 100).toFloat()
@@ -27,7 +30,7 @@ class ItemGenerate : InterfaceItem {
                 now,
                 endValue
             ).seconds
-        )
+        ).format(DateTimeFormatter.ofPattern("H:mm:ss"))
         adapterItem.widgetString =  adapterItem.leftString.substring(0,  adapterItem.leftString.length - 3)
 
         return adapterItem
@@ -69,7 +72,7 @@ class ItemGenerate : InterfaceItem {
     override fun customTimeItem(itemEntity: ItemEntity): AdapterItem {
 
         val adapterItem = AdapterItem()
-        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:m")
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:mm:ss")
         val startTime = LocalTime.parse(itemEntity.startValue, formatter) //시작시간
         val endTime = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
