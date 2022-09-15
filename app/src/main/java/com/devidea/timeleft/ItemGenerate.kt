@@ -70,7 +70,7 @@ class ItemGenerate : InterfaceItem {
     override fun customTimeItem(itemEntity: ItemEntity): AdapterItem {
 
         val adapterItem = AdapterItem()
-        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:mm:ss")
+        val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("H:m")
         val startTime = LocalTime.parse(itemEntity.startValue, formatter) //시작시간
         val endTime = LocalTime.parse(itemEntity.endValue, formatter) // 종료시간
         val time = LocalTime.now() //현재 시간
