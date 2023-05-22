@@ -2,9 +2,8 @@
 
 **2022.07 ~ 지금까지 다양한 유저들의 피드백을 받아 성장중인 어플리케이션입니다.** 
 
-[https://github.com/H-Zoon/LeftMyTime](https://github.com/H-Zoon/LeftMyTime)
+![unnamed](https://github.com/H-Zoon/LeftMyTime/assets/43941511/c6d6dc62-68ca-4963-b367-011d8bfda834)
 
-![Untitled](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/883f81ff-1a71-4011-ac29-3ee3e6ce2192/Untitled.png)
 
 ### UseSkill
 
@@ -15,10 +14,6 @@
 
 ### 사용자의 피드백으로 발전하는 TimeLeft
 
-![ic_launcher_foreground.png](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/7a3bca5c-074a-46f9-b173-d8c83991beee/ic_launcher_foreground.png)
-
-**TimeLeft의 1.0 버전 아이콘**
-
 2022.07월부터 지금까지 TimeLeft를 서비스하며 많은 유저들의 기능 추가요구가 있었습니다.
 
 1. 한눈에 크게 볼 수 있는 시간 지나간 정도
@@ -28,7 +23,7 @@
 
 다음과 같은 내용의 피드백이 주요 내용이였고, 이를 개선, 기능 추가하여 유저의 사용성을 지속적으로 발전시키는 작업을 진행하였습니다.
 
-![Screenshot_20230521_210852_TimeLeft.jpg](https://s3-us-west-2.amazonaws.com/secure.notion-static.com/0a4bc664-783a-4c19-831c-c0d54a21b4c1/Screenshot_20230521_210852_TimeLeft.jpg)
+![Screenshot_20230521_210852_TimeLeft](https://github.com/H-Zoon/LeftMyTime/assets/43941511/0c731773-c798-489c-af71-a41993ddf0bd)
 
 이 과정에서 **단순한 카드형태**의 일정확인기능, **실시간으로 변화하는** 시간 업데이트,  **서랍형식의 아이템** 추가, **주간/야간모드**를 지원하여 사용자가 쉽고 편하게 이용하도록 구현하였습니다.
 
