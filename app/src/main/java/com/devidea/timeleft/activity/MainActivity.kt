@@ -5,6 +5,7 @@ import android.content.*
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.material3.MaterialTheme
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModelProvider
 import androidx.preference.PreferenceManager
@@ -48,7 +49,13 @@ class MainActivity : AppCompatActivity() {
         val view = binding.root
         setContentView(view)
 
-        when (prefs.getString("theme", "auto")) {
+        binding.composeView.setContent {
+            MaterialTheme {
+                MainWidgetCompose().PlantDetailDescription()
+            }
+        }
+
+        /*when (prefs.getString("theme", "auto")) {
             "light" -> {
                 binding.setting.background =
                     ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
@@ -202,6 +209,6 @@ class MainActivity : AppCompatActivity() {
                 }.apply()
 
             }
-        }
+        }  */
     }
 }
