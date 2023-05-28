@@ -22,7 +22,7 @@
         android:id="@+id/radio_group"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layout_constraintBottom_toTopOf="@id/spinner"
+        app:layout_constraintBottom_toTopOf="parent"
         app:layout_constraintTop_toBottomOf="@id/title_text"
         app:layout_constraintVertical_bias="0.2"
         app:layout_constraintVertical_chainStyle="packed">
@@ -58,7 +58,7 @@
     </RadioGroup>
 
     <Spinner
-        android:id="@id/spinner"
+        android:id="@+id/spinner"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintBottom_toTopOf="@id/option"

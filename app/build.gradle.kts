@@ -46,23 +46,23 @@ android {
         jvmTarget = JavaVersion.VERSION_17.toString()
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_1_8
-        targetCompatibility = JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 }
 
 dependencies {
-
     implementation(platform("androidx.compose:compose-bom:2023.05.01"))
     implementation("androidx.compose.material3:material3")
 
     // Android Studio Preview support
     implementation("androidx.compose.ui:ui-tooling-preview")
-    debugImplementation("androidx.compose.ui:ui-tooling")
+    implementation("androidx.compose.ui:ui-tooling")
 
     // UI Tests
-    androidTestImplementation("androidx.compose.ui:ui-test-junit4")
-    debugImplementation("androidx.compose.ui:ui-test-manifest")
+    implementation("androidx.compose.ui:ui-test-junit4")
+    implementation("androidx.compose.ui:ui-test-manifest")
+    implementation ("com.google.android.material:material:1.9.0")
 
     // Optional - Add full set of material icons
     implementation("androidx.compose.material:material-icons-extended")
@@ -70,7 +70,7 @@ dependencies {
     implementation("androidx.compose.material3:material3-window-size-class")
 
     implementation("androidx.appcompat:appcompat:1.6.1")
-    implementation("com.google.android.material:material:1.9.1")
+    //implementation("com.google.android.material:material:1.9.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
     //implementation("androidx.legacy:legacy-support-v4:1.0.1")
     testImplementation("junit:junit:4.13.2")
@@ -91,7 +91,7 @@ dependencies {
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
 
-    implementation("com.github.hannesa2:AndroidSlidingUpPanel:4.2.2")
+    //implementation("com.github.hannesa2:AndroidSlidingUpPanel:4.2.2")
 
     //implementation"org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 
@@ -102,6 +102,6 @@ dependencies {
     // LiveData
     implementation("androidx.lifecycle:lifecycle-livedata-ktx:2.6.1")
     // Setting
-    implementation("androidx.preference:preference-ktx:2.5.0")
+    //implementation("androidx.preference:preference-ktx:2.5.0")
 }
 

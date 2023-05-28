@@ -1,8 +1,8 @@
 object Applications {
     // APP Config
-    const val minSdk = 21
-    const val targetSdk = 32
-    const val compileSdk = 32
+    const val minSdk = 23
+    const val targetSdk = 33
+    const val compileSdk = 33
     const val jvmTarget = "1.8"
     const val versionCode = 1
     const val majorVersion = 1
@@ -29,6 +29,12 @@ object Versions {
 }
 
 object Libraries {
+
+    object Compose {
+
+        const val MATERIAL3 = "androidx.compose.material3:material3"
+        const val COMPOSE_PREVIEW = "androidx.compose.ui:ui-tooling-preview"
+    }
 
     object AndroidX {
         const val APP_COMPAT = "androidx.appcompat:appcompat:${Versions.APP_COMPAT}"
