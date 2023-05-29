@@ -24,7 +24,7 @@
         <activity android:name=".activity.CreateTimeActivity" />
         <activity android:name=".activity.CreateDayActivity" />
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".main.MainActivity"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />

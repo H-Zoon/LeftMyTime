@@ -1,6 +1,6 @@
 package com.devidea.timeleft
 
-import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_TIME
+import com.devidea.timeleft.main.MainActivity.Companion.UPDATE_FLAG_FOR_TIME
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import kotlinx.coroutines.CoroutineScope

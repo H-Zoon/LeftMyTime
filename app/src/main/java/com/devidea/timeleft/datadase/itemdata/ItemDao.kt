@@ -1,6 +1,7 @@
 package com.devidea.timeleft.datadase.itemdata
 
 import androidx.room.*
+import kotlinx.coroutines.flow.Flow
 
 @Dao
 interface ItemDao {
@@ -19,4 +20,8 @@ interface ItemDao {
 
     @Query("UPDATE ItemEntity SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")
     fun updateItem(updateStart: String?, updateEnd: String?, ID: Int)
+
+    @Query("SELECT * FROM ItemEntity")
+    fun getAllData(): Flow<List<ItemEntity>>
+
 }

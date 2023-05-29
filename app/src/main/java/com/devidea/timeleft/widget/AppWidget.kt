@@ -12,8 +12,8 @@ import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity
-import com.devidea.timeleft.activity.MainActivity.Companion.prefs
+import com.devidea.timeleft.main.MainActivity
+import com.devidea.timeleft.main.MainActivity.Companion.prefs
 import com.devidea.timeleft.datadase.AppDatabase
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

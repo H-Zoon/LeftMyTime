@@ -1,6 +1,6 @@
 object Applications {
     // APP Config
-    const val minSdk = 23
+    const val minSdk = 26
     const val targetSdk = 33
     const val compileSdk = 33
     const val jvmTarget = "1.8"

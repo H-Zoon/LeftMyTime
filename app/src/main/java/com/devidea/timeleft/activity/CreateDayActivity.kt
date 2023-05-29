@@ -11,9 +11,9 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.databinding.DataBindingUtil
 import com.devidea.timeleft.ItemSave
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_DAY
-import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_FOR_MONTH
-import com.devidea.timeleft.activity.MainActivity.Companion.UPDATE_FLAG_UNABLE
+import com.devidea.timeleft.main.MainActivity.Companion.UPDATE_FLAG_FOR_DAY
+import com.devidea.timeleft.main.MainActivity.Companion.UPDATE_FLAG_FOR_MONTH
+import com.devidea.timeleft.main.MainActivity.Companion.UPDATE_FLAG_UNABLE
 import com.devidea.timeleft.databinding.ActivityCreateDayBinding
 import java.time.LocalDate
 

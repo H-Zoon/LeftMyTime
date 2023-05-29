@@ -9,7 +9,7 @@ import android.content.Context
 import android.view.View
 import android.widget.*
 import com.devidea.timeleft.App
-import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.main.MainActivity
 import com.devidea.timeleft.R
 import com.devidea.timeleft.databinding.AppwidgetConfigureBinding
 import com.devidea.timeleft.datadase.AppDatabase

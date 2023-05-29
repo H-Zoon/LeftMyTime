@@ -54,6 +54,13 @@ android {
 dependencies {
     implementation(platform("androidx.compose:compose-bom:2023.05.01"))
     implementation("androidx.compose.material3:material3")
+    implementation("com.google.android.material:material")
+    implementation("androidx.activity:activity-compose")
+    implementation("androidx.compose.ui:ui")
+    implementation("androidx.compose.runtime:runtime-livedata")
+    implementation("androidx.lifecycle:lifecycle-viewmodel-compose")
+    implementation("com.google.accompanist:accompanist-pager:0.24.9-beta")
+
 
     // Android Studio Preview support
     implementation("androidx.compose.ui:ui-tooling-preview")
@@ -61,23 +68,18 @@ dependencies {
 
     // UI Tests
     implementation("androidx.compose.ui:ui-test-junit4")
-    implementation("androidx.compose.ui:ui-test-manifest")
+    debugImplementation("androidx.compose.ui:ui-test-manifest")
     implementation ("com.google.android.material:material:1.9.0")
 
     // Optional - Add full set of material icons
     implementation("androidx.compose.material:material-icons-extended")
     // Optional - Add window size utils
     implementation("androidx.compose.material3:material3-window-size-class")
-
     implementation("androidx.appcompat:appcompat:1.6.1")
-    //implementation("com.google.android.material:material:1.9.1")
     implementation("androidx.constraintlayout:constraintlayout:2.1.4")
-    //implementation("androidx.legacy:legacy-support-v4:1.0.1")
     testImplementation("junit:junit:4.13.2")
     androidTestImplementation("androidx.test.ext:junit:1.1.5")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.5.1")
-    //implementation("me.relex:circleindicator:2.1.1")
-
     kapt("com.android.databinding:compiler:3.1.4")
 
     //room
@@ -90,10 +92,6 @@ dependencies {
     //coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.6.4")
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.1")
-
-    //implementation("com.github.hannesa2:AndroidSlidingUpPanel:4.2.2")
-
-    //implementation"org.jetbrains.kotlin:kotlin-stdlib-jre8:$kotlin_version"
 
     implementation("androidx.activity:activity-ktx:1.7.2")
 

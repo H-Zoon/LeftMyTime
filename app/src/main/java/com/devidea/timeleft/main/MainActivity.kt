@@ -1,30 +1,28 @@
-package com.devidea.timeleft.activity
+package com.devidea.timeleft.main
 
-import android.app.*
 import android.content.*
 import android.os.Bundle
 import android.preference.PreferenceManager
+import android.util.Log
+import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.material3.MaterialTheme
-import androidx.core.content.ContextCompat
+import androidx.lifecycle.LifecycleObserver
+import androidx.lifecycle.LifecycleOwner
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
 import androidx.recyclerview.widget.RecyclerView
 import com.devidea.timeleft.*
+import com.devidea.timeleft.activity.CreateDayActivity
+import com.devidea.timeleft.activity.CreateTimeActivity
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
-import com.devidea.timeleft.viewmodels.TimeLeftViewModel
-import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
-import kotlinx.coroutines.*
-import java.time.LocalDateTime.*
-import java.time.format.DateTimeFormatter
+import com.devidea.timeleft.datadase.itemdata.DataRepository
 
 
 class MainActivity : AppCompatActivity() {
     private val topItemListArray = ArrayList<AdapterItem>()
+
     private lateinit var binding: ActivityMainBinding //activity_main.xml
     private lateinit var viewModel: TimeLeftViewModel
     private lateinit var bottomItemAdapter: BottomRecyclerView
@@ -41,21 +39,27 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val dataRepository: DataRepository =
+            DataRepository(AppDatabase.getDatabase(App.context()).itemDao())
         binding = ActivityMainBinding.inflate(layoutInflater)
         viewModel = ViewModelProvider(
             this,
-            TimeLeftViewModelFactory(AppDatabase.getDatabase(App.context()).itemDao())
+            TimeLeftViewModelFactory(dataRepository)
         )[TimeLeftViewModel::class.java]
         val view = binding.root
         setContentView(view)
+        initBottomRecyclerView()
 
         binding.composeView.setContent {
             MaterialTheme {
-                MainWidgetCompose().PlantDetailDescription()
+                MainWidgetCompose().MainCompose(
+                    MainViewModel = viewModel,
+                    repository = dataRepository
+                )
             }
         }
 
-        /*when (prefs.getString("theme", "auto")) {
+        /*        when (prefs.getString("theme", "auto")) {
             "light" -> {
                 binding.setting.background =
                     ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
@@ -82,7 +86,7 @@ class MainActivity : AppCompatActivity() {
 
         viewModel.timeValue.observe(this) {
             binding.time.text = it.toString()
-        }
+        }*/
 
         binding.timeAdd.setOnClickListener {
             val itemName = arrayOfNulls<String>(2)
@@ -98,6 +102,7 @@ class MainActivity : AppCompatActivity() {
                                 CreateTimeActivity::class.java
                             )
                         )
+
                         1 -> startActivity(
                             Intent(
                                 applicationContext,
@@ -109,7 +114,7 @@ class MainActivity : AppCompatActivity() {
                 .create().show()
         }
 
-        binding.setting.setOnClickListener {
+       /* binding.setting.setOnClickListener {
             nightModeChanger()
         }
 
@@ -140,9 +145,12 @@ class MainActivity : AppCompatActivity() {
                 delay(1000)
             }
         }
+
+        */
     }
 
     private fun initTopRecyclerView() {
+/*
         binding.recyclerview.layoutManager = LinearLayoutManager(
             this, RecyclerView.HORIZONTAL,
             false
@@ -164,22 +172,23 @@ class MainActivity : AppCompatActivity() {
         viewModel.recyclerViewValue.observe(this) {
             topItemAdapter.notifyItemChanged(0, it)
         }
+*/
 
     }
 
     private fun initBottomRecyclerView() {
-        binding.recyclerview2.layoutManager = LinearLayoutManager(
+        /*binding.recyclerview2.layoutManager = LinearLayoutManager(
             this,
             RecyclerView.VERTICAL,
             false
         )
         bottomItemAdapter = BottomRecyclerView(ArrayList())
         binding.recyclerview2.adapter = bottomItemAdapter
-
+*/
     }
 
     private fun nightModeChanger() {
-
+/*
         when (prefs.getString("theme", "auto")) {
             "light" -> {
                 binding.setting.background =
