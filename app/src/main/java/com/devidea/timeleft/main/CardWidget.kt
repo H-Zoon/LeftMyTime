@@ -45,10 +45,10 @@ fun CardWidget(itemList: AdapterItem
                 modifier = Modifier.padding(20.dp)
             )
 
-            CircularProgress(progress = 0.8f)
+            CircularProgress(progress = itemList.percent)
 
             Text(
-                text = itemList.endString,
+                text = itemList.leftString,
                 modifier = Modifier.padding(20.dp)
             )
         }

@@ -3,6 +3,7 @@ package com.devidea.timeleft.main
 
 import CardWidget
 import android.annotation.SuppressLint
+import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -32,6 +33,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.lifecycle.LiveData
+import androidx.lifecycle.MutableLiveData
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.datadase.itemdata.DataRepository
 import kotlinx.coroutines.launch
@@ -40,14 +43,13 @@ class MainWidgetCompose {
 
     @Composable
     fun MainCompose(MainViewModel: TimeLeftViewModel, repository: DataRepository) {
-        //val itemValue by MainViewModel.listFlow2.observeAsState()
-       //val listState = rememberLazyListState()
+
+        val itemValue by MainViewModel.listFlow2.observeAsState()
+        val listState = rememberLazyListState()
 
         Column {
-
-
-/*            itemValue?.let { it ->
-
+            itemValue?.let { it ->
+                Log.d("it", it.size.toString())
                 Greeting(itemList = it, listState = listState)
 
                 ItemList(it, listState = listState,
@@ -55,7 +57,8 @@ class MainWidgetCompose {
                         repository.deleteItem(it.id)
                     },
                     DismissUpdate = {
-                        *//*   //TODO 날짜 생성방법 생각해보기
+                        //TODO 날짜 생성방법 생각해보기
+                        /*
                         val updateData = UpdateDate(
                             id = it.id,
                             date = "${it.year}-${it.month}-${it.day}",
@@ -68,10 +71,11 @@ class MainWidgetCompose {
                             Intent(context, ProduceActivity::class.java).apply {
                                 putExtra("updateData", updateData)
                             }
-                        context.startActivity(intent)*//*
+                        context.startActivity(intent)
+                        */
                     }
                 )
-            }*/
+            }
         }
     }
 }

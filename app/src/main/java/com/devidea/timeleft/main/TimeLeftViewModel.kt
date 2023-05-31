@@ -3,6 +3,7 @@ package com.devidea.timeleft.main
 import android.util.Log
 import androidx.lifecycle.*
 import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ListLiveData
 import com.devidea.timeleft.datadase.itemdata.DataRepository
 import com.devidea.timeleft.main.MainActivity.Companion.ITEM_GENERATE
 import com.devidea.timeleft.datadase.itemdata.ItemDao
@@ -19,33 +20,39 @@ import java.time.format.DateTimeFormatter
 
 class TimeLeftViewModel(private val repository: DataRepository) : ViewModel() {
     private val listFlow: Flow<List<ItemEntity>> = repository.allData
-    lateinit var listFlow2: LiveData<List<AdapterItem>>
+    var listFlow2: MutableLiveData<ArrayList<AdapterItem>> = MutableLiveData()
+    var listFlow3: ArrayList<AdapterItem> = ArrayList()
 
     init {
         viewModelScope.launch {
             listFlow.collectLatest { list ->
-                while (true) {
+                Log.d("datachange", "yes")
+                while (isActive) {
+                    listFlow3 = ArrayList()
                     for (i in list.indices) {
-/*                        if ((list[i].type == "Time")) {
-                            currentList.add(
+                        if ((list[i].type == "Time")) {
+                            listFlow3.add(
                                 ITEM_GENERATE.customTimeItem(
-                                    it[i]
+                                    list[i]
                                 )
                             )
                         } else {
-                            currentList.add(
+                            listFlow3.add(
                                 ITEM_GENERATE.customMonthItem(
-                                    it[i]
+                                    list[i]
                                 )
                             )
-                        }*/
+                        }
                     }
+                    listFlow2.value = listFlow3
+                    Log.d("size", listFlow2!!.value!!.size.toString())
                     delay(1000L)
+                }
                 }
             }
         }
     }
-}
+
 
 //ViewModel 을 통해 전달되는 인자가 있을 때 사용
 class TimeLeftViewModelFactory(

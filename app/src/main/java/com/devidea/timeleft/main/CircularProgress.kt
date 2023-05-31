@@ -45,13 +45,13 @@ fun CircularProgress(
     val animateFloat = remember { Animatable(0f) }
     LaunchedEffect(animateFloat) {
         animateFloat.animateTo(
-            targetValue = progress,
+            targetValue = progress*0.01f,
             animationSpec = tween(durationMillis = 3000, easing = FastOutSlowInEasing))
     }
 
     Box(modifier = Modifier.size(progressSize)) {
 
-        AnimatedNumberText(80, Modifier.align(Alignment.Center) )
+        AnimatedNumberText(progress.toInt(), Modifier.align(Alignment.Center) )
 
         Canvas(modifier = Modifier.fillMaxSize()) {
             val innerRadius = (size.minDimension - strokeWidth) / 2
