@@ -1,30 +1,27 @@
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Card
-import androidx.compose.material3.CardColors
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.CardElevation
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.main.CircularProgress
+import com.devidea.timeleft.component.AnimatedNumberText
+import com.devidea.timeleft.component.CircularProgress
 
 @Composable
-fun CardWidget(itemList: AdapterItem
+fun CardWidget(
+    itemList: AdapterItem
 ) {
     Card(
         modifier = Modifier
@@ -44,8 +41,10 @@ fun CardWidget(itemList: AdapterItem
                 text = itemList.title,
                 modifier = Modifier.padding(20.dp)
             )
-
-            CircularProgress(progress = itemList.percent)
+            Box(modifier = Modifier.height(200.dp)) {
+                AnimatedNumberText(itemList.percent.toInt(), Modifier.align(Alignment.Center))
+                CircularProgress(progress = itemList.percent, Modifier.height(300.dp).width(300.dp))
+            }
 
             Text(
                 text = itemList.leftString,
@@ -58,5 +57,16 @@ fun CardWidget(itemList: AdapterItem
 @Preview
 @Composable
 fun PreviewMyCardView() {
-    //CardWidget()
+
+    CardWidget(timeItem())
+}
+
+fun timeItem(): AdapterItem {
+    val adapterItem = AdapterItem()
+    adapterItem.title = "오늘도 좋은하루우우"
+    adapterItem.percent = 60F
+    adapterItem.endString = "23:59:59"
+    adapterItem.leftString = "테스트트"
+
+    return adapterItem
 }

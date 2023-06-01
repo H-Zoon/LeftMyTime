@@ -45,7 +45,6 @@ class TimeLeftViewModel(private val repository: DataRepository) : ViewModel() {
                         }
                     }
                     listFlow2.value = listFlow3
-                    Log.d("size", listFlow2!!.value!!.size.toString())
                     delay(1000L)
                 }
                 }

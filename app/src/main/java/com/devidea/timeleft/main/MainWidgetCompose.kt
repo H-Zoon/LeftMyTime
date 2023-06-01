@@ -3,15 +3,20 @@ package com.devidea.timeleft.main
 
 import CardWidget
 import android.annotation.SuppressLint
+import android.preference.PreferenceActivity
 import android.util.Log
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
@@ -33,6 +38,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.devidea.timeleft.AdapterItem
@@ -47,10 +53,9 @@ class MainWidgetCompose {
         val itemValue by MainViewModel.listFlow2.observeAsState()
         val listState = rememberLazyListState()
 
-        Column {
+        Column (modifier = Modifier.fillMaxHeight()){
             itemValue?.let { it ->
-                Log.d("it", it.size.toString())
-                Greeting(itemList = it, listState = listState)
+                //Greeting(itemList = it, listState = listState)
 
                 ItemList(it, listState = listState,
                     DismissDelete = {
@@ -104,7 +109,7 @@ class SnackbarVisualsWithError(
         get() = SnackbarDuration.Indefinite
 }
 
-    @OptIn(ExperimentalMaterial3Api::class)
+    @OptIn(ExperimentalMaterial3Api::class, ExperimentalFoundationApi::class)
     @SuppressLint("UnusedMaterialScaffoldPaddingParameter",
         "UnusedMaterial3ScaffoldPaddingParameter"
     )
@@ -137,7 +142,26 @@ class SnackbarVisualsWithError(
                            },
             containerColor = MaterialTheme.colorScheme.background
         ) {
-            LazyColumn(modifier = Modifier, state = listState) {
+            LazyColumn(modifier = Modifier,
+                state = listState,
+                verticalArrangement = Arrangement.spacedBy(10.dp)) {
+
+                item {
+                    Greeting(itemList = itemList, listState = listState)
+                }
+
+                stickyHeader {
+                    Text(text = "test",
+                        fontSize = 30.sp
+                    )
+                    //@Composable
+                    //fun ItemDivider(modifier: Modifier = Modifier) {
+                        Divider(color = Color.Black, thickness = 1.dp, modifier = Modifier)
+                    //}
+
+                }
+
+
                 items(count = itemList.size, key = { pos -> itemList[pos].id }) { pos ->
                     val dismissState = rememberDismissState(confirmValueChange = { dismissValue ->
                         when (dismissValue) {
