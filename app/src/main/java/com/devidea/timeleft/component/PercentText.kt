@@ -3,6 +3,8 @@ package com.devidea.timeleft.component
 import androidx.compose.animation.core.FastOutSlowInEasing
 import androidx.compose.animation.core.animateIntAsState
 import androidx.compose.animation.core.tween
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -31,10 +33,7 @@ fun AnimatedNumberText(targetNumber: Int, modifier: Modifier) {
     }
     Text(text = "$daysCounter%",
         modifier = modifier,
-        style = TextStyle(
-            fontSize = 50.sp,
-            fontWeight = FontWeight.Bold,
-            color = Color.Black
-        )
+        style = typography.titleLarge,
+        color = MaterialTheme.colorScheme.primary
     )
 }

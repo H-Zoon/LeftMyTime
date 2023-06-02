@@ -18,6 +18,7 @@ import com.devidea.timeleft.activity.CreateTimeActivity
 import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.DataRepository
+import com.devidea.timeleft.theme.TimeLeftTheme
 
 
 class MainActivity : AppCompatActivity() {
@@ -51,7 +52,7 @@ class MainActivity : AppCompatActivity() {
         initBottomRecyclerView()
 
         binding.composeView.setContent {
-            MaterialTheme {
+            TimeLeftTheme {
                 MainWidgetCompose().MainCompose(
                     MainViewModel = viewModel,
                     repository = dataRepository

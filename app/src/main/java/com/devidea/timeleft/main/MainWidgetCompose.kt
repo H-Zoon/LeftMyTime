@@ -16,8 +16,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -53,9 +55,14 @@ class MainWidgetCompose {
         val itemValue by MainViewModel.listFlow2.observeAsState()
         val listState = rememberLazyListState()
 
-        Column (modifier = Modifier.fillMaxHeight()){
+        Box (modifier = Modifier.fillMaxHeight()){
+            TodayDateTime()
+
             itemValue?.let { it ->
-                //Greeting(itemList = it, listState = listState)
+
+                Greeting(itemList = it, listState = listState)
+
+                Spacer(Modifier.height(500.dp))
 
                 ItemList(it, listState = listState,
                     DismissDelete = {
@@ -146,9 +153,13 @@ class SnackbarVisualsWithError(
                 state = listState,
                 verticalArrangement = Arrangement.spacedBy(10.dp)) {
 
+             /*   item {
+                    TodayDateTime()
+                }
+
                 item {
                     Greeting(itemList = itemList, listState = listState)
-                }
+                }*/
 
                 stickyHeader {
                     Text(text = "test",

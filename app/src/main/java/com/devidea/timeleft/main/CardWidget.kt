@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.MaterialTheme.typography
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -39,7 +41,9 @@ fun CardWidget(
         ) {
             Text(
                 text = itemList.title,
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(20.dp),
+                style = typography.displayLarge,
+                color = MaterialTheme.colorScheme.primary
             )
             Box(modifier = Modifier.height(200.dp)) {
                 AnimatedNumberText(itemList.percent.toInt(), Modifier.align(Alignment.Center))
@@ -48,7 +52,9 @@ fun CardWidget(
 
             Text(
                 text = itemList.leftString,
-                modifier = Modifier.padding(20.dp)
+                modifier = Modifier.padding(20.dp),
+                style = typography.displaySmall,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
