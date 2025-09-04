@@ -5,7 +5,7 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 
 ## 스토어 링크
 
-<a href='https://play.google.com/store/apps/details?id=com.devidea.timeleft&hl=ko'><img alt='Google Play에서 다운로드' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' width="200"/></a>
+<a href='https://play.google.com/store/apps/details?id=com.devidea.timeleft'><img alt='Google Play에서 다운로드' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' width="200"/></a>
 
 ## 주요 기능
 
