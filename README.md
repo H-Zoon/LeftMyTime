@@ -3,6 +3,10 @@
 
 LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 시간을 계산하고 관리할 수 있도록 도와주는 안드로이드 애플리케이션입니다. 디데이(D-day) 계산, 반복 일정 관리 등 다양한 기능을 통해 중요한 이벤트를 잊지 않고 준비할 수 있도록 지원합니다.
 
+## 스토어 링크
+
+<a href='https://play.google.com/store/apps/details?id=com.devidea.timeleft&hl=ko'><img alt='Google Play에서 다운로드' src='https://play.google.com/intl/en_us/badges/static/images/badges/ko_badge_web_generic.png' width="200"/></a>
+
 ## 주요 기능
 
 * **디데이(D-day) 계산**: 특정 날짜까지 남은 일수 또는 지난 일수를 계산합니다.
