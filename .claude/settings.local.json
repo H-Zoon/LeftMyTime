@@ -1,0 +1,7 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(/Users/jun/Documents/project/LeftMyTime/gradlew -p /Users/jun/Documents/project/LeftMyTime :app:testDebugUnitTest)"
+    ]
+  }
+}
