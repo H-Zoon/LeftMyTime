@@ -19,10 +19,8 @@
         tools:targetApi="s">
 
         <activity
-            android:name=".activity.SetRepeatActivity"
+            android:name=".activity.ItemEditorActivity"
             android:exported="false" />
-        <activity android:name=".activity.CreateTimeActivity" />
-        <activity android:name=".activity.CreateDayActivity" />
         <activity
             android:name=".activity.MainActivity"
             android:exported="true">

@@ -67,7 +67,7 @@ class AppWidgetConfigure : Activity() {
             finish()
         }
 
-        binding.save.setOnClickListener { v: View ->
+        binding.save.setOnClickListener {
             val context: Context = this
             val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
             val views = RemoteViews(
@@ -125,7 +125,7 @@ class AppWidgetConfigure : Activity() {
 
         }
 
-        binding.radioGroup.setOnCheckedChangeListener { group, checkedId ->
+        binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
             when (checkedId) {
                 R.id.yearButton -> {
                     value = "embedYear"

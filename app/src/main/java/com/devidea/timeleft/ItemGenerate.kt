@@ -2,7 +2,6 @@ package com.devidea.timeleft
 
 import com.devidea.timeleft.calc.CustomTimeProgress
 import com.devidea.timeleft.calc.TimeProgressCalculator
-import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import java.time.LocalDate
 import java.time.LocalTime
@@ -11,8 +10,6 @@ import java.time.format.TextStyle
 import java.util.*
 
 class ItemGenerate : InterfaceItem {
-
-    private val appDatabase by lazy { AppDatabase.getDatabase(App.context()) }
 
     override fun timeItem(): AdapterItem {
         val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
@@ -80,25 +77,8 @@ class ItemGenerate : InterfaceItem {
     override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
         val formatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         val today = LocalDate.now()
-        var startDate = LocalDate.parse(itemEntity.startValue, formatter)
-        var endDate = LocalDate.parse(itemEntity.endValue, formatter)
-
-        val shift = TimeProgressCalculator.nextRecurrence(
-            currentEnd = endDate,
-            today = today,
-            updateFlag = itemEntity.updateFlag,
-            updateRate = itemEntity.updateRate
-        )
-        if (shift != null) {
-            appDatabase.itemDao().updateItem(
-                shift.newStart.toString(),
-                shift.newEnd.toString(),
-                itemEntity.id
-            )
-            val refreshed = appDatabase.itemDao().getSelectItem(itemEntity.id)
-            startDate = LocalDate.parse(refreshed.startValue, formatter)
-            endDate = LocalDate.parse(refreshed.endValue, formatter)
-        }
+        val startDate = LocalDate.parse(itemEntity.startValue, formatter)
+        val endDate = LocalDate.parse(itemEntity.endValue, formatter)
 
         val progress = TimeProgressCalculator.customDateProgress(startDate, endDate, today)
         val displayPercent =

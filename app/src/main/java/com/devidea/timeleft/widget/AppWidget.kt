@@ -15,6 +15,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.activity.MainActivity.Companion.prefs
 import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.repository.TimeLeftRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -190,8 +191,10 @@ class AppWidget : AppWidgetProvider() {
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 val item : AdapterItem?
-                val itemList =
-                    AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
+                val repository = TimeLeftRepository(AppDatabase.getDatabase(App.context()).itemDao())
+                val itemList = repository.advanceExpiredRecurrence(
+                    repository.getItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
+                )
 
                 item = if ((itemList.type == "Time")) {
                     MainActivity.ITEM_GENERATE.customTimeItem(itemList)
@@ -239,5 +242,4 @@ class AppWidget : AppWidgetProvider() {
     }
 
 }
-
 

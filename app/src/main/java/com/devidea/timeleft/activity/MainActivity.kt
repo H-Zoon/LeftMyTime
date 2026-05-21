@@ -1,35 +1,31 @@
 package com.devidea.timeleft.activity
 
-import android.app.*
 import android.content.*
 import android.os.Bundle
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
-import androidx.core.content.ContextCompat
-import androidx.lifecycle.Lifecycle
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.lifecycleScope
-import androidx.lifecycle.repeatOnLifecycle
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.preference.PreferenceManager
-import androidx.recyclerview.widget.LinearLayoutManager
-import androidx.recyclerview.widget.PagerSnapHelper
-import androidx.recyclerview.widget.RecyclerView
 import com.devidea.timeleft.*
-import com.devidea.timeleft.databinding.ActivityMainBinding
 import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.ui.home.HomeScreen
+import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
 import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
-import kotlinx.coroutines.launch
-import java.time.LocalDateTime.*
+import com.devidea.timeleft.widget.AppWidget
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 
 class MainActivity : AppCompatActivity() {
-    private val topItemListArray = ArrayList<AdapterItem>()
-    private lateinit var binding: ActivityMainBinding //activity_main.xml
     private lateinit var viewModel: TimeLeftViewModel
-    private lateinit var topItemAdapter: TopRecyclerView
-    private lateinit var bottomItemAdapter: BottomRecyclerView
 
     companion object {
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
@@ -38,154 +34,84 @@ class MainActivity : AppCompatActivity() {
         const val UPDATE_FLAG_FOR_DAY = 1
         const val UPDATE_FLAG_FOR_MONTH = 2
         const val UPDATE_FLAG_FOR_TIME = 3
+        private val DAY_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
 
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        binding = ActivityMainBinding.inflate(layoutInflater)
         viewModel = ViewModelProvider(
             this,
             TimeLeftViewModelFactory(AppDatabase.getDatabase(App.context()).itemDao())
         )[TimeLeftViewModel::class.java]
-        val view = binding.root
-        setContentView(view)
 
-        when (prefs.getString("theme", "auto")) {
-            "light" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            }
+        applyNightMode(currentThemeMode())
 
-            "dark" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_dark_mode_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-            }
+        setContent {
+            val timeValue by viewModel.timeValue.collectAsStateWithLifecycle()
+            val topItems by viewModel.topItems.collectAsStateWithLifecycle()
+            val customItems by viewModel.customItems.collectAsStateWithLifecycle()
+            var themeMode by remember { mutableStateOf(currentThemeMode()) }
+            val dateText = LocalDateTime.now().format(DAY_FORMATTER)
 
-            "auto" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_hdr_auto_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-            }
-        }
-
-        initTopRecyclerView()
-        initBottomRecyclerView()
-
-        binding.day.text = now().format(DateTimeFormatter.ofPattern("yyyy년 M월 d일"))
-
-        lifecycleScope.launch {
-            repeatOnLifecycle(Lifecycle.State.STARTED) {
-                launch {
-                    viewModel.timeValue.collect { binding.time.text = it }
-                }
-                launch {
-                    viewModel.topTimeItem.collect { item ->
-                        item?.let { topItemAdapter.notifyItemChanged(0, it) }
-                    }
-                }
-                launch {
-                    viewModel.customItems.collect { items ->
-                        bottomItemAdapter.updateList(ArrayList(items))
-                    }
-                }
-            }
-        }
-
-        binding.timeAdd.setOnClickListener {
-            val itemName = arrayOfNulls<String>(2)
-            itemName[0] = "시간범위 지정하기"
-            itemName[1] = "날짜 지정하기"
-            AlertDialog.Builder(this)
-                .setTitle("원하시는 종류를 선택해주세요")
-                .setItems(itemName) { _, which ->
-                    when (which) {
-                        0 -> startActivity(
-                            Intent(
-                                applicationContext,
-                                CreateTimeActivity::class.java
+            TimeLeftTheme(themeMode = themeMode) {
+                HomeScreen(
+                    dateText = dateText,
+                    timeText = timeValue,
+                    themeMode = themeMode,
+                    topItems = topItems,
+                    customItems = customItems,
+                    onToggleTheme = {
+                        themeMode = nightModeChanger()
+                    },
+                    onAddTime = {
+                        startActivity(
+                            ItemEditorActivity.createIntent(
+                                this@MainActivity,
+                                TimeLeftRepository.TYPE_TIME
                             )
                         )
-                        1 -> startActivity(
-                            Intent(
-                                applicationContext,
-                                CreateDayActivity::class.java
+                    },
+                    onAddDate = {
+                        startActivity(
+                            ItemEditorActivity.createIntent(
+                                this@MainActivity,
+                                TimeLeftRepository.TYPE_DATE
                             )
                         )
+                    },
+                    onEditItem = { id ->
+                        startActivity(ItemEditorActivity.editIntent(this@MainActivity, id))
+                    },
+                    onDeleteItem = { id ->
+                        viewModel.deleteItem(id)
+                        AppWidget().onDeleted(App.context(), intArrayOf(id))
                     }
-                }
-                .create().show()
-        }
-
-        binding.setting.setOnClickListener {
-            nightModeChanger()
-        }
-    }
-
-    private fun initTopRecyclerView() {
-        binding.recyclerview.layoutManager = LinearLayoutManager(
-            this, RecyclerView.HORIZONTAL,
-            false
-        )
-
-        topItemListArray.add(ITEM_GENERATE.timeItem())
-        topItemListArray.add(ITEM_GENERATE.monthItem())
-        topItemListArray.add(ITEM_GENERATE.yearItem())
-
-        topItemAdapter = TopRecyclerView(topItemListArray)
-        binding.recyclerview.adapter = topItemAdapter
-
-        val pagerSnapHelper = PagerSnapHelper()
-        pagerSnapHelper.attachToRecyclerView(binding.recyclerview)
-
-        binding.indicator.attachToRecyclerView(binding.recyclerview, pagerSnapHelper)
-        topItemAdapter.registerAdapterDataObserver(binding.indicator.adapterDataObserver)
-    }
-
-    private fun initBottomRecyclerView() {
-        binding.recyclerview2.layoutManager = LinearLayoutManager(
-            this,
-            RecyclerView.VERTICAL,
-            false
-        )
-        bottomItemAdapter = BottomRecyclerView(ArrayList())
-        binding.recyclerview2.adapter = bottomItemAdapter
-
-    }
-
-    private fun nightModeChanger() {
-
-        when (prefs.getString("theme", "auto")) {
-            "light" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_dark_mode_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
-                with(prefs.edit()) {
-                    putString("theme", "dark")
-                }.apply()
-
-            }
-
-            "dark" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_hdr_auto_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
-                with(prefs.edit()) {
-                    putString("theme", "auto")
-                }.apply()
-            }
-
-            "auto" -> {
-                binding.setting.background =
-                    ContextCompat.getDrawable(this, R.drawable.outline_light_mode_24)
-                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-                with(prefs.edit()) {
-                    putString("theme", "light")
-                }.apply()
-
+                )
             }
         }
     }
+
+    private fun nightModeChanger(): String {
+        val nextMode = when (currentThemeMode()) {
+            "light" -> "dark"
+            "dark" -> "auto"
+            else -> "light"
+        }
+        with(prefs.edit()) {
+            putString("theme", nextMode)
+        }.apply()
+        applyNightMode(nextMode)
+        return nextMode
+    }
+
+    private fun applyNightMode(themeMode: String) {
+        when (themeMode) {
+            "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
+        }
+    }
+
+    private fun currentThemeMode(): String = prefs.getString("theme", "auto") ?: "auto"
 }
