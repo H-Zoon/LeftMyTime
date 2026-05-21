@@ -7,11 +7,16 @@ import com.devidea.timeleft.database.itemdata.ItemType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
+import javax.inject.Singleton
 
-class TimeLeftRepository(
-    private val itemDao: ItemDao
+@Singleton
+class TimeLeftRepository @Inject constructor(
+    private val itemDao: ItemDao,
 ) {
     val items: Flow<List<ItemEntity>> = itemDao.observeItems()
+
+    suspend fun allItems(): List<ItemEntity> = itemDao.getItems()
 
     suspend fun getItem(id: Int): ItemEntity = itemDao.getSelectItem(id)
 

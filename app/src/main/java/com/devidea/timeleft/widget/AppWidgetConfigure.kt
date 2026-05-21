@@ -1,24 +1,35 @@
 package com.devidea.timeleft.widget
 
-import android.content.Intent
-import android.appwidget.AppWidgetManager
 import android.app.PendingIntent
-import android.os.Bundle
-import android.app.Activity
+import android.appwidget.AppWidgetManager
 import android.content.Context
+import android.content.Intent
+import android.content.SharedPreferences
+import android.os.Bundle
 import android.view.View
-import android.widget.*
-import com.devidea.timeleft.App
-import com.devidea.timeleft.activity.MainActivity
+import android.widget.AdapterView
+import android.widget.ArrayAdapter
+import android.widget.RemoteViews
+import android.widget.Toast
+import androidx.appcompat.app.AppCompatActivity
+import androidx.lifecycle.lifecycleScope
 import com.devidea.timeleft.R
-import com.devidea.timeleft.databinding.AppwidgetConfigureBinding
-import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.database.itemdata.ItemEntity
-import kotlinx.coroutines.CoroutineScope
+import com.devidea.timeleft.databinding.AppwidgetConfigureBinding
+import com.devidea.timeleft.repository.TimeLeftRepository
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
-class AppWidgetConfigure : Activity() {
+@AndroidEntryPoint
+class AppWidgetConfigure : AppCompatActivity() {
+
+    @Inject lateinit var repository: TimeLeftRepository
+    @Inject lateinit var prefs: SharedPreferences
+
     private lateinit var binding: AppwidgetConfigureBinding
     private lateinit var value: String
     private lateinit var itemList: List<ItemEntity>
@@ -26,21 +37,20 @@ class AppWidgetConfigure : Activity() {
     private lateinit var ids: ArrayList<Int>
     private lateinit var id: String
 
-    var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
-    var context: Context = this@AppWidgetConfigure
+    private var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
+    private val context: Context = this@AppWidgetConfigure
 
-    public override fun onCreate(icicle: Bundle?) {
-        super.onCreate(icicle)
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
 
         setResult(RESULT_CANCELED)
-        setContentView(R.layout.appwidget_configure)
 
         binding = AppwidgetConfigureBinding.inflate(layoutInflater)
         setContentView(binding.root)
         binding.spinner.isEnabled = false
 
-        CoroutineScope(Dispatchers.IO).launch {
-            itemList = AppDatabase.getDatabase(App.context()).itemDao().item
+        lifecycleScope.launch {
+            itemList = withContext(Dispatchers.IO) { repository.allItems() }
             if (itemList.isNotEmpty()) {
                 items = ArrayList()
                 ids = ArrayList()
@@ -54,7 +64,6 @@ class AppWidgetConfigure : Activity() {
             }
         }
 
-        val intent: Intent = intent
         val extras: Bundle? = intent.extras
         if (extras != null) {
             widgetId = extras.getInt(
@@ -68,14 +77,12 @@ class AppWidgetConfigure : Activity() {
         }
 
         binding.save.setOnClickListener {
-            val context: Context = this
             val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
             val views = RemoteViews(
                 context.packageName,
                 R.layout.app_widget
             )
 
-            //위젯에 새로고침 버튼 추가
             val intentR = Intent(context, AppWidget::class.java)
             intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             val updateIntent: PendingIntent = PendingIntent.getBroadcast(
@@ -98,24 +105,21 @@ class AppWidgetConfigure : Activity() {
             try {
                 when (value) {
                     "embedYear" -> appWidgetManager.updateAppWidget(widgetId, views)
-
                     "embedMonth" -> appWidgetManager.updateAppWidget(widgetId, views)
-
                     "embedTime" -> appWidgetManager.updateAppWidget(widgetId, views)
-
                     "custom" -> customWidgetInit(appWidgetManager)
                 }
 
                 if (value != "custom") {
-                    with(MainActivity.prefs.edit()) {
-                        putString(widgetId.toString(), value)
-                        putBoolean(widgetId.toString() + "option", binding.option.isChecked)
-                    }.apply()
+                    prefs.edit()
+                        .putString(widgetId.toString(), value)
+                        .putBoolean("${widgetId}option", binding.option.isChecked)
+                        .apply()
 
                     val resultValue = Intent()
                     resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
                     setResult(RESULT_OK, resultValue)
-                    AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
+                    AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
                     finish()
                 }
 
@@ -126,7 +130,6 @@ class AppWidgetConfigure : Activity() {
                     Toast.LENGTH_SHORT
                 ).show()
             }
-
         }
 
         binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
@@ -150,14 +153,12 @@ class AppWidgetConfigure : Activity() {
             }
         }
 
-
         binding.spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
             override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
                 id = ids[position].toString()
             }
 
             override fun onNothingSelected(p0: AdapterView<*>?) {
-
             }
         }
     }
@@ -169,28 +170,26 @@ class AppWidgetConfigure : Activity() {
     }
 
     private fun customWidgetInit(appWidgetManager: AppWidgetManager) {
-        CoroutineScope(Dispatchers.IO).launch {
-            val exists = runCatching {
-                AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(id.toInt())
-            }.isSuccess
+        lifecycleScope.launch {
+            val exists = withContext(Dispatchers.IO) {
+                runCatching { repository.getItem(id.toInt()) }.isSuccess
+            }
 
             if (!exists) {
-                runOnUiThread { finish() }
+                finish()
                 return@launch
             }
 
-            with(MainActivity.prefs.edit()) {
-                putString(widgetId.toString(), id)
-                putBoolean(widgetId.toString() + "option", binding.option.isChecked)
-            }.apply()
+            prefs.edit()
+                .putString(widgetId.toString(), id)
+                .putBoolean("${widgetId}option", binding.option.isChecked)
+                .apply()
 
-            runOnUiThread {
-                val resultValue = Intent()
-                    .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-                setResult(RESULT_OK, resultValue)
-                AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
-                finish()
-            }
+            val resultValue = Intent()
+                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+            setResult(RESULT_OK, resultValue)
+            AppWidget().updateAppWidget(this@AppWidgetConfigure, appWidgetManager, widgetId)
+            finish()
         }
     }
 }

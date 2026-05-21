@@ -1,43 +1,36 @@
 package com.devidea.timeleft.activity
 
-import android.content.*
+import android.content.SharedPreferences
 import android.os.Bundle
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.preference.PreferenceManager
-import com.devidea.timeleft.*
-import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
-import com.devidea.timeleft.viewmodels.TimeLeftViewModelFactory
 import com.devidea.timeleft.widget.AppWidget
+import dagger.hilt.android.AndroidEntryPoint
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-
+@AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
-    private lateinit var viewModel: TimeLeftViewModel
 
-    companion object {
-        val ITEM_GENERATE: InterfaceItem = ItemGenerate()
-        val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.context())
-    }
+    @Inject lateinit var prefs: SharedPreferences
+
+    private val viewModel: TimeLeftViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(
-            this,
-            TimeLeftViewModelFactory(AppDatabase.getDatabase(App.context()).itemDao())
-        )[TimeLeftViewModel::class.java]
 
         applyNightMode(currentThemeMode())
 
@@ -74,7 +67,7 @@ class MainActivity : AppCompatActivity() {
                     },
                     onDeleteItem = { id ->
                         viewModel.deleteItem(id)
-                        AppWidget().onDeleted(App.context(), intArrayOf(id))
+                        AppWidget().onDeleted(this@MainActivity, intArrayOf(id))
                     }
                 )
             }
@@ -87,9 +80,7 @@ class MainActivity : AppCompatActivity() {
             "dark" -> "auto"
             else -> "light"
         }
-        with(prefs.edit()) {
-            putString("theme", nextMode)
-        }.apply()
+        prefs.edit().putString("theme", nextMode).apply()
         applyNightMode(nextMode)
         return nextMode
     }

@@ -5,20 +5,37 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.App
+import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
-import com.devidea.timeleft.activity.MainActivity.Companion.prefs
-import com.devidea.timeleft.database.AppDatabase
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
+import dagger.hilt.EntryPoint
+import dagger.hilt.InstallIn
+import dagger.hilt.android.EntryPointAccessors
+import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 class AppWidget : AppWidgetProvider() {
+
+    @EntryPoint
+    @InstallIn(SingletonComponent::class)
+    interface AppWidgetEntryPoint {
+        fun prefs(): SharedPreferences
+        fun itemGenerator(): InterfaceItem
+        fun repository(): TimeLeftRepository
+    }
+
+    private fun entryPoint(context: Context): AppWidgetEntryPoint =
+        EntryPointAccessors.fromApplication(
+            context.applicationContext,
+            AppWidgetEntryPoint::class.java
+        )
 
     override fun onUpdate(
         context: Context,
@@ -34,6 +51,8 @@ class AppWidget : AppWidgetProvider() {
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
+        context ?: return
+        val prefs = entryPoint(context).prefs()
         appWidgetIds?.forEach { id ->
             prefs.edit()
                 .remove(id.toString())
@@ -47,6 +66,9 @@ class AppWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int
     ) {
+        val ep = entryPoint(context)
+        val prefs = ep.prefs()
+        val itemGenerator = ep.itemGenerator()
 
         val views = RemoteViews(context.packageName, R.layout.app_widget)
 
@@ -68,138 +90,84 @@ class AppWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
         when (prefs.getString(appWidgetId.toString(), "")) {
             "embedYear" -> {
-                val item = MainActivity.ITEM_GENERATE.yearItem()
-                views.setTextViewText(
-                    R.id.summary,
-                    item.title
-                )
-                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.leftString
-                    )
-                }else {
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.percent.toString() + "%"
-                    )
-                }
-                views.setProgressBar(
-                    R.id.progress,
-                    100,
-                    item.percent.toInt(),
-                    false
-                )
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                val item = itemGenerator.yearItem()
+                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = false)
             }
             "embedMonth" -> {
-                val item = MainActivity.ITEM_GENERATE.monthItem()
-                views.setTextViewText(
-                    R.id.summary,
-                    item.title
-                )
-                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.leftString
-                    )
-                }else {
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.percent.toString() + "%"
-                    )
-                }
-                views.setProgressBar(
-                    R.id.progress,
-                    100,
-                    item.percent.toInt(),
-                    false
-                )
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                val item = itemGenerator.monthItem()
+                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = false)
             }
             "embedTime" -> {
-                val item = MainActivity.ITEM_GENERATE.timeItem()
-                views.setTextViewText(
-                    R.id.summary,
-                    item.title
-                )
-                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.widgetString
-                    )
-                }else {
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.percent.toString() + "%"
-                    )
-                }
-                views.setProgressBar(
-                    R.id.progress,
-                    100,
-                    item.percent.toInt(),
-                    false
-                )
-                appWidgetManager.updateAppWidget(appWidgetId, views)
+                val item = itemGenerator.timeItem()
+                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = true)
             }
 
-            else -> customWidgetInit(views, appWidgetManager, appWidgetId)
+            else -> customWidgetInit(context, views, appWidgetManager, appWidgetId)
         }
     }
 
-    private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager, appWidgetId: Int) {
+    private fun renderStaticItem(
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        prefs: SharedPreferences,
+        item: AdapterItem,
+        useWidgetString: Boolean,
+    ) {
+        views.setTextViewText(R.id.summary, item.title)
+        if (prefs.getBoolean("${appWidgetId}option", false)) {
+            views.setTextViewText(
+                R.id.percent,
+                if (useWidgetString) item.widgetString else item.leftString
+            )
+        } else {
+            views.setTextViewText(R.id.percent, "${item.percent}%")
+        }
+        views.setProgressBar(R.id.progress, 100, item.percent.toInt(), false)
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+
+    private fun customWidgetInit(
+        context: Context,
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+    ) {
+        val ep = entryPoint(context)
+        val prefs = ep.prefs()
+        val itemGenerator = ep.itemGenerator()
+        val repository = ep.repository()
+
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val item : AdapterItem?
-                val repository = TimeLeftRepository(AppDatabase.getDatabase(App.context()).itemDao())
+                val item: AdapterItem
                 val itemList = repository.advanceExpiredRecurrence(
                     repository.getItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
                 )
 
                 item = if (itemList.type == ItemType.Time) {
-                    MainActivity.ITEM_GENERATE.customTimeItem(itemList)
-
+                    itemGenerator.customTimeItem(itemList)
                 } else {
-                    MainActivity.ITEM_GENERATE.customMonthItem(itemList)
-
+                    itemGenerator.customMonthItem(itemList)
                 }
 
                 views.setTextViewText(R.id.summary, item.title)
-                if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
+                if (prefs.getBoolean("${appWidgetId}option", false)) {
                     if (itemList.type == ItemType.Time) {
-                        views.setTextViewText(
-                            R.id.percent,
-                            item.widgetString
-                        )
-                    }else {
-                        views.setTextViewText(
-                            R.id.percent,
-                            item.leftString
-                        )
+                        views.setTextViewText(R.id.percent, item.widgetString)
+                    } else {
+                        views.setTextViewText(R.id.percent, item.leftString)
                     }
-                }else {
-                    views.setTextViewText(
-                        R.id.percent,
-                        item.percent.toString() + "%"
-                    )
+                } else {
+                    views.setTextViewText(R.id.percent, "${item.percent}%")
                 }
-                views.setProgressBar(
-                    R.id.progress,
-                    100,
-                    item.percent.toInt(),
-                    false
-                )
+                views.setProgressBar(R.id.progress, 100, item.percent.toInt(), false)
 
                 appWidgetManager.updateAppWidget(appWidgetId, views)
 
-            }catch (e : NullPointerException){
-                with(prefs.edit()) {
-                    remove(appWidgetId.toString())
-                    apply()
-                }
+            } catch (e: NullPointerException) {
+                prefs.edit().remove(appWidgetId.toString()).apply()
             }
         }
     }
-
 }
-

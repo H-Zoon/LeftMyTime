@@ -1,17 +1,16 @@
 package com.devidea.timeleft.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.App
 import com.devidea.timeleft.InterfaceItem
-import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemDao
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
+import dagger.hilt.android.lifecycle.HiltViewModel
+import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
@@ -27,13 +26,17 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
+import javax.inject.Inject
 
-class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel() {
-
-    private val itemGenerate: InterfaceItem = ItemGenerate()
+@HiltViewModel
+class TimeLeftViewModel @Inject constructor(
+    private val repository: TimeLeftRepository,
+    private val itemGenerate: InterfaceItem,
+    @ApplicationContext context: Context,
+) : ViewModel() {
 
     private val timeFormatter: DateTimeFormatter =
-        DateTimeFormatter.ofPattern(App.context().getString(R.string.pattern_header_time))
+        DateTimeFormatter.ofPattern(context.getString(R.string.pattern_header_time))
 
     private val ticker: Flow<Unit> = flow {
         while (currentCoroutineContext().isActive) {
@@ -119,17 +122,5 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
         private const val TICK_INTERVAL_MS = 1_000L
         private const val EXPIRY_CHECK_INTERVAL_MS = 60_000L
         private const val STOP_TIMEOUT_MS = 5_000L
-    }
-}
-
-class TimeLeftViewModelFactory(
-    private val itemDao: ItemDao
-) : ViewModelProvider.Factory {
-    override fun <T : ViewModel> create(modelClass: Class<T>): T {
-        if (modelClass.isAssignableFrom(TimeLeftViewModel::class.java)) {
-            @Suppress("UNCHECKED_CAST")
-            return TimeLeftViewModel(TimeLeftRepository(itemDao)) as T
-        }
-        throw IllegalArgumentException("Unknown ViewModel class")
     }
 }

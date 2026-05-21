@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">TimeLeft</string>
+    <string name="widget_label">기본위젯</string>
+
+    <!-- Date / time patterns (locale-aware) -->
+    <string name="pattern_header_date">yyyy년 M월 d일</string>
+    <string name="pattern_header_time">a h:m:ss</string>
+    <string name="pattern_display_date">yyyy년 M월 d일</string>
+    <string name="pattern_display_time">a h:mm</string>
+
+    <!-- Home screen -->
+    <string name="home_today_title">오늘의</string>
+    <string name="home_year_title">%1$d년의</string>
+    <string name="home_month_title">%1$s의</string>
+    <string name="home_time_left">남은시간: %1$s</string>
+    <string name="home_days_left">남은일: %1$d일</string>
+    <string name="home_my_items">내 항목</string>
+    <string name="home_empty_items">아직 항목이 없습니다</string>
+    <string name="home_change_theme">테마 변경</string>
+    <string name="home_add_item">항목 추가</string>
+    <string name="home_add_time_range">시간 범위</string>
+    <string name="home_add_date">날짜</string>
+
+    <!-- Item card -->
+    <string name="card_action_edit">수정</string>
+    <string name="card_action_delete">삭제</string>
+    <string name="card_delete_title">항목 삭제</string>
+    <string name="card_delete_message">\"%1$s\" 항목을 삭제할까요?</string>
+    <string name="card_time_start">설정시간: %1$s</string>
+    <string name="card_time_end">종료시간: %1$s</string>
+    <string name="card_date_start">설정일: %1$s</string>
+    <string name="card_date_end">종료일: %1$s</string>
+    <string name="card_days_left_dday">남은일: D-%1$d</string>
+    <string name="card_time_auto_start_hint">설정시간 이후 자동으로 시작</string>
+    <string name="card_time_idle_hint">설정시간이 지나면 계산해 드릴께요</string>
+    <string name="card_time_widget_idle">남은시간: 00:00</string>
+    <string name="card_update_info_none">100%% 달성후 끝나는 일정.</string>
+    <string name="card_update_info_day">종료 후 %1$d일 뒤 반복되는 일정.</string>
+    <string name="card_update_info_month">매 달 %1$d일에 반복되는 일정.</string>
+
+    <!-- Common actions -->
+    <string name="action_cancel">취소</string>
+    <string name="action_save">저장</string>
+    <string name="action_saving">저장 중</string>
+    <string name="action_back">뒤로</string>
+
+    <!-- Editor -->
+    <string name="editor_add_title">항목 추가</string>
+    <string name="editor_edit_title">항목 수정</string>
+    <string name="editor_type">유형</string>
+    <string name="editor_title_label">제목</string>
+    <string name="editor_start_time">시작 시간</string>
+    <string name="editor_end_time">종료 시간</string>
+    <string name="editor_start_date">시작일</string>
+    <string name="editor_end_date">종료일</string>
+    <string name="editor_repeat">반복</string>
+    <string name="editor_repeat_none">반복 없음</string>
+    <string name="editor_repeat_every_n_days">종료 후 지정한 일수마다 반복</string>
+    <string name="editor_repeat_every_month">매달 지정한 날짜에 반복</string>
+    <string name="editor_repeat_interval">반복 간격</string>
+    <string name="editor_repeat_day_of_month">매달 반복일</string>
+    <string name="editor_days_suffix">일</string>
+
+    <!-- Editor errors -->
+    <string name="editor_error_title_required">제목을 입력해주세요.</string>
+    <string name="editor_error_invalid_start_time">시작 시간을 확인해주세요.</string>
+    <string name="editor_error_invalid_end_time">종료 시간을 확인해주세요.</string>
+    <string name="editor_error_end_before_start_time">종료 시간은 시작 시간보다 늦어야 합니다.</string>
+    <string name="editor_error_invalid_start_date">시작일을 확인해주세요.</string>
+    <string name="editor_error_invalid_end_date">종료일을 확인해주세요.</string>
+    <string name="editor_error_end_before_start_date">종료일은 시작일보다 빠를 수 없습니다.</string>
+    <string name="editor_error_repeat_required">반복 값을 입력해주세요.</string>
+    <string name="editor_error_repeat_day_min">반복 간격은 1일 이상이어야 합니다.</string>
+    <string name="editor_error_repeat_month_range">반복일은 1일부터 31일 사이여야 합니다.</string>
+    <string name="editor_error_load_failed">항목을 불러오지 못했습니다.</string>
+    <string name="editor_error_save_failed">저장하지 못했습니다.</string>
+
+    <!-- Widget configure -->
+    <string name="widget_configure_select_required">하나를 정해주세요</string>
+    <string name="widget_loading">로딩중…</string>
+</resources>

@@ -1,13 +1,12 @@
 package com.devidea.timeleft
 
-
-class AdapterItem {
-    var id = 0
-    lateinit var title: String
-    var percent: Float = .2f
-    lateinit var startString: String
-    lateinit var endString: String
-    lateinit var leftString: String
-    lateinit var updateInfo: String
-    lateinit var widgetString: String
-}
+data class AdapterItem(
+    val id: Int = 0,
+    val title: String = "",
+    val percent: Float = 0f,
+    val startString: String = "",
+    val endString: String = "",
+    val leftString: String = "",
+    val updateInfo: String = "",
+    val widgetString: String = "",
+)

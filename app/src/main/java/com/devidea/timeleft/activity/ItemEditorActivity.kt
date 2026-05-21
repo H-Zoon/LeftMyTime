@@ -10,23 +10,25 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import com.devidea.timeleft.App
+import android.content.SharedPreferences
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.AppDatabase
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
+import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import javax.inject.Inject
 
+@AndroidEntryPoint
 class ItemEditorActivity : AppCompatActivity() {
-    private val repository by lazy {
-        TimeLeftRepository(AppDatabase.getDatabase(App.context()).itemDao())
-    }
+
+    @Inject lateinit var repository: TimeLeftRepository
+    @Inject lateinit var prefs: SharedPreferences
 
     private var initialItem by mutableStateOf<ItemEntity?>(null)
     private var isLoading by mutableStateOf(false)
@@ -61,7 +63,7 @@ class ItemEditorActivity : AppCompatActivity() {
         }
 
         setContent {
-            TimeLeftTheme(themeMode = MainActivity.prefs.getString("theme", "auto") ?: "auto") {
+            TimeLeftTheme(themeMode = prefs.getString("theme", "auto") ?: "auto") {
                 ItemEditorScreen(
                     initialType = initialType,
                     initialItem = initialItem,
