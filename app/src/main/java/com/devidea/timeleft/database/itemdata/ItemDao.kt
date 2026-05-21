@@ -1,4 +1,4 @@
-package com.devidea.timeleft.datadase.itemdata
+package com.devidea.timeleft.database.itemdata
 
 import androidx.room.*
 import kotlinx.coroutines.flow.Flow

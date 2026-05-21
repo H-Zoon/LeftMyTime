@@ -2,7 +2,7 @@ package com.devidea.timeleft
 
 import android.app.Application
 import android.content.Context
-import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.database.AppDatabase
 
 class App : Application() {
 

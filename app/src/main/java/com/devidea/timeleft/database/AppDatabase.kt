@@ -1,17 +1,19 @@
-package com.devidea.timeleft.datadase
+package com.devidea.timeleft.database
 
 import androidx.room.Room
 import androidx.room.Database
 import androidx.room.RoomDatabase
+import androidx.room.TypeConverters
 import android.content.Context
-import com.devidea.timeleft.datadase.itemdata.ItemDao
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemDao
+import com.devidea.timeleft.database.itemdata.ItemEntity
 
 @Database(
     entities = [ItemEntity::class],
     version = 6,
     exportSchema = true
 )
+@TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
 

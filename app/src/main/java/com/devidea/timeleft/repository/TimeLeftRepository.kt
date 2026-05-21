@@ -1,8 +1,9 @@
 package com.devidea.timeleft.repository
 
 import com.devidea.timeleft.calc.TimeProgressCalculator
-import com.devidea.timeleft.datadase.itemdata.ItemDao
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemDao
+import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
 import kotlinx.coroutines.flow.Flow
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
@@ -39,7 +40,7 @@ class TimeLeftRepository(
         entity: ItemEntity,
         today: LocalDate = LocalDate.now()
     ): ItemEntity {
-        if (entity.type == TYPE_TIME) return entity
+        if (entity.type == ItemType.Time) return entity
 
         val endDate = LocalDate.parse(entity.endValue, DATE_FORMATTER)
         val shift = TimeProgressCalculator.nextRecurrence(
@@ -55,27 +56,13 @@ class TimeLeftRepository(
             entity.id
         )
 
-        return entity.withWindow(
+        return entity.copy(
             startValue = shift.newStart.toString(),
             endValue = shift.newEnd.toString()
         )
     }
 
     companion object {
-        const val TYPE_DATE = "Month"
-        const val TYPE_TIME = "Time"
         private val DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
     }
 }
-
-private fun ItemEntity.withWindow(startValue: String, endValue: String): ItemEntity =
-    ItemEntity(
-        type = type,
-        title = title,
-        startValue = startValue,
-        endValue = endValue,
-        updateFlag = updateFlag,
-        updateRate = updateRate
-    ).also {
-        it.id = id
-    }

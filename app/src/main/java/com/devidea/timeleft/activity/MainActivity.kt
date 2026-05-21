@@ -13,8 +13,8 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.*
-import com.devidea.timeleft.datadase.AppDatabase
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
@@ -30,10 +30,6 @@ class MainActivity : AppCompatActivity() {
     companion object {
         val ITEM_GENERATE: InterfaceItem = ItemGenerate()
         val prefs: SharedPreferences = PreferenceManager.getDefaultSharedPreferences(App.context())
-        const val UPDATE_FLAG_UNABLE = 0
-        const val UPDATE_FLAG_FOR_DAY = 1
-        const val UPDATE_FLAG_FOR_MONTH = 2
-        const val UPDATE_FLAG_FOR_TIME = 3
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -65,18 +61,12 @@ class MainActivity : AppCompatActivity() {
                     },
                     onAddTime = {
                         startActivity(
-                            ItemEditorActivity.createIntent(
-                                this@MainActivity,
-                                TimeLeftRepository.TYPE_TIME
-                            )
+                            ItemEditorActivity.createIntent(this@MainActivity, ItemType.Time)
                         )
                     },
                     onAddDate = {
                         startActivity(
-                            ItemEditorActivity.createIntent(
-                                this@MainActivity,
-                                TimeLeftRepository.TYPE_DATE
-                            )
+                            ItemEditorActivity.createIntent(this@MainActivity, ItemType.Date)
                         )
                     },
                     onEditItem = { id ->

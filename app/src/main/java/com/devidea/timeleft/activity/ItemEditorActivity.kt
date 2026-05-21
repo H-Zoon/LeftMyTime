@@ -12,8 +12,9 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.devidea.timeleft.App
 import com.devidea.timeleft.R
-import com.devidea.timeleft.datadase.AppDatabase
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
@@ -36,7 +37,8 @@ class ItemEditorActivity : AppCompatActivity() {
 
         val itemId = intent.getIntExtra(EXTRA_ITEM_ID, 0)
         val initialType = intent.getStringExtra(EXTRA_ITEM_TYPE)
-            ?: TimeLeftRepository.TYPE_TIME
+            ?.let { runCatching { ItemType.valueOf(it) }.getOrNull() }
+            ?: ItemType.Time
 
         if (itemId != 0) {
             isLoading = true
@@ -96,23 +98,22 @@ class ItemEditorActivity : AppCompatActivity() {
 
     private fun ItemEditorDraft.toEntity(itemId: Int): ItemEntity =
         ItemEntity(
+            id = itemId,
             type = type,
             title = title,
             startValue = startValue,
             endValue = endValue,
             updateFlag = updateFlag,
             updateRate = updateRate
-        ).also {
-            it.id = itemId
-        }
+        )
 
     companion object {
         private const val EXTRA_ITEM_ID = "com.devidea.timeleft.extra.ITEM_ID"
         private const val EXTRA_ITEM_TYPE = "com.devidea.timeleft.extra.ITEM_TYPE"
 
-        fun createIntent(context: Context, type: String): Intent =
+        fun createIntent(context: Context, type: ItemType): Intent =
             Intent(context, ItemEditorActivity::class.java)
-                .putExtra(EXTRA_ITEM_TYPE, type)
+                .putExtra(EXTRA_ITEM_TYPE, type.name)
 
         fun editIntent(context: Context, itemId: Int): Intent =
             Intent(context, ItemEditorActivity::class.java)

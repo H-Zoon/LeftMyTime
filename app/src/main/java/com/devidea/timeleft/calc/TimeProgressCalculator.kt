@@ -1,14 +1,12 @@
 package com.devidea.timeleft.calc
 
+import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.temporal.ChronoUnit
 
 object TimeProgressCalculator {
-
-    const val UPDATE_FLAG_DAY = 1
-    const val UPDATE_FLAG_MONTH = 2
 
     private const val SECONDS_PER_DAY = 86_400f
     private val END_OF_DAY: LocalTime = LocalTime.of(23, 59, 59)
@@ -62,35 +60,34 @@ object TimeProgressCalculator {
     // Returns the next (start, end) window when today has passed currentEnd.
     // Null when no shift applies (no recurrence flag, or today still within window).
     //
-    // Preserves two known quirks from the original implementation, locked in by tests:
-    //   1. Threshold uses `>` not `>=`, so updateRate == lengthOfMonth(next) skips ahead one month.
-    //   2. When the next month cannot hold updateRate, year is taken from plusMonths(1) while
-    //      the month is taken from plusMonths(2). This produces a past date at Dec→Jan boundaries.
+    // For UPDATE_FLAG_MONTH, walks forward month-by-month until a month long enough
+    // to hold `updateRate` (day of month) is found — year and month are always taken
+    // from the same candidate to keep the boundary correct (incl. Dec→Jan).
     fun nextRecurrence(
         currentEnd: LocalDate,
         today: LocalDate,
-        updateFlag: Int,
+        updateFlag: RecurrenceMode,
         updateRate: Int
     ): RecurrenceShift? {
         if (!today.isAfter(currentEnd)) return null
         return when (updateFlag) {
-            UPDATE_FLAG_DAY -> RecurrenceShift(
+            RecurrenceMode.Day -> RecurrenceShift(
                 newStart = currentEnd,
                 newEnd = currentEnd.plusDays(updateRate.toLong())
             )
 
-            UPDATE_FLAG_MONTH -> {
-                val plus1 = currentEnd.plusMonths(1)
-                val plus2 = currentEnd.plusMonths(2)
-                val monthValue =
-                    if (plus1.lengthOfMonth() > updateRate) plus1.monthValue else plus2.monthValue
+            RecurrenceMode.Month -> {
+                var candidate = currentEnd.plusMonths(1)
+                while (candidate.lengthOfMonth() < updateRate) {
+                    candidate = candidate.plusMonths(1)
+                }
                 RecurrenceShift(
                     newStart = currentEnd,
-                    newEnd = LocalDate.of(plus1.year, monthValue, updateRate)
+                    newEnd = LocalDate.of(candidate.year, candidate.monthValue, updateRate)
                 )
             }
 
-            else -> null
+            RecurrenceMode.None, RecurrenceMode.TimeRange -> null
         }
     }
 }

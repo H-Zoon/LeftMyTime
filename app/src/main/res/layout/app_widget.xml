@@ -7,7 +7,7 @@
     android:theme="@style/ThemeOverlay.MyApplication.AppWidgetContainer">
 
     <Button
-        android:id="@+id/refrash"
+        android:id="@+id/refresh"
         style="@style/Style.Color.Button"
         android:layout_width="20dp"
         android:layout_height="20dp"
@@ -18,7 +18,7 @@
 
 
     <TextView
-        android:id="@+id/summery"
+        android:id="@+id/summary"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_above="@id/percent"
@@ -30,7 +30,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        android:text="로딩중.."
+        android:text="@string/widget_loading"
         android:textSize="20sp" />
 
     <ProgressBar

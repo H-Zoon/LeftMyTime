@@ -77,4 +77,5 @@
 
     <!-- Widget configure -->
     <string name="widget_configure_select_required">Please select an option</string>
+    <string name="widget_loading">Loading…</string>
 </resources>

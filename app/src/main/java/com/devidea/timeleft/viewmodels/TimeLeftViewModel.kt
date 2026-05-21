@@ -8,8 +8,9 @@ import com.devidea.timeleft.App
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
-import com.devidea.timeleft.datadase.itemdata.ItemDao
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemDao
+import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.currentCoroutineContext
@@ -103,8 +104,10 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
         )
 
     private fun toAdapterItem(entity: ItemEntity): AdapterItem =
-        if (entity.type == "Time") itemGenerate.customTimeItem(entity)
-        else itemGenerate.customMonthItem(entity)
+        when (entity.type) {
+            ItemType.Time -> itemGenerate.customTimeItem(entity)
+            ItemType.Date -> itemGenerate.customMonthItem(entity)
+        }
 
     fun deleteItem(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {

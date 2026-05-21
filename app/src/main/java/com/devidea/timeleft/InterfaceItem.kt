@@ -1,6 +1,6 @@
 package com.devidea.timeleft
 
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemEntity
 
 interface InterfaceItem {
     fun timeItem(): AdapterItem

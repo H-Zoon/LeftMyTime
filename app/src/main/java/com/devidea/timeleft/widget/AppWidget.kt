@@ -11,7 +11,8 @@ import com.devidea.timeleft.App
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.activity.MainActivity.Companion.prefs
-import com.devidea.timeleft.datadase.AppDatabase
+import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.repository.TimeLeftRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,7 +56,7 @@ class AppWidget : AppWidgetProvider() {
         val updatePendingIntent =
             PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_IMMUTABLE)
 
-        views.setOnClickPendingIntent(R.id.refrash, updatePendingIntent)
+        views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
 
         val activityPendingIntent = PendingIntent.getActivity(
             context,
@@ -69,7 +70,7 @@ class AppWidget : AppWidgetProvider() {
             "embedYear" -> {
                 val item = MainActivity.ITEM_GENERATE.yearItem()
                 views.setTextViewText(
-                    R.id.summery,
+                    R.id.summary,
                     item.title
                 )
                 if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
@@ -94,7 +95,7 @@ class AppWidget : AppWidgetProvider() {
             "embedMonth" -> {
                 val item = MainActivity.ITEM_GENERATE.monthItem()
                 views.setTextViewText(
-                    R.id.summery,
+                    R.id.summary,
                     item.title
                 )
                 if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
@@ -119,7 +120,7 @@ class AppWidget : AppWidgetProvider() {
             "embedTime" -> {
                 val item = MainActivity.ITEM_GENERATE.timeItem()
                 views.setTextViewText(
-                    R.id.summery,
+                    R.id.summary,
                     item.title
                 )
                 if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
@@ -155,7 +156,7 @@ class AppWidget : AppWidgetProvider() {
                     repository.getItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
                 )
 
-                item = if ((itemList.type == "Time")) {
+                item = if (itemList.type == ItemType.Time) {
                     MainActivity.ITEM_GENERATE.customTimeItem(itemList)
 
                 } else {
@@ -163,9 +164,9 @@ class AppWidget : AppWidgetProvider() {
 
                 }
 
-                views.setTextViewText(R.id.summery, item.title)
+                views.setTextViewText(R.id.summary, item.title)
                 if(prefs.getBoolean(appWidgetId.toString() + "option", false)){
-                    if ((itemList.type == "Time")){
+                    if (itemList.type == ItemType.Time) {
                         views.setTextViewText(
                             R.id.percent,
                             item.widgetString

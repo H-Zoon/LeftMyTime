@@ -2,7 +2,8 @@ package com.devidea.timeleft
 
 import com.devidea.timeleft.calc.CustomTimeProgress
 import com.devidea.timeleft.calc.TimeProgressCalculator
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -95,12 +96,13 @@ class ItemGenerate : InterfaceItem {
             leftString = context.getString(R.string.card_days_left_dday, progress.daysLeft)
             percent = displayPercent
             updateInfo = when (itemEntity.updateFlag) {
-                0 -> context.getString(R.string.card_update_info_none)
-                TimeProgressCalculator.UPDATE_FLAG_DAY ->
+                RecurrenceMode.None ->
+                    context.getString(R.string.card_update_info_none)
+                RecurrenceMode.Day ->
                     context.getString(R.string.card_update_info_day, itemEntity.updateRate)
-                TimeProgressCalculator.UPDATE_FLAG_MONTH ->
+                RecurrenceMode.Month ->
                     context.getString(R.string.card_update_info_month, itemEntity.updateRate)
-                else -> ""
+                RecurrenceMode.TimeRange -> ""
             }
             id = itemEntity.id
         }

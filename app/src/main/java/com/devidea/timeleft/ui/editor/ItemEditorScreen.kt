@@ -38,8 +38,8 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.Saver
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -50,26 +50,35 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity
-import com.devidea.timeleft.calc.TimeProgressCalculator
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 
 data class ItemEditorDraft(
-    val type: String,
+    val type: ItemType,
     val title: String,
     val startValue: String,
     val endValue: String,
-    val updateFlag: Int,
+    val updateFlag: RecurrenceMode,
     val updateRate: Int
+)
+
+private val itemTypeSaver: Saver<ItemType, String> = Saver(
+    save = { it.name },
+    restore = { ItemType.valueOf(it) }
+)
+
+private val recurrenceModeSaver: Saver<RecurrenceMode, String> = Saver(
+    save = { it.name },
+    restore = { RecurrenceMode.valueOf(it) }
 )
 
 @Composable
 fun ItemEditorScreen(
-    initialType: String,
+    initialType: ItemType,
     initialItem: ItemEntity?,
     isLoading: Boolean,
     isSaving: Boolean,
@@ -77,13 +86,15 @@ fun ItemEditorScreen(
     onSave: (ItemEditorDraft) -> Unit
 ) {
     var initialized by rememberSaveable { mutableStateOf(false) }
-    var selectedType by rememberSaveable { mutableStateOf(initialType) }
+    var selectedType by rememberSaveable(stateSaver = itemTypeSaver) { mutableStateOf(initialType) }
     var title by rememberSaveable { mutableStateOf("") }
     var startDateValue by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var endDateValue by rememberSaveable { mutableStateOf(LocalDate.now().plusDays(1).toString()) }
     var startTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now())) }
     var endTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now().plusHours(1))) }
-    var repeatFlag by rememberSaveable { mutableIntStateOf(MainActivity.UPDATE_FLAG_UNABLE) }
+    var repeatFlag by rememberSaveable(stateSaver = recurrenceModeSaver) {
+        mutableStateOf(RecurrenceMode.None)
+    }
     var repeatRateText by rememberSaveable { mutableStateOf("") }
     var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
 
@@ -92,7 +103,7 @@ fun ItemEditorScreen(
             initialItem?.let { item ->
                 selectedType = item.type
                 title = item.title
-                if (item.type == TimeLeftRepository.TYPE_TIME) {
+                if (item.type == ItemType.Time) {
                     startTimeValue = item.startValue
                     endTimeValue = item.endValue
                 } else {
@@ -143,7 +154,7 @@ fun ItemEditorScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if (selectedType == TimeLeftRepository.TYPE_TIME) {
+                if (selectedType == ItemType.Time) {
                     TimeRangeFields(
                         startTimeValue = startTimeValue,
                         endTimeValue = endTimeValue,
@@ -254,9 +265,9 @@ private fun LoadingState() {
 
 @Composable
 private fun TypeSelector(
-    selectedType: String,
+    selectedType: ItemType,
     enabled: Boolean,
-    onTypeSelected: (String) -> Unit
+    onTypeSelected: (ItemType) -> Unit
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
@@ -266,15 +277,15 @@ private fun TypeSelector(
         )
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             FilterChip(
-                selected = selectedType == TimeLeftRepository.TYPE_TIME,
-                onClick = { if (enabled) onTypeSelected(TimeLeftRepository.TYPE_TIME) },
+                selected = selectedType == ItemType.Time,
+                onClick = { if (enabled) onTypeSelected(ItemType.Time) },
                 enabled = enabled,
                 label = { Text(stringResource(R.string.home_add_time_range)) },
                 leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) }
             )
             FilterChip(
-                selected = selectedType == TimeLeftRepository.TYPE_DATE,
-                onClick = { if (enabled) onTypeSelected(TimeLeftRepository.TYPE_DATE) },
+                selected = selectedType == ItemType.Date,
+                onClick = { if (enabled) onTypeSelected(ItemType.Date) },
                 enabled = enabled,
                 label = { Text(stringResource(R.string.home_add_date)) },
                 leadingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) }
@@ -411,9 +422,9 @@ private fun PickerCard(
 
 @Composable
 private fun RepeatFields(
-    repeatFlag: Int,
+    repeatFlag: RecurrenceMode,
     repeatRateText: String,
-    onRepeatFlagChange: (Int) -> Unit,
+    onRepeatFlagChange: (RecurrenceMode) -> Unit,
     onRepeatRateChange: (String) -> Unit
 ) {
     Card(
@@ -431,16 +442,16 @@ private fun RepeatFields(
                 color = MaterialTheme.colorScheme.onSurface
             )
             RepeatOption(
-                selected = repeatFlag == MainActivity.UPDATE_FLAG_UNABLE,
+                selected = repeatFlag == RecurrenceMode.None,
                 text = stringResource(R.string.editor_repeat_none),
-                onClick = { onRepeatFlagChange(MainActivity.UPDATE_FLAG_UNABLE) }
+                onClick = { onRepeatFlagChange(RecurrenceMode.None) }
             )
             RepeatOption(
-                selected = repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY,
+                selected = repeatFlag == RecurrenceMode.Day,
                 text = stringResource(R.string.editor_repeat_every_n_days),
-                onClick = { onRepeatFlagChange(TimeProgressCalculator.UPDATE_FLAG_DAY) }
+                onClick = { onRepeatFlagChange(RecurrenceMode.Day) }
             )
-            if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY) {
+            if (repeatFlag == RecurrenceMode.Day) {
                 NumberField(
                     value = repeatRateText,
                     onValueChange = onRepeatRateChange,
@@ -449,11 +460,11 @@ private fun RepeatFields(
                 )
             }
             RepeatOption(
-                selected = repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH,
+                selected = repeatFlag == RecurrenceMode.Month,
                 text = stringResource(R.string.editor_repeat_every_month),
-                onClick = { onRepeatFlagChange(TimeProgressCalculator.UPDATE_FLAG_MONTH) }
+                onClick = { onRepeatFlagChange(RecurrenceMode.Month) }
             )
-            if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH) {
+            if (repeatFlag == RecurrenceMode.Month) {
                 NumberField(
                     value = repeatRateText,
                     onValueChange = onRepeatRateChange,
@@ -507,31 +518,31 @@ private fun NumberField(
 
 @StringRes
 private fun validateAndSave(
-    selectedType: String,
+    selectedType: ItemType,
     title: String,
     startDateValue: String,
     endDateValue: String,
     startTimeValue: String,
     endTimeValue: String,
-    repeatFlag: Int,
+    repeatFlag: RecurrenceMode,
     repeatRateText: String,
     onSave: (ItemEditorDraft) -> Unit
 ): Int? {
     val cleanTitle = title.trim()
     if (cleanTitle.isBlank()) return R.string.editor_error_title_required
 
-    if (selectedType == TimeLeftRepository.TYPE_TIME) {
+    if (selectedType == ItemType.Time) {
         val startTime = parseTime(startTimeValue) ?: return R.string.editor_error_invalid_start_time
         val endTime = parseTime(endTimeValue) ?: return R.string.editor_error_invalid_end_time
         if (!endTime.isAfter(startTime)) return R.string.editor_error_end_before_start_time
 
         onSave(
             ItemEditorDraft(
-                type = TimeLeftRepository.TYPE_TIME,
+                type = ItemType.Time,
                 title = cleanTitle,
                 startValue = formatStorageTime(startTime),
                 endValue = formatStorageTime(endTime),
-                updateFlag = MainActivity.UPDATE_FLAG_FOR_TIME,
+                updateFlag = RecurrenceMode.TimeRange,
                 updateRate = 0
             )
         )
@@ -543,21 +554,20 @@ private fun validateAndSave(
     if (endDate.isBefore(startDate)) return R.string.editor_error_end_before_start_date
 
     val updateRate = when (repeatFlag) {
-        TimeProgressCalculator.UPDATE_FLAG_DAY,
-        TimeProgressCalculator.UPDATE_FLAG_MONTH -> repeatRateText.toIntOrNull()
-        else -> 0
+        RecurrenceMode.Day, RecurrenceMode.Month -> repeatRateText.toIntOrNull()
+        RecurrenceMode.None, RecurrenceMode.TimeRange -> 0
     } ?: return R.string.editor_error_repeat_required
 
-    if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY && updateRate < 1) {
+    if (repeatFlag == RecurrenceMode.Day && updateRate < 1) {
         return R.string.editor_error_repeat_day_min
     }
-    if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH && updateRate !in 1..31) {
+    if (repeatFlag == RecurrenceMode.Month && updateRate !in 1..31) {
         return R.string.editor_error_repeat_month_range
     }
 
     onSave(
         ItemEditorDraft(
-            type = TimeLeftRepository.TYPE_DATE,
+            type = ItemType.Date,
             title = cleanTitle,
             startValue = startDate.toString(),
             endValue = endDate.toString(),

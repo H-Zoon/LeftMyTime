@@ -12,8 +12,8 @@ import com.devidea.timeleft.App
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.R
 import com.devidea.timeleft.databinding.AppwidgetConfigureBinding
-import com.devidea.timeleft.datadase.AppDatabase
-import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import com.devidea.timeleft.database.AppDatabase
+import com.devidea.timeleft.database.itemdata.ItemEntity
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -84,7 +84,7 @@ class AppWidgetConfigure : Activity() {
                 intentR,
                 PendingIntent.FLAG_IMMUTABLE
             )
-            views.setOnClickPendingIntent(R.id.refrash, updateIntent)
+            views.setOnClickPendingIntent(R.id.refresh, updateIntent)
 
             val appIntent =
                 PendingIntent.getActivity(
@@ -103,7 +103,7 @@ class AppWidgetConfigure : Activity() {
 
                     "embedTime" -> appWidgetManager.updateAppWidget(widgetId, views)
 
-                    "custom" -> customWidgetInit(views, appWidgetManager)
+                    "custom" -> customWidgetInit(appWidgetManager)
                 }
 
                 if (value != "custom") {
@@ -168,32 +168,29 @@ class AppWidgetConfigure : Activity() {
         binding.spinner.adapter = adapter
     }
 
-    private fun customWidgetInit(views: RemoteViews, appWidgetManager: AppWidgetManager) {
-
+    private fun customWidgetInit(appWidgetManager: AppWidgetManager) {
         CoroutineScope(Dispatchers.IO).launch {
-            val itemList =
+            val exists = runCatching {
                 AppDatabase.getDatabase(App.context()).itemDao().getSelectItem(id.toInt())
+            }.isSuccess
 
-            if ((itemList.type == "Time")) {
-                MainActivity.ITEM_GENERATE.customTimeItem(itemList)
-
-            } else {
-                MainActivity.ITEM_GENERATE.customMonthItem(itemList)
+            if (!exists) {
+                runOnUiThread { finish() }
+                return@launch
             }
-
-            appWidgetManager.updateAppWidget(widgetId, views)
 
             with(MainActivity.prefs.edit()) {
                 putString(widgetId.toString(), id)
                 putBoolean(widgetId.toString() + "option", binding.option.isChecked)
             }.apply()
 
-            val resultValue = Intent()
-            resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-            setResult(RESULT_OK, resultValue)
-
-            AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
-            finish()
+            runOnUiThread {
+                val resultValue = Intent()
+                    .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+                setResult(RESULT_OK, resultValue)
+                AppWidget().updateAppWidget(App.context(), appWidgetManager, widgetId)
+                finish()
+            }
         }
     }
 }
