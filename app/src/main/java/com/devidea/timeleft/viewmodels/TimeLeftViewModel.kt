@@ -1,43 +1,75 @@
 package com.devidea.timeleft.viewmodels
 
-import androidx.lifecycle.*
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.viewModelScope
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.activity.MainActivity.Companion.ITEM_GENERATE
+import com.devidea.timeleft.InterfaceItem
+import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.datadase.itemdata.ItemDao
+import com.devidea.timeleft.datadase.itemdata.ItemEntity
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
-import java.time.LocalDateTime.*
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.SharingStarted
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.isActive
+import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
 
 class TimeLeftViewModel(private val itemDao: ItemDao) : ViewModel() {
 
-    // 내부에서 설정하는 자료형은 뮤터블로 변경가능하도록 설정
-    private var _timeValue = MutableLiveData<String>()
-    private var _recyclerViewValue = MutableLiveData<AdapterItem>()
+    private val itemGenerate: InterfaceItem = ItemGenerate()
 
-    // 변경되지 않는 데이터를 가져올 때 이름을 _언더스코어 없이 설정
-    // 공개적으로 가져오는 변수는 private 이 아닌 public으로 외부에서도 접근 가능하도록 설정
-    // 하지만 값을 직접 라이브데이터에 접근하지 않고 뷰모델을 통해 가져올 수 있도록 설정
-
-    val timeValue: LiveData<String>
-        get() = _timeValue
-
-    val recyclerViewValue: LiveData<AdapterItem>
-        get() = _recyclerViewValue
-
-    init {
-        viewModelScope.launch {
-            while (true) {
-                _timeValue.value = now().format(DateTimeFormatter.ofPattern("a h:m:ss"))
-                _recyclerViewValue.value = ITEM_GENERATE.timeItem()
-                delay(1000)
-            }
+    private val ticker: Flow<Unit> = flow {
+        while (currentCoroutineContext().isActive) {
+            emit(Unit)
+            delay(TICK_INTERVAL_MS)
         }
     }
 
+    val timeValue: StateFlow<String> = ticker
+        .map { LocalDateTime.now().format(TIME_FORMATTER) }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+            initialValue = LocalDateTime.now().format(TIME_FORMATTER)
+        )
+
+    val topTimeItem: StateFlow<AdapterItem?> = ticker
+        .map { itemGenerate.timeItem() }
+        .flowOn(Dispatchers.Default)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+            initialValue = null
+        )
+
+    val customItems: StateFlow<List<AdapterItem>> = ticker
+        .map { itemDao.item.map(::toAdapterItem) }
+        .flowOn(Dispatchers.IO)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
+            initialValue = emptyList()
+        )
+
+    private fun toAdapterItem(entity: ItemEntity): AdapterItem =
+        if (entity.type == "Time") itemGenerate.customTimeItem(entity)
+        else itemGenerate.customMonthItem(entity)
+
+    companion object {
+        private const val TICK_INTERVAL_MS = 1_000L
+        private const val STOP_TIMEOUT_MS = 5_000L
+        private val TIME_FORMATTER = DateTimeFormatter.ofPattern("a h:m:ss")
+    }
 }
 
-//ViewModel 을 통해 전달되는 인자가 있을 때 사용
 class TimeLeftViewModelFactory(
     private val itemDao: ItemDao
 ) : ViewModelProvider.Factory {
