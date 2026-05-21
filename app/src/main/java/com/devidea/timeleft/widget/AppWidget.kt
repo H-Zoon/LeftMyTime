@@ -1,13 +1,10 @@
 package com.devidea.timeleft.widget
 
-import android.app.AlarmManager
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
-import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
-import android.os.SystemClock
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.App
@@ -22,20 +19,6 @@ import kotlinx.coroutines.launch
 
 class AppWidget : AppWidgetProvider() {
 
-    override fun onReceive(context: Context, intent: Intent) {
-        super.onReceive(context, intent)
-        val action = intent.action
-        if (AppWidgetManager.ACTION_APPWIDGET_UPDATE == action) {
-            onUpdate(
-                context,
-                AppWidgetManager.getInstance(context),
-                AppWidgetManager.getInstance(context).getAppWidgetIds(
-                    ComponentName(context, javaClass)
-                )
-            )
-        }
-    }
-
     override fun onUpdate(
         context: Context,
         appWidgetManager: AppWidgetManager,
@@ -48,38 +31,14 @@ class AppWidget : AppWidgetProvider() {
         }
     }
 
-    override fun onEnabled(context: Context) {
-        val intent = Intent(context, AppWidget::class.java)
-        intent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-        val pendingIntent =
-            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-
-        alarmManager.setInexactRepeating(
-            AlarmManager.ELAPSED_REALTIME,
-            SystemClock.elapsedRealtime(),
-            1000,
-            pendingIntent
-        )
-    }
-
-    override fun onDisabled(context: Context) {
-        val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
-        val intent = Intent(context, AppWidget::class.java)
-
-        val pendingIntent =
-            PendingIntent.getBroadcast(context, 0, intent, PendingIntent.FLAG_IMMUTABLE)
-
-        alarmManager.cancel(pendingIntent) //알람 해제
-        pendingIntent.cancel() //인텐트 해제
-    }
-
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
         super.onDeleted(context, appWidgetIds)
-        with(prefs.edit()) {
-            remove(appWidgetIds.toString())
-        }.apply()
+        appWidgetIds?.forEach { id ->
+            prefs.edit()
+                .remove(id.toString())
+                .remove("${id}option")
+                .apply()
+        }
     }
 
     fun updateAppWidget(

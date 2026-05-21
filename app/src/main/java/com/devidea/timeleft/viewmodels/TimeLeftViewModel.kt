@@ -4,8 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.App
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.itemdata.ItemDao
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -29,6 +31,9 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
 
     private val itemGenerate: InterfaceItem = ItemGenerate()
 
+    private val timeFormatter: DateTimeFormatter =
+        DateTimeFormatter.ofPattern(App.context().getString(R.string.pattern_header_time))
+
     private val ticker: Flow<Unit> = flow {
         while (currentCoroutineContext().isActive) {
             emit(Unit)
@@ -36,12 +41,20 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
         }
     }
 
+    private val expiryTicker: Flow<Unit> = flow {
+        emit(Unit)
+        while (currentCoroutineContext().isActive) {
+            delay(EXPIRY_CHECK_INTERVAL_MS)
+            emit(Unit)
+        }
+    }
+
     val timeValue: StateFlow<String> = ticker
-        .map { LocalDateTime.now().format(TIME_FORMATTER) }
+        .map { LocalDateTime.now().format(timeFormatter) }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
-            initialValue = LocalDateTime.now().format(TIME_FORMATTER)
+            initialValue = LocalDateTime.now().format(timeFormatter)
         )
 
     val topTimeItem: StateFlow<AdapterItem?> = ticker
@@ -72,11 +85,17 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
             )
         )
 
-    val customItems: StateFlow<List<AdapterItem>> = repository.items
-        .combine(ticker) { entities, _ ->
-            repository.advanceExpiredRecurrences(entities).map(::toAdapterItem)
+    private val advancedItems: Flow<List<ItemEntity>> = repository.items
+        .combine(expiryTicker) { entities, _ ->
+            repository.advanceExpiredRecurrences(entities)
         }
         .flowOn(Dispatchers.IO)
+
+    val customItems: StateFlow<List<AdapterItem>> = advancedItems
+        .combine(ticker) { entities, _ ->
+            entities.map(::toAdapterItem)
+        }
+        .flowOn(Dispatchers.Default)
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS),
@@ -95,8 +114,8 @@ class TimeLeftViewModel(private val repository: TimeLeftRepository) : ViewModel(
 
     companion object {
         private const val TICK_INTERVAL_MS = 1_000L
+        private const val EXPIRY_CHECK_INTERVAL_MS = 60_000L
         private const val STOP_TIMEOUT_MS = 5_000L
-        private val TIME_FORMATTER = DateTimeFormatter.ofPattern("a h:m:ss")
     }
 }
 

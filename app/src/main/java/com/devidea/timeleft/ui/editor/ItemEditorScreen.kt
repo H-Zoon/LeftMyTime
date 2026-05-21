@@ -17,6 +17,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
@@ -44,9 +45,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.calc.TimeProgressCalculator
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
@@ -54,7 +57,6 @@ import com.devidea.timeleft.repository.TimeLeftRepository
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
-import java.util.Locale
 
 data class ItemEditorDraft(
     val type: String,
@@ -83,7 +85,7 @@ fun ItemEditorScreen(
     var endTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now().plusHours(1))) }
     var repeatFlag by rememberSaveable { mutableIntStateOf(MainActivity.UPDATE_FLAG_UNABLE) }
     var repeatRateText by rememberSaveable { mutableStateOf("") }
-    var errorText by rememberSaveable { mutableStateOf<String?>(null) }
+    var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
 
     LaunchedEffect(initialItem?.id, isLoading) {
         if (!initialized && !isLoading) {
@@ -114,7 +116,10 @@ fun ItemEditorScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             EditorHeader(
-                title = if (initialItem == null) "항목 추가" else "항목 수정",
+                title = stringResource(
+                    if (initialItem == null) R.string.editor_add_title
+                    else R.string.editor_edit_title
+                ),
                 onBack = onBack
             )
 
@@ -131,9 +136,9 @@ fun ItemEditorScreen(
                     value = title,
                     onValueChange = {
                         title = it
-                        errorText = null
+                        errorRes = null
                     },
-                    label = { Text("제목") },
+                    label = { Text(stringResource(R.string.editor_title_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -144,11 +149,11 @@ fun ItemEditorScreen(
                         endTimeValue = endTimeValue,
                         onStartTimeChange = {
                             startTimeValue = it
-                            errorText = null
+                            errorRes = null
                         },
                         onEndTimeChange = {
                             endTimeValue = it
-                            errorText = null
+                            errorRes = null
                         }
                     )
                 } else {
@@ -157,11 +162,11 @@ fun ItemEditorScreen(
                         endDateValue = endDateValue,
                         onStartDateChange = {
                             startDateValue = it
-                            errorText = null
+                            errorRes = null
                         },
                         onEndDateChange = {
                             endDateValue = it
-                            errorText = null
+                            errorRes = null
                         }
                     )
                     RepeatFields(
@@ -169,18 +174,18 @@ fun ItemEditorScreen(
                         repeatRateText = repeatRateText,
                         onRepeatFlagChange = {
                             repeatFlag = it
-                            errorText = null
+                            errorRes = null
                         },
                         onRepeatRateChange = {
                             repeatRateText = it.filter(Char::isDigit)
-                            errorText = null
+                            errorRes = null
                         }
                     )
                 }
 
-                errorText?.let {
+                errorRes?.let {
                     Text(
-                        text = it,
+                        text = stringResource(it),
                         color = MaterialTheme.colorScheme.error,
                         style = MaterialTheme.typography.bodyMedium
                     )
@@ -188,7 +193,7 @@ fun ItemEditorScreen(
 
                 Button(
                     onClick = {
-                        errorText = validateAndSave(
+                        errorRes = validateAndSave(
                             selectedType = selectedType,
                             title = title,
                             startDateValue = startDateValue,
@@ -203,7 +208,7 @@ fun ItemEditorScreen(
                     enabled = !isSaving,
                     modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(if (isSaving) "저장 중" else "저장")
+                    Text(stringResource(if (isSaving) R.string.action_saving else R.string.action_save))
                 }
             }
         }
@@ -220,7 +225,10 @@ private fun EditorHeader(
         modifier = Modifier.fillMaxWidth()
     ) {
         IconButton(onClick = onBack) {
-            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "뒤로")
+            Icon(
+                Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = stringResource(R.string.action_back)
+            )
         }
         Text(
             text = title,
@@ -252,7 +260,7 @@ private fun TypeSelector(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
         Text(
-            text = "유형",
+            text = stringResource(R.string.editor_type),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
@@ -261,14 +269,14 @@ private fun TypeSelector(
                 selected = selectedType == TimeLeftRepository.TYPE_TIME,
                 onClick = { if (enabled) onTypeSelected(TimeLeftRepository.TYPE_TIME) },
                 enabled = enabled,
-                label = { Text("시간 범위") },
+                label = { Text(stringResource(R.string.home_add_time_range)) },
                 leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) }
             )
             FilterChip(
                 selected = selectedType == TimeLeftRepository.TYPE_DATE,
                 onClick = { if (enabled) onTypeSelected(TimeLeftRepository.TYPE_DATE) },
                 enabled = enabled,
-                label = { Text("날짜") },
+                label = { Text(stringResource(R.string.home_add_date)) },
                 leadingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) }
             )
         }
@@ -284,12 +292,12 @@ private fun TimeRangeFields(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         TimePickerField(
-            label = "시작 시간",
+            label = stringResource(R.string.editor_start_time),
             value = startTimeValue,
             onValueChange = onStartTimeChange
         )
         TimePickerField(
-            label = "종료 시간",
+            label = stringResource(R.string.editor_end_time),
             value = endTimeValue,
             onValueChange = onEndTimeChange
         )
@@ -305,12 +313,12 @@ private fun DateRangeFields(
 ) {
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         DatePickerField(
-            label = "시작일",
+            label = stringResource(R.string.editor_start_date),
             value = startDateValue,
             onValueChange = onStartDateChange
         )
         DatePickerField(
-            label = "종료일",
+            label = stringResource(R.string.editor_end_date),
             value = endDateValue,
             onValueChange = onEndDateChange
         )
@@ -325,10 +333,11 @@ private fun DatePickerField(
 ) {
     val context = LocalContext.current
     val selectedDate = parseDate(value) ?: LocalDate.now()
+    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date))
 
     PickerCard(
         label = label,
-        value = selectedDate.format(DISPLAY_DATE_FORMATTER),
+        value = selectedDate.format(displayFormatter),
         onClick = {
             DatePickerDialog(
                 context,
@@ -351,10 +360,11 @@ private fun TimePickerField(
 ) {
     val context = LocalContext.current
     val selectedTime = parseTime(value) ?: LocalTime.now()
+    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_time))
 
     PickerCard(
         label = label,
-        value = selectedTime.format(DISPLAY_TIME_FORMATTER),
+        value = selectedTime.format(displayFormatter),
         onClick = {
             TimePickerDialog(
                 context,
@@ -416,39 +426,39 @@ private fun RepeatFields(
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(
-                text = "반복",
+                text = stringResource(R.string.editor_repeat),
                 style = MaterialTheme.typography.titleMedium,
                 color = MaterialTheme.colorScheme.onSurface
             )
             RepeatOption(
                 selected = repeatFlag == MainActivity.UPDATE_FLAG_UNABLE,
-                text = "반복 없음",
+                text = stringResource(R.string.editor_repeat_none),
                 onClick = { onRepeatFlagChange(MainActivity.UPDATE_FLAG_UNABLE) }
             )
             RepeatOption(
                 selected = repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY,
-                text = "종료 후 지정한 일수마다 반복",
+                text = stringResource(R.string.editor_repeat_every_n_days),
                 onClick = { onRepeatFlagChange(TimeProgressCalculator.UPDATE_FLAG_DAY) }
             )
             if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY) {
                 NumberField(
                     value = repeatRateText,
                     onValueChange = onRepeatRateChange,
-                    label = "반복 간격",
-                    suffix = "일"
+                    label = stringResource(R.string.editor_repeat_interval),
+                    suffix = stringResource(R.string.editor_days_suffix)
                 )
             }
             RepeatOption(
                 selected = repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH,
-                text = "매달 지정한 날짜에 반복",
+                text = stringResource(R.string.editor_repeat_every_month),
                 onClick = { onRepeatFlagChange(TimeProgressCalculator.UPDATE_FLAG_MONTH) }
             )
             if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH) {
                 NumberField(
                     value = repeatRateText,
                     onValueChange = onRepeatRateChange,
-                    label = "매달 반복일",
-                    suffix = "일"
+                    label = stringResource(R.string.editor_repeat_day_of_month),
+                    suffix = stringResource(R.string.editor_days_suffix)
                 )
             }
         }
@@ -495,6 +505,7 @@ private fun NumberField(
     )
 }
 
+@StringRes
 private fun validateAndSave(
     selectedType: String,
     title: String,
@@ -505,14 +516,14 @@ private fun validateAndSave(
     repeatFlag: Int,
     repeatRateText: String,
     onSave: (ItemEditorDraft) -> Unit
-): String? {
+): Int? {
     val cleanTitle = title.trim()
-    if (cleanTitle.isBlank()) return "제목을 입력해주세요."
+    if (cleanTitle.isBlank()) return R.string.editor_error_title_required
 
     if (selectedType == TimeLeftRepository.TYPE_TIME) {
-        val startTime = parseTime(startTimeValue) ?: return "시작 시간을 확인해주세요."
-        val endTime = parseTime(endTimeValue) ?: return "종료 시간을 확인해주세요."
-        if (!endTime.isAfter(startTime)) return "종료 시간은 시작 시간보다 늦어야 합니다."
+        val startTime = parseTime(startTimeValue) ?: return R.string.editor_error_invalid_start_time
+        val endTime = parseTime(endTimeValue) ?: return R.string.editor_error_invalid_end_time
+        if (!endTime.isAfter(startTime)) return R.string.editor_error_end_before_start_time
 
         onSave(
             ItemEditorDraft(
@@ -527,21 +538,21 @@ private fun validateAndSave(
         return null
     }
 
-    val startDate = parseDate(startDateValue) ?: return "시작일을 확인해주세요."
-    val endDate = parseDate(endDateValue) ?: return "종료일을 확인해주세요."
-    if (endDate.isBefore(startDate)) return "종료일은 시작일보다 빠를 수 없습니다."
+    val startDate = parseDate(startDateValue) ?: return R.string.editor_error_invalid_start_date
+    val endDate = parseDate(endDateValue) ?: return R.string.editor_error_invalid_end_date
+    if (endDate.isBefore(startDate)) return R.string.editor_error_end_before_start_date
 
     val updateRate = when (repeatFlag) {
         TimeProgressCalculator.UPDATE_FLAG_DAY,
         TimeProgressCalculator.UPDATE_FLAG_MONTH -> repeatRateText.toIntOrNull()
         else -> 0
-    } ?: return "반복 값을 입력해주세요."
+    } ?: return R.string.editor_error_repeat_required
 
     if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_DAY && updateRate < 1) {
-        return "반복 간격은 1일 이상이어야 합니다."
+        return R.string.editor_error_repeat_day_min
     }
     if (repeatFlag == TimeProgressCalculator.UPDATE_FLAG_MONTH && updateRate !in 1..31) {
-        return "반복일은 1일부터 31일 사이여야 합니다."
+        return R.string.editor_error_repeat_month_range
     }
 
     onSave(
@@ -567,5 +578,3 @@ private fun formatStorageTime(time: LocalTime): String = "${time.hour}:${time.mi
 
 private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
 private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
-private val DISPLAY_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
-private val DISPLAY_TIME_FORMATTER = DateTimeFormatter.ofPattern("a h:mm", Locale.KOREAN)

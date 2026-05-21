@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <!-- Outer interrupted ring -->
+    <path
+        android:name="outer_ring"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="26"
+        android:strokeLineCap="butt"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M93,106
+            H266
+            A150,150 0,1,1 106,256" />
+
+    <!-- Upper left cut bar -->
+    <path
+        android:name="upper_bar"
+        android:fillColor="#FFFFFF"
+        android:pathData="
+            M93,154
+            H164
+            C155,161 148,170 141,180
+            H93
+            Z" />
+
+    <!-- Middle left cut bar -->
+    <path
+        android:name="middle_bar"
+        android:fillColor="#FFFFFF"
+        android:pathData="
+            M93,208
+            H126
+            C124,214 122,221 121,228
+            H93
+            Z" />
+
+    <!-- Inner interrupted ring -->
+    <path
+        android:name="inner_ring"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="25"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="
+            M256,345
+            A89,89 0,1,1 345,256" />
+
+    <!-- Center check / V mark -->
+    <path
+        android:name="center_mark"
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#FFFFFF"
+        android:strokeWidth="18"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M232,252 L255,277 L279,252" />
+
+</vector>

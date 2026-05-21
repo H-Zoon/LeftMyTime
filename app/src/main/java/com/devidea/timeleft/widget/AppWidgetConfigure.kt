@@ -120,7 +120,11 @@ class AppWidgetConfigure : Activity() {
                 }
 
             } catch (e: Exception) {
-                Toast.makeText(this, "하나를 정해주세요", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this,
+                    getString(R.string.widget_configure_select_required),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
 
         }

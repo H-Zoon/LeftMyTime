@@ -11,6 +11,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import com.devidea.timeleft.App
+import com.devidea.timeleft.R
 import com.devidea.timeleft.datadase.AppDatabase
 import com.devidea.timeleft.datadase.itemdata.ItemEntity
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -47,7 +48,11 @@ class ItemEditorActivity : AppCompatActivity() {
                     isLoading = false
                 }.onFailure {
                     isLoading = false
-                    Toast.makeText(this@ItemEditorActivity, "항목을 불러오지 못했습니다.", Toast.LENGTH_SHORT).show()
+                    Toast.makeText(
+                        this@ItemEditorActivity,
+                        getString(R.string.editor_error_load_failed),
+                        Toast.LENGTH_SHORT
+                    ).show()
                     finish()
                 }
             }
@@ -80,7 +85,11 @@ class ItemEditorActivity : AppCompatActivity() {
                 finish()
             }.onFailure {
                 isSaving = false
-                Toast.makeText(this@ItemEditorActivity, "저장하지 못했습니다.", Toast.LENGTH_SHORT).show()
+                Toast.makeText(
+                    this@ItemEditorActivity,
+                    getString(R.string.editor_error_save_failed),
+                    Toast.LENGTH_SHORT
+                ).show()
             }
         }
     }

@@ -55,10 +55,12 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.R
 
 @Composable
 fun HomeScreen(
@@ -82,7 +84,7 @@ fun HomeScreen(
                 containerColor = MaterialTheme.colorScheme.primary,
                 contentColor = MaterialTheme.colorScheme.onPrimary
             ) {
-                Icon(Icons.Filled.Add, contentDescription = "항목 추가")
+                Icon(Icons.Filled.Add, contentDescription = stringResource(R.string.home_add_item))
             }
         }
     ) { innerPadding ->
@@ -108,7 +110,7 @@ fun HomeScreen(
 
             item {
                 Text(
-                    text = "내 항목",
+                    text = stringResource(R.string.home_my_items),
                     style = MaterialTheme.typography.titleLarge,
                     color = MaterialTheme.colorScheme.onBackground,
                     modifier = Modifier.padding(horizontal = 20.dp)
@@ -185,7 +187,7 @@ private fun HeaderSection(
                         "dark" -> Icons.Filled.DarkMode
                         else -> Icons.Filled.BrightnessAuto
                     },
-                    contentDescription = "테마 변경",
+                    contentDescription = stringResource(R.string.home_change_theme),
                     tint = MaterialTheme.colorScheme.onBackground
                 )
             }
@@ -364,7 +366,7 @@ private fun TimeLeftItemCard(
                         ) {
                             Icon(Icons.Filled.Edit, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("수정")
+                            Text(stringResource(R.string.card_action_edit))
                         }
                         OutlinedButton(
                             onClick = { showDeleteDialog = true },
@@ -376,7 +378,7 @@ private fun TimeLeftItemCard(
                         ) {
                             Icon(Icons.Filled.Delete, contentDescription = null)
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("삭제")
+                            Text(stringResource(R.string.card_action_delete))
                         }
                     }
                 }
@@ -387,8 +389,8 @@ private fun TimeLeftItemCard(
     if (showDeleteDialog) {
         AlertDialog(
             onDismissRequest = { showDeleteDialog = false },
-            title = { Text("항목 삭제") },
-            text = { Text("\"${item.title}\" 항목을 삭제할까요?") },
+            title = { Text(stringResource(R.string.card_delete_title)) },
+            text = { Text(stringResource(R.string.card_delete_message, item.title)) },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -396,12 +398,12 @@ private fun TimeLeftItemCard(
                         onDeleteItem(item.id)
                     }
                 ) {
-                    Text("삭제")
+                    Text(stringResource(R.string.card_action_delete))
                 }
             },
             dismissButton = {
                 TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("취소")
+                    Text(stringResource(R.string.action_cancel))
                 }
             }
         )
@@ -426,7 +428,7 @@ private fun EmptyItemState(modifier: Modifier = Modifier) {
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
     ) {
         Text(
-            text = "아직 항목이 없습니다",
+            text = stringResource(R.string.home_empty_items),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.padding(18.dp)
@@ -442,16 +444,16 @@ private fun AddItemDialog(
 ) {
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { Text("항목 추가") },
+        title = { Text(stringResource(R.string.home_add_item)) },
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 AddTypeRow(
-                    title = "시간 범위",
+                    title = stringResource(R.string.home_add_time_range),
                     icon = { Icon(Icons.Filled.AccessTime, contentDescription = null) },
                     onClick = onAddTime
                 )
                 AddTypeRow(
-                    title = "날짜",
+                    title = stringResource(R.string.home_add_date),
                     icon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) },
                     onClick = onAddDate
                 )
@@ -460,7 +462,7 @@ private fun AddItemDialog(
         confirmButton = {},
         dismissButton = {
             TextButton(onClick = onDismiss) {
-                Text("취소")
+                Text(stringResource(R.string.action_cancel))
             }
         }
     )

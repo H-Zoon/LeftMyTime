@@ -10,7 +10,7 @@ import com.devidea.timeleft.datadase.itemdata.ItemEntity
 @Database(
     entities = [ItemEntity::class],
     version = 6,
-    exportSchema = false
+    exportSchema = true
 )
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
@@ -25,7 +25,11 @@ abstract class AppDatabase : RoomDatabase() {
                     context,
                     AppDatabase::class.java,
                     "app_database"
-                ).fallbackToDestructiveMigration()
+                )
+                    // Pre-v6 schemas were never exported, so we cannot write proper migrations
+                    // for them. Allow destructive fallback ONLY from those legacy versions.
+                    // Any future schema change (v6 → v7 …) must add an explicit Migration.
+                    .fallbackToDestructiveMigrationFrom(1, 2, 3, 4, 5)
                     .build()
                 INSTANCE = instance
 

@@ -34,8 +34,6 @@ class MainActivity : AppCompatActivity() {
         const val UPDATE_FLAG_FOR_DAY = 1
         const val UPDATE_FLAG_FOR_MONTH = 2
         const val UPDATE_FLAG_FOR_TIME = 3
-        private val DAY_FORMATTER: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy년 M월 d일")
-
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -52,7 +50,8 @@ class MainActivity : AppCompatActivity() {
             val topItems by viewModel.topItems.collectAsStateWithLifecycle()
             val customItems by viewModel.customItems.collectAsStateWithLifecycle()
             var themeMode by remember { mutableStateOf(currentThemeMode()) }
-            val dateText = LocalDateTime.now().format(DAY_FORMATTER)
+            val dateText = LocalDateTime.now()
+                .format(DateTimeFormatter.ofPattern(getString(R.string.pattern_header_date)))
 
             TimeLeftTheme(themeMode = themeMode) {
                 HomeScreen(

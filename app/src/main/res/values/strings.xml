@@ -1,7 +1,80 @@
 <resources>
     <string name="app_name">TimeLeft</string>
-    <string name="appwidget_text">EXAMPLE</string>
-    <string name="add_widget">TimeLeft</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string name="widget_label">TimeLeft widget</string>
+
+    <!-- Date / time patterns (locale-aware) -->
+    <string name="pattern_header_date">MMM d, yyyy</string>
+    <string name="pattern_header_time">h:mm:ss a</string>
+    <string name="pattern_display_date">MMM d, yyyy</string>
+    <string name="pattern_display_time">h:mm a</string>
+
+    <!-- Home screen -->
+    <string name="home_today_title">Today</string>
+    <string name="home_year_title">%1$d</string>
+    <string name="home_month_title">%1$s</string>
+    <string name="home_time_left">Remaining: %1$s</string>
+    <string name="home_days_left">Days left: %1$d</string>
+    <string name="home_my_items">My items</string>
+    <string name="home_empty_items">No items yet</string>
+    <string name="home_change_theme">Change theme</string>
+    <string name="home_add_item">Add item</string>
+    <string name="home_add_time_range">Time range</string>
+    <string name="home_add_date">Date</string>
+
+    <!-- Item card -->
+    <string name="card_action_edit">Edit</string>
+    <string name="card_action_delete">Delete</string>
+    <string name="card_delete_title">Delete item</string>
+    <string name="card_delete_message">Delete \"%1$s\"?</string>
+    <string name="card_time_start">Start time: %1$s</string>
+    <string name="card_time_end">End time: %1$s</string>
+    <string name="card_date_start">Start date: %1$s</string>
+    <string name="card_date_end">End date: %1$s</string>
+    <string name="card_days_left_dday">Days left: D-%1$d</string>
+    <string name="card_time_auto_start_hint">Starts automatically after the start time</string>
+    <string name="card_time_idle_hint">We will start counting after the start time</string>
+    <string name="card_time_widget_idle">Remaining: 00:00</string>
+    <string name="card_update_info_none">Ends when reaching 100%%.</string>
+    <string name="card_update_info_day">Repeats every %1$d day(s) after end.</string>
+    <string name="card_update_info_month">Repeats on day %1$d each month.</string>
+
+    <!-- Common actions -->
+    <string name="action_cancel">Cancel</string>
+    <string name="action_save">Save</string>
+    <string name="action_saving">Saving</string>
+    <string name="action_back">Back</string>
+
+    <!-- Editor -->
+    <string name="editor_add_title">Add item</string>
+    <string name="editor_edit_title">Edit item</string>
+    <string name="editor_type">Type</string>
+    <string name="editor_title_label">Title</string>
+    <string name="editor_start_time">Start time</string>
+    <string name="editor_end_time">End time</string>
+    <string name="editor_start_date">Start date</string>
+    <string name="editor_end_date">End date</string>
+    <string name="editor_repeat">Repeat</string>
+    <string name="editor_repeat_none">No repeat</string>
+    <string name="editor_repeat_every_n_days">Repeat every N days after end</string>
+    <string name="editor_repeat_every_month">Repeat on a selected day each month</string>
+    <string name="editor_repeat_interval">Repeat interval</string>
+    <string name="editor_repeat_day_of_month">Day of month</string>
+    <string name="editor_days_suffix">days</string>
+
+    <!-- Editor errors -->
+    <string name="editor_error_title_required">Please enter a title.</string>
+    <string name="editor_error_invalid_start_time">Please check the start time.</string>
+    <string name="editor_error_invalid_end_time">Please check the end time.</string>
+    <string name="editor_error_end_before_start_time">End time must be after start time.</string>
+    <string name="editor_error_invalid_start_date">Please check the start date.</string>
+    <string name="editor_error_invalid_end_date">Please check the end date.</string>
+    <string name="editor_error_end_before_start_date">End date cannot be before start date.</string>
+    <string name="editor_error_repeat_required">Please enter a repeat value.</string>
+    <string name="editor_error_repeat_day_min">Repeat interval must be at least 1 day.</string>
+    <string name="editor_error_repeat_month_range">Repeat day must be between 1 and 31.</string>
+    <string name="editor_error_load_failed">Could not load the item.</string>
+    <string name="editor_error_save_failed">Could not save.</string>
+
+    <!-- Widget configure -->
+    <string name="widget_configure_select_required">Please select an option</string>
 </resources>

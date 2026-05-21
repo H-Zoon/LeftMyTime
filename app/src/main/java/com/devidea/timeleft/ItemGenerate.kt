@@ -7,20 +7,23 @@ import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
-import java.util.*
+import java.util.Locale
 
 class ItemGenerate : InterfaceItem {
+
+    private val context get() = App.context()
 
     override fun timeItem(): AdapterItem {
         val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
         val leftFormatted = LocalTime.ofSecondOfDay(progress.durationLeft.seconds)
             .format(DateTimeFormatter.ofPattern("H:mm:ss"))
+        val leftText = context.getString(R.string.home_time_left, leftFormatted)
 
         return AdapterItem().apply {
-            title = "오늘의 "
+            title = context.getString(R.string.home_today_title)
             percent = roundPercent(progress.percentElapsed)
-            leftString = "남은시간: $leftFormatted"
-            widgetString = leftString.substring(0, leftString.length - 3)
+            leftString = leftText
+            widgetString = leftText.substring(0, leftText.length - 3)
         }
     }
 
@@ -28,20 +31,20 @@ class ItemGenerate : InterfaceItem {
         val today = LocalDate.now()
         val progress = TimeProgressCalculator.yearProgress(today)
         return AdapterItem().apply {
-            title = "${today.year}년의 "
+            title = context.getString(R.string.home_year_title, today.year)
             percent = roundPercent(progress.percentElapsed)
-            leftString = "남은일: ${progress.daysLeft}일"
+            leftString = context.getString(R.string.home_days_left, progress.daysLeft)
         }
     }
 
     override fun monthItem(): AdapterItem {
         val today = LocalDate.now()
         val progress = TimeProgressCalculator.monthProgress(today)
-        val monthName = today.month.getDisplayName(TextStyle.FULL, Locale.KOREAN)
+        val monthName = today.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
         return AdapterItem().apply {
-            title = "${monthName}의 "
+            title = context.getString(R.string.home_month_title, monthName)
             percent = roundPercent(progress.percentElapsed)
-            leftString = "남은일: ${progress.daysLeft}일"
+            leftString = context.getString(R.string.home_days_left, progress.daysLeft)
         }
     }
 
@@ -52,23 +55,24 @@ class ItemGenerate : InterfaceItem {
 
         val item = AdapterItem().apply {
             title = itemEntity.title
-            startString = "설정시간: $startTime"
-            endString = "종료시간: $endTime"
-            updateInfo = "설정시간 이후 자동으로 시작"
+            startString = context.getString(R.string.card_time_start, startTime.toString())
+            endString = context.getString(R.string.card_time_end, endTime.toString())
+            updateInfo = context.getString(R.string.card_time_auto_start_hint)
             id = itemEntity.id
         }
 
         when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, LocalTime.now())) {
             is CustomTimeProgress.Active -> {
                 val leftFormatted = LocalTime.ofSecondOfDay(result.durationLeft.seconds)
+                val leftText = context.getString(R.string.home_time_left, leftFormatted.toString())
                 item.percent = roundPercent(result.percentElapsed)
-                item.leftString = "남은시간: $leftFormatted"
-                item.widgetString = item.leftString.substring(0, item.leftString.length - 3)
+                item.leftString = leftText
+                item.widgetString = leftText.substring(0, leftText.length - 3)
             }
             CustomTimeProgress.Idle -> {
                 item.percent = 100f
-                item.leftString = "설정시간이 지나면 계산해 드릴께요"
-                item.widgetString = "남은시간: 00:00"
+                item.leftString = context.getString(R.string.card_time_idle_hint)
+                item.widgetString = context.getString(R.string.card_time_widget_idle)
             }
         }
         return item
@@ -86,16 +90,16 @@ class ItemGenerate : InterfaceItem {
 
         return AdapterItem().apply {
             title = itemEntity.title
-            startString = "설정일: $startDate"
-            endString = "종료일: $endDate"
-            leftString = "남은일: D-${progress.daysLeft}"
+            startString = context.getString(R.string.card_date_start, startDate.toString())
+            endString = context.getString(R.string.card_date_end, endDate.toString())
+            leftString = context.getString(R.string.card_days_left_dday, progress.daysLeft)
             percent = displayPercent
             updateInfo = when (itemEntity.updateFlag) {
-                0 -> "100% 달성후 끝나는 일정."
+                0 -> context.getString(R.string.card_update_info_none)
                 TimeProgressCalculator.UPDATE_FLAG_DAY ->
-                    "종료 후 ${itemEntity.updateRate}일 뒤 반복되는 일정."
+                    context.getString(R.string.card_update_info_day, itemEntity.updateRate)
                 TimeProgressCalculator.UPDATE_FLAG_MONTH ->
-                    "매 달 ${itemEntity.updateRate}일에 반복되는 일정."
+                    context.getString(R.string.card_update_info_month, itemEntity.updateRate)
                 else -> ""
             }
             id = itemEntity.id
