@@ -14,16 +14,34 @@
     <string name="home_month_title">%1$s</string>
     <string name="home_time_left">Remaining: %1$s</string>
     <string name="home_days_left">Days left: %1$d</string>
+    <string name="home_next_countdown">Next up</string>
+    <string name="home_time_overview">Time overview</string>
+    <string name="flow_start_today">00:00</string>
+    <string name="flow_end_today">24:00</string>
+    <string name="flow_start_month">Day 1</string>
+    <string name="flow_end_month">Month end</string>
+    <string name="flow_start_year">Jan</string>
+    <string name="flow_end_year">Dec</string>
+    <string name="home_item_count">%1$d items</string>
     <string name="home_my_items">My items</string>
     <string name="home_empty_items">No items yet</string>
+    <string name="home_empty_title">Start your first countdown</string>
+    <string name="home_empty_body">Track a deadline, a trip, or a focused time block from here.</string>
     <string name="home_change_theme">Change theme</string>
     <string name="home_add_item">Add item</string>
     <string name="home_add_time_range">Time range</string>
     <string name="home_add_date">Date</string>
+    <string name="home_until_date">Until %1$s</string>
+    <string name="home_until_time">Until %1$s</string>
+    <string name="home_waiting_countdown">Waiting</string>
+    <string name="home_dday_today">D-Day</string>
+    <string name="home_dday_before">D-%1$d</string>
+    <string name="home_dday_after">D+%1$d</string>
 
     <!-- Item card -->
     <string name="card_action_edit">Edit</string>
     <string name="card_action_delete">Delete</string>
+    <string name="card_show_details">Show details</string>
     <string name="card_delete_title">Delete item</string>
     <string name="card_delete_message">Delete \"%1$s\"?</string>
     <string name="card_time_start">Start time: %1$s</string>
@@ -31,12 +49,16 @@
     <string name="card_date_start">Start date: %1$s</string>
     <string name="card_date_end">End date: %1$s</string>
     <string name="card_days_left_dday">Days left: D-%1$d</string>
+    <string name="card_dday_value">D-day: %1$s</string>
+    <string name="card_progress_value">%1$s%% elapsed</string>
     <string name="card_time_auto_start_hint">Starts automatically after the start time</string>
     <string name="card_time_idle_hint">We will start counting after the start time</string>
     <string name="card_time_widget_idle">Remaining: 00:00</string>
     <string name="card_update_info_none">Ends when reaching 100%%.</string>
     <string name="card_update_info_day">Repeats every %1$d day(s) after end.</string>
     <string name="card_update_info_month">Repeats on day %1$d each month.</string>
+    <string name="card_recurrence_day">Every %1$d days</string>
+    <string name="card_recurrence_month">Monthly on day %1$d</string>
 
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>

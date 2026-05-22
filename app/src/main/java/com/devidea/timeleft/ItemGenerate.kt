@@ -75,12 +75,17 @@ class ItemGenerate @Inject constructor(
                     percent = roundPercent(result.percentElapsed),
                     leftString = leftText,
                     widgetString = leftText.substring(0, leftText.length - 3),
+                    countdownText = leftFormatted.toString(),
+                    dueText = context.getString(R.string.home_until_time, endTime.toString()),
+                    remainingSortKey = result.durationLeft.seconds,
                 )
             }
             CustomTimeProgress.Idle -> base.copy(
                 percent = 100f,
                 leftString = context.getString(R.string.card_time_idle_hint),
                 widgetString = context.getString(R.string.card_time_widget_idle),
+                countdownText = context.getString(R.string.home_waiting_countdown),
+                dueText = context.getString(R.string.home_until_time, endTime.toString()),
             )
         }
     }
@@ -104,18 +109,41 @@ class ItemGenerate @Inject constructor(
                 context.getString(R.string.card_update_info_month, itemEntity.updateRate)
             RecurrenceMode.TimeRange -> ""
         }
+        val recurrenceText = when (itemEntity.updateFlag) {
+            RecurrenceMode.Day -> context.getString(R.string.card_recurrence_day, itemEntity.updateRate)
+            RecurrenceMode.Month -> context.getString(R.string.card_recurrence_month, itemEntity.updateRate)
+            RecurrenceMode.None, RecurrenceMode.TimeRange -> ""
+        }
+
+        val countdownText = ddayText(progress.daysLeft)
 
         return AdapterItem(
             id = itemEntity.id,
             title = itemEntity.title,
             startString = context.getString(R.string.card_date_start, startDate.toString()),
             endString = context.getString(R.string.card_date_end, endDate.toString()),
-            leftString = context.getString(R.string.card_days_left_dday, progress.daysLeft),
+            leftString = context.getString(R.string.card_dday_value, countdownText),
             percent = displayPercent,
             updateInfo = updateInfo,
+            countdownText = countdownText,
+            dueText = context.getString(R.string.home_until_date, endDate.toString()),
+            recurrenceText = recurrenceText,
+            remainingSortKey = if (progress.daysLeft >= 0) progress.daysLeft.toLong() * SECONDS_PER_DAY else Long.MAX_VALUE,
+            isExpired = progress.daysLeft < 0,
         )
     }
 
     private fun roundPercent(raw: Float): Float =
         String.format(Locale.getDefault(), "%.1f", raw).toFloat()
+
+    private fun ddayText(daysLeft: Int): String =
+        when {
+            daysLeft > 0 -> context.getString(R.string.home_dday_before, daysLeft)
+            daysLeft == 0 -> context.getString(R.string.home_dday_today)
+            else -> context.getString(R.string.home_dday_after, -daysLeft)
+        }
+
+    companion object {
+        private const val SECONDS_PER_DAY = 86_400L
+    }
 }

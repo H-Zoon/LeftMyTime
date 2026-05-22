@@ -15,16 +15,34 @@
     <string name="home_month_title">%1$s의</string>
     <string name="home_time_left">남은시간: %1$s</string>
     <string name="home_days_left">남은일: %1$d일</string>
+    <string name="home_next_countdown">다음 마감</string>
+    <string name="home_time_overview">시간 흐름</string>
+    <string name="flow_start_today">00:00</string>
+    <string name="flow_end_today">24:00</string>
+    <string name="flow_start_month">1일</string>
+    <string name="flow_end_month">월말</string>
+    <string name="flow_start_year">1월</string>
+    <string name="flow_end_year">12월</string>
+    <string name="home_item_count">%1$d개</string>
     <string name="home_my_items">내 항목</string>
     <string name="home_empty_items">아직 항목이 없습니다</string>
+    <string name="home_empty_title">첫 카운트다운을 추가하세요</string>
+    <string name="home_empty_body">마감일, 여행, 집중 시간처럼 놓치고 싶지 않은 시간을 바로 추적할 수 있습니다.</string>
     <string name="home_change_theme">테마 변경</string>
     <string name="home_add_item">항목 추가</string>
     <string name="home_add_time_range">시간 범위</string>
     <string name="home_add_date">날짜</string>
+    <string name="home_until_date">%1$s까지</string>
+    <string name="home_until_time">%1$s까지</string>
+    <string name="home_waiting_countdown">대기</string>
+    <string name="home_dday_today">D-Day</string>
+    <string name="home_dday_before">D-%1$d</string>
+    <string name="home_dday_after">D+%1$d</string>
 
     <!-- Item card -->
     <string name="card_action_edit">수정</string>
     <string name="card_action_delete">삭제</string>
+    <string name="card_show_details">상세 보기</string>
     <string name="card_delete_title">항목 삭제</string>
     <string name="card_delete_message">\"%1$s\" 항목을 삭제할까요?</string>
     <string name="card_time_start">설정시간: %1$s</string>
@@ -32,12 +50,16 @@
     <string name="card_date_start">설정일: %1$s</string>
     <string name="card_date_end">종료일: %1$s</string>
     <string name="card_days_left_dday">남은일: D-%1$d</string>
+    <string name="card_dday_value">D-day: %1$s</string>
+    <string name="card_progress_value">%1$s%% 진행</string>
     <string name="card_time_auto_start_hint">설정시간 이후 자동으로 시작</string>
     <string name="card_time_idle_hint">설정시간이 지나면 계산해 드릴께요</string>
     <string name="card_time_widget_idle">남은시간: 00:00</string>
     <string name="card_update_info_none">100%% 달성후 끝나는 일정.</string>
     <string name="card_update_info_day">종료 후 %1$d일 뒤 반복되는 일정.</string>
     <string name="card_update_info_month">매 달 %1$d일에 반복되는 일정.</string>
+    <string name="card_recurrence_day">%1$d일마다</string>
+    <string name="card_recurrence_month">매월 %1$d일</string>
 
     <!-- Common actions -->
     <string name="action_cancel">취소</string>
