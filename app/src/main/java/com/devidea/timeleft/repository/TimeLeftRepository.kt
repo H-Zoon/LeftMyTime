@@ -20,16 +20,18 @@ class TimeLeftRepository @Inject constructor(
 
     suspend fun getItem(id: Int): ItemEntity = itemDao.getSelectItem(id)
 
-    suspend fun save(itemEntity: ItemEntity) {
-        itemDao.saveItem(itemEntity)
+    suspend fun save(itemEntity: ItemEntity): ItemEntity {
+        val id = itemDao.saveItem(itemEntity).toInt()
+        return itemEntity.copy(id = id)
     }
 
-    suspend fun update(itemEntity: ItemEntity) {
+    suspend fun update(itemEntity: ItemEntity): ItemEntity {
         itemDao.updateItem(itemEntity)
+        return itemEntity
     }
 
-    suspend fun saveOrUpdate(itemEntity: ItemEntity) {
-        if (itemEntity.id == 0) save(itemEntity) else update(itemEntity)
+    suspend fun saveOrUpdate(itemEntity: ItemEntity): ItemEntity {
+        return if (itemEntity.id == 0) save(itemEntity) else update(itemEntity)
     }
 
     suspend fun delete(id: Int) {

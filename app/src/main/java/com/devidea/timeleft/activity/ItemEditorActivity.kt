@@ -14,6 +14,7 @@ import android.content.SharedPreferences
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
@@ -85,7 +86,8 @@ class ItemEditorActivity : AppCompatActivity() {
                 withContext(Dispatchers.IO) {
                     repository.saveOrUpdate(draft.toEntity(itemId))
                 }
-            }.onSuccess {
+            }.onSuccess { savedItem ->
+                ReminderScheduler.schedule(this@ItemEditorActivity, savedItem)
                 finish()
             }.onFailure {
                 isSaving = false
@@ -106,7 +108,11 @@ class ItemEditorActivity : AppCompatActivity() {
             startValue = startValue,
             endValue = endValue,
             updateFlag = updateFlag,
-            updateRate = updateRate
+            updateRate = updateRate,
+            category = category,
+            colorKey = colorKey,
+            iconKey = iconKey,
+            reminderOffsetDays = reminderOffsetDays
         )
 
     companion object {

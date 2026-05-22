@@ -500,6 +500,7 @@ private enum class WidgetSource(
     Today("embedTime", R.string.widget_configure_today),
     Month("embedMonth", R.string.widget_configure_month),
     Year("embedYear", R.string.widget_configure_year),
+    Next("nextCustom", R.string.widget_configure_next),
     Custom("custom", R.string.widget_configure_custom);
 
     companion object {

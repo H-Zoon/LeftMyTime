@@ -2,11 +2,11 @@
   "formatVersion": 1,
   "database": {
     "version": 6,
-    "identityHash": "5243b631fd6982dc1b66c8d06278d66e",
+    "identityHash": "77e9cf0844e448d73e335917397065a6",
     "entities": [
       {
         "tableName": "ItemEntity",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `startValue` TEXT NOT NULL, `endValue` TEXT NOT NULL, `updateFlag` INTEGER NOT NULL, `updateRate` INTEGER NOT NULL)",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL, `type` TEXT NOT NULL, `title` TEXT NOT NULL, `startValue` TEXT NOT NULL, `endValue` TEXT NOT NULL, `updateFlag` INTEGER NOT NULL, `updateRate` INTEGER NOT NULL, `category` TEXT NOT NULL, `colorKey` TEXT NOT NULL, `iconKey` TEXT NOT NULL, `reminderOffsetDays` INTEGER NOT NULL)",
         "fields": [
           {
             "fieldPath": "id",
@@ -49,6 +49,30 @@
             "columnName": "updateRate",
             "affinity": "INTEGER",
             "notNull": true
+          },
+          {
+            "fieldPath": "category",
+            "columnName": "category",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "colorKey",
+            "columnName": "colorKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "iconKey",
+            "columnName": "iconKey",
+            "affinity": "TEXT",
+            "notNull": true
+          },
+          {
+            "fieldPath": "reminderOffsetDays",
+            "columnName": "reminderOffsetDays",
+            "affinity": "INTEGER",
+            "notNull": true
           }
         ],
         "primaryKey": {
@@ -64,7 +88,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '5243b631fd6982dc1b66c8d06278d66e')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, '77e9cf0844e448d73e335917397065a6')"
     ]
   }
 }

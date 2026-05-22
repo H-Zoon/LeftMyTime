@@ -8,6 +8,7 @@ import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.repository.TimeLeftRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -32,7 +33,7 @@ import javax.inject.Inject
 class TimeLeftViewModel @Inject constructor(
     private val repository: TimeLeftRepository,
     private val itemGenerate: InterfaceItem,
-    @ApplicationContext context: Context,
+    @ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val timeFormatter: DateTimeFormatter =
@@ -91,7 +92,9 @@ class TimeLeftViewModel @Inject constructor(
 
     private val advancedItems: Flow<List<ItemEntity>> = repository.items
         .combine(expiryTicker) { entities, _ ->
-            repository.advanceExpiredRecurrences(entities)
+            repository.advanceExpiredRecurrences(entities).also {
+                ReminderScheduler.rescheduleAll(context, it)
+            }
         }
         .flowOn(Dispatchers.IO)
 

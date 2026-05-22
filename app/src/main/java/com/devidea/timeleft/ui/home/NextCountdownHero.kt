@@ -35,6 +35,8 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.itemAccentColor
+import com.devidea.timeleft.ui.itemIconVector
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
@@ -45,7 +47,7 @@ internal fun NextCountdownHero(
     modifier: Modifier = Modifier,
 ) {
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
-    val accent = countdownAccent(item)
+    val accent = itemAccentColor(item.colorKey, countdownAccent(item))
     val progress by animateFloatAsState(
         targetValue = (item.percent / 100f).coerceIn(0f, 1f),
         label = "heroProgress"
@@ -83,13 +85,25 @@ internal fun NextCountdownHero(
                     )
                 }
             }
-            Text(
-                text = item.countdownText.ifBlank { formatPercent(item.percent) + "%" },
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                Icon(
+                    imageVector = itemIconVector(item.iconKey),
+                    contentDescription = null,
+                    tint = accent
+                )
+                Text(
+                    text = item.countdownText.ifBlank { formatPercent(item.percent) + "%" },
+                    style = MaterialTheme.typography.displaySmall,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+            }
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.headlineSmall,
@@ -110,6 +124,12 @@ internal fun NextCountdownHero(
             ) {
                 if (item.recurrenceText.isNotBlank()) {
                     InfoChip(text = item.recurrenceText, color = MaterialTheme.colorScheme.secondary)
+                }
+                if (item.category.isNotBlank()) {
+                    InfoChip(text = item.category, color = accent)
+                }
+                if (item.reminderText.isNotBlank()) {
+                    InfoChip(text = item.reminderText, color = MaterialTheme.colorScheme.tertiary)
                 }
                 InfoChip(
                     text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),

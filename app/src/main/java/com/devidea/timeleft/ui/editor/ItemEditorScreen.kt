@@ -3,8 +3,11 @@ package com.devidea.timeleft.ui.editor
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -12,9 +15,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.annotation.StringRes
@@ -44,15 +49,18 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
+import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.ui.itemIconVector
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -63,7 +71,11 @@ data class ItemEditorDraft(
     val startValue: String,
     val endValue: String,
     val updateFlag: RecurrenceMode,
-    val updateRate: Int
+    val updateRate: Int,
+    val category: String,
+    val colorKey: String,
+    val iconKey: String,
+    val reminderOffsetDays: Int
 )
 
 private val itemTypeSaver: Saver<ItemType, String> = Saver(
@@ -88,6 +100,10 @@ fun ItemEditorScreen(
     var initialized by rememberSaveable { mutableStateOf(false) }
     var selectedType by rememberSaveable(stateSaver = itemTypeSaver) { mutableStateOf(initialType) }
     var title by rememberSaveable { mutableStateOf("") }
+    var category by rememberSaveable { mutableStateOf("") }
+    var colorKey by rememberSaveable { mutableStateOf(ItemVisuals.AUTO_COLOR_KEY) }
+    var iconKey by rememberSaveable { mutableStateOf(ItemVisuals.DEFAULT_ICON_KEY) }
+    var reminderOffsetDays by rememberSaveable { mutableStateOf(ItemVisuals.REMINDER_DISABLED) }
     var startDateValue by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var endDateValue by rememberSaveable { mutableStateOf(LocalDate.now().plusDays(1).toString()) }
     var startTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now())) }
@@ -103,6 +119,10 @@ fun ItemEditorScreen(
             initialItem?.let { item ->
                 selectedType = item.type
                 title = item.title
+                category = item.category
+                colorKey = item.colorKey
+                iconKey = item.iconKey
+                reminderOffsetDays = item.reminderOffsetDays
                 if (item.type == ItemType.Time) {
                     startTimeValue = item.startValue
                     endTimeValue = item.endValue
@@ -152,6 +172,18 @@ fun ItemEditorScreen(
                     label = { Text(stringResource(R.string.editor_title_label)) },
                     singleLine = true,
                     modifier = Modifier.fillMaxWidth()
+                )
+
+                VisualFields(
+                    category = category,
+                    colorKey = colorKey,
+                    iconKey = iconKey,
+                    reminderOffsetDays = reminderOffsetDays,
+                    showReminder = selectedType == ItemType.Date,
+                    onCategoryChange = { category = it },
+                    onColorKeyChange = { colorKey = it },
+                    onIconKeyChange = { iconKey = it },
+                    onReminderChange = { reminderOffsetDays = it }
                 )
 
                 if (selectedType == ItemType.Time) {
@@ -213,6 +245,10 @@ fun ItemEditorScreen(
                             endTimeValue = endTimeValue,
                             repeatFlag = repeatFlag,
                             repeatRateText = repeatRateText,
+                            category = category,
+                            colorKey = colorKey,
+                            iconKey = iconKey,
+                            reminderOffsetDays = reminderOffsetDays,
                             onSave = onSave
                         )
                     },
@@ -421,6 +457,124 @@ private fun PickerCard(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun VisualFields(
+    category: String,
+    colorKey: String,
+    iconKey: String,
+    reminderOffsetDays: Int,
+    showReminder: Boolean,
+    onCategoryChange: (String) -> Unit,
+    onColorKeyChange: (String) -> Unit,
+    onIconKeyChange: (String) -> Unit,
+    onReminderChange: (Int) -> Unit,
+) {
+    Card(
+        shape = RoundedCornerShape(8.dp),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            Text(
+                text = stringResource(R.string.editor_appearance),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            OutlinedTextField(
+                value = category,
+                onValueChange = onCategoryChange,
+                label = { Text(stringResource(R.string.editor_category_label)) },
+                singleLine = true,
+                modifier = Modifier.fillMaxWidth()
+            )
+            Text(
+                text = stringResource(R.string.editor_color),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ItemVisuals.colorKeys.forEach { key ->
+                    FilterChip(
+                        selected = colorKey == key,
+                        onClick = { onColorKeyChange(key) },
+                        label = { Text(stringResource(ItemVisuals.colorNameRes(key))) },
+                        leadingIcon = {
+                            ColorSwatch(
+                                color = if (key == ItemVisuals.AUTO_COLOR_KEY) {
+                                    MaterialTheme.colorScheme.primary
+                                } else {
+                                    Color(ItemVisuals.colorInt(key))
+                                }
+                            )
+                        }
+                    )
+                }
+            }
+            Text(
+                text = stringResource(R.string.editor_icon),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ItemVisuals.iconKeys.forEach { key ->
+                    FilterChip(
+                        selected = iconKey == key,
+                        onClick = { onIconKeyChange(key) },
+                        label = { Text(stringResource(ItemVisuals.iconNameRes(key))) },
+                        leadingIcon = {
+                            Icon(
+                                imageVector = itemIconVector(key),
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                        }
+                    )
+                }
+            }
+            if (showReminder) {
+                Text(
+                    text = stringResource(R.string.editor_reminder),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                FlowRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    ItemVisuals.reminderOffsets.forEach { offset ->
+                        FilterChip(
+                            selected = reminderOffsetDays == offset,
+                            onClick = { onReminderChange(offset) },
+                            label = { Text(stringResource(ItemVisuals.reminderNameRes(offset))) }
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun ColorSwatch(color: Color) {
+    Surface(
+        modifier = Modifier.size(18.dp),
+        shape = CircleShape,
+        color = color,
+    ) {
+        Box(modifier = Modifier.size(18.dp))
+    }
+}
+
+@Composable
 private fun RepeatFields(
     repeatFlag: RecurrenceMode,
     repeatRateText: String,
@@ -536,6 +690,10 @@ private fun validateAndSave(
     endTimeValue: String,
     repeatFlag: RecurrenceMode,
     repeatRateText: String,
+    category: String,
+    colorKey: String,
+    iconKey: String,
+    reminderOffsetDays: Int,
     onSave: (ItemEditorDraft) -> Unit
 ): Int? {
     val cleanTitle = title.trim()
@@ -553,7 +711,11 @@ private fun validateAndSave(
                 startValue = formatStorageTime(startTime),
                 endValue = formatStorageTime(endTime),
                 updateFlag = RecurrenceMode.TimeRange,
-                updateRate = 0
+                updateRate = 0,
+                category = category.trim(),
+                colorKey = colorKey,
+                iconKey = iconKey,
+                reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
             )
         )
         return null
@@ -582,7 +744,11 @@ private fun validateAndSave(
             startValue = startDate.toString(),
             endValue = endDate.toString(),
             updateFlag = repeatFlag,
-            updateRate = updateRate
+            updateRate = updateRate,
+            category = category.trim(),
+            colorKey = colorKey,
+            iconKey = iconKey,
+            reminderOffsetDays = reminderOffsetDays
         )
     )
     return null

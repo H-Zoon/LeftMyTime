@@ -134,6 +134,16 @@ class AppWidget : AppWidgetProvider() {
                     flowItems = flowItems
                 )
             }
+            "nextCustom" -> {
+                renderNextCountdownWidget(
+                    context = context,
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    flowItems = flowItems
+                )
+            }
             else -> {
                 renderCustomWidget(
                     context = context,
@@ -175,6 +185,65 @@ class AppWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
         views.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
+    }
+
+    private fun renderNextCountdownWidget(
+        context: Context,
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
+        flowItems: WidgetFlowItems,
+    ) {
+        val ep = entryPoint(context)
+        val prefs = ep.prefs()
+        val itemGenerator = ep.itemGenerator()
+        val repository = ep.repository()
+
+        CoroutineScope(Dispatchers.IO).launch {
+            val rankedItems = repository.advanceExpiredRecurrences(repository.allItems())
+                .map { entity ->
+                    entity to if (entity.type == ItemType.Time) {
+                        itemGenerator.customTimeItem(entity)
+                    } else {
+                        itemGenerator.customMonthItem(entity)
+                    }
+                }
+            val selected = rankedItems
+                .filterNot { it.second.isExpired }
+                .minByOrNull { it.second.remainingSortKey }
+                ?: rankedItems.firstOrNull()
+
+            if (selected == null) {
+                renderWidgetItem(
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    data = itemGenerator.monthItem().toWidgetData(
+                        context = context,
+                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                        useWidgetString = false
+                    ),
+                    flowItems = flowItems
+                )
+                return@launch
+            }
+
+            val (entity, item) = selected
+            renderWidgetItem(
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                data = item.toWidgetData(
+                    context = context,
+                    showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                    useWidgetString = entity.type == ItemType.Time
+                ),
+                flowItems = flowItems
+            )
+        }
     }
 
     private fun renderCustomWidget(

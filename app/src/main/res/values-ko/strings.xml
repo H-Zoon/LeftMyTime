@@ -17,15 +17,24 @@
     <string name="home_days_left">남은일: %1$d일</string>
     <string name="home_next_countdown">다음 마감</string>
     <string name="home_time_overview">시간 흐름</string>
+    <string name="home_tab_overview">홈</string>
+    <string name="home_tab_items">항목</string>
     <string name="flow_start_month">1일</string>
     <string name="flow_end_month">월말</string>
     <string name="flow_start_year">1월</string>
     <string name="flow_end_year">12월</string>
     <string name="home_item_count">%1$d개</string>
     <string name="home_my_items">내 항목</string>
+    <string name="home_upcoming_items">다가오는 항목</string>
+    <string name="home_search_hint">제목 또는 카테고리 검색</string>
+    <string name="home_sort_nearest">가까운 순</string>
+    <string name="home_sort_created">최근 추가</string>
+    <string name="home_sort_title">이름순</string>
+    <string name="home_sort_progress">진행률순</string>
     <string name="home_empty_items">아직 항목이 없습니다</string>
     <string name="home_empty_title">첫 카운트다운을 추가하세요</string>
     <string name="home_empty_body">마감일, 여행, 집중 시간처럼 놓치고 싶지 않은 시간을 바로 추적할 수 있습니다.</string>
+    <string name="home_empty_search">검색 결과가 없습니다.</string>
     <string name="home_change_theme">테마 변경</string>
     <string name="home_add_item">항목 추가</string>
     <string name="home_add_time_range">시간 범위</string>
@@ -70,6 +79,11 @@
     <string name="editor_edit_title">항목 수정</string>
     <string name="editor_type">유형</string>
     <string name="editor_title_label">제목</string>
+    <string name="editor_appearance">상세 정보</string>
+    <string name="editor_category_label">카테고리</string>
+    <string name="editor_color">색상</string>
+    <string name="editor_icon">아이콘</string>
+    <string name="editor_reminder">알림</string>
     <string name="editor_start_time">시작 시간</string>
     <string name="editor_end_time">종료 시간</string>
     <string name="editor_start_date">시작일</string>
@@ -99,6 +113,30 @@
     <string name="editor_error_load_failed">항목을 불러오지 못했습니다.</string>
     <string name="editor_error_save_failed">저장하지 못했습니다.</string>
 
+    <!-- Item details -->
+    <string name="item_color_auto">자동</string>
+    <string name="item_color_blue">파랑</string>
+    <string name="item_color_green">초록</string>
+    <string name="item_color_amber">노랑</string>
+    <string name="item_color_red">빨강</string>
+    <string name="item_color_violet">보라</string>
+    <string name="item_icon_event">일정</string>
+    <string name="item_icon_work">업무</string>
+    <string name="item_icon_school">학업</string>
+    <string name="item_icon_flight">여행</string>
+    <string name="item_icon_cake">생일</string>
+    <string name="item_icon_fitness">운동</string>
+    <string name="item_icon_favorite">중요</string>
+    <string name="item_reminder_none">알림 없음</string>
+    <string name="item_reminder_due_day">당일</string>
+    <string name="item_reminder_one_day">1일 전</string>
+    <string name="item_reminder_three_days">3일 전</string>
+    <string name="item_reminder_seven_days">7일 전</string>
+    <string name="notification_channel_reminders">카운트다운 알림</string>
+    <string name="notification_reminder_title">%1$s 일정이 다가옵니다</string>
+    <string name="notification_reminder_due_today">오늘은 %1$s입니다.</string>
+    <string name="notification_reminder_due_in_days">%1$s까지 %2$d일 남았습니다.</string>
+
     <!-- Widget configure -->
     <string name="widget_configure_select_required">하나를 정해주세요</string>
     <string name="widget_loading">로딩중…</string>
@@ -108,6 +146,7 @@
     <string name="widget_configure_today">오늘의 남은시간</string>
     <string name="widget_configure_month">이번 달 흐름</string>
     <string name="widget_configure_year">올해 흐름</string>
+    <string name="widget_configure_next">다음 마감 자동</string>
     <string name="widget_configure_custom">내 항목</string>
     <string name="widget_configure_custom_item_title">항목</string>
     <string name="widget_configure_no_items">선택할 항목이 없습니다</string>

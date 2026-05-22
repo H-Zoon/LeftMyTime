@@ -65,6 +65,9 @@ class ItemGenerate @Inject constructor(
             startString = context.getString(R.string.card_time_start, startTime.toString()),
             endString = context.getString(R.string.card_time_end, endTime.toString()),
             updateInfo = context.getString(R.string.card_time_auto_start_hint),
+            category = itemEntity.category,
+            colorKey = itemEntity.colorKey,
+            iconKey = itemEntity.iconKey,
         )
 
         return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, LocalTime.now())) {
@@ -128,10 +131,21 @@ class ItemGenerate @Inject constructor(
             countdownText = countdownText,
             dueText = context.getString(R.string.home_until_date, endDate.toString()),
             recurrenceText = recurrenceText,
+            category = itemEntity.category,
+            colorKey = itemEntity.colorKey,
+            iconKey = itemEntity.iconKey,
+            reminderText = reminderText(itemEntity.reminderOffsetDays),
             remainingSortKey = if (progress.daysLeft >= 0) progress.daysLeft.toLong() * SECONDS_PER_DAY else Long.MAX_VALUE,
             isExpired = progress.daysLeft < 0,
         )
     }
+
+    private fun reminderText(offsetDays: Int): String =
+        if (offsetDays == ItemVisuals.REMINDER_DISABLED) {
+            ""
+        } else {
+            context.getString(ItemVisuals.reminderNameRes(offsetDays))
+        }
 
     private fun roundPercent(raw: Float): Float =
         String.format(Locale.getDefault(), "%.1f", raw).toFloat()

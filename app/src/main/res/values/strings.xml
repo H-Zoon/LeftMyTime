@@ -16,15 +16,24 @@
     <string name="home_days_left">Days left: %1$d</string>
     <string name="home_next_countdown">Next up</string>
     <string name="home_time_overview">Time overview</string>
+    <string name="home_tab_overview">Home</string>
+    <string name="home_tab_items">Items</string>
     <string name="flow_start_month">Day 1</string>
     <string name="flow_end_month">Month end</string>
     <string name="flow_start_year">Jan</string>
     <string name="flow_end_year">Dec</string>
     <string name="home_item_count">%1$d items</string>
     <string name="home_my_items">My items</string>
+    <string name="home_upcoming_items">Coming up</string>
+    <string name="home_search_hint">Search title or category</string>
+    <string name="home_sort_nearest">Nearest</string>
+    <string name="home_sort_created">Recent</string>
+    <string name="home_sort_title">Title</string>
+    <string name="home_sort_progress">Progress</string>
     <string name="home_empty_items">No items yet</string>
     <string name="home_empty_title">Start your first countdown</string>
     <string name="home_empty_body">Track a deadline, a trip, or a focused time block from here.</string>
+    <string name="home_empty_search">No items match your search.</string>
     <string name="home_change_theme">Change theme</string>
     <string name="home_add_item">Add item</string>
     <string name="home_add_time_range">Time range</string>
@@ -69,6 +78,11 @@
     <string name="editor_edit_title">Edit item</string>
     <string name="editor_type">Type</string>
     <string name="editor_title_label">Title</string>
+    <string name="editor_appearance">Details</string>
+    <string name="editor_category_label">Category</string>
+    <string name="editor_color">Color</string>
+    <string name="editor_icon">Icon</string>
+    <string name="editor_reminder">Reminder</string>
     <string name="editor_start_time">Start time</string>
     <string name="editor_end_time">End time</string>
     <string name="editor_start_date">Start date</string>
@@ -98,6 +112,30 @@
     <string name="editor_error_load_failed">Could not load the item.</string>
     <string name="editor_error_save_failed">Could not save.</string>
 
+    <!-- Item details -->
+    <string name="item_color_auto">Auto</string>
+    <string name="item_color_blue">Blue</string>
+    <string name="item_color_green">Green</string>
+    <string name="item_color_amber">Amber</string>
+    <string name="item_color_red">Red</string>
+    <string name="item_color_violet">Violet</string>
+    <string name="item_icon_event">Event</string>
+    <string name="item_icon_work">Work</string>
+    <string name="item_icon_school">School</string>
+    <string name="item_icon_flight">Trip</string>
+    <string name="item_icon_cake">Birthday</string>
+    <string name="item_icon_fitness">Fitness</string>
+    <string name="item_icon_favorite">Favorite</string>
+    <string name="item_reminder_none">No reminder</string>
+    <string name="item_reminder_due_day">Due day</string>
+    <string name="item_reminder_one_day">1 day before</string>
+    <string name="item_reminder_three_days">3 days before</string>
+    <string name="item_reminder_seven_days">7 days before</string>
+    <string name="notification_channel_reminders">Countdown reminders</string>
+    <string name="notification_reminder_title">%1$s is coming up</string>
+    <string name="notification_reminder_due_today">Today is %1$s.</string>
+    <string name="notification_reminder_due_in_days">%1$s is in %2$d day(s).</string>
+
     <!-- Widget configure -->
     <string name="widget_configure_select_required">Please select an option</string>
     <string name="widget_loading">Loading…</string>
@@ -107,6 +145,7 @@
     <string name="widget_configure_today">Today flow</string>
     <string name="widget_configure_month">Month flow</string>
     <string name="widget_configure_year">Year flow</string>
+    <string name="widget_configure_next">Next countdown</string>
     <string name="widget_configure_custom">My item</string>
     <string name="widget_configure_custom_item_title">Item</string>
     <string name="widget_configure_no_items">No items available</string>

@@ -4,6 +4,8 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -40,17 +42,21 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.itemAccentColor
+import com.devidea.timeleft.ui.itemIconVector
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun TimeLeftItemCard(
     item: AdapterItem,
     onEditItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit,
     modifier: Modifier = Modifier,
+    compact: Boolean = false,
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
-    val accent = countdownAccent(item)
+    val accent = itemAccentColor(item.colorKey, countdownAccent(item))
     val progress by animateFloatAsState(
         targetValue = (item.percent / 100f).coerceIn(0f, 1f),
         label = "itemProgress"
@@ -69,6 +75,7 @@ internal fun TimeLeftItemCard(
             Row(verticalAlignment = Alignment.CenterVertically) {
                 CountdownBadge(
                     text = item.countdownText.ifBlank { formatPercent(item.percent) + "%" },
+                    iconKey = item.iconKey,
                     color = accent
                 )
                 Spacer(modifier = Modifier.width(12.dp))
@@ -90,15 +97,17 @@ internal fun TimeLeftItemCard(
                         overflow = TextOverflow.Ellipsis
                     )
                 }
-                IconButton(
-                    onClick = { expanded = !expanded },
-                    modifier = Modifier.size(40.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowDown,
-                        contentDescription = stringResource(R.string.card_show_details),
-                        modifier = Modifier.rotate(chevronRotation)
-                    )
+                if (!compact) {
+                    IconButton(
+                        onClick = { expanded = !expanded },
+                        modifier = Modifier.size(40.dp)
+                    ) {
+                        Icon(
+                            imageVector = Icons.Filled.KeyboardArrowDown,
+                            contentDescription = stringResource(R.string.card_show_details),
+                            modifier = Modifier.rotate(chevronRotation)
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -122,11 +131,16 @@ internal fun TimeLeftItemCard(
                     maxLines = 1
                 )
             }
-            if (item.recurrenceText.isNotBlank()) {
-                Spacer(modifier = Modifier.height(10.dp))
-                InfoChip(text = item.recurrenceText, color = MaterialTheme.colorScheme.secondary)
+            if (!compact) {
+                if (item.recurrenceText.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    MetadataChips(item = item, accent = accent)
+                } else if (item.category.isNotBlank() || item.reminderText.isNotBlank()) {
+                    Spacer(modifier = Modifier.height(10.dp))
+                    MetadataChips(item = item, accent = accent)
+                }
             }
-            AnimatedVisibility(visible = expanded) {
+            AnimatedVisibility(visible = expanded && !compact) {
                 Column {
                     Spacer(modifier = Modifier.height(12.dp))
                     DetailText(item.startString)
@@ -195,8 +209,31 @@ internal fun TimeLeftItemCard(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun MetadataChips(
+    item: AdapterItem,
+    accent: androidx.compose.ui.graphics.Color,
+) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        if (item.recurrenceText.isNotBlank()) {
+            InfoChip(text = item.recurrenceText, color = MaterialTheme.colorScheme.secondary)
+        }
+        if (item.category.isNotBlank()) {
+            InfoChip(text = item.category, color = accent)
+        }
+        if (item.reminderText.isNotBlank()) {
+            InfoChip(text = item.reminderText, color = MaterialTheme.colorScheme.tertiary)
+        }
+    }
+}
+
+@Composable
 private fun CountdownBadge(
     text: String,
+    iconKey: String,
     color: androidx.compose.ui.graphics.Color,
 ) {
     Surface(
@@ -210,6 +247,12 @@ private fun CountdownBadge(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
+            Icon(
+                imageVector = itemIconVector(iconKey),
+                contentDescription = null,
+                modifier = Modifier.size(18.dp)
+            )
+            Spacer(modifier = Modifier.height(3.dp))
             Text(
                 text = text,
                 style = MaterialTheme.typography.titleLarge,
