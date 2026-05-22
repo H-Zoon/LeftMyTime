@@ -20,21 +20,23 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Tab
-import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -114,14 +116,22 @@ fun HomeScreen(
             }
     }
     val upcomingItems = remember(customItems) {
+        val nextId = nextCountdown?.id
         customItems
             .filterNot { it.isExpired }
+            .filterNot { it.id == nextId }
             .sortedWith(compareBy<AdapterItem> { it.remainingSortKey }.thenBy { it.id })
             .take(3)
-            .ifEmpty { customItems.take(3) }
+            .ifEmpty { customItems.filterNot { it.id == nextId }.take(3) }
     }
 
     Scaffold(
+        bottomBar = {
+            HomeBottomBar(
+                selectedTab = selectedTab,
+                onTabSelected = { selectedTabValue = it.name }
+            )
+        },
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.End,
@@ -186,31 +196,27 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
-            ) {
-                Column(
-                    modifier = Modifier.padding(bottom = dynamicDp(12.dp, 6.dp, collapseFraction)),
-                    verticalArrangement = Arrangement.spacedBy(dynamicDp(6.dp, 2.dp, collapseFraction))
+            if (selectedTab == HomeMainTab.Overview) {
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    color = MaterialTheme.colorScheme.surface,
+                    tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
                 ) {
-                    HeaderSection(
-                        themeMode = themeMode,
-                        todayItem = topItems.firstOrNull(),
-                        onToggleTheme = onToggleTheme,
-                        collapseFraction = collapseFraction
-                    )
-                    if (selectedTab == HomeMainTab.Overview) {
+                    Column(
+                        modifier = Modifier.padding(bottom = dynamicDp(12.dp, 6.dp, collapseFraction)),
+                        verticalArrangement = Arrangement.spacedBy(dynamicDp(6.dp, 2.dp, collapseFraction))
+                    ) {
+                        HeaderSection(
+                            themeMode = themeMode,
+                            todayItem = topItems.firstOrNull(),
+                            onToggleTheme = onToggleTheme,
+                            collapseFraction = collapseFraction
+                        )
                         SummarySection(
                             topItems = topItems,
                             collapseFraction = collapseFraction
                         )
                     }
-                    HomeTabRow(
-                        selectedTab = selectedTab,
-                        onTabSelected = { selectedTabValue = it.name }
-                    )
                 }
             }
 
@@ -247,21 +253,29 @@ fun HomeScreen(
 }
 
 @Composable
-private fun HomeTabRow(
+private fun HomeBottomBar(
     selectedTab: HomeMainTab,
     onTabSelected: (HomeMainTab) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    TabRow(
-        selectedTabIndex = selectedTab.ordinal,
+    NavigationBar(
         modifier = modifier.fillMaxWidth(),
-        containerColor = MaterialTheme.colorScheme.surface
+        containerColor = MaterialTheme.colorScheme.surface,
     ) {
         HomeMainTab.values().forEach { tab ->
-            Tab(
+            NavigationBarItem(
                 selected = selectedTab == tab,
                 onClick = { onTabSelected(tab) },
-                text = { Text(stringResource(tab.labelRes)) }
+                icon = {
+                    Icon(
+                        imageVector = when (tab) {
+                            HomeMainTab.Overview -> Icons.Filled.Home
+                            HomeMainTab.Items -> Icons.AutoMirrored.Filled.FormatListBulleted
+                        },
+                        contentDescription = null
+                    )
+                },
+                label = { Text(stringResource(tab.labelRes)) }
             )
         }
     }
@@ -289,19 +303,9 @@ private fun OverviewTabContent(
             item {
                 NextCountdownHero(
                     item = nextCountdown,
-                    onEditItem = onEditItem,
-                    onDeleteItem = onDeleteItem,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
-        }
-
-        item {
-            SectionHeader(
-                title = stringResource(R.string.home_upcoming_items),
-                count = upcomingItems.size.takeIf { it > 0 },
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
         }
 
         if (customItemsEmpty) {
@@ -312,7 +316,14 @@ private fun OverviewTabContent(
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
-        } else {
+        } else if (upcomingItems.isNotEmpty()) {
+            item {
+                SectionHeader(
+                    title = stringResource(R.string.home_upcoming_items),
+                    count = upcomingItems.size.takeIf { it > 0 },
+                    modifier = Modifier.padding(horizontal = 20.dp)
+                )
+            }
             items(upcomingItems, key = { it.id }) { item ->
                 TimeLeftItemCard(
                     item = item,
@@ -344,19 +355,9 @@ private fun ItemsTabContent(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 18.dp, bottom = 96.dp),
+        contentPadding = PaddingValues(top = 22.dp, bottom = 96.dp),
         verticalArrangement = Arrangement.spacedBy(18.dp)
     ) {
-        item {
-            SearchAndSortSection(
-                query = searchQuery,
-                selectedSort = selectedSort,
-                onQueryChange = onQueryChange,
-                onSortChange = onSortChange,
-                modifier = Modifier.padding(horizontal = 20.dp)
-            )
-        }
-
         item {
             SectionHeader(
                 title = stringResource(R.string.home_my_items),
@@ -373,23 +374,34 @@ private fun ItemsTabContent(
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
-        } else if (visibleItems.isEmpty()) {
+        } else {
             item {
-                Text(
-                    text = stringResource(R.string.home_empty_search),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                SearchAndSortSection(
+                    query = searchQuery,
+                    selectedSort = selectedSort,
+                    onQueryChange = onQueryChange,
+                    onSortChange = onSortChange,
                     modifier = Modifier.padding(horizontal = 20.dp)
                 )
             }
-        } else {
-            items(visibleItems, key = { it.id }) { item ->
-                TimeLeftItemCard(
-                    item = item,
-                    onEditItem = onEditItem,
-                    onDeleteItem = onDeleteItem,
-                    modifier = Modifier.padding(horizontal = 20.dp)
-                )
+            if (visibleItems.isEmpty()) {
+                item {
+                    Text(
+                        text = stringResource(R.string.home_empty_search),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
+            } else {
+                items(visibleItems, key = { it.id }) { item ->
+                    TimeLeftItemCard(
+                        item = item,
+                        onEditItem = onEditItem,
+                        onDeleteItem = onDeleteItem,
+                        modifier = Modifier.padding(horizontal = 20.dp)
+                    )
+                }
             }
         }
     }
