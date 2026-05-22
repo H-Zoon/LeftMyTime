@@ -2,33 +2,17 @@
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
     <item android:id="@android:id/background">
         <shape>
-            <corners
-                android:radius="20dp"
-                android:topLeftRadius="0dp"
-                android:topRightRadius="0dp"
-                android:bottomLeftRadius="20dp"
-                android:bottomRightRadius="20dp" />
-            <solid android:color="#40808080" />
-            <size android:height="10dp" />
+            <corners android:radius="8dp" />
+            <solid android:color="@color/widget_track" />
+            <size android:height="7dp" />
         </shape>
     </item>
 
     <item android:id="@android:id/progress">
         <clip>
             <shape>
-                <corners
-                    android:radius="20dp"
-                    android:topLeftRadius="0dp"
-                    android:topRightRadius="0dp"
-                    android:bottomLeftRadius="20dp"
-                    android:bottomRightRadius="20dp" />
-                <solid android:color="#6799FF" />
-
-                <gradient
-                    android:centerColor="@color/light_blue_600"
-                    android:endColor="@color/light_blue_900"
-                    android:startColor="@color/light_blue_200"
-                    android:useLevel="false" />
+                <corners android:radius="8dp" />
+                <solid android:color="@color/widget_primary" />
             </shape>
         </clip>
     </item>

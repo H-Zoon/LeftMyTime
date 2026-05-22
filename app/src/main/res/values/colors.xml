@@ -13,4 +13,11 @@
     <color name="light_blue_900">#FF01579B</color>
 
     <color name="activity_background">#FFF8F8F8</color>
+
+    <color name="widget_surface">#FFFFFFFF</color>
+    <color name="widget_on_surface">#FF171A1F</color>
+    <color name="widget_on_surface_variant">#FF515967</color>
+    <color name="widget_primary">#FF146C94</color>
+    <color name="widget_track">#FFE8EAEE</color>
+    <color name="widget_icon_background">#1A146C94</color>
 </resources>

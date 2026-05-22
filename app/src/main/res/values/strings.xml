@@ -98,4 +98,15 @@
     <!-- Widget configure -->
     <string name="widget_configure_select_required">Please select an option</string>
     <string name="widget_loading">Loading…</string>
+    <string name="widget_refresh">Refresh widget</string>
+    <string name="widget_configure_title">Widget</string>
+    <string name="widget_configure_source_title">Display</string>
+    <string name="widget_configure_today">Today flow</string>
+    <string name="widget_configure_month">Month flow</string>
+    <string name="widget_configure_year">Year flow</string>
+    <string name="widget_configure_custom">My item</string>
+    <string name="widget_configure_custom_item_title">Item</string>
+    <string name="widget_configure_no_items">No items available</string>
+    <string name="widget_configure_remaining_option">Show remaining time</string>
+    <string name="widget_configure_preview">Preview</string>
 </resources>

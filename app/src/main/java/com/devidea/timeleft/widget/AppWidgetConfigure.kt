@@ -1,23 +1,53 @@
 package com.devidea.timeleft.widget
 
-import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
-import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.view.View
-import android.widget.AdapterView
-import android.widget.ArrayAdapter
-import android.widget.RemoteViews
 import android.widget.Toast
+import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.RadioButton
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.databinding.AppwidgetConfigureBinding
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -30,166 +60,450 @@ class AppWidgetConfigure : AppCompatActivity() {
     @Inject lateinit var repository: TimeLeftRepository
     @Inject lateinit var prefs: SharedPreferences
 
-    private lateinit var binding: AppwidgetConfigureBinding
-    private lateinit var value: String
-    private lateinit var itemList: List<ItemEntity>
-    private lateinit var items: ArrayList<String>
-    private lateinit var ids: ArrayList<Int>
-    private lateinit var id: String
-
     private var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
-    private val context: Context = this@AppWidgetConfigure
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
         setResult(RESULT_CANCELED)
 
-        binding = AppwidgetConfigureBinding.inflate(layoutInflater)
-        setContentView(binding.root)
-        binding.spinner.isEnabled = false
-
-        lifecycleScope.launch {
-            itemList = withContext(Dispatchers.IO) { repository.allItems() }
-            if (itemList.isNotEmpty()) {
-                items = ArrayList()
-                ids = ArrayList()
-                for (i in itemList.indices) {
-                    items.add(itemList[i].title)
-                    ids.add(itemList[i].id)
-                }
-                adapterInit()
-            } else {
-                binding.userItemButton.isEnabled = false
-            }
-        }
-
-        val extras: Bundle? = intent.extras
-        if (extras != null) {
-            widgetId = extras.getInt(
-                AppWidgetManager.EXTRA_APPWIDGET_ID,
-                AppWidgetManager.INVALID_APPWIDGET_ID
-            )
-        }
+        widgetId = intent.extras?.getInt(
+            AppWidgetManager.EXTRA_APPWIDGET_ID,
+            AppWidgetManager.INVALID_APPWIDGET_ID
+        ) ?: AppWidgetManager.INVALID_APPWIDGET_ID
 
         if (widgetId == AppWidgetManager.INVALID_APPWIDGET_ID) {
             finish()
+            return
         }
 
-        binding.save.setOnClickListener {
-            val appWidgetManager: AppWidgetManager = AppWidgetManager.getInstance(context)
-            val views = RemoteViews(
-                context.packageName,
-                R.layout.app_widget
-            )
-
-            val intentR = Intent(context, AppWidget::class.java)
-            intentR.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
-            val updateIntent: PendingIntent = PendingIntent.getBroadcast(
-                context,
-                0,
-                intentR,
-                PendingIntent.FLAG_IMMUTABLE
-            )
-            views.setOnClickPendingIntent(R.id.refresh, updateIntent)
-
-            val appIntent =
-                PendingIntent.getActivity(
-                    context,
-                    0,
-                    Intent(context, MainActivity::class.java),
-                    PendingIntent.FLAG_IMMUTABLE
+        setContent {
+            TimeLeftTheme(themeMode = currentThemeMode()) {
+                WidgetConfigureRoute(
+                    loadItems = { repository.allItems() },
+                    onSave = ::saveWidgetConfiguration
                 )
-            views.setOnClickPendingIntent(R.id.percent, appIntent)
-
-            try {
-                when (value) {
-                    "embedYear" -> appWidgetManager.updateAppWidget(widgetId, views)
-                    "embedMonth" -> appWidgetManager.updateAppWidget(widgetId, views)
-                    "embedTime" -> appWidgetManager.updateAppWidget(widgetId, views)
-                    "custom" -> customWidgetInit(appWidgetManager)
-                }
-
-                if (value != "custom") {
-                    prefs.edit()
-                        .putString(widgetId.toString(), value)
-                        .putBoolean("${widgetId}option", binding.option.isChecked)
-                        .apply()
-
-                    val resultValue = Intent()
-                    resultValue.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-                    setResult(RESULT_OK, resultValue)
-                    AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
-                    finish()
-                }
-
-            } catch (e: Exception) {
-                Toast.makeText(
-                    this,
-                    getString(R.string.widget_configure_select_required),
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
-        }
-
-        binding.radioGroup.setOnCheckedChangeListener { _, checkedId ->
-            when (checkedId) {
-                R.id.yearButton -> {
-                    value = "embedYear"
-                    binding.spinner.isEnabled = false
-                }
-                R.id.monthButton -> {
-                    value = "embedMonth"
-                    binding.spinner.isEnabled = false
-                }
-                R.id.timeButton -> {
-                    value = "embedTime"
-                    binding.spinner.isEnabled = false
-                }
-                R.id.userItemButton -> {
-                    value = "custom"
-                    binding.spinner.isEnabled = true
-                }
-            }
-        }
-
-        binding.spinner.onItemSelectedListener = object : AdapterView.OnItemSelectedListener {
-            override fun onItemSelected(p0: AdapterView<*>?, p1: View?, position: Int, p3: Long) {
-                id = ids[position].toString()
-            }
-
-            override fun onNothingSelected(p0: AdapterView<*>?) {
             }
         }
     }
 
-    private fun adapterInit() {
-        val adapter: ArrayAdapter<String?> =
-            ArrayAdapter(this, android.R.layout.simple_list_item_1, items as List<String?>)
-        binding.spinner.adapter = adapter
+    private fun saveWidgetConfiguration(
+        source: WidgetSource,
+        selectedItemId: Int?,
+        showRemaining: Boolean,
+    ) {
+        val appWidgetManager = AppWidgetManager.getInstance(this)
+
+        if (source == WidgetSource.Custom) {
+            val itemId = selectedItemId
+            if (itemId == null) {
+                showSelectionToast()
+                return
+            }
+
+            lifecycleScope.launch {
+                val exists = withContext(Dispatchers.IO) {
+                    runCatching { repository.getItem(itemId) }.isSuccess
+                }
+                if (!exists) {
+                    showSelectionToast()
+                    return@launch
+                }
+                persistAndFinish(itemId.toString(), showRemaining, appWidgetManager)
+            }
+        } else {
+            persistAndFinish(source.prefValue, showRemaining, appWidgetManager)
+        }
     }
 
-    private fun customWidgetInit(appWidgetManager: AppWidgetManager) {
-        lifecycleScope.launch {
-            val exists = withContext(Dispatchers.IO) {
-                runCatching { repository.getItem(id.toInt()) }.isSuccess
-            }
+    private fun persistAndFinish(
+        value: String,
+        showRemaining: Boolean,
+        appWidgetManager: AppWidgetManager,
+    ) {
+        prefs.edit()
+            .putString(widgetId.toString(), value)
+            .putBoolean("${widgetId}option", showRemaining)
+            .apply()
 
-            if (!exists) {
-                finish()
-                return@launch
-            }
+        val resultValue = Intent()
+            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
+        setResult(RESULT_OK, resultValue)
+        AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
+        finish()
+    }
 
-            prefs.edit()
-                .putString(widgetId.toString(), id)
-                .putBoolean("${widgetId}option", binding.option.isChecked)
-                .apply()
+    private fun showSelectionToast() {
+        Toast.makeText(
+            this,
+            getString(R.string.widget_configure_select_required),
+            Toast.LENGTH_SHORT
+        ).show()
+    }
 
-            val resultValue = Intent()
-                .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-            setResult(RESULT_OK, resultValue)
-            AppWidget().updateAppWidget(this@AppWidgetConfigure, appWidgetManager, widgetId)
-            finish()
+    private fun currentThemeMode(): String = prefs.getString("theme", "auto") ?: "auto"
+}
+
+@Composable
+private fun WidgetConfigureRoute(
+    loadItems: suspend () -> List<ItemEntity>,
+    onSave: (WidgetSource, Int?, Boolean) -> Unit,
+) {
+    var items by remember { mutableStateOf<List<ItemEntity>>(emptyList()) }
+    var loading by remember { mutableStateOf(true) }
+    var selectedSourceValue by rememberSaveable { mutableStateOf(WidgetSource.Today.prefValue) }
+    var selectedItemId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var showRemaining by rememberSaveable { mutableStateOf(false) }
+    val selectedSource = WidgetSource.fromPrefValue(selectedSourceValue)
+
+    LaunchedEffect(Unit) {
+        items = withContext(Dispatchers.IO) { loadItems() }
+        loading = false
+    }
+
+    LaunchedEffect(selectedSource, items) {
+        if (selectedSource == WidgetSource.Custom && items.none { it.id == selectedItemId }) {
+            selectedItemId = items.firstOrNull()?.id
         }
+    }
+
+    WidgetConfigureScreen(
+        loading = loading,
+        items = items,
+        selectedSource = selectedSource,
+        selectedItemId = selectedItemId,
+        showRemaining = showRemaining,
+        onSourceSelected = { selectedSourceValue = it.prefValue },
+        onItemSelected = { selectedItemId = it },
+        onShowRemainingChanged = { showRemaining = it },
+        onSave = { onSave(selectedSource, selectedItemId, showRemaining) }
+    )
+}
+
+@Composable
+private fun WidgetConfigureScreen(
+    loading: Boolean,
+    items: List<ItemEntity>,
+    selectedSource: WidgetSource,
+    selectedItemId: Int?,
+    showRemaining: Boolean,
+    onSourceSelected: (WidgetSource) -> Unit,
+    onItemSelected: (Int) -> Unit,
+    onShowRemainingChanged: (Boolean) -> Unit,
+    onSave: () -> Unit,
+) {
+    val scrollState = rememberScrollState()
+    val selectedItemTitle = items.firstOrNull { it.id == selectedItemId }?.title
+    val saveEnabled = selectedSource != WidgetSource.Custom || selectedItemTitle != null
+
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background
+    ) { innerPadding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = 2.dp
+            ) {
+                Column(
+                    modifier = Modifier.padding(
+                        start = 20.dp,
+                        top = 20.dp,
+                        end = 20.dp,
+                        bottom = 16.dp
+                    ),
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = stringResource(R.string.widget_configure_title),
+                        style = MaterialTheme.typography.titleLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    WidgetPreviewBand(
+                        source = selectedSource,
+                        selectedItemTitle = selectedItemTitle,
+                        showRemaining = showRemaining
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .weight(1f)
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp, vertical = 18.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = stringResource(R.string.widget_configure_source_title),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                WidgetSource.values().forEach { source ->
+                    WidgetSourceRow(
+                        source = source,
+                        selected = source == selectedSource,
+                        enabled = true,
+                        onClick = { onSourceSelected(source) }
+                    )
+                }
+
+                AnimatedVisibility(visible = selectedSource == WidgetSource.Custom) {
+                    CustomItemSection(
+                        loading = loading,
+                        items = items,
+                        selectedItemId = selectedItemId,
+                        onItemSelected = onItemSelected
+                    )
+                }
+
+                Surface(
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = RoundedCornerShape(8.dp),
+                    color = MaterialTheme.colorScheme.surface
+                ) {
+                    Row(
+                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = stringResource(R.string.widget_configure_remaining_option),
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Switch(
+                            checked = showRemaining,
+                            onCheckedChange = onShowRemainingChanged
+                        )
+                    }
+                }
+            }
+
+            Button(
+                onClick = onSave,
+                enabled = saveEnabled,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(start = 20.dp, end = 20.dp, bottom = 18.dp)
+            ) {
+                Text(stringResource(R.string.action_save))
+            }
+        }
+    }
+}
+
+@Composable
+private fun WidgetPreviewBand(
+    source: WidgetSource,
+    selectedItemTitle: String?,
+    showRemaining: Boolean,
+) {
+    val title = selectedItemTitle ?: stringResource(source.labelRes)
+    val value = if (showRemaining) {
+        if (source == WidgetSource.Today) {
+            stringResource(R.string.home_time_left, "12:34")
+        } else {
+            stringResource(R.string.home_days_left, 12)
+        }
+    } else {
+        "68%"
+    }
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(8.dp),
+        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+    ) {
+        Column(
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = stringResource(R.string.widget_configure_preview),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.weight(1f)
+                )
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+            LinearProgressIndicator(
+                progress = { 0.68f },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(7.dp),
+                color = MaterialTheme.colorScheme.primary,
+                trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun WidgetSourceRow(
+    source: WidgetSource,
+    selected: Boolean,
+    enabled: Boolean,
+    onClick: () -> Unit,
+) {
+    val rowModifier = if (enabled) {
+        Modifier.clickable(onClick = onClick)
+    } else {
+        Modifier
+    }
+    val contentColor = if (enabled) {
+        MaterialTheme.colorScheme.onSurface
+    } else {
+        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
+    }
+
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .then(rowModifier),
+        shape = RoundedCornerShape(8.dp),
+        color = if (selected) {
+            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
+        tonalElevation = if (selected) 1.dp else 0.dp
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = if (enabled) onClick else null,
+                enabled = enabled
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = stringResource(source.labelRes),
+                style = MaterialTheme.typography.bodyLarge,
+                color = contentColor,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun CustomItemSection(
+    loading: Boolean,
+    items: List<ItemEntity>,
+    selectedItemId: Int?,
+    onItemSelected: (Int) -> Unit,
+) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = stringResource(R.string.widget_configure_custom_item_title),
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+        when {
+            loading -> {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 14.dp),
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                }
+            }
+            items.isEmpty() -> {
+                Text(
+                    text = stringResource(R.string.widget_configure_no_items),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+            else -> {
+                items.forEach { item ->
+                    CustomItemRow(
+                        item = item,
+                        selected = item.id == selectedItemId,
+                        onClick = { onItemSelected(item.id) }
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun CustomItemRow(
+    item: ItemEntity,
+    selected: Boolean,
+    onClick: () -> Unit,
+) {
+    Surface(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable(onClick = onClick),
+        shape = RoundedCornerShape(8.dp),
+        color = if (selected) {
+            MaterialTheme.colorScheme.secondary.copy(alpha = 0.11f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    ) {
+        Row(
+            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            RadioButton(
+                selected = selected,
+                onClick = onClick
+            )
+            Spacer(modifier = Modifier.width(4.dp))
+            Text(
+                text = item.title,
+                style = MaterialTheme.typography.bodyLarge,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+private enum class WidgetSource(
+    val prefValue: String,
+    val labelRes: Int,
+) {
+    Today("embedTime", R.string.widget_configure_today),
+    Month("embedMonth", R.string.widget_configure_month),
+    Year("embedYear", R.string.widget_configure_year),
+    Custom("custom", R.string.widget_configure_custom);
+
+    companion object {
+        fun fromPrefValue(value: String): WidgetSource =
+            values().firstOrNull { it.prefValue == value } ?: Today
     }
 }

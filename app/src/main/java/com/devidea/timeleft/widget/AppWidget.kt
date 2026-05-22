@@ -6,6 +6,8 @@ import android.appwidget.AppWidgetProvider
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Bundle
+import android.view.View
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.InterfaceItem
@@ -20,6 +22,7 @@ import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.util.Locale
 
 class AppWidget : AppWidgetProvider() {
 
@@ -43,10 +46,19 @@ class AppWidget : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        // There may be multiple widgets active, so update all of them
         for (appWidgetId in appWidgetIds) {
             updateAppWidget(context, appWidgetManager, appWidgetId)
         }
+    }
+
+    override fun onAppWidgetOptionsChanged(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        newOptions: Bundle,
+    ) {
+        super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
+        updateAppWidget(context, appWidgetManager, appWidgetId)
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
@@ -64,74 +76,114 @@ class AppWidget : AppWidgetProvider() {
     fun updateAppWidget(
         context: Context,
         appWidgetManager: AppWidgetManager,
-        appWidgetId: Int
+        appWidgetId: Int,
     ) {
         val ep = entryPoint(context)
         val prefs = ep.prefs()
         val itemGenerator = ep.itemGenerator()
+        val sizeClass = resolveSizeClass(appWidgetManager, appWidgetId)
+        val views = RemoteViews(context.packageName, sizeClass.layoutRes)
+        val flowItems = WidgetFlowItems(
+            today = itemGenerator.timeItem(),
+            month = itemGenerator.monthItem(),
+            year = itemGenerator.yearItem()
+        )
 
-        val views = RemoteViews(context.packageName, R.layout.app_widget)
+        bindWidgetActions(context, views, appWidgetId)
 
-        val updateIntent = Intent(context, AppWidget::class.java)
-        updateIntent.action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+        when (prefs.getString(appWidgetId.toString(), "")) {
+            "embedYear" -> {
+                renderWidgetItem(
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    data = itemGenerator.yearItem().toWidgetData(
+                        context = context,
+                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                        useWidgetString = false
+                    ),
+                    flowItems = flowItems
+                )
+            }
+            "embedMonth" -> {
+                renderWidgetItem(
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    data = itemGenerator.monthItem().toWidgetData(
+                        context = context,
+                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                        useWidgetString = false
+                    ),
+                    flowItems = flowItems
+                )
+            }
+            "embedTime" -> {
+                renderWidgetItem(
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    data = itemGenerator.timeItem().toWidgetData(
+                        context = context,
+                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                        useWidgetString = true
+                    ),
+                    flowItems = flowItems
+                )
+            }
+            else -> {
+                renderCustomWidget(
+                    context = context,
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    flowItems = flowItems
+                )
+            }
+        }
+    }
+
+    private fun bindWidgetActions(
+        context: Context,
+        views: RemoteViews,
+        appWidgetId: Int,
+    ) {
+        val updateIntent = Intent(context, AppWidget::class.java).apply {
+            action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+        }
 
         val updatePendingIntent =
-            PendingIntent.getBroadcast(context, 0, updateIntent, PendingIntent.FLAG_IMMUTABLE)
-
-        views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
+            PendingIntent.getBroadcast(
+                context,
+                appWidgetId,
+                updateIntent,
+                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
+            )
 
         val activityPendingIntent = PendingIntent.getActivity(
             context,
-            0,
+            appWidgetId,
             Intent(context, MainActivity::class.java),
-            PendingIntent.FLAG_IMMUTABLE
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
+        views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
+        views.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
-        when (prefs.getString(appWidgetId.toString(), "")) {
-            "embedYear" -> {
-                val item = itemGenerator.yearItem()
-                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = false)
-            }
-            "embedMonth" -> {
-                val item = itemGenerator.monthItem()
-                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = false)
-            }
-            "embedTime" -> {
-                val item = itemGenerator.timeItem()
-                renderStaticItem(views, appWidgetManager, appWidgetId, prefs, item, useWidgetString = true)
-            }
-
-            else -> customWidgetInit(context, views, appWidgetManager, appWidgetId)
-        }
     }
 
-    private fun renderStaticItem(
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        prefs: SharedPreferences,
-        item: AdapterItem,
-        useWidgetString: Boolean,
-    ) {
-        views.setTextViewText(R.id.summary, item.title)
-        if (prefs.getBoolean("${appWidgetId}option", false)) {
-            views.setTextViewText(
-                R.id.percent,
-                if (useWidgetString) item.widgetString else item.leftString
-            )
-        } else {
-            views.setTextViewText(R.id.percent, "${item.percent}%")
-        }
-        views.setProgressBar(R.id.progress, 100, item.percent.toInt(), false)
-        appWidgetManager.updateAppWidget(appWidgetId, views)
-    }
-
-    private fun customWidgetInit(
+    private fun renderCustomWidget(
         context: Context,
         views: RemoteViews,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
+        flowItems: WidgetFlowItems,
     ) {
         val ep = entryPoint(context)
         val prefs = ep.prefs()
@@ -140,34 +192,184 @@ class AppWidget : AppWidgetProvider() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val item: AdapterItem
-                val itemList = repository.advanceExpiredRecurrence(
+                val itemEntity = repository.advanceExpiredRecurrence(
                     repository.getItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
                 )
-
-                item = if (itemList.type == ItemType.Time) {
-                    itemGenerator.customTimeItem(itemList)
+                val item = if (itemEntity.type == ItemType.Time) {
+                    itemGenerator.customTimeItem(itemEntity)
                 } else {
-                    itemGenerator.customMonthItem(itemList)
+                    itemGenerator.customMonthItem(itemEntity)
                 }
 
-                views.setTextViewText(R.id.summary, item.title)
-                if (prefs.getBoolean("${appWidgetId}option", false)) {
-                    if (itemList.type == ItemType.Time) {
-                        views.setTextViewText(R.id.percent, item.widgetString)
-                    } else {
-                        views.setTextViewText(R.id.percent, item.leftString)
-                    }
-                } else {
-                    views.setTextViewText(R.id.percent, "${item.percent}%")
-                }
-                views.setProgressBar(R.id.progress, 100, item.percent.toInt(), false)
-
-                appWidgetManager.updateAppWidget(appWidgetId, views)
-
-            } catch (e: NullPointerException) {
+                renderWidgetItem(
+                    views = views,
+                    appWidgetManager = appWidgetManager,
+                    appWidgetId = appWidgetId,
+                    sizeClass = sizeClass,
+                    data = item.toWidgetData(
+                        context = context,
+                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                        useWidgetString = itemEntity.type == ItemType.Time
+                    ),
+                    flowItems = flowItems
+                )
+            } catch (e: Exception) {
                 prefs.edit().remove(appWidgetId.toString()).apply()
             }
         }
     }
+
+    private fun renderWidgetItem(
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
+        data: WidgetDisplayData,
+        flowItems: WidgetFlowItems,
+    ) {
+        renderBase(views, data)
+        when (sizeClass) {
+            WidgetSizeClass.Compact -> Unit
+            WidgetSizeClass.Medium -> renderMedium(views, data)
+            WidgetSizeClass.Wide -> renderWide(views, data, flowItems)
+            WidgetSizeClass.Large -> renderLarge(views, data, flowItems)
+        }
+        appWidgetManager.updateAppWidget(appWidgetId, views)
+    }
+
+    private fun renderBase(
+        views: RemoteViews,
+        data: WidgetDisplayData,
+    ) {
+        views.setTextViewText(R.id.summary, data.title)
+        views.setTextViewText(R.id.percent, data.value)
+        views.setProgressBar(R.id.progress, 100, data.progress, false)
+    }
+
+    private fun renderMedium(
+        views: RemoteViews,
+        data: WidgetDisplayData,
+    ) {
+        views.setTextViewText(R.id.widgetMeta, data.meta)
+        views.setTextViewText(R.id.progressLabel, data.progressText)
+    }
+
+    private fun renderWide(
+        views: RemoteViews,
+        data: WidgetDisplayData,
+        flowItems: WidgetFlowItems,
+    ) {
+        renderMedium(views, data)
+        setFlowText(views, R.id.widgetFlowToday, flowItems.today)
+        setFlowText(views, R.id.widgetFlowMonth, flowItems.month)
+        setFlowText(views, R.id.widgetFlowYear, flowItems.year)
+    }
+
+    private fun renderLarge(
+        views: RemoteViews,
+        data: WidgetDisplayData,
+        flowItems: WidgetFlowItems,
+    ) {
+        renderWide(views, data, flowItems)
+        setTextOrGone(views, R.id.widgetDetailStart, data.start)
+        setTextOrGone(views, R.id.widgetDetailEnd, data.end)
+        setTextOrGone(views, R.id.widgetDetailUpdate, data.update)
+    }
+
+    private fun setFlowText(
+        views: RemoteViews,
+        viewId: Int,
+        item: AdapterItem,
+    ) {
+        val value = item.widgetString.ifBlank { item.leftString }
+        views.setTextViewText(viewId, "${item.title} - $value")
+    }
+
+    private fun setTextOrGone(
+        views: RemoteViews,
+        viewId: Int,
+        text: String,
+    ) {
+        views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
+        views.setTextViewText(viewId, text)
+    }
+
+    private fun AdapterItem.toWidgetData(
+        context: Context,
+        showRemaining: Boolean,
+        useWidgetString: Boolean,
+    ): WidgetDisplayData {
+        val percentText = "${formatWidgetPercent(percent)}%"
+        val remainingText = if (useWidgetString && widgetString.isNotBlank()) {
+            widgetString
+        } else {
+            leftString
+        }
+        val value = if (showRemaining) remainingText else percentText
+        val meta = when {
+            dueText.isNotBlank() -> dueText
+            showRemaining -> context.getString(R.string.card_progress_value, formatWidgetPercent(percent))
+            else -> remainingText
+        }
+
+        return WidgetDisplayData(
+            title = title,
+            value = value,
+            meta = meta,
+            progressText = context.getString(R.string.card_progress_value, formatWidgetPercent(percent)),
+            progress = percent.toInt().coerceIn(0, 100),
+            start = startString,
+            end = endString,
+            update = updateInfo.ifBlank { recurrenceText }
+        )
+    }
+
+    private fun resolveSizeClass(
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+    ): WidgetSizeClass {
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
+        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
+
+        return when {
+            minWidth >= 300 && minHeight >= 180 -> WidgetSizeClass.Large
+            minWidth >= 260 -> WidgetSizeClass.Wide
+            minHeight >= 130 -> WidgetSizeClass.Medium
+            else -> WidgetSizeClass.Compact
+        }
+    }
+
+    private fun formatWidgetPercent(value: Float): String {
+        val safeValue = value.coerceIn(0f, 100f)
+        return if (safeValue % 1f == 0f) {
+            safeValue.toInt().toString()
+        } else {
+            String.format(Locale.getDefault(), "%.1f", safeValue)
+        }
+    }
+
+    private enum class WidgetSizeClass(val layoutRes: Int) {
+        Compact(R.layout.app_widget),
+        Medium(R.layout.app_widget_medium),
+        Wide(R.layout.app_widget_wide),
+        Large(R.layout.app_widget_large)
+    }
+
+    private data class WidgetDisplayData(
+        val title: String,
+        val value: String,
+        val meta: String,
+        val progressText: String,
+        val progress: Int,
+        val start: String,
+        val end: String,
+        val update: String,
+    )
+
+    private data class WidgetFlowItems(
+        val today: AdapterItem,
+        val month: AdapterItem,
+        val year: AdapterItem,
+    )
 }

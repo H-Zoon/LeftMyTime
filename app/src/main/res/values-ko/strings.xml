@@ -99,4 +99,15 @@
     <!-- Widget configure -->
     <string name="widget_configure_select_required">하나를 정해주세요</string>
     <string name="widget_loading">로딩중…</string>
+    <string name="widget_refresh">위젯 새로고침</string>
+    <string name="widget_configure_title">위젯</string>
+    <string name="widget_configure_source_title">표시 항목</string>
+    <string name="widget_configure_today">오늘의 남은시간</string>
+    <string name="widget_configure_month">이번 달 흐름</string>
+    <string name="widget_configure_year">올해 흐름</string>
+    <string name="widget_configure_custom">내 항목</string>
+    <string name="widget_configure_custom_item_title">항목</string>
+    <string name="widget_configure_no_items">선택할 항목이 없습니다</string>
+    <string name="widget_configure_remaining_option">남은 시간으로 보기</string>
+    <string name="widget_configure_preview">미리보기</string>
 </resources>
