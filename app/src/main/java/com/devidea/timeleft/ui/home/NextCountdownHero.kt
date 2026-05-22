@@ -46,8 +46,8 @@ internal fun NextCountdownHero(
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(
-            modifier = Modifier.padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.spacedBy(9.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -63,8 +63,8 @@ internal fun NextCountdownHero(
                         imageVector = itemIconVector(item.iconKey),
                         contentDescription = null,
                         modifier = Modifier
-                            .padding(8.dp)
-                            .size(20.dp)
+                            .padding(7.dp)
+                            .size(18.dp)
                     )
                 }
                 Text(
@@ -99,7 +99,7 @@ internal fun NextCountdownHero(
                 progress = { progress },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(7.dp),
+                    .height(6.dp),
                 color = accent,
                 trackColor = MaterialTheme.colorScheme.surfaceVariant
             )

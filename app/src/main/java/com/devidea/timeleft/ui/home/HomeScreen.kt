@@ -9,12 +9,11 @@ import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -53,7 +52,6 @@ import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 fun HomeScreen(
     themeMode: String,
     topItems: List<AdapterItem>,
@@ -79,10 +77,12 @@ fun HomeScreen(
     val activeListState = if (selectedTab == HomeMainTab.Overview) overviewListState else itemsListState
     val targetCollapseFraction by remember(activeListState) {
         derivedStateOf {
-            if (activeListState.firstVisibleItemIndex > 0) {
+            if (activeListState.firstVisibleItemIndex > 0 ||
+                activeListState.firstVisibleItemScrollOffset >= HEADER_COLLAPSE_THRESHOLD_PX
+            ) {
                 1f
             } else {
-                (activeListState.firstVisibleItemScrollOffset / 120f).coerceIn(0f, 1f)
+                0f
             }
         }
     }
@@ -259,7 +259,9 @@ private fun HomeBottomBar(
     modifier: Modifier = Modifier,
 ) {
     NavigationBar(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .height(60.dp),
         containerColor = MaterialTheme.colorScheme.surface,
     ) {
         HomeMainTab.values().forEach { tab ->
@@ -296,14 +298,14 @@ private fun OverviewTabContent(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 18.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        contentPadding = PaddingValues(top = 14.dp, bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         if (nextCountdown != null) {
             item {
                 NextCountdownHero(
                     item = nextCountdown,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         }
@@ -313,7 +315,7 @@ private fun OverviewTabContent(
                 EmptyItemState(
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         } else if (upcomingItems.isNotEmpty()) {
@@ -321,7 +323,7 @@ private fun OverviewTabContent(
                 SectionHeader(
                     title = stringResource(R.string.home_upcoming_items),
                     count = upcomingItems.size.takeIf { it > 0 },
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
             items(upcomingItems, key = { it.id }) { item ->
@@ -330,7 +332,7 @@ private fun OverviewTabContent(
                     onEditItem = onEditItem,
                     onDeleteItem = onDeleteItem,
                     compact = true,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         }
@@ -355,14 +357,14 @@ private fun ItemsTabContent(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 22.dp, bottom = 96.dp),
-        verticalArrangement = Arrangement.spacedBy(18.dp)
+        contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
         item {
             SectionHeader(
                 title = stringResource(R.string.home_my_items),
                 count = if (customItems.isNotEmpty()) visibleItems.size else null,
-                modifier = Modifier.padding(horizontal = 20.dp)
+                modifier = Modifier.padding(horizontal = 16.dp)
             )
         }
 
@@ -371,7 +373,7 @@ private fun ItemsTabContent(
                 EmptyItemState(
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
         } else {
@@ -381,7 +383,7 @@ private fun ItemsTabContent(
                     selectedSort = selectedSort,
                     onQueryChange = onQueryChange,
                     onSortChange = onSortChange,
-                    modifier = Modifier.padding(horizontal = 20.dp)
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
             if (visibleItems.isEmpty()) {
@@ -390,7 +392,7 @@ private fun ItemsTabContent(
                         text = stringResource(R.string.home_empty_search),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 20.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             } else {
@@ -399,7 +401,7 @@ private fun ItemsTabContent(
                         item = item,
                         onEditItem = onEditItem,
                         onDeleteItem = onDeleteItem,
-                        modifier = Modifier.padding(horizontal = 20.dp)
+                        modifier = Modifier.padding(horizontal = 16.dp)
                     )
                 }
             }
@@ -434,7 +436,6 @@ private fun SectionHeader(
 }
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
 private fun SearchAndSortSection(
     query: String,
     selectedSort: HomeSortMode,
@@ -442,10 +443,7 @@ private fun SearchAndSortSection(
     onSortChange: (HomeSortMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(
-        modifier = modifier.fillMaxWidth(),
-        verticalArrangement = Arrangement.spacedBy(10.dp)
-    ) {
+    Column(modifier = modifier.fillMaxWidth()) {
         OutlinedTextField(
             value = query,
             onValueChange = onQueryChange,
@@ -459,15 +457,18 @@ private fun SearchAndSortSection(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-        FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(top = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(6.dp)
         ) {
             HomeSortMode.values().forEach { mode ->
                 FilterChip(
                     selected = selectedSort == mode,
                     onClick = { onSortChange(mode) },
-                    label = { Text(stringResource(mode.labelRes)) }
+                    label = { Text(stringResource(mode.labelRes)) },
+                    modifier = Modifier.weight(1f)
                 )
             }
         }
@@ -485,3 +486,5 @@ private enum class HomeMainTab(val labelRes: Int) {
     Overview(R.string.home_tab_overview),
     Items(R.string.home_tab_items)
 }
+
+private const val HEADER_COLLAPSE_THRESHOLD_PX = 32

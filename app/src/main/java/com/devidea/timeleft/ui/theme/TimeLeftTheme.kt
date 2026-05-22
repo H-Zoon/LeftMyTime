@@ -21,75 +21,75 @@ private val NanumSquareRound = FontFamily(
 )
 
 private val LightColors = lightColorScheme(
-    primary = Color(0xFF146C94),
+    primary = Color(0xFF4F46E5),
     onPrimary = Color.White,
-    secondary = Color(0xFF2E7D5B),
-    tertiary = Color(0xFFB85C38),
-    background = Color(0xFFF7F8FA),
-    onBackground = Color(0xFF171A1F),
+    secondary = Color(0xFF16A34A),
+    tertiary = Color(0xFFD97706),
+    background = Color(0xFFF8FAFC),
+    onBackground = Color(0xFF0F172A),
     surface = Color.White,
-    onSurface = Color(0xFF171A1F),
-    surfaceVariant = Color(0xFFE8EAEE),
-    onSurfaceVariant = Color(0xFF515967),
-    outline = Color(0xFFC8CDD4)
+    onSurface = Color(0xFF0F172A),
+    surfaceVariant = Color(0xFFE2E8F0),
+    onSurfaceVariant = Color(0xFF64748B),
+    outline = Color(0xFFCBD5E1)
 )
 
 private val DarkColors = darkColorScheme(
-    primary = Color(0xFF8ED5F3),
-    onPrimary = Color(0xFF003546),
-    secondary = Color(0xFF8DDBB5),
-    tertiary = Color(0xFFFFB59B),
-    background = Color(0xFF111316),
-    onBackground = Color(0xFFE9EDF2),
-    surface = Color(0xFF1B1F24),
-    onSurface = Color(0xFFE9EDF2),
-    surfaceVariant = Color(0xFF2A3037),
-    onSurfaceVariant = Color(0xFFC6CDD6),
-    outline = Color(0xFF444C56)
+    primary = Color(0xFFA5B4FC),
+    onPrimary = Color(0xFF312E81),
+    secondary = Color(0xFF86EFAC),
+    tertiary = Color(0xFFFBBF24),
+    background = Color(0xFF0F172A),
+    onBackground = Color(0xFFE2E8F0),
+    surface = Color(0xFF111827),
+    onSurface = Color(0xFFE5E7EB),
+    surfaceVariant = Color(0xFF1E293B),
+    onSurfaceVariant = Color(0xFF94A3B8),
+    outline = Color(0xFF334155)
 )
 
 private val TimeLeftTypography = Typography(
     displaySmall = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.ExtraBold,
-        fontSize = 32.sp,
-        lineHeight = 38.sp
+        fontSize = 28.sp,
+        lineHeight = 34.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 21.sp,
-        lineHeight = 27.sp
+        fontSize = 19.sp,
+        lineHeight = 25.sp
     ),
     titleLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 18.sp,
-        lineHeight = 24.sp
+        fontSize = 16.sp,
+        lineHeight = 22.sp
     ),
     titleMedium = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 15.sp,
-        lineHeight = 20.sp
+        fontSize = 14.sp,
+        lineHeight = 19.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Normal,
-        fontSize = 15.sp,
-        lineHeight = 21.sp
+        fontSize = 14.sp,
+        lineHeight = 20.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Normal,
-        fontSize = 13.sp,
-        lineHeight = 18.sp
+        fontSize = 12.sp,
+        lineHeight = 17.sp
     ),
     labelLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 13.sp,
-        lineHeight = 17.sp
+        fontSize = 12.sp,
+        lineHeight = 16.sp
     )
 )
 

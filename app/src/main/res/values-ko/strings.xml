@@ -26,11 +26,11 @@
     <string name="home_item_count">%1$d개</string>
     <string name="home_my_items">내 항목</string>
     <string name="home_upcoming_items">다가오는 항목</string>
-    <string name="home_search_hint">제목 또는 카테고리 검색</string>
-    <string name="home_sort_nearest">가까운 순</string>
-    <string name="home_sort_created">최근 추가</string>
-    <string name="home_sort_title">이름순</string>
-    <string name="home_sort_progress">진행률순</string>
+    <string name="home_search_hint">제목 또는 카테고리</string>
+    <string name="home_sort_nearest">가까운</string>
+    <string name="home_sort_created">최근</string>
+    <string name="home_sort_title">이름</string>
+    <string name="home_sort_progress">진행률</string>
     <string name="home_empty_items">아직 항목이 없습니다</string>
     <string name="home_empty_title">첫 카운트다운을 추가하세요</string>
     <string name="home_empty_body">마감일, 여행, 집중 시간처럼 놓치고 싶지 않은 시간을 바로 추적할 수 있습니다.</string>

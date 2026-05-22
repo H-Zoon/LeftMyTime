@@ -42,7 +42,7 @@ internal fun HeaderSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 20.dp)
+            .padding(horizontal = 16.dp)
             .padding(top = topPadding)
     ) {
         if (todayItem != null) {

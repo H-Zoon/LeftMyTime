@@ -66,6 +66,6 @@ object ItemVisuals {
         "amber" -> 0xFFB05A00.toInt()
         "red" -> 0xFFB3261E.toInt()
         "violet" -> 0xFF6D3CCB.toInt()
-        else -> 0xFF0B57D0.toInt()
+        else -> 0xFF4F46E5.toInt()
     }
 }
