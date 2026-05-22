@@ -4,15 +4,10 @@
     <color name="gray800">#FF808080</color>
     <color name="gray600">#FF606060</color>
     <color name="gray400">#FF404040</color>
-    <color name="dark200">#FF202020</color>
     <color name="black">#FF000000</color>
 
-    <color name="light_blue_50">#FFE1F5FE</color>
-    <color name="light_blue_200">#FF81D4FA</color>
-    <color name="light_blue_600">#FF039BE5</color>
-    <color name="light_blue_900">#FF01579B</color>
-
     <color name="activity_background">#FFF8FAFC</color>
+    <color name="splash_background">#FF4F46E5</color>
 
     <color name="widget_surface">#FFFFFFFF</color>
     <color name="widget_on_surface">#FF0F172A</color>

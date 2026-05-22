@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="512dp"
+    android:height="512dp"
+    android:viewportWidth="512"
+    android:viewportHeight="512">
+
+    <group
+        android:name="safe_area"
+        android:pivotX="256"
+        android:pivotY="256"
+        android:scaleX="0.6"
+        android:scaleY="0.6">
+        <group
+            android:name="root_scale"
+            android:pivotX="256"
+            android:pivotY="256"
+            android:scaleX="1"
+            android:scaleY="1">
+
+            <path
+                android:name="outer_ring"
+                android:fillColor="@android:color/transparent"
+                android:pathData="
+                    M93,106
+                    H266
+                    A150,150 0,1,1 106,256"
+                android:strokeColor="#FFFFFF"
+                android:strokeLineCap="butt"
+                android:strokeLineJoin="round"
+                android:strokeWidth="26" />
+
+            <path
+                android:name="upper_bar"
+                android:fillColor="#FFFFFF"
+                android:pathData="
+                    M93,154
+                    H164
+                    C155,161 148,170 141,180
+                    H93
+                    Z" />
+
+            <path
+                android:name="middle_bar"
+                android:fillColor="#FFFFFF"
+                android:pathData="
+                    M93,208
+                    H126
+                    C124,214 122,221 121,228
+                    H93
+                    Z" />
+
+            <path
+                android:name="inner_ring"
+                android:fillColor="@android:color/transparent"
+                android:pathData="
+                    M256,345
+                    A89,89 0,1,1 345,256"
+                android:strokeColor="#FFFFFF"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:strokeWidth="25" />
+
+            <path
+                android:name="center_mark"
+                android:fillColor="@android:color/transparent"
+                android:pathData="M232,252 L255,277 L279,252"
+                android:strokeColor="#FFFFFF"
+                android:strokeLineCap="round"
+                android:strokeLineJoin="round"
+                android:strokeWidth="18" />
+        </group>
+    </group>
+</vector>

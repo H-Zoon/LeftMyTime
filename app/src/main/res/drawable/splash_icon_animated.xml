@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<animated-vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:drawable="@drawable/splash_icon_foreground">
+    <target
+        android:name="root_scale"
+        android:animation="@animator/splash_root_scale" />
+    <target
+        android:name="outer_ring"
+        android:animation="@animator/splash_outer_ring" />
+    <target
+        android:name="inner_ring"
+        android:animation="@animator/splash_inner_ring" />
+    <target
+        android:name="center_mark"
+        android:animation="@animator/splash_center_mark" />
+    <target
+        android:name="upper_bar"
+        android:animation="@animator/splash_bar_fade" />
+    <target
+        android:name="middle_bar"
+        android:animation="@animator/splash_bar_fade" />
+</animated-vector>

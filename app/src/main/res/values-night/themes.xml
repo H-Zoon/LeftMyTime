@@ -16,6 +16,14 @@
         <item name="android:timePickerStyle">@style/MyTimePickerDialogStyle</item>
     </style>
 
+    <style name="Theme.MyApplication.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="android:windowBackground">@drawable/splash_screen_background</item>
+        <item name="android:statusBarColor">@color/splash_background</item>
+        <item name="android:navigationBarColor">@color/splash_background</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:fontFamily">@font/nanum_square_round_r</item>
+    </style>
+
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
         <item name="colorPrimary">@color/white</item>
         <item name="android:backgroundTint">#CC000000</item>
@@ -23,18 +31,9 @@
         <item name="android:fontFamily">@font/nanum_square_round_r</item>
     </style>
 
-    <style name="Style.Color.Button" parent="">
-        <item name="android:backgroundTint">@color/white</item>
-        <item name="backgroundColor">@color/white</item>
-    </style>
-
     <style name="MyTimePickerDialogStyle" parent="android:Widget.Material.Light.TimePicker">
         <item name="android:timePickerMode">spinner</item>
         <item name="android:padding">40dp</item>
-    </style>
-
-    <style name="itemBackgroundTint" parent="">
-        <item name="android:backgroundTint">@color/dark200</item>
     </style>
 
 </resources>

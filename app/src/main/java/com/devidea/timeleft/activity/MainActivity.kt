@@ -14,6 +14,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.ui.home.HomeScreen
@@ -31,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private val viewModel: TimeLeftViewModel by viewModels()
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        setTheme(R.style.Theme_MyApplication)
         super.onCreate(savedInstanceState)
 
         applyNightMode(currentThemeMode())
