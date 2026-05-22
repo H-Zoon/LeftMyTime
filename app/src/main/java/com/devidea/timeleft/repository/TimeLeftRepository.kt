@@ -47,8 +47,10 @@ class TimeLeftRepository @Inject constructor(
     ): ItemEntity {
         if (entity.type == ItemType.Time) return entity
 
+        val startDate = LocalDate.parse(entity.startValue, DATE_FORMATTER)
         val endDate = LocalDate.parse(entity.endValue, DATE_FORMATTER)
         val shift = TimeProgressCalculator.nextRecurrence(
+            currentStart = startDate,
             currentEnd = endDate,
             today = today,
             updateFlag = entity.updateFlag,

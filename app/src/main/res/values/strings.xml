@@ -53,10 +53,10 @@
     <string name="card_time_idle_hint">We will start counting after the start time</string>
     <string name="card_time_widget_idle">Remaining: 00:00</string>
     <string name="card_update_info_none">Ends when reaching 100%%.</string>
-    <string name="card_update_info_day">Repeats every %1$d day(s) after end.</string>
-    <string name="card_update_info_month">Repeats on day %1$d each month.</string>
-    <string name="card_recurrence_day">Every %1$d days</string>
-    <string name="card_recurrence_month">Monthly on day %1$d</string>
+    <string name="card_update_info_day">Restarts with same length after a %1$d-day gap.</string>
+    <string name="card_update_info_month">Restarts with same length on day %1$d each month.</string>
+    <string name="card_recurrence_day">+%1$d-day gap, repeat</string>
+    <string name="card_recurrence_month">Starts day %1$d monthly</string>
 
     <!-- Common actions -->
     <string name="action_cancel">Cancel</string>
@@ -75,11 +75,14 @@
     <string name="editor_end_date">End date</string>
     <string name="editor_repeat">Repeat</string>
     <string name="editor_repeat_none">No repeat</string>
-    <string name="editor_repeat_every_n_days">Repeat every N days after end</string>
-    <string name="editor_repeat_every_month">Repeat on a selected day each month</string>
-    <string name="editor_repeat_interval">Repeat interval</string>
-    <string name="editor_repeat_day_of_month">Day of month</string>
+    <string name="editor_repeat_every_n_days">Restart same length after N-day gap</string>
+    <string name="editor_repeat_every_month">Restart on a chosen day each month</string>
+    <string name="editor_repeat_interval">Gap after end</string>
+    <string name="editor_repeat_day_of_month">Start day of month (1–31)</string>
     <string name="editor_days_suffix">days</string>
+    <string name="editor_day_of_month_suffix">day</string>
+    <string name="editor_repeat_help_day">e.g. 5/1–5/10 (10-day cycle) + 3-day gap → next cycle 5/13–5/22</string>
+    <string name="editor_repeat_help_month">e.g. 5/1–5/10 + day 20 → next cycle 5/20–5/29 (length preserved)</string>
 
     <!-- Editor errors -->
     <string name="editor_error_title_required">Please enter a title.</string>

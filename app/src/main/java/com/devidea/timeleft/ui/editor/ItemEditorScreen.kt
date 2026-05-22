@@ -458,6 +458,11 @@ private fun RepeatFields(
                     label = stringResource(R.string.editor_repeat_interval),
                     suffix = stringResource(R.string.editor_days_suffix)
                 )
+                Text(
+                    text = stringResource(R.string.editor_repeat_help_day),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
             }
             RepeatOption(
                 selected = repeatFlag == RecurrenceMode.Month,
@@ -469,7 +474,12 @@ private fun RepeatFields(
                     value = repeatRateText,
                     onValueChange = onRepeatRateChange,
                     label = stringResource(R.string.editor_repeat_day_of_month),
-                    suffix = stringResource(R.string.editor_days_suffix)
+                    suffix = stringResource(R.string.editor_day_of_month_suffix)
+                )
+                Text(
+                    text = stringResource(R.string.editor_repeat_help_month),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

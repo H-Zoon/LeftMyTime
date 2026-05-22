@@ -54,10 +54,10 @@
     <string name="card_time_idle_hint">설정시간이 지나면 계산해 드릴께요</string>
     <string name="card_time_widget_idle">남은시간: 00:00</string>
     <string name="card_update_info_none">100%% 달성후 끝나는 일정.</string>
-    <string name="card_update_info_day">종료 후 %1$d일 뒤 반복되는 일정.</string>
-    <string name="card_update_info_month">매 달 %1$d일에 반복되는 일정.</string>
-    <string name="card_recurrence_day">%1$d일마다</string>
-    <string name="card_recurrence_month">매월 %1$d일</string>
+    <string name="card_update_info_day">종료 %1$d일 뒤 같은 기간으로 다시 시작.</string>
+    <string name="card_update_info_month">매달 %1$d일에 같은 기간으로 다시 시작.</string>
+    <string name="card_recurrence_day">종료 +%1$d일 후 반복</string>
+    <string name="card_recurrence_month">매월 %1$d일 시작</string>
 
     <!-- Common actions -->
     <string name="action_cancel">취소</string>
@@ -76,11 +76,14 @@
     <string name="editor_end_date">종료일</string>
     <string name="editor_repeat">반복</string>
     <string name="editor_repeat_none">반복 없음</string>
-    <string name="editor_repeat_every_n_days">종료 후 지정한 일수마다 반복</string>
-    <string name="editor_repeat_every_month">매달 지정한 날짜에 반복</string>
-    <string name="editor_repeat_interval">반복 간격</string>
-    <string name="editor_repeat_day_of_month">매달 반복일</string>
+    <string name="editor_repeat_every_n_days">종료 N일 후 같은 기간으로 반복</string>
+    <string name="editor_repeat_every_month">매달 지정한 날짜에 시작</string>
+    <string name="editor_repeat_interval">종료 후 휴식 일수</string>
+    <string name="editor_repeat_day_of_month">매달 시작일 (1~31)</string>
     <string name="editor_days_suffix">일</string>
+    <string name="editor_day_of_month_suffix">일</string>
+    <string name="editor_repeat_help_day">예: 5/1~5/10(10일짜리) + 3일 → 다음 회차 5/13~5/22</string>
+    <string name="editor_repeat_help_month">예: 5/1~5/10 + 매달 20일 → 다음 회차 5/20~5/29 (원래 길이 유지)</string>
 
     <!-- Editor errors -->
     <string name="editor_error_title_required">제목을 입력해주세요.</string>

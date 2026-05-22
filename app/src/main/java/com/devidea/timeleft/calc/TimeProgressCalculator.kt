@@ -60,30 +60,41 @@ object TimeProgressCalculator {
     // Returns the next (start, end) window when today has passed currentEnd.
     // Null when no shift applies (no recurrence flag, or today still within window).
     //
-    // For UPDATE_FLAG_MONTH, walks forward month-by-month until a month long enough
-    // to hold `updateRate` (day of month) is found — year and month are always taken
-    // from the same candidate to keep the boundary correct (incl. Dec→Jan).
+    // Both modes preserve the original cycle length (currentEnd - currentStart).
+    //
+    // Day: a fixed gap of `updateRate` days follows the previous end before the new
+    //      cycle starts — newStart = currentEnd + updateRate.
+    //
+    // Month: the new cycle starts on day `updateRate` of the earliest month strictly
+    //        after currentEnd that contains such a day (skipping months whose length
+    //        is shorter than updateRate, e.g. Feb when updateRate is 30 or 31).
     fun nextRecurrence(
+        currentStart: LocalDate,
         currentEnd: LocalDate,
         today: LocalDate,
         updateFlag: RecurrenceMode,
         updateRate: Int
     ): RecurrenceShift? {
         if (!today.isAfter(currentEnd)) return null
+        val duration = ChronoUnit.DAYS.between(currentStart, currentEnd)
         return when (updateFlag) {
-            RecurrenceMode.Day -> RecurrenceShift(
-                newStart = currentEnd,
-                newEnd = currentEnd.plusDays(updateRate.toLong())
-            )
+            RecurrenceMode.Day -> {
+                val newStart = currentEnd.plusDays(updateRate.toLong())
+                RecurrenceShift(
+                    newStart = newStart,
+                    newEnd = newStart.plusDays(duration)
+                )
+            }
 
             RecurrenceMode.Month -> {
-                var candidate = currentEnd.plusMonths(1)
-                while (candidate.lengthOfMonth() < updateRate) {
-                    candidate = candidate.plusMonths(1)
+                var candidate = currentEnd.plusDays(1)
+                while (candidate.lengthOfMonth() < updateRate || candidate.dayOfMonth > updateRate) {
+                    candidate = candidate.plusMonths(1).withDayOfMonth(1)
                 }
+                val newStart = candidate.withDayOfMonth(updateRate)
                 RecurrenceShift(
-                    newStart = currentEnd,
-                    newEnd = LocalDate.of(candidate.year, candidate.monthValue, updateRate)
+                    newStart = newStart,
+                    newEnd = newStart.plusDays(duration)
                 )
             }
 

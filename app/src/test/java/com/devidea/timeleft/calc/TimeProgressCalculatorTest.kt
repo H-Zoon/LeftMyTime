@@ -200,6 +200,7 @@ class TimeProgressCalculatorTest {
     @Test
     fun `nextRecurrence returns null when today is on currentEnd`() {
         val r = TimeProgressCalculator.nextRecurrence(
+            currentStart = LocalDate.of(2025, 6, 23),
             currentEnd = LocalDate.of(2025, 6, 30),
             today = LocalDate.of(2025, 6, 30),
             updateFlag = RecurrenceMode.Day,
@@ -209,8 +210,9 @@ class TimeProgressCalculatorTest {
     }
 
     @Test
-    fun `nextRecurrence returns null when updateFlag is 0`() {
+    fun `nextRecurrence returns null when updateFlag is None`() {
         val r = TimeProgressCalculator.nextRecurrence(
+            currentStart = LocalDate.of(2025, 6, 23),
             currentEnd = LocalDate.of(2025, 6, 30),
             today = LocalDate.of(2025, 7, 5),
             updateFlag = RecurrenceMode.None,
@@ -220,79 +222,86 @@ class TimeProgressCalculatorTest {
     }
 
     @Test
-    fun `nextRecurrence day cycle shifts forward by updateRate days`() {
+    fun `nextRecurrence Day preserves cycle length and inserts gap after end`() {
+        // currentStart=5/1, currentEnd=5/10 → length 9 days.
+        // updateRate=3 → 3-day gap after end → newStart=5/13, newEnd=5/22 (still 9 days).
         val r = TimeProgressCalculator.nextRecurrence(
-            currentEnd = LocalDate.of(2025, 6, 30),
-            today = LocalDate.of(2025, 7, 5),
+            currentStart = LocalDate.of(2025, 5, 1),
+            currentEnd = LocalDate.of(2025, 5, 10),
+            today = LocalDate.of(2025, 5, 11),
             updateFlag = RecurrenceMode.Day,
-            updateRate = 7
+            updateRate = 3
         )
-        assertEquals(LocalDate.of(2025, 6, 30), r?.newStart)
-        assertEquals(LocalDate.of(2025, 7, 7), r?.newEnd)
+        assertEquals(LocalDate.of(2025, 5, 13), r?.newStart)
+        assertEquals(LocalDate.of(2025, 5, 22), r?.newEnd)
     }
 
     @Test
-    fun `nextRecurrence monthly when target day fits next month`() {
+    fun `nextRecurrence Month lands on next day-of-month after currentEnd`() {
+        // currentStart=5/1, currentEnd=5/10 → length 9 days. updateRate=20.
+        // First day-20 strictly after 5/10 is 5/20 → newEnd=5/29.
         val r = TimeProgressCalculator.nextRecurrence(
-            currentEnd = LocalDate.of(2025, 6, 15),
-            today = LocalDate.of(2025, 6, 16),
+            currentStart = LocalDate.of(2025, 5, 1),
+            currentEnd = LocalDate.of(2025, 5, 10),
+            today = LocalDate.of(2025, 5, 11),
             updateFlag = RecurrenceMode.Month,
-            updateRate = 15
+            updateRate = 20
         )
-        assertEquals(LocalDate.of(2025, 6, 15), r?.newStart)
-        assertEquals(LocalDate.of(2025, 7, 15), r?.newEnd)
+        assertEquals(LocalDate.of(2025, 5, 20), r?.newStart)
+        assertEquals(LocalDate.of(2025, 5, 29), r?.newEnd)
     }
 
     @Test
-    fun `nextRecurrence monthly skips Feb when target day exceeds Feb length`() {
-        // currentEnd = Jan 31 2025 → next month (Feb 2025) has 28 days, can't fit day 30.
-        // Walks to March 2025.
+    fun `nextRecurrence Month rolls to next month when current month's day-of-month has passed`() {
+        // currentEnd=5/25, updateRate=20 → day 20 in May has passed → next is 6/20.
         val r = TimeProgressCalculator.nextRecurrence(
-            currentEnd = LocalDate.of(2025, 1, 31),
-            today = LocalDate.of(2025, 2, 1),
+            currentStart = LocalDate.of(2025, 5, 1),
+            currentEnd = LocalDate.of(2025, 5, 25),
+            today = LocalDate.of(2025, 5, 26),
             updateFlag = RecurrenceMode.Month,
-            updateRate = 30
+            updateRate = 20
         )
-        assertEquals(LocalDate.of(2025, 3, 30), r?.newEnd)
+        assertEquals(LocalDate.of(2025, 6, 20), r?.newStart)
     }
 
     @Test
-    fun `nextRecurrence monthly uses next month when its length equals updateRate`() {
-        // currentEnd = Oct 15 2024 → next month (Nov 2024) has 30 days. updateRate = 30.
-        // Nov 30 exists, so the recurrence lands on Nov 30 (not Dec 30).
+    fun `nextRecurrence Month skips Feb when updateRate exceeds Feb length`() {
+        // currentEnd=2/15 2025, updateRate=31 → Feb has 28 days → next is 3/31.
         val r = TimeProgressCalculator.nextRecurrence(
-            currentEnd = LocalDate.of(2024, 10, 15),
-            today = LocalDate.of(2024, 11, 1),
-            updateFlag = RecurrenceMode.Month,
-            updateRate = 30
-        )
-        assertEquals(LocalDate.of(2024, 11, 30), r?.newEnd)
-    }
-
-    @Test
-    fun `nextRecurrence monthly keeps year consistent across Dec to Jan boundary`() {
-        // currentEnd = Nov 30 2024, updateRate = 31.
-        // Dec 2024 has 31 days, so the recurrence lands on Dec 31 2024.
-        val r = TimeProgressCalculator.nextRecurrence(
-            currentEnd = LocalDate.of(2024, 11, 30),
-            today = LocalDate.of(2024, 12, 1),
+            currentStart = LocalDate.of(2025, 2, 1),
+            currentEnd = LocalDate.of(2025, 2, 15),
+            today = LocalDate.of(2025, 2, 16),
             updateFlag = RecurrenceMode.Month,
             updateRate = 31
         )
-        assertEquals(LocalDate.of(2024, 12, 31), r?.newEnd)
+        assertEquals(LocalDate.of(2025, 3, 31), r?.newStart)
     }
 
     @Test
-    fun `nextRecurrence monthly walks across year boundary when months cannot hold updateRate`() {
-        // currentEnd = Dec 31 2024, updateRate = 31.
-        // Jan 2025 has 31 days → lands on Jan 31 2025 (year correctly rolls forward).
+    fun `nextRecurrence Month crosses year boundary on Dec 31 with updateRate 31`() {
+        // currentEnd=12/31 2024, updateRate=31 → next day-31 is Jan 31 2025.
         val r = TimeProgressCalculator.nextRecurrence(
+            currentStart = LocalDate.of(2024, 12, 1),
             currentEnd = LocalDate.of(2024, 12, 31),
             today = LocalDate.of(2025, 1, 1),
             updateFlag = RecurrenceMode.Month,
             updateRate = 31
         )
-        assertEquals(LocalDate.of(2025, 1, 31), r?.newEnd)
+        assertEquals(LocalDate.of(2025, 1, 31), r?.newStart)
+    }
+
+    @Test
+    fun `nextRecurrence Month when currentEnd equals updateRate moves to next valid month`() {
+        // currentEnd=5/20, updateRate=20 → day 20 of May has not passed (it IS the end),
+        // but new start must be strictly after currentEnd → first eligible is 6/20.
+        val r = TimeProgressCalculator.nextRecurrence(
+            currentStart = LocalDate.of(2025, 5, 1),
+            currentEnd = LocalDate.of(2025, 5, 20),
+            today = LocalDate.of(2025, 5, 21),
+            updateFlag = RecurrenceMode.Month,
+            updateRate = 20
+        )
+        assertEquals(LocalDate.of(2025, 6, 20), r?.newStart)
     }
 
     companion object {
