@@ -1,7 +1,6 @@
 package com.devidea.timeleft.ui.home
 
 import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -56,7 +55,6 @@ internal fun NextCountdownHero(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(8.dp),
         color = accent.copy(alpha = 0.13f),
-        border = BorderStroke(1.dp, accent.copy(alpha = 0.35f)),
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
         Column(

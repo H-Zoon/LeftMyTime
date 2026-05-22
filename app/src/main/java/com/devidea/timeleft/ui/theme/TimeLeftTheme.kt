@@ -52,44 +52,44 @@ private val TimeLeftTypography = Typography(
     displaySmall = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.ExtraBold,
-        fontSize = 36.sp,
-        lineHeight = 42.sp
+        fontSize = 32.sp,
+        lineHeight = 38.sp
     ),
     headlineSmall = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 24.sp,
-        lineHeight = 30.sp
+        fontSize = 21.sp,
+        lineHeight = 27.sp
     ),
     titleLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 20.sp,
-        lineHeight = 26.sp
+        fontSize = 18.sp,
+        lineHeight = 24.sp
     ),
     titleMedium = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 16.sp,
-        lineHeight = 22.sp
+        fontSize = 15.sp,
+        lineHeight = 20.sp
     ),
     bodyLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Normal,
-        fontSize = 16.sp,
-        lineHeight = 23.sp
+        fontSize = 15.sp,
+        lineHeight = 21.sp
     ),
     bodyMedium = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Normal,
-        fontSize = 14.sp,
-        lineHeight = 20.sp
+        fontSize = 13.sp,
+        lineHeight = 18.sp
     ),
     labelLarge = TextStyle(
         fontFamily = NanumSquareRound,
         fontWeight = FontWeight.Bold,
-        fontSize = 14.sp,
-        lineHeight = 18.sp
+        fontSize = 13.sp,
+        lineHeight = 17.sp
     )
 )
 

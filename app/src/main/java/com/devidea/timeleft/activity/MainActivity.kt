@@ -11,15 +11,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
 import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.AndroidEntryPoint
-import java.time.LocalDateTime
-import java.time.format.DateTimeFormatter
 import javax.inject.Inject
 
 @AndroidEntryPoint
@@ -35,17 +32,12 @@ class MainActivity : AppCompatActivity() {
         applyNightMode(currentThemeMode())
 
         setContent {
-            val timeValue by viewModel.timeValue.collectAsStateWithLifecycle()
             val topItems by viewModel.topItems.collectAsStateWithLifecycle()
             val customItems by viewModel.customItems.collectAsStateWithLifecycle()
             var themeMode by remember { mutableStateOf(currentThemeMode()) }
-            val dateText = LocalDateTime.now()
-                .format(DateTimeFormatter.ofPattern(getString(R.string.pattern_header_date)))
 
             TimeLeftTheme(themeMode = themeMode) {
                 HomeScreen(
-                    dateText = dateText,
-                    timeText = timeValue,
                     themeMode = themeMode,
                     topItems = topItems,
                     customItems = customItems,

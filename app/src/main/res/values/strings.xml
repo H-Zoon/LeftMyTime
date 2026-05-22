@@ -16,8 +16,6 @@
     <string name="home_days_left">Days left: %1$d</string>
     <string name="home_next_countdown">Next up</string>
     <string name="home_time_overview">Time overview</string>
-    <string name="flow_start_today">00:00</string>
-    <string name="flow_end_today">24:00</string>
     <string name="flow_start_month">Day 1</string>
     <string name="flow_end_month">Month end</string>
     <string name="flow_start_year">Jan</string>

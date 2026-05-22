@@ -17,8 +17,6 @@
     <string name="home_days_left">남은일: %1$d일</string>
     <string name="home_next_countdown">다음 마감</string>
     <string name="home_time_overview">시간 흐름</string>
-    <string name="flow_start_today">00:00</string>
-    <string name="flow_end_today">24:00</string>
     <string name="flow_start_month">1일</string>
     <string name="flow_end_month">월말</string>
     <string name="flow_start_year">1월</string>

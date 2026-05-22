@@ -1,5 +1,6 @@
 package com.devidea.timeleft.ui.home
 
+import androidx.compose.ui.unit.Dp
 import java.util.Locale
 
 internal fun formatPercent(value: Float): String {
@@ -10,3 +11,6 @@ internal fun formatPercent(value: Float): String {
         String.format(Locale.getDefault(), "%.1f", safeValue)
     }
 }
+
+internal fun dynamicDp(expanded: Dp, collapsed: Dp, fraction: Float): Dp =
+    expanded + (collapsed - expanded) * fraction.coerceIn(0f, 1f)
