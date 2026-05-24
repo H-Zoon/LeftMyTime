@@ -102,6 +102,8 @@ private val recurrenceModeSaver: Saver<RecurrenceMode, String> = Saver(
 fun ItemEditorScreen(
     initialType: ItemType,
     initialItem: ItemEntity?,
+    defaultDateReminderOffset: Int,
+    defaultTimeReminderOffset: Int,
     isLoading: Boolean,
     isSaving: Boolean,
     onBack: () -> Unit,
@@ -129,6 +131,11 @@ fun ItemEditorScreen(
     var showNotificationPermissionExplanation by rememberSaveable { mutableStateOf(false) }
     var showNotificationPermissionSettings by rememberSaveable { mutableStateOf(false) }
     var notificationPermissionUnavailable by rememberSaveable { mutableStateOf(false) }
+
+    fun defaultReminderFor(type: ItemType): Int = when (type) {
+        ItemType.Date -> defaultDateReminderOffset
+        ItemType.Time -> defaultTimeReminderOffset
+    }
 
     fun submit(reminderOffset: Int = reminderOffsetDays) {
         errorRes = validateAndSave(
@@ -195,7 +202,10 @@ fun ItemEditorScreen(
 
     LaunchedEffect(initialItem?.id, isLoading) {
         if (!initialized && !isLoading) {
-            initialItem?.let { item ->
+            if (initialItem == null) {
+                reminderOffsetDays = defaultReminderFor(initialType)
+            } else {
+                val item = initialItem
                 selectedType = item.type
                 title = item.title
                 category = item.category
@@ -245,7 +255,7 @@ fun ItemEditorScreen(
                     enabled = initialItem == null,
                     onTypeSelected = { type ->
                         if (selectedType != type) {
-                            reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
+                            reminderOffsetDays = defaultReminderFor(type)
                             notificationPermissionUnavailable = false
                         }
                         selectedType = type

@@ -15,4 +15,32 @@
     <color name="widget_primary">#FF4F46E5</color>
     <color name="widget_track">#FFE2E8F0</color>
     <color name="widget_icon_background">#1A4F46E5</color>
+
+    <color name="widget_surface_emerald">#FFFFFFFF</color>
+    <color name="widget_on_surface_emerald">#FF0F241E</color>
+    <color name="widget_on_surface_variant_emerald">#FF526B63</color>
+    <color name="widget_primary_emerald">#FF047857</color>
+    <color name="widget_track_emerald">#FFDCEFE7</color>
+    <color name="widget_icon_background_emerald">#1A047857</color>
+
+    <color name="widget_surface_rose">#FFFFFFFF</color>
+    <color name="widget_on_surface_rose">#FF2B1118</color>
+    <color name="widget_on_surface_variant_rose">#FF76535B</color>
+    <color name="widget_primary_rose">#FFE11D48</color>
+    <color name="widget_track_rose">#FFFCE1E7</color>
+    <color name="widget_icon_background_rose">#1AE11D48</color>
+
+    <color name="widget_surface_amber">#FFFFFFFF</color>
+    <color name="widget_on_surface_amber">#FF291A0A</color>
+    <color name="widget_on_surface_variant_amber">#FF725F41</color>
+    <color name="widget_primary_amber">#FFB45309</color>
+    <color name="widget_track_amber">#FFFCEBC7</color>
+    <color name="widget_icon_background_amber">#1AB45309</color>
+
+    <color name="widget_surface_slate">#FFFFFFFF</color>
+    <color name="widget_on_surface_slate">#FF0F172A</color>
+    <color name="widget_on_surface_variant_slate">#FF64748B</color>
+    <color name="widget_primary_slate">#FF334155</color>
+    <color name="widget_track_slate">#FFE2E8F0</color>
+    <color name="widget_icon_background_slate">#1A334155</color>
 </resources>

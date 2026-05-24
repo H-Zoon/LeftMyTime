@@ -28,6 +28,7 @@
     <string name="home_empty_body">Track a deadline, a trip, or a focused time block from here.</string>
     <string name="home_empty_search">No items match your search.</string>
     <string name="home_change_theme">Change theme</string>
+    <string name="home_open_settings">Open settings</string>
     <string name="home_add_item">Add item</string>
     <string name="home_add_time_range">Time range</string>
     <string name="home_add_date">Date</string>
@@ -162,4 +163,39 @@
     <string name="widget_configure_no_items">No items available</string>
     <string name="widget_configure_remaining_option">Show remaining time</string>
     <string name="widget_configure_preview">Preview</string>
+
+    <!-- Settings -->
+    <string name="settings_title">Settings</string>
+    <string name="settings_display">Display</string>
+    <string name="settings_theme_system">Follow system theme</string>
+    <string name="settings_theme_light">Light</string>
+    <string name="settings_theme_dark">Dark</string>
+    <string name="settings_color_theme">Color theme</string>
+    <string name="settings_palette_indigo">Indigo</string>
+    <string name="settings_palette_emerald">Emerald</string>
+    <string name="settings_palette_rose">Rose</string>
+    <string name="settings_palette_amber">Amber</string>
+    <string name="settings_palette_slate">Slate</string>
+    <string name="settings_default_sort">Default item sort</string>
+    <string name="settings_home_behavior">Home behavior</string>
+    <string name="settings_start_screen">Start screen</string>
+    <string name="settings_expired_items">Expired items</string>
+    <string name="settings_expired_show">Show</string>
+    <string name="settings_expired_bottom">Move to bottom</string>
+    <string name="settings_expired_hide">Hide</string>
+    <string name="settings_progress_display">Countdown progress</string>
+    <string name="settings_progress_full">Bar and percentage</string>
+    <string name="settings_progress_bar_only">Bar only</string>
+    <string name="settings_progress_hidden">Hide</string>
+    <string name="settings_notifications">Notifications</string>
+    <string name="settings_notification_permission">Reminder notifications</string>
+    <string name="settings_notification_enabled">Allowed. Tap to manage in system settings.</string>
+    <string name="settings_notification_disabled">Off. Tap to allow in system settings.</string>
+    <string name="settings_date_reminder_time">Date reminder time</string>
+    <string name="settings_default_date_reminder">New date item reminder</string>
+    <string name="settings_default_time_reminder">New time range reminder</string>
+    <string name="settings_default_reminder_summary">Applied when creating new items.</string>
+    <string name="settings_about">About</string>
+    <string name="settings_privacy_policy">Privacy policy</string>
+    <string name="settings_version">Version</string>
 </resources>

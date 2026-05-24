@@ -17,6 +17,7 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.notification.canPostReminderNotifications
 import com.devidea.timeleft.notification.ReminderScheduler
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
@@ -66,10 +67,25 @@ class ItemEditorActivity : AppCompatActivity() {
         }
 
         setContent {
-            TimeLeftTheme(themeMode = prefs.getString("theme", "auto") ?: "auto") {
+            TimeLeftTheme(
+                themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
+                    ?: UserPreferences.THEME_AUTO,
+                paletteKey = prefs.getString(
+                    UserPreferences.KEY_COLOR_THEME,
+                    UserPreferences.COLOR_THEME_INDIGO
+                ) ?: UserPreferences.COLOR_THEME_INDIGO
+            ) {
                 ItemEditorScreen(
                     initialType = initialType,
                     initialItem = initialItem,
+                    defaultDateReminderOffset = prefs.getInt(
+                        UserPreferences.KEY_DEFAULT_DATE_REMINDER,
+                        UserPreferences.DEFAULT_REMINDER_OFFSET
+                    ),
+                    defaultTimeReminderOffset = prefs.getInt(
+                        UserPreferences.KEY_DEFAULT_TIME_REMINDER,
+                        UserPreferences.DEFAULT_REMINDER_OFFSET
+                    ),
                     isLoading = isLoading,
                     isSaving = isSaving,
                     onBack = { finish() },

@@ -9,11 +9,13 @@ import android.content.SharedPreferences
 import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
+import androidx.core.content.ContextCompat
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -89,6 +91,15 @@ class AppWidget : AppWidgetProvider() {
             year = itemGenerator.yearItem()
         )
 
+        applyPalette(
+            context = context,
+            views = views,
+            sizeClass = sizeClass,
+            palette = WidgetPalette.fromKey(
+                prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
+                    ?: UserPreferences.COLOR_THEME_INDIGO
+            )
+        )
         bindWidgetActions(context, views, appWidgetId)
 
         when (prefs.getString(appWidgetId.toString(), "")) {
@@ -185,6 +196,45 @@ class AppWidget : AppWidgetProvider() {
         views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
         views.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
+    }
+
+    private fun applyPalette(
+        context: Context,
+        views: RemoteViews,
+        sizeClass: WidgetSizeClass,
+        palette: WidgetPalette,
+    ) {
+        val primary = ContextCompat.getColor(context, palette.primaryColorRes)
+        val onSurface = ContextCompat.getColor(context, palette.onSurfaceColorRes)
+        val onSurfaceVariant = ContextCompat.getColor(context, palette.onSurfaceVariantColorRes)
+
+        views.setInt(R.id.widgetRoot, "setBackgroundResource", palette.backgroundDrawableRes)
+        views.setInt(R.id.refresh, "setBackgroundResource", palette.iconBackgroundDrawableRes)
+        views.setInt(R.id.refresh, "setColorFilter", primary)
+        views.setTextColor(R.id.summary, primary)
+        views.setTextColor(R.id.percent, onSurface)
+        WidgetPalette.entries.forEach { widgetPalette ->
+            views.setViewVisibility(
+                widgetPalette.progressViewId,
+                if (widgetPalette == palette) View.VISIBLE else View.GONE
+            )
+        }
+
+        if (sizeClass != WidgetSizeClass.Compact) {
+            views.setTextColor(R.id.widgetMeta, onSurfaceVariant)
+            views.setTextColor(R.id.progressLabel, onSurfaceVariant)
+        }
+        if (sizeClass == WidgetSizeClass.Wide || sizeClass == WidgetSizeClass.Large) {
+            listOf(R.id.widgetFlowToday, R.id.widgetFlowMonth, R.id.widgetFlowYear).forEach { id ->
+                views.setInt(id, "setBackgroundResource", palette.iconBackgroundDrawableRes)
+                views.setTextColor(id, onSurface)
+            }
+        }
+        if (sizeClass == WidgetSizeClass.Large) {
+            listOf(R.id.widgetDetailStart, R.id.widgetDetailEnd, R.id.widgetDetailUpdate).forEach { id ->
+                views.setTextColor(id, onSurfaceVariant)
+            }
+        }
     }
 
     private fun renderNextCountdownWidget(
@@ -312,7 +362,9 @@ class AppWidget : AppWidgetProvider() {
     ) {
         views.setTextViewText(R.id.summary, data.title)
         views.setTextViewText(R.id.percent, data.value)
-        views.setProgressBar(R.id.progress, 100, data.progress, false)
+        WidgetPalette.entries.forEach { palette ->
+            views.setProgressBar(palette.progressViewId, 100, data.progress, false)
+        }
     }
 
     private fun renderMedium(
@@ -423,6 +475,67 @@ class AppWidget : AppWidgetProvider() {
         Medium(R.layout.app_widget_medium),
         Wide(R.layout.app_widget_wide),
         Large(R.layout.app_widget_large)
+    }
+
+    private enum class WidgetPalette(
+        val key: String,
+        val backgroundDrawableRes: Int,
+        val iconBackgroundDrawableRes: Int,
+        val progressViewId: Int,
+        val primaryColorRes: Int,
+        val onSurfaceColorRes: Int,
+        val onSurfaceVariantColorRes: Int,
+    ) {
+        Indigo(
+            UserPreferences.COLOR_THEME_INDIGO,
+            R.drawable.line_widget,
+            R.drawable.widget_icon_button,
+            R.id.progress,
+            R.color.widget_primary,
+            R.color.widget_on_surface,
+            R.color.widget_on_surface_variant
+        ),
+        Emerald(
+            UserPreferences.COLOR_THEME_EMERALD,
+            R.drawable.line_widget_emerald,
+            R.drawable.widget_icon_button_emerald,
+            R.id.progressEmerald,
+            R.color.widget_primary_emerald,
+            R.color.widget_on_surface_emerald,
+            R.color.widget_on_surface_variant_emerald
+        ),
+        Rose(
+            UserPreferences.COLOR_THEME_ROSE,
+            R.drawable.line_widget_rose,
+            R.drawable.widget_icon_button_rose,
+            R.id.progressRose,
+            R.color.widget_primary_rose,
+            R.color.widget_on_surface_rose,
+            R.color.widget_on_surface_variant_rose
+        ),
+        Amber(
+            UserPreferences.COLOR_THEME_AMBER,
+            R.drawable.line_widget_amber,
+            R.drawable.widget_icon_button_amber,
+            R.id.progressAmber,
+            R.color.widget_primary_amber,
+            R.color.widget_on_surface_amber,
+            R.color.widget_on_surface_variant_amber
+        ),
+        Slate(
+            UserPreferences.COLOR_THEME_SLATE,
+            R.drawable.line_widget_slate,
+            R.drawable.widget_icon_button_slate,
+            R.id.progressSlate,
+            R.color.widget_primary_slate,
+            R.color.widget_on_surface_slate,
+            R.color.widget_on_surface_variant_slate
+        );
+
+        companion object {
+            fun fromKey(key: String): WidgetPalette =
+                entries.firstOrNull { it.key == key } ?: Indigo
+        }
     }
 
     private data class WidgetDisplayData(

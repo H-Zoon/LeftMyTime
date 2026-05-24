@@ -29,6 +29,7 @@ android {
     }
 
     sourceSets {
+        main.assets.srcDirs += files("$rootDir/docs".toString())
         androidTest.assets.srcDirs += files("$projectDir/schemas".toString())
     }
 

@@ -1,4 +1,5 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:id="@+id/widgetRoot"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
@@ -43,7 +44,7 @@
             android:padding="7dp"
             android:scaleType="center"
             android:src="@drawable/ic_baseline_refresh_24"
-            android:tint="@color/widget_primary" />
+            app:tint="@color/widget_primary" />
     </LinearLayout>
 
     <LinearLayout
@@ -134,13 +135,58 @@
         </LinearLayout>
     </LinearLayout>
 
-    <ProgressBar
-        android:id="@+id/progress"
-        style="?android:attr/progressBarStyleHorizontal"
+    <FrameLayout
         android:layout_width="match_parent"
-        android:layout_height="7dp"
-        android:indeterminate="false"
-        android:max="100"
-        android:progressDrawable="@drawable/progressbar_widget" />
+        android:layout_height="7dp">
+
+        <ProgressBar
+            android:id="@+id/progress"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progressDrawable="@drawable/progressbar_widget" />
+
+        <ProgressBar
+            android:id="@+id/progressEmerald"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progressDrawable="@drawable/progressbar_widget_emerald"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressRose"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progressDrawable="@drawable/progressbar_widget_rose"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressAmber"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progressDrawable="@drawable/progressbar_widget_amber"
+            android:visibility="gone" />
+
+        <ProgressBar
+            android:id="@+id/progressSlate"
+            style="?android:attr/progressBarStyleHorizontal"
+            android:layout_width="match_parent"
+            android:layout_height="7dp"
+            android:indeterminate="false"
+            android:max="100"
+            android:progressDrawable="@drawable/progressbar_widget_slate"
+            android:visibility="gone" />
+    </FrameLayout>
 
 </LinearLayout>

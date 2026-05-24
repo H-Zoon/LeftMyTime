@@ -7,4 +7,32 @@
     <color name="widget_primary">#FFA5B4FC</color>
     <color name="widget_track">#FF1E293B</color>
     <color name="widget_icon_background">#1AA5B4FC</color>
+
+    <color name="widget_surface_emerald">#FF102620</color>
+    <color name="widget_on_surface_emerald">#FFE0F2EC</color>
+    <color name="widget_on_surface_variant_emerald">#FF9CBCAF</color>
+    <color name="widget_primary_emerald">#FF6EE7B7</color>
+    <color name="widget_track_emerald">#FF183A31</color>
+    <color name="widget_icon_background_emerald">#1A6EE7B7</color>
+
+    <color name="widget_surface_rose">#FF30171D</color>
+    <color name="widget_on_surface_rose">#FFFBE7EB</color>
+    <color name="widget_on_surface_variant_rose">#FFD4A0AC</color>
+    <color name="widget_primary_rose">#FFFDA4AF</color>
+    <color name="widget_track_rose">#FF49242D</color>
+    <color name="widget_icon_background_rose">#1AFDA4AF</color>
+
+    <color name="widget_surface_amber">#FF302312</color>
+    <color name="widget_on_surface_amber">#FFFFF3D6</color>
+    <color name="widget_on_surface_variant_amber">#FFD1B987</color>
+    <color name="widget_primary_amber">#FFFCD34D</color>
+    <color name="widget_track_amber">#FF49351B</color>
+    <color name="widget_icon_background_amber">#1AFCD34D</color>
+
+    <color name="widget_surface_slate">#FF111827</color>
+    <color name="widget_on_surface_slate">#FFE5E7EB</color>
+    <color name="widget_on_surface_variant_slate">#FF94A3B8</color>
+    <color name="widget_primary_slate">#FFCBD5E1</color>
+    <color name="widget_track_slate">#FF1E293B</color>
+    <color name="widget_icon_background_slate">#1ACBD5E1</color>
 </resources>

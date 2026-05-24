@@ -42,6 +42,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
 
@@ -51,6 +52,7 @@ internal fun TimeLeftItemCard(
     item: AdapterItem,
     onEditItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit,
+    progressDisplayMode: String,
     modifier: Modifier = Modifier,
     compact: Boolean = false,
 ) {
@@ -75,6 +77,7 @@ internal fun TimeLeftItemCard(
                 item = item,
                 accent = accent,
                 progress = progress,
+                progressDisplayMode = progressDisplayMode,
                 expanded = false,
                 chevronRotation = chevronRotation,
                 showDetails = false,
@@ -99,6 +102,7 @@ internal fun TimeLeftItemCard(
                 item = item,
                 accent = accent,
                 progress = progress,
+                progressDisplayMode = progressDisplayMode,
                 expanded = expanded,
                 chevronRotation = chevronRotation,
                 showDetails = true,
@@ -141,6 +145,7 @@ private fun ItemCardContent(
     item: AdapterItem,
     accent: androidx.compose.ui.graphics.Color,
     progress: Float,
+    progressDisplayMode: String,
     expanded: Boolean,
     chevronRotation: Float,
     showDetails: Boolean,
@@ -189,26 +194,30 @@ private fun ItemCardContent(
                     }
                 }
             }
-            Spacer(modifier = Modifier.height(if (compact) 6.dp else 8.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                LinearProgressIndicator(
-                    progress = { progress },
-                    modifier = Modifier
-                        .weight(1f)
-                        .height(6.dp),
-                    color = accent,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-                Text(
-                    text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
-                    style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1
-                )
+            if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
+                Spacer(modifier = Modifier.height(if (compact) 6.dp else 8.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier
+                            .weight(1f)
+                            .height(6.dp),
+                        color = accent,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
+                    if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL) {
+                        Text(
+                            text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
+                            style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            maxLines = 1
+                        )
+                    }
+                }
             }
             if (showDetails) {
                 if (item.recurrenceText.isNotBlank()) {

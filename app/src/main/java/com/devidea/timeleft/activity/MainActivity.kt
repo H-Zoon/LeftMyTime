@@ -1,6 +1,7 @@
 package com.devidea.timeleft.activity
 
 import android.content.SharedPreferences
+import android.content.Intent
 import android.os.Bundle
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
@@ -8,12 +9,12 @@ import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.notification.ReminderScheduler
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
@@ -27,25 +28,41 @@ class MainActivity : AppCompatActivity() {
     @Inject lateinit var prefs: SharedPreferences
 
     private val viewModel: TimeLeftViewModel by viewModels()
+    private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
+    private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_INDIGO)
+    private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
+    private var startScreen by mutableStateOf(UserPreferences.START_SCREEN_OVERVIEW)
+    private var expiredItemsMode by mutableStateOf(UserPreferences.EXPIRED_ITEMS_SHOW)
+    private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         setTheme(R.style.Theme_MyApplication)
         super.onCreate(savedInstanceState)
 
-        applyNightMode(currentThemeMode())
+        refreshPreferences()
 
         setContent {
             val topItems by viewModel.topItems.collectAsStateWithLifecycle()
             val customItems by viewModel.customItems.collectAsStateWithLifecycle()
-            var themeMode by remember { mutableStateOf(currentThemeMode()) }
 
-            TimeLeftTheme(themeMode = themeMode) {
+            TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey) {
                 HomeScreen(
                     themeMode = themeMode,
+                    initialSortValue = homeSort,
+                    initialTabValue = startScreen,
+                    expiredItemsMode = expiredItemsMode,
+                    progressDisplayMode = progressDisplayMode,
                     topItems = topItems,
                     customItems = customItems,
                     onToggleTheme = {
                         themeMode = nightModeChanger()
+                    },
+                    onOpenSettings = {
+                        startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
+                    },
+                    onSortChange = { value ->
+                        prefs.edit().putString(UserPreferences.KEY_HOME_SORT, value).apply()
+                        homeSort = value
                     },
                     onAddTime = {
                         startActivity(
@@ -70,24 +87,54 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    override fun onResume() {
+        super.onResume()
+        if (::prefs.isInitialized) refreshPreferences()
+    }
+
     private fun nightModeChanger(): String {
         val nextMode = when (currentThemeMode()) {
-            "light" -> "dark"
-            "dark" -> "auto"
-            else -> "light"
+            UserPreferences.THEME_LIGHT -> UserPreferences.THEME_DARK
+            UserPreferences.THEME_DARK -> UserPreferences.THEME_AUTO
+            else -> UserPreferences.THEME_LIGHT
         }
-        prefs.edit().putString("theme", nextMode).apply()
+        prefs.edit().putString(UserPreferences.KEY_THEME, nextMode).apply()
         applyNightMode(nextMode)
         return nextMode
     }
 
+    private fun refreshPreferences() {
+        themeMode = currentThemeMode()
+        paletteKey = prefs.getString(
+            UserPreferences.KEY_COLOR_THEME,
+            UserPreferences.COLOR_THEME_INDIGO
+        ) ?: UserPreferences.COLOR_THEME_INDIGO
+        homeSort = prefs.getString(UserPreferences.KEY_HOME_SORT, UserPreferences.SORT_NEAREST)
+            ?: UserPreferences.SORT_NEAREST
+        startScreen = prefs.getString(
+            UserPreferences.KEY_START_SCREEN,
+            UserPreferences.START_SCREEN_OVERVIEW
+        ) ?: UserPreferences.START_SCREEN_OVERVIEW
+        expiredItemsMode = prefs.getString(
+            UserPreferences.KEY_EXPIRED_ITEMS,
+            UserPreferences.EXPIRED_ITEMS_SHOW
+        ) ?: UserPreferences.EXPIRED_ITEMS_SHOW
+        progressDisplayMode = prefs.getString(
+            UserPreferences.KEY_PROGRESS_DISPLAY,
+            UserPreferences.PROGRESS_DISPLAY_FULL
+        ) ?: UserPreferences.PROGRESS_DISPLAY_FULL
+        applyNightMode(themeMode)
+    }
+
     private fun applyNightMode(themeMode: String) {
         when (themeMode) {
-            "light" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
-            "dark" -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
+            UserPreferences.THEME_LIGHT -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO)
+            UserPreferences.THEME_DARK -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES)
             else -> AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM)
         }
     }
 
-    private fun currentThemeMode(): String = prefs.getString("theme", "auto") ?: "auto"
+    private fun currentThemeMode(): String =
+        prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
+            ?: UserPreferences.THEME_AUTO
 }

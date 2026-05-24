@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.BrightnessAuto
 import androidx.compose.material.icons.filled.DarkMode
 import androidx.compose.material.icons.filled.LightMode
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +36,7 @@ internal fun HeaderSection(
     themeMode: String,
     todayItem: AdapterItem?,
     onToggleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
     collapseFraction: Float,
 ) {
     val topPadding = dynamicDp(16.dp, 8.dp, collapseFraction)
@@ -50,12 +52,14 @@ internal fun HeaderSection(
                 themeMode = themeMode,
                 todayItem = todayItem,
                 onToggleTheme = onToggleTheme,
+                onOpenSettings = onOpenSettings,
                 collapseFraction = collapseFraction
             )
         } else {
             HeaderFallback(
                 themeMode = themeMode,
-                onToggleTheme = onToggleTheme
+                onToggleTheme = onToggleTheme,
+                onOpenSettings = onOpenSettings
             )
         }
     }
@@ -66,6 +70,7 @@ private fun HeaderTodayFlow(
     themeMode: String,
     todayItem: AdapterItem,
     onToggleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
     collapseFraction: Float,
 ) {
     val accent = MaterialTheme.colorScheme.primary
@@ -94,6 +99,7 @@ private fun HeaderTodayFlow(
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
+            SettingsButton(onClick = onOpenSettings)
         }
         TimeFlowTrack(
             progress = progress,
@@ -188,6 +194,7 @@ private fun HeaderTodayText(
 private fun HeaderFallback(
     themeMode: String,
     onToggleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
 ) {
     Row(
         modifier = Modifier.fillMaxWidth(),
@@ -209,6 +216,18 @@ private fun HeaderFallback(
                 tint = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
+        SettingsButton(onClick = onOpenSettings)
+    }
+}
+
+@Composable
+private fun SettingsButton(onClick: () -> Unit) {
+    IconButton(onClick = onClick) {
+        Icon(
+            imageVector = Icons.Filled.Settings,
+            contentDescription = stringResource(R.string.home_open_settings),
+            tint = MaterialTheme.colorScheme.onSurfaceVariant
+        )
     }
 }
 

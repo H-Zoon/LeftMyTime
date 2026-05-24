@@ -7,10 +7,12 @@ import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
 import android.os.Build
+import androidx.preference.PreferenceManager
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.preferences.UserPreferences
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.time.LocalTime
@@ -45,7 +47,7 @@ object ReminderScheduler {
         if (item.reminderOffsetDays == ItemVisuals.REMINDER_DISABLED) return
         if (!context.canPostReminderNotifications()) return
 
-        val triggerMillis = reminderTimeMillis(item) ?: return
+        val triggerMillis = reminderTimeMillis(context, item) ?: return
         if (triggerMillis <= System.currentTimeMillis()) return
 
         createChannel(context)
@@ -118,17 +120,26 @@ object ReminderScheduler {
         }
     }
 
-    private fun reminderTimeMillis(item: ItemEntity): Long? = when (item.type) {
-        ItemType.Date -> dateReminderTimeMillis(item)
+    private fun reminderTimeMillis(context: Context, item: ItemEntity): Long? = when (item.type) {
+        ItemType.Date -> dateReminderTimeMillis(context, item)
         ItemType.Time -> timeReminderTimeMillis(item.endValue, item.reminderOffsetDays)
     }
 
-    private fun dateReminderTimeMillis(item: ItemEntity): Long? {
+    private fun dateReminderTimeMillis(context: Context, item: ItemEntity): Long? {
         val endDate = runCatching {
             LocalDate.parse(item.endValue, STORAGE_DATE_FORMATTER)
         }.getOrNull() ?: return null
+        val reminderTime = PreferenceManager.getDefaultSharedPreferences(context)
+            .getString(
+                UserPreferences.KEY_DATE_REMINDER_TIME,
+                UserPreferences.DEFAULT_DATE_REMINDER_TIME
+            )
+            ?.let { value ->
+                runCatching { LocalTime.parse(value, SETTINGS_TIME_FORMATTER) }.getOrNull()
+            }
+            ?: LocalTime.of(9, 0)
         val triggerDate = endDate.minusDays(item.reminderOffsetDays.toLong())
-        return LocalDateTime.of(triggerDate, LocalTime.of(9, 0))
+        return LocalDateTime.of(triggerDate, reminderTime)
             .atZone(ZoneId.systemDefault())
             .toInstant()
             .toEpochMilli()
@@ -152,6 +163,7 @@ object ReminderScheduler {
 
     private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
     private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
+    private val SETTINGS_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
 
     private fun reminderIntent(context: Context, item: ItemEntity): Intent =
         reminderIntent(

@@ -29,6 +29,7 @@
     <string name="home_empty_body">마감일, 여행, 집중 시간처럼 놓치고 싶지 않은 시간을 바로 추적할 수 있습니다.</string>
     <string name="home_empty_search">검색 결과가 없습니다.</string>
     <string name="home_change_theme">테마 변경</string>
+    <string name="home_open_settings">설정 열기</string>
     <string name="home_add_item">항목 추가</string>
     <string name="home_add_time_range">시간 범위</string>
     <string name="home_add_date">날짜</string>
@@ -163,4 +164,39 @@
     <string name="widget_configure_no_items">선택할 항목이 없습니다</string>
     <string name="widget_configure_remaining_option">남은 시간으로 보기</string>
     <string name="widget_configure_preview">미리보기</string>
+
+    <!-- Settings -->
+    <string name="settings_title">설정</string>
+    <string name="settings_display">화면</string>
+    <string name="settings_theme_system">시스템 설정 사용</string>
+    <string name="settings_theme_light">라이트</string>
+    <string name="settings_theme_dark">다크</string>
+    <string name="settings_color_theme">색상 테마</string>
+    <string name="settings_palette_indigo">인디고</string>
+    <string name="settings_palette_emerald">에메랄드</string>
+    <string name="settings_palette_rose">로즈</string>
+    <string name="settings_palette_amber">앰버</string>
+    <string name="settings_palette_slate">슬레이트</string>
+    <string name="settings_default_sort">기본 항목 정렬</string>
+    <string name="settings_home_behavior">홈 동작</string>
+    <string name="settings_start_screen">기본 시작 화면</string>
+    <string name="settings_expired_items">만료 항목 표시</string>
+    <string name="settings_expired_show">표시</string>
+    <string name="settings_expired_bottom">아래로 이동</string>
+    <string name="settings_expired_hide">숨김</string>
+    <string name="settings_progress_display">카운트다운 진행률</string>
+    <string name="settings_progress_full">막대와 퍼센트</string>
+    <string name="settings_progress_bar_only">막대만</string>
+    <string name="settings_progress_hidden">숨김</string>
+    <string name="settings_notifications">알림</string>
+    <string name="settings_notification_permission">리마인더 알림</string>
+    <string name="settings_notification_enabled">허용됨. 시스템 설정에서 관리할 수 있습니다.</string>
+    <string name="settings_notification_disabled">꺼짐. 시스템 설정에서 허용할 수 있습니다.</string>
+    <string name="settings_date_reminder_time">날짜 알림 시각</string>
+    <string name="settings_default_date_reminder">새 날짜 항목 기본 알림</string>
+    <string name="settings_default_time_reminder">새 시간 범위 기본 알림</string>
+    <string name="settings_default_reminder_summary">새 항목을 만들 때 적용됩니다.</string>
+    <string name="settings_about">정보</string>
+    <string name="settings_privacy_policy">개인정보처리방침</string>
+    <string name="settings_version">버전</string>
 </resources>

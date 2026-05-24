@@ -48,6 +48,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
+import com.devidea.timeleft.preferences.UserPreferences
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -78,7 +79,7 @@ class AppWidgetConfigure : AppCompatActivity() {
         }
 
         setContent {
-            TimeLeftTheme(themeMode = currentThemeMode()) {
+            TimeLeftTheme(themeMode = currentThemeMode(), paletteKey = currentPaletteKey()) {
                 WidgetConfigureRoute(
                     loadItems = { repository.allItems() },
                     onSave = ::saveWidgetConfiguration
@@ -141,7 +142,13 @@ class AppWidgetConfigure : AppCompatActivity() {
         ).show()
     }
 
-    private fun currentThemeMode(): String = prefs.getString("theme", "auto") ?: "auto"
+    private fun currentThemeMode(): String =
+        prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
+            ?: UserPreferences.THEME_AUTO
+
+    private fun currentPaletteKey(): String =
+        prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
+            ?: UserPreferences.COLOR_THEME_INDIGO
 }
 
 @Composable

@@ -23,6 +23,12 @@
             android:name=".activity.ItemEditorActivity"
             android:exported="false" />
         <activity
+            android:name=".activity.SettingsActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activity.PrivacyPolicyActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.MainActivity"
             android:exported="true"
             android:theme="@style/Theme.MyApplication.Splash">

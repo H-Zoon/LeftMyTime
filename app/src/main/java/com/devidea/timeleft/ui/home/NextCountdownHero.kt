@@ -24,12 +24,14 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
 
 @Composable
 internal fun NextCountdownHero(
     item: AdapterItem,
+    progressDisplayMode: String,
     modifier: Modifier = Modifier,
 ) {
     val accent = itemAccentColor(item.colorKey, countdownAccent(item))
@@ -95,21 +97,25 @@ internal fun NextCountdownHero(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis
             )
-            LinearProgressIndicator(
-                progress = { progress },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(6.dp),
-                color = accent,
-                trackColor = MaterialTheme.colorScheme.surfaceVariant
-            )
-            Text(
-                text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
+                LinearProgressIndicator(
+                    progress = { progress },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(6.dp),
+                    color = accent,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                )
+            }
+            if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL) {
+                Text(
+                    text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
     }
 }

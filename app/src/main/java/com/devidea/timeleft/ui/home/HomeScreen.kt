@@ -50,13 +50,20 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.preferences.UserPreferences
 
 @Composable
 fun HomeScreen(
     themeMode: String,
+    initialSortValue: String,
+    initialTabValue: String,
+    expiredItemsMode: String,
+    progressDisplayMode: String,
     topItems: List<AdapterItem>,
     customItems: List<AdapterItem>,
     onToggleTheme: () -> Unit,
+    onOpenSettings: () -> Unit,
+    onSortChange: (String) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -64,8 +71,8 @@ fun HomeScreen(
 ) {
     var fabExpanded by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
-    var selectedSortValue by rememberSaveable { mutableStateOf(HomeSortMode.Nearest.name) }
-    var selectedTabValue by rememberSaveable { mutableStateOf(HomeMainTab.Overview.name) }
+    var selectedSortValue by rememberSaveable(initialSortValue) { mutableStateOf(initialSortValue) }
+    var selectedTabValue by rememberSaveable { mutableStateOf(initialTabValue) }
     val selectedSort = remember(selectedSortValue) {
         runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     }
@@ -91,20 +98,27 @@ fun HomeScreen(
         animationSpec = tween(durationMillis = 180),
         label = "timeFlowBandCollapse"
     )
-    val nextCountdown = customItems
+    val displayedItems = remember(customItems, expiredItemsMode) {
+        if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE) {
+            customItems.filterNot { it.isExpired }
+        } else {
+            customItems
+        }
+    }
+    val nextCountdown = displayedItems
         .filterNot { it.isExpired }
         .minByOrNull { it.remainingSortKey }
-        ?: customItems.firstOrNull()
-    val visibleItems = remember(customItems, searchQuery, selectedSort) {
+        ?: displayedItems.firstOrNull()
+    val visibleItems = remember(displayedItems, searchQuery, selectedSort, expiredItemsMode) {
         val query = searchQuery.trim()
-        customItems
+        displayedItems
             .filter { item ->
                 query.isBlank() ||
                     item.title.contains(query, ignoreCase = true) ||
                     item.category.contains(query, ignoreCase = true)
             }
             .let { items ->
-                when (selectedSort) {
+                val sorted = when (selectedSort) {
                     HomeSortMode.Nearest -> items.sortedWith(
                         compareBy<AdapterItem> { it.remainingSortKey }
                             .thenBy { it.id }
@@ -113,16 +127,21 @@ fun HomeScreen(
                     HomeSortMode.Title -> items.sortedBy { it.title.lowercase() }
                     HomeSortMode.Progress -> items.sortedByDescending { it.percent }
                 }
+                if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_BOTTOM) {
+                    sorted.sortedBy { it.isExpired }
+                } else {
+                    sorted
+                }
             }
     }
-    val upcomingItems = remember(customItems) {
+    val upcomingItems = remember(displayedItems, nextCountdown) {
         val nextId = nextCountdown?.id
-        customItems
+        displayedItems
             .filterNot { it.isExpired }
             .filterNot { it.id == nextId }
             .sortedWith(compareBy<AdapterItem> { it.remainingSortKey }.thenBy { it.id })
             .take(3)
-            .ifEmpty { customItems.filterNot { it.id == nextId }.take(3) }
+            .ifEmpty { displayedItems.filterNot { it.id == nextId }.take(3) }
     }
 
     Scaffold(
@@ -210,6 +229,7 @@ fun HomeScreen(
                             themeMode = themeMode,
                             todayItem = topItems.firstOrNull(),
                             onToggleTheme = onToggleTheme,
+                            onOpenSettings = onOpenSettings,
                             collapseFraction = collapseFraction
                         )
                         SummarySection(
@@ -225,7 +245,8 @@ fun HomeScreen(
                     listState = overviewListState,
                     nextCountdown = nextCountdown,
                     upcomingItems = upcomingItems,
-                    customItemsEmpty = customItems.isEmpty(),
+                    customItemsEmpty = displayedItems.isEmpty(),
+                    progressDisplayMode = progressDisplayMode,
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
                     onEditItem = onEditItem,
@@ -235,12 +256,16 @@ fun HomeScreen(
             } else {
                 ItemsTabContent(
                     listState = itemsListState,
-                    customItems = customItems,
+                    customItems = displayedItems,
                     visibleItems = visibleItems,
+                    progressDisplayMode = progressDisplayMode,
                     searchQuery = searchQuery,
                     selectedSort = selectedSort,
                     onQueryChange = { searchQuery = it },
-                    onSortChange = { selectedSortValue = it.name },
+                    onSortChange = {
+                        selectedSortValue = it.name
+                        onSortChange(it.name)
+                    },
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
                     onEditItem = onEditItem,
@@ -288,6 +313,7 @@ private fun OverviewTabContent(
     nextCountdown: AdapterItem?,
     upcomingItems: List<AdapterItem>,
     customItemsEmpty: Boolean,
+    progressDisplayMode: String,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -304,6 +330,7 @@ private fun OverviewTabContent(
             item {
                 NextCountdownHero(
                     item = nextCountdown,
+                    progressDisplayMode = progressDisplayMode,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -328,6 +355,7 @@ private fun OverviewTabContent(
             items(upcomingItems, key = { it.id }) { item ->
                 TimeLeftItemCard(
                     item = item,
+                    progressDisplayMode = progressDisplayMode,
                     onEditItem = onEditItem,
                     onDeleteItem = onDeleteItem,
                     compact = true,
@@ -343,6 +371,7 @@ private fun ItemsTabContent(
     listState: androidx.compose.foundation.lazy.LazyListState,
     customItems: List<AdapterItem>,
     visibleItems: List<AdapterItem>,
+    progressDisplayMode: String,
     searchQuery: String,
     selectedSort: HomeSortMode,
     onQueryChange: (String) -> Unit,
@@ -398,6 +427,7 @@ private fun ItemsTabContent(
                 items(visibleItems, key = { it.id }) { item ->
                     TimeLeftItemCard(
                         item = item,
+                        progressDisplayMode = progressDisplayMode,
                         onEditItem = onEditItem,
                         onDeleteItem = onDeleteItem,
                         modifier = Modifier.padding(horizontal = 16.dp)
