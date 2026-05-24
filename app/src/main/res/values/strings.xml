@@ -1,6 +1,9 @@
 <resources>
     <string name="app_name">TimeLeft</string>
-    <string name="widget_label">TimeLeft widget</string>
+    <string name="widget_small_label">TimeLeft small</string>
+    <string name="widget_medium_label">TimeLeft medium</string>
+    <string name="widget_wide_label">TimeLeft wide</string>
+    <string name="widget_large_label">TimeLeft large</string>
 
     <!-- Date / time patterns (locale-aware) -->
     <string name="pattern_header_time">h:mm:ss a</string>

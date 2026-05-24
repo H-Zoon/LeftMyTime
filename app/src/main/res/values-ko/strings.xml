@@ -1,7 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TimeLeft</string>
-    <string name="widget_label">기본위젯</string>
+    <string name="widget_small_label">소형 위젯</string>
+    <string name="widget_medium_label">중형 위젯</string>
+    <string name="widget_wide_label">와이드 위젯</string>
+    <string name="widget_large_label">대형 위젯</string>
 
     <!-- Date / time patterns (locale-aware) -->
     <string name="pattern_header_time">a h:m:ss</string>

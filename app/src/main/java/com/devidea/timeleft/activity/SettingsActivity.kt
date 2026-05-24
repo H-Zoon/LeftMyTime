@@ -4,7 +4,6 @@ import android.content.Intent
 import android.content.SharedPreferences
 import android.app.TimePickerDialog
 import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.os.Bundle
 import android.provider.Settings
 import android.webkit.WebView
@@ -151,10 +150,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun updateWidgets() {
         val appWidgetManager = AppWidgetManager.getInstance(this)
-        val provider = ComponentName(this, AppWidget::class.java)
-        appWidgetManager.getAppWidgetIds(provider).forEach { id ->
-            AppWidget().updateAppWidget(this, appWidgetManager, id)
-        }
+        AppWidget.updateAllWidgets(this, appWidgetManager)
     }
 
     private fun selectSort(value: String) {

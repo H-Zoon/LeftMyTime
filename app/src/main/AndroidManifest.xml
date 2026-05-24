@@ -41,7 +41,7 @@
 
         <receiver
             android:name=".widget.AppWidget"
-            android:label="@string/widget_label"
+            android:label="@string/widget_small_label"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -50,6 +50,45 @@
             <meta-data
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.MediumAppWidget"
+            android:label="@string/widget_medium_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_info_medium" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.WideAppWidget"
+            android:label="@string/widget_wide_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_info_wide" />
+        </receiver>
+
+        <receiver
+            android:name=".widget.LargeAppWidget"
+            android:label="@string/widget_large_label"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+
+            <meta-data
+                android:name="android.appwidget.provider"
+                android:resource="@xml/app_widget_info_large" />
         </receiver>
 
         <receiver

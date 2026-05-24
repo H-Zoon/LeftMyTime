@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:minWidth="110dp"
+    android:minWidth="245dp"
     android:minHeight="74dp"
     android:minResizeWidth="110dp"
     android:minResizeHeight="74dp"
     android:maxResizeWidth="624dp"
     android:maxResizeHeight="422dp"
-    android:targetCellWidth="2"
+    android:targetCellWidth="4"
     android:targetCellHeight="1"
     android:updatePeriodMillis="1800000"
-    android:previewImage="@drawable/preview_widget_small"
-    android:initialLayout="@layout/app_widget"
+    android:previewImage="@drawable/preview_widget_wide"
+    android:initialLayout="@layout/app_widget_wide"
     android:resizeMode="horizontal|vertical"
     android:widgetCategory="home_screen"
-    android:initialKeyguardLayout="@layout/app_widget"
+    android:initialKeyguardLayout="@layout/app_widget_wide"
     android:configure="com.devidea.timeleft.widget.AppWidgetConfigure">
 </appwidget-provider>

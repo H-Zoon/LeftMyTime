@@ -3,6 +3,7 @@ package com.devidea.timeleft.widget
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
@@ -26,7 +27,29 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.util.Locale
 
-class AppWidget : AppWidgetProvider() {
+open class AppWidget : AppWidgetProvider() {
+
+    companion object {
+        private val providerClasses = listOf(
+            AppWidget::class.java,
+            MediumAppWidget::class.java,
+            WideAppWidget::class.java,
+            LargeAppWidget::class.java
+        )
+
+        fun updateAllWidgets(
+            context: Context,
+            appWidgetManager: AppWidgetManager,
+        ) {
+            providerClasses.forEach { providerClass ->
+                appWidgetManager
+                    .getAppWidgetIds(ComponentName(context, providerClass))
+                    .forEach { appWidgetId ->
+                        AppWidget().updateAppWidget(context, appWidgetManager, appWidgetId)
+                    }
+            }
+        }
+    }
 
     @EntryPoint
     @InstallIn(SingletonComponent::class)
@@ -100,7 +123,7 @@ class AppWidget : AppWidgetProvider() {
                     ?: UserPreferences.COLOR_THEME_INDIGO
             )
         )
-        bindWidgetActions(context, views, appWidgetId)
+        bindWidgetActions(context, appWidgetManager, views, appWidgetId)
 
         when (prefs.getString(appWidgetId.toString(), "")) {
             "embedYear" -> {
@@ -170,10 +193,14 @@ class AppWidget : AppWidgetProvider() {
 
     private fun bindWidgetActions(
         context: Context,
+        appWidgetManager: AppWidgetManager,
         views: RemoteViews,
         appWidgetId: Int,
     ) {
-        val updateIntent = Intent(context, AppWidget::class.java).apply {
+        val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
+            ?: ComponentName(context, AppWidget::class.java)
+        val updateIntent = Intent().apply {
+            component = provider
             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
         }
@@ -454,9 +481,9 @@ class AppWidget : AppWidgetProvider() {
         val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
 
         return when {
-            minWidth >= 300 && minHeight >= 180 -> WidgetSizeClass.Large
-            minWidth >= 260 -> WidgetSizeClass.Wide
-            minHeight >= 130 -> WidgetSizeClass.Medium
+            minWidth >= 245 && minHeight >= 185 -> WidgetSizeClass.Large
+            minWidth >= 245 -> WidgetSizeClass.Wide
+            minHeight >= 115 -> WidgetSizeClass.Medium
             else -> WidgetSizeClass.Compact
         }
     }
@@ -555,3 +582,9 @@ class AppWidget : AppWidgetProvider() {
         val year: AdapterItem,
     )
 }
+
+class MediumAppWidget : AppWidget()
+
+class WideAppWidget : AppWidget()
+
+class LargeAppWidget : AppWidget()
