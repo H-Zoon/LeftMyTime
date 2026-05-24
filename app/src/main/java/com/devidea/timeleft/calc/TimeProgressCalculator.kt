@@ -50,8 +50,7 @@ object TimeProgressCalculator {
         val elapsed = ChronoUnit.DAYS.between(start, today).toInt()
         val left = ChronoUnit.DAYS.between(today, end).toInt()
         return CustomDateProgress(
-            percentElapsed = if (total == 0) Float.POSITIVE_INFINITY
-            else elapsed.toFloat() / total * 100f,
+            percentElapsed = if (total == 0) 100f else elapsed.toFloat() / total * 100f,
             daysLeft = left,
             daysBetween = total
         )

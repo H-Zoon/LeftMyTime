@@ -77,6 +77,12 @@
     <string name="editor_reminder">Reminder</string>
     <string name="editor_start_time">Start time</string>
     <string name="editor_end_time">End time</string>
+    <string name="editor_time_range">Time range</string>
+    <string name="editor_time_range_hours">%1$d hr selected</string>
+    <string name="editor_time_range_minutes">%1$d min selected</string>
+    <string name="editor_time_range_hours_minutes">%1$d hr %2$d min selected</string>
+    <string name="editor_time_range_drag_hint">Drag start and end points in 5-minute steps. Overnight ranges are not supported.</string>
+    <string name="editor_time_range_accessibility">Selected time range: %1$s to %2$s, %3$s</string>
     <string name="editor_start_date">Start date</string>
     <string name="editor_end_date">End date</string>
     <string name="editor_repeat">Repeat</string>

@@ -78,6 +78,12 @@
     <string name="editor_reminder">알림</string>
     <string name="editor_start_time">시작 시간</string>
     <string name="editor_end_time">종료 시간</string>
+    <string name="editor_time_range">시간 범위</string>
+    <string name="editor_time_range_hours">%1$d시간 선택됨</string>
+    <string name="editor_time_range_minutes">%1$d분 선택됨</string>
+    <string name="editor_time_range_hours_minutes">%1$d시간 %2$d분 선택됨</string>
+    <string name="editor_time_range_drag_hint">시작점과 종료점을 5분 단위로 이동하세요. 자정을 넘는 범위는 지원하지 않습니다.</string>
+    <string name="editor_time_range_accessibility">선택 시간 범위: %1$s부터 %2$s까지, %3$s</string>
     <string name="editor_start_date">시작일</string>
     <string name="editor_end_date">종료일</string>
     <string name="editor_repeat">반복</string>

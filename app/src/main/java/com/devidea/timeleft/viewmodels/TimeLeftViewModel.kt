@@ -19,9 +19,11 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
+import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.launch
@@ -92,10 +94,10 @@ class TimeLeftViewModel @Inject constructor(
 
     private val advancedItems: Flow<List<ItemEntity>> = repository.items
         .combine(expiryTicker) { entities, _ ->
-            repository.advanceExpiredRecurrences(entities).also {
-                ReminderScheduler.rescheduleAll(context, it)
-            }
+            repository.advanceExpiredRecurrences(entities)
         }
+        .distinctUntilChanged()
+        .onEach { items -> ReminderScheduler.rescheduleAll(context, items) }
         .flowOn(Dispatchers.IO)
 
     val customItems: StateFlow<List<AdapterItem>> = advancedItems

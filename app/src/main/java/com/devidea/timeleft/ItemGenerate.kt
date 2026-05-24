@@ -23,7 +23,7 @@ class ItemGenerate @Inject constructor(
     override fun timeItem(): AdapterItem {
         val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
         val leftFormatted = LocalTime.ofSecondOfDay(progress.durationLeft.seconds)
-            .format(DateTimeFormatter.ofPattern("H:mm:ss"))
+            .format(HEADER_TIME_FORMATTER)
         val leftText = context.getString(R.string.home_time_left, leftFormatted)
 
         return AdapterItem(
@@ -56,9 +56,8 @@ class ItemGenerate @Inject constructor(
     }
 
     override fun customTimeItem(itemEntity: ItemEntity): AdapterItem {
-        val formatter = DateTimeFormatter.ofPattern("H:m")
-        val startTime = LocalTime.parse(itemEntity.startValue, formatter)
-        val endTime = LocalTime.parse(itemEntity.endValue, formatter)
+        val startTime = LocalTime.parse(itemEntity.startValue, STORAGE_TIME_FORMATTER)
+        val endTime = LocalTime.parse(itemEntity.endValue, STORAGE_TIME_FORMATTER)
 
         val base = AdapterItem(
             id = itemEntity.id,
@@ -96,10 +95,9 @@ class ItemGenerate @Inject constructor(
     }
 
     override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
-        val formatter = DateTimeFormatter.ofPattern("yyyy-M-d")
         val today = LocalDate.now()
-        val startDate = LocalDate.parse(itemEntity.startValue, formatter)
-        val endDate = LocalDate.parse(itemEntity.endValue, formatter)
+        val startDate = LocalDate.parse(itemEntity.startValue, STORAGE_DATE_FORMATTER)
+        val endDate = LocalDate.parse(itemEntity.endValue, STORAGE_DATE_FORMATTER)
 
         val progress = TimeProgressCalculator.customDateProgress(startDate, endDate, today)
         val displayPercent =
@@ -161,5 +159,8 @@ class ItemGenerate @Inject constructor(
 
     companion object {
         private const val SECONDS_PER_DAY = 86_400L
+        private val HEADER_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss")
+        private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
+        private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
     }
 }

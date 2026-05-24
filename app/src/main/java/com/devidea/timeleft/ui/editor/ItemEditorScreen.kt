@@ -480,17 +480,33 @@ private fun TimeRangeFields(
     onStartTimeChange: (String) -> Unit,
     onEndTimeChange: (String) -> Unit
 ) {
+    val startTime = parseTime(startTimeValue) ?: LocalTime.now()
+    val endTime = parseTime(endTimeValue) ?: startTime.plusHours(1)
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        TimePickerField(
-            label = stringResource(R.string.editor_start_time),
-            value = startTimeValue,
-            onValueChange = onStartTimeChange
+        TimeRangeDial(
+            startTime = startTime,
+            endTime = endTime,
+            onRangeChange = { start, end ->
+                onStartTimeChange(formatStorageTime(start))
+                onEndTimeChange(formatStorageTime(end))
+            },
+            modifier = Modifier.fillMaxWidth()
         )
-        TimePickerField(
-            label = stringResource(R.string.editor_end_time),
-            value = endTimeValue,
-            onValueChange = onEndTimeChange
-        )
+        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            TimePickerField(
+                label = stringResource(R.string.editor_start_time),
+                value = startTimeValue,
+                onValueChange = onStartTimeChange,
+                modifier = Modifier.weight(1f)
+            )
+            TimePickerField(
+                label = stringResource(R.string.editor_end_time),
+                value = endTimeValue,
+                onValueChange = onEndTimeChange,
+                modifier = Modifier.weight(1f)
+            )
+        }
     }
 }
 
@@ -546,7 +562,8 @@ private fun DatePickerField(
 private fun TimePickerField(
     label: String,
     value: String,
-    onValueChange: (String) -> Unit
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     val context = LocalContext.current
     val selectedTime = parseTime(value) ?: LocalTime.now()
@@ -555,6 +572,7 @@ private fun TimePickerField(
     PickerCard(
         label = label,
         value = selectedTime.format(displayFormatter),
+        modifier = modifier,
         onClick = {
             TimePickerDialog(
                 context,
@@ -573,10 +591,11 @@ private fun TimePickerField(
 private fun PickerCard(
     label: String,
     value: String,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
 ) {
     Surface(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(8.dp),

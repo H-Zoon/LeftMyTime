@@ -125,7 +125,7 @@ object ReminderScheduler {
 
     private fun dateReminderTimeMillis(item: ItemEntity): Long? {
         val endDate = runCatching {
-            LocalDate.parse(item.endValue, DateTimeFormatter.ofPattern("yyyy-M-d"))
+            LocalDate.parse(item.endValue, STORAGE_DATE_FORMATTER)
         }.getOrNull() ?: return null
         val triggerDate = endDate.minusDays(item.reminderOffsetDays.toLong())
         return LocalDateTime.of(triggerDate, LocalTime.of(9, 0))
@@ -136,7 +136,7 @@ object ReminderScheduler {
 
     private fun timeReminderTimeMillis(endValue: String, offsetMinutes: Int): Long? {
         val endTime = runCatching {
-            LocalTime.parse(endValue, DateTimeFormatter.ofPattern("H:m"))
+            LocalTime.parse(endValue, STORAGE_TIME_FORMATTER)
         }.getOrNull() ?: return null
         val now = LocalDateTime.now()
         var triggerDateTime = LocalDateTime.of(now.toLocalDate(), endTime)
@@ -149,6 +149,9 @@ object ReminderScheduler {
             .toInstant()
             .toEpochMilli()
     }
+
+    private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
+    private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
 
     private fun reminderIntent(context: Context, item: ItemEntity): Intent =
         reminderIntent(
