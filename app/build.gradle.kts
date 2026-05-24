@@ -1,14 +1,28 @@
+import java.util.Properties
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    id("org.jetbrains.kotlin.plugin.compose")
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
+    id("com.google.gms.google-services")
 }
+
+val keystorePropertiesFile = rootProject.file("keystore.properties")
+val keystoreProperties = Properties().apply {
+    if (keystorePropertiesFile.exists()) {
+        keystorePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val requiredSigningProperties = listOf("storeFile", "storePassword", "keyAlias", "keyPassword")
+val hasReleaseSigningProperties = keystorePropertiesFile.exists() &&
+    requiredSigningProperties.all { !keystoreProperties.getProperty(it).isNullOrBlank() }
 
 android {
     namespace = "com.devidea.timeleft"
     compileSdk = 35
-    buildToolsVersion = "34.0.0"
 
     defaultConfig {
         applicationId = "com.devidea.timeleft"
@@ -21,12 +35,9 @@ android {
     }
 
     buildFeatures {
+        buildConfig = true
         viewBinding = true
         compose = true
-    }
-
-    composeOptions {
-        kotlinCompilerExtensionVersion = "1.5.5"
     }
 
     sourceSets {
@@ -38,8 +49,27 @@ android {
         }
     }
 
+    signingConfigs {
+        if (hasReleaseSigningProperties) {
+            create("release") {
+                fun requiredProperty(name: String): String =
+                    requireNotNull(keystoreProperties.getProperty(name)?.takeIf { it.isNotBlank() }) {
+                        "Missing or blank '$name' in keystore.properties."
+                    }
+
+                storeFile = rootProject.file(requiredProperty("storeFile"))
+                storePassword = requiredProperty("storePassword")
+                keyAlias = requiredProperty("keyAlias")
+                keyPassword = requiredProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            if (hasReleaseSigningProperties) {
+                signingConfig = signingConfigs.getByName("release")
+            }
             isDebuggable = false
             isShrinkResources = true
             isMinifyEnabled = true
@@ -55,13 +85,13 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
-    kotlinOptions {
-        jvmTarget = "17"
-    }
 }
 
 kotlin {
     jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 ksp {
@@ -69,8 +99,8 @@ ksp {
 }
 
 dependencies {
-    val roomVersion = "2.6.1"
-    val hiltVersion = "2.51.1"
+    val roomVersion = "2.8.4"
+    val hiltVersion = "2.57.1"
     val lifecycleVersion = "2.8.7"
     val composeBom = platform("androidx.compose:compose-bom:2024.02.00")
 
@@ -90,7 +120,7 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:1.9.20")
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21")
 
     implementation("androidx.activity:activity-ktx:1.9.3")
     implementation("androidx.activity:activity-compose:1.9.3")
@@ -117,4 +147,7 @@ dependencies {
     implementation("com.google.dagger:hilt-android:$hiltVersion")
     ksp("com.google.dagger:hilt-android-compiler:$hiltVersion")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    implementation("com.google.firebase:firebase-analytics")
 }

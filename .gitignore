@@ -13,3 +13,8 @@
 .externalNativeBuild
 .cxx
 local.properties
+
+# Release signing material. Keep private keys and credentials outside Git.
+*.jks
+*.keystore
+/keystore.properties
