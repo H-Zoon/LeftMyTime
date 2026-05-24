@@ -43,6 +43,7 @@ object ReminderScheduler {
         cancel(context, item.id)
         if (item.type != ItemType.Date) return
         if (item.reminderOffsetDays == ItemVisuals.REMINDER_DISABLED) return
+        if (!context.canPostReminderNotifications()) return
 
         val triggerMillis = reminderTimeMillis(item) ?: return
         if (triggerMillis <= System.currentTimeMillis()) return

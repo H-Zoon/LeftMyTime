@@ -89,6 +89,7 @@
     <string name="editor_day_of_month_suffix">day</string>
     <string name="editor_repeat_help_day">e.g. 5/1–5/10 (10-day cycle) + 3-day gap → next cycle 5/13–5/22</string>
     <string name="editor_repeat_help_month">e.g. 5/1–5/10 + day 20 → next cycle 5/20–5/29 (length preserved)</string>
+    <string name="editor_reminder_permission_required">Allow notifications to use reminders. You can enable permission from the app settings later.</string>
 
     <!-- Editor errors -->
     <string name="editor_error_title_required">Please enter a title.</string>
@@ -127,6 +128,13 @@
     <string name="notification_reminder_title">%1$s is coming up</string>
     <string name="notification_reminder_due_today">Today is %1$s.</string>
     <string name="notification_reminder_due_in_days">%1$s is in %2$d day(s).</string>
+    <string name="notification_permission_title">Allow reminder notifications?</string>
+    <string name="notification_permission_message">Turn on notifications to receive reminders for countdowns you choose. You can continue without notifications.</string>
+    <string name="notification_permission_allow">Allow notifications</string>
+    <string name="notification_permission_not_now">Not now</string>
+    <string name="notification_settings_title">Enable notifications in Settings</string>
+    <string name="notification_settings_message">Notification permission can no longer be requested here. Open notification settings and allow notifications to use reminders.</string>
+    <string name="notification_settings_open">Open settings</string>
 
     <!-- Widget configure -->
     <string name="widget_configure_select_required">Please select an option</string>

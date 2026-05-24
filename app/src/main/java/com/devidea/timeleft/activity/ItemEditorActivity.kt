@@ -11,9 +11,11 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
 import android.content.SharedPreferences
+import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.notification.canPostReminderNotifications
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
@@ -79,12 +81,19 @@ class ItemEditorActivity : AppCompatActivity() {
 
     private fun saveItem(itemId: Int, draft: ItemEditorDraft) {
         if (isSaving) return
+        val safeDraft = if (draft.reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
+            !canPostReminderNotifications()
+        ) {
+            draft.copy(reminderOffsetDays = ItemVisuals.REMINDER_DISABLED)
+        } else {
+            draft
+        }
 
         isSaving = true
         lifecycleScope.launch {
             runCatching {
                 withContext(Dispatchers.IO) {
-                    repository.saveOrUpdate(draft.toEntity(itemId))
+                    repository.saveOrUpdate(safeDraft.toEntity(itemId))
                 }
             }.onSuccess { savedItem ->
                 ReminderScheduler.schedule(this@ItemEditorActivity, savedItem)

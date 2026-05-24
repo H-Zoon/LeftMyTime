@@ -274,10 +274,9 @@ private fun HomeBottomBar(
                             HomeMainTab.Overview -> Icons.Filled.Home
                             HomeMainTab.Items -> Icons.AutoMirrored.Filled.FormatListBulleted
                         },
-                        contentDescription = null
+                        contentDescription = stringResource(tab.labelRes)
                     )
-                },
-                label = { Text(stringResource(tab.labelRes)) }
+                }
             )
         }
     }

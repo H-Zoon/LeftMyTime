@@ -1,7 +1,12 @@
 package com.devidea.timeleft.ui.editor
 
+import android.Manifest
 import android.app.DatePickerDialog
 import android.app.TimePickerDialog
+import android.content.Intent
+import android.provider.Settings
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -60,7 +65,12 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.notification.canPostReminderNotifications
 import com.devidea.timeleft.ui.itemIconVector
+import com.devidea.timeleft.ui.permission.NotificationPermissionExplanationDialog
+import com.devidea.timeleft.ui.permission.NotificationPermissionSettingsDialog
+import com.devidea.timeleft.ui.permission.markNotificationPermissionRequested
+import com.devidea.timeleft.ui.permission.shouldOpenNotificationSettings
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -97,6 +107,7 @@ fun ItemEditorScreen(
     onBack: () -> Unit,
     onSave: (ItemEditorDraft) -> Unit
 ) {
+    val context = LocalContext.current
     var initialized by rememberSaveable { mutableStateOf(false) }
     var selectedType by rememberSaveable(stateSaver = itemTypeSaver) { mutableStateOf(initialType) }
     var title by rememberSaveable { mutableStateOf("") }
@@ -113,6 +124,74 @@ fun ItemEditorScreen(
     }
     var repeatRateText by rememberSaveable { mutableStateOf("") }
     var errorRes by rememberSaveable { mutableStateOf<Int?>(null) }
+    var pendingReminderOffsetDays by rememberSaveable { mutableStateOf<Int?>(null) }
+    var saveAfterNotificationPermission by rememberSaveable { mutableStateOf(false) }
+    var showNotificationPermissionExplanation by rememberSaveable { mutableStateOf(false) }
+    var showNotificationPermissionSettings by rememberSaveable { mutableStateOf(false) }
+    var notificationPermissionUnavailable by rememberSaveable { mutableStateOf(false) }
+
+    fun submit(reminderOffset: Int = reminderOffsetDays) {
+        errorRes = validateAndSave(
+            selectedType = selectedType,
+            title = title,
+            startDateValue = startDateValue,
+            endDateValue = endDateValue,
+            startTimeValue = startTimeValue,
+            endTimeValue = endTimeValue,
+            repeatFlag = repeatFlag,
+            repeatRateText = repeatRateText,
+            category = category,
+            colorKey = colorKey,
+            iconKey = iconKey,
+            reminderOffsetDays = reminderOffset,
+            onSave = onSave
+        )
+    }
+
+    fun cancelReminderAndContinue() {
+        val shouldSave = saveAfterNotificationPermission
+        reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
+        pendingReminderOffsetDays = null
+        saveAfterNotificationPermission = false
+        notificationPermissionUnavailable = true
+        if (shouldSave) submit(ItemVisuals.REMINDER_DISABLED)
+    }
+
+    val notificationPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestPermission()
+    ) { granted ->
+        val pendingOffset = pendingReminderOffsetDays
+        if (granted) {
+            pendingOffset?.let { reminderOffsetDays = it }
+            notificationPermissionUnavailable = false
+            if (saveAfterNotificationPermission) {
+                submit(pendingOffset ?: reminderOffsetDays)
+            }
+            pendingReminderOffsetDays = null
+            saveAfterNotificationPermission = false
+        } else if (context.shouldOpenNotificationSettings()) {
+            notificationPermissionUnavailable = true
+            showNotificationPermissionSettings = true
+        } else {
+            cancelReminderAndContinue()
+        }
+    }
+    val notificationSettingsLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        val pendingOffset = pendingReminderOffsetDays
+        if (context.canPostReminderNotifications()) {
+            pendingOffset?.let { reminderOffsetDays = it }
+            notificationPermissionUnavailable = false
+            if (saveAfterNotificationPermission) {
+                submit(pendingOffset ?: reminderOffsetDays)
+            }
+            pendingReminderOffsetDays = null
+            saveAfterNotificationPermission = false
+        } else {
+            cancelReminderAndContinue()
+        }
+    }
 
     LaunchedEffect(initialItem?.id, isLoading) {
         if (!initialized && !isLoading) {
@@ -122,7 +201,11 @@ fun ItemEditorScreen(
                 category = item.category
                 colorKey = item.colorKey
                 iconKey = item.iconKey
-                reminderOffsetDays = item.reminderOffsetDays
+                reminderOffsetDays = if (context.canPostReminderNotifications()) {
+                    item.reminderOffsetDays
+                } else {
+                    ItemVisuals.REMINDER_DISABLED
+                }
                 if (item.type == ItemType.Time) {
                     startTimeValue = item.startValue
                     endTimeValue = item.endValue
@@ -183,7 +266,30 @@ fun ItemEditorScreen(
                     onCategoryChange = { category = it },
                     onColorKeyChange = { colorKey = it },
                     onIconKeyChange = { iconKey = it },
-                    onReminderChange = { reminderOffsetDays = it }
+                    showReminderPermissionMessage = selectedType == ItemType.Date &&
+                        notificationPermissionUnavailable &&
+                        !context.canPostReminderNotifications(),
+                    onReminderChange = { offset ->
+                        when {
+                            offset == ItemVisuals.REMINDER_DISABLED -> {
+                                reminderOffsetDays = offset
+                                notificationPermissionUnavailable = false
+                            }
+                            context.canPostReminderNotifications() -> {
+                                reminderOffsetDays = offset
+                                notificationPermissionUnavailable = false
+                            }
+                            else -> {
+                                pendingReminderOffsetDays = offset
+                                saveAfterNotificationPermission = false
+                                if (context.shouldOpenNotificationSettings()) {
+                                    showNotificationPermissionSettings = true
+                                } else {
+                                    showNotificationPermissionExplanation = true
+                                }
+                            }
+                        }
+                    }
                 )
 
                 if (selectedType == ItemType.Time) {
@@ -236,21 +342,20 @@ fun ItemEditorScreen(
 
                 Button(
                     onClick = {
-                        errorRes = validateAndSave(
-                            selectedType = selectedType,
-                            title = title,
-                            startDateValue = startDateValue,
-                            endDateValue = endDateValue,
-                            startTimeValue = startTimeValue,
-                            endTimeValue = endTimeValue,
-                            repeatFlag = repeatFlag,
-                            repeatRateText = repeatRateText,
-                            category = category,
-                            colorKey = colorKey,
-                            iconKey = iconKey,
-                            reminderOffsetDays = reminderOffsetDays,
-                            onSave = onSave
-                        )
+                        if (selectedType == ItemType.Date &&
+                            reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
+                            !context.canPostReminderNotifications()
+                        ) {
+                            pendingReminderOffsetDays = reminderOffsetDays
+                            saveAfterNotificationPermission = true
+                            if (context.shouldOpenNotificationSettings()) {
+                                showNotificationPermissionSettings = true
+                            } else {
+                                showNotificationPermissionExplanation = true
+                            }
+                        } else {
+                            submit()
+                        }
                     },
                     enabled = !isSaving,
                     modifier = Modifier.fillMaxWidth()
@@ -259,6 +364,40 @@ fun ItemEditorScreen(
                 }
             }
         }
+    }
+
+    if (showNotificationPermissionExplanation) {
+        NotificationPermissionExplanationDialog(
+            onAllow = {
+                showNotificationPermissionExplanation = false
+                if (context.shouldOpenNotificationSettings()) {
+                    showNotificationPermissionSettings = true
+                } else {
+                    context.markNotificationPermissionRequested()
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            },
+            onDismiss = {
+                showNotificationPermissionExplanation = false
+                cancelReminderAndContinue()
+            }
+        )
+    }
+
+    if (showNotificationPermissionSettings) {
+        NotificationPermissionSettingsDialog(
+            onOpenSettings = {
+                showNotificationPermissionSettings = false
+                notificationSettingsLauncher.launch(
+                    Intent(Settings.ACTION_APP_NOTIFICATION_SETTINGS)
+                        .putExtra(Settings.EXTRA_APP_PACKAGE, context.packageName)
+                )
+            },
+            onDismiss = {
+                showNotificationPermissionSettings = false
+                cancelReminderAndContinue()
+            }
+        )
     }
 }
 
@@ -467,6 +606,7 @@ private fun VisualFields(
     onCategoryChange: (String) -> Unit,
     onColorKeyChange: (String) -> Unit,
     onIconKeyChange: (String) -> Unit,
+    showReminderPermissionMessage: Boolean,
     onReminderChange: (Int) -> Unit,
 ) {
     Card(
@@ -557,6 +697,13 @@ private fun VisualFields(
                             label = { Text(stringResource(ItemVisuals.reminderNameRes(offset))) }
                         )
                     }
+                }
+                if (showReminderPermissionMessage) {
+                    Text(
+                        text = stringResource(R.string.editor_reminder_permission_required),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
