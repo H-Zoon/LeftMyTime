@@ -1,32 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <objectAnimator
-        android:duration="720"
+        android:duration="280"
         android:propertyName="scaleX"
+        android:startOffset="380"
         android:valueType="floatType">
         <propertyValuesHolder android:propertyName="scaleX">
             <keyframe
                 android:fraction="0"
-                android:value="0.8" />
+                android:value="0.72" />
             <keyframe
-                android:fraction="0.72"
-                android:value="1.06" />
+                android:fraction="0.65"
+                android:value="1.18" />
             <keyframe
                 android:fraction="1"
                 android:value="1" />
         </propertyValuesHolder>
     </objectAnimator>
     <objectAnimator
-        android:duration="720"
+        android:duration="280"
         android:propertyName="scaleY"
+        android:startOffset="380"
         android:valueType="floatType">
         <propertyValuesHolder android:propertyName="scaleY">
             <keyframe
                 android:fraction="0"
-                android:value="0.8" />
+                android:value="0.72" />
             <keyframe
-                android:fraction="0.72"
-                android:value="1.06" />
+                android:fraction="0.65"
+                android:value="1.18" />
             <keyframe
                 android:fraction="1"
                 android:value="1" />

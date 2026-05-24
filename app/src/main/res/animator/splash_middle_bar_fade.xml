@@ -3,7 +3,7 @@
     android:duration="180"
     android:interpolator="@interpolator/ease_out_cubic"
     android:propertyName="fillAlpha"
-    android:startOffset="230"
+    android:startOffset="295"
     android:valueFrom="0"
     android:valueTo="1"
     android:valueType="floatType" />

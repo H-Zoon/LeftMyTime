@@ -1,18 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <objectAnimator
-        android:duration="520"
+        android:duration="490"
         android:interpolator="@interpolator/ease_out_cubic"
         android:propertyName="trimPathEnd"
-        android:startOffset="120"
+        android:startOffset="95"
         android:valueFrom="0"
         android:valueTo="1"
         android:valueType="floatType" />
     <objectAnimator
-        android:duration="160"
+        android:duration="130"
         android:interpolator="@interpolator/ease_out_cubic"
         android:propertyName="strokeAlpha"
-        android:startOffset="120"
+        android:startOffset="95"
         android:valueFrom="0"
         android:valueTo="1"
         android:valueType="floatType" />

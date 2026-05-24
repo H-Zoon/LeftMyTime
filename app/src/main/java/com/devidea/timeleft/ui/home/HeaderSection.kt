@@ -19,7 +19,11 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
@@ -38,6 +42,7 @@ internal fun HeaderSection(
     onToggleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     collapseFraction: Float,
+    animateEntry: Boolean,
 ) {
     val topPadding = dynamicDp(16.dp, 8.dp, collapseFraction)
 
@@ -53,7 +58,8 @@ internal fun HeaderSection(
                 todayItem = todayItem,
                 onToggleTheme = onToggleTheme,
                 onOpenSettings = onOpenSettings,
-                collapseFraction = collapseFraction
+                collapseFraction = collapseFraction,
+                animateEntry = animateEntry
             )
         } else {
             HeaderFallback(
@@ -72,11 +78,20 @@ private fun HeaderTodayFlow(
     onToggleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     collapseFraction: Float,
+    animateEntry: Boolean,
 ) {
     val accent = MaterialTheme.colorScheme.primary
+    val targetProgress = (todayItem.percent / 100f).coerceIn(0f, 1f)
+    var entryStarted by remember { mutableStateOf(!animateEntry) }
+    LaunchedEffect(Unit) {
+        entryStarted = true
+    }
     val progress by animateFloatAsState(
-        targetValue = (todayItem.percent / 100f).coerceIn(0f, 1f),
-        animationSpec = tween(durationMillis = 650),
+        targetValue = if (entryStarted) targetProgress else 0f,
+        animationSpec = tween(
+            durationMillis = if (animateEntry) 760 else 650,
+            delayMillis = if (animateEntry) 80 else 0
+        ),
         label = "headerTodayProgress"
     )
 

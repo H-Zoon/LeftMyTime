@@ -3,6 +3,7 @@ package com.devidea.timeleft.activity
 import android.content.SharedPreferences
 import android.content.Intent
 import android.os.Bundle
+import android.view.animation.PathInterpolator
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -10,8 +11,8 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.preferences.UserPreferences
@@ -36,8 +37,20 @@ class MainActivity : AppCompatActivity() {
     private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
 
     override fun onCreate(savedInstanceState: Bundle?) {
-        setTheme(R.style.Theme_MyApplication)
+        val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        splashScreen.setOnExitAnimationListener { provider ->
+            provider.view.animate()
+                .alpha(0f)
+                .scaleX(1.04f)
+                .scaleY(1.04f)
+                .translationY(-provider.view.height * 0.025f)
+                .setDuration(230L)
+                .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f))
+                .withEndAction(provider::remove)
+                .start()
+        }
 
         refreshPreferences()
 
@@ -52,6 +65,7 @@ class MainActivity : AppCompatActivity() {
                     initialTabValue = startScreen,
                     expiredItemsMode = expiredItemsMode,
                     progressDisplayMode = progressDisplayMode,
+                    animateStartupEntry = savedInstanceState == null,
                     topItems = topItems,
                     customItems = customItems,
                     onToggleTheme = {

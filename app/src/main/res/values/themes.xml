@@ -17,12 +17,14 @@
         <item name="android:windowBackground">@color/activity_background</item>
     </style>
 
-    <style name="Theme.MyApplication.Splash" parent="Theme.MaterialComponents.DayNight.NoActionBar">
-        <item name="android:windowBackground">@drawable/splash_screen_background</item>
+    <style name="Theme.MyApplication.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/splash_background</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/splash_icon_foreground</item>
+        <item name="windowSplashScreenAnimationDuration">760</item>
+        <item name="postSplashScreenTheme">@style/Theme.MyApplication</item>
         <item name="android:statusBarColor">@color/splash_background</item>
         <item name="android:navigationBarColor">@color/splash_background</item>
         <item name="android:windowLightStatusBar">false</item>
-        <item name="android:fontFamily">@font/nanum_square_round_r</item>
     </style>
 
     <style name="ThemeOverlay.MyApplication.AppWidgetContainer" parent="">
