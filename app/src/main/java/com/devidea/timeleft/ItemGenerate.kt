@@ -4,6 +4,7 @@ import android.content.Context
 import com.devidea.timeleft.calc.CustomTimeProgress
 import com.devidea.timeleft.calc.TimeProgressCalculator
 import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
@@ -68,6 +69,7 @@ class ItemGenerate @Inject constructor(
             category = itemEntity.category,
             colorKey = itemEntity.colorKey,
             iconKey = itemEntity.iconKey,
+            reminderText = reminderText(ItemType.Time, itemEntity.reminderOffsetDays),
         )
 
         return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, LocalTime.now())) {
@@ -134,17 +136,17 @@ class ItemGenerate @Inject constructor(
             category = itemEntity.category,
             colorKey = itemEntity.colorKey,
             iconKey = itemEntity.iconKey,
-            reminderText = reminderText(itemEntity.reminderOffsetDays),
+            reminderText = reminderText(ItemType.Date, itemEntity.reminderOffsetDays),
             remainingSortKey = if (progress.daysLeft >= 0) progress.daysLeft.toLong() * SECONDS_PER_DAY else Long.MAX_VALUE,
             isExpired = progress.daysLeft < 0,
         )
     }
 
-    private fun reminderText(offsetDays: Int): String =
-        if (offsetDays == ItemVisuals.REMINDER_DISABLED) {
+    private fun reminderText(type: ItemType, offset: Int): String =
+        if (offset == ItemVisuals.REMINDER_DISABLED) {
             ""
         } else {
-            context.getString(ItemVisuals.reminderNameRes(offsetDays))
+            context.getString(ItemVisuals.reminderNameRes(type, offset))
         }
 
     private fun roundPercent(raw: Float): Float =

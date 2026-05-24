@@ -243,7 +243,13 @@ fun ItemEditorScreen(
                 TypeSelector(
                     selectedType = selectedType,
                     enabled = initialItem == null,
-                    onTypeSelected = { selectedType = it }
+                    onTypeSelected = { type ->
+                        if (selectedType != type) {
+                            reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
+                            notificationPermissionUnavailable = false
+                        }
+                        selectedType = type
+                    }
                 )
 
                 OutlinedTextField(
@@ -262,12 +268,11 @@ fun ItemEditorScreen(
                     colorKey = colorKey,
                     iconKey = iconKey,
                     reminderOffsetDays = reminderOffsetDays,
-                    showReminder = selectedType == ItemType.Date,
+                    reminderType = selectedType,
                     onCategoryChange = { category = it },
                     onColorKeyChange = { colorKey = it },
                     onIconKeyChange = { iconKey = it },
-                    showReminderPermissionMessage = selectedType == ItemType.Date &&
-                        notificationPermissionUnavailable &&
+                    showReminderPermissionMessage = notificationPermissionUnavailable &&
                         !context.canPostReminderNotifications(),
                     onReminderChange = { offset ->
                         when {
@@ -342,8 +347,7 @@ fun ItemEditorScreen(
 
                 Button(
                     onClick = {
-                        if (selectedType == ItemType.Date &&
-                            reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
+                        if (reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
                             !context.canPostReminderNotifications()
                         ) {
                             pendingReminderOffsetDays = reminderOffsetDays
@@ -602,7 +606,7 @@ private fun VisualFields(
     colorKey: String,
     iconKey: String,
     reminderOffsetDays: Int,
-    showReminder: Boolean,
+    reminderType: ItemType,
     onCategoryChange: (String) -> Unit,
     onColorKeyChange: (String) -> Unit,
     onIconKeyChange: (String) -> Unit,
@@ -680,31 +684,29 @@ private fun VisualFields(
                     )
                 }
             }
-            if (showReminder) {
-                Text(
-                    text = stringResource(R.string.editor_reminder),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                FlowRow(
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    ItemVisuals.reminderOffsets.forEach { offset ->
-                        FilterChip(
-                            selected = reminderOffsetDays == offset,
-                            onClick = { onReminderChange(offset) },
-                            label = { Text(stringResource(ItemVisuals.reminderNameRes(offset))) }
-                        )
-                    }
-                }
-                if (showReminderPermissionMessage) {
-                    Text(
-                        text = stringResource(R.string.editor_reminder_permission_required),
-                        style = MaterialTheme.typography.bodySmall,
-                        color = MaterialTheme.colorScheme.error
+            Text(
+                text = stringResource(R.string.editor_reminder),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                ItemVisuals.reminderOffsets(reminderType).forEach { offset ->
+                    FilterChip(
+                        selected = reminderOffsetDays == offset,
+                        onClick = { onReminderChange(offset) },
+                        label = { Text(stringResource(ItemVisuals.reminderNameRes(reminderType, offset))) }
                     )
                 }
+            }
+            if (showReminderPermissionMessage) {
+                Text(
+                    text = stringResource(R.string.editor_reminder_permission_required),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
@@ -862,7 +864,7 @@ private fun validateAndSave(
                 category = category.trim(),
                 colorKey = colorKey,
                 iconKey = iconKey,
-                reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
+                reminderOffsetDays = reminderOffsetDays
             )
         )
         return null

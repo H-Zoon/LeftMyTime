@@ -124,10 +124,15 @@
     <string name="item_reminder_one_day">1 day before</string>
     <string name="item_reminder_three_days">3 days before</string>
     <string name="item_reminder_seven_days">7 days before</string>
+    <string name="item_reminder_five_minutes">5 min before end</string>
+    <string name="item_reminder_ten_minutes">10 min before end</string>
+    <string name="item_reminder_thirty_minutes">30 min before end</string>
+    <string name="item_reminder_one_hour">1 hour before end</string>
     <string name="notification_channel_reminders">Countdown reminders</string>
     <string name="notification_reminder_title">%1$s is coming up</string>
     <string name="notification_reminder_due_today">Today is %1$s.</string>
     <string name="notification_reminder_due_in_days">%1$s is in %2$d day(s).</string>
+    <string name="notification_reminder_due_in_minutes">%1$s ends in %2$d minute(s).</string>
     <string name="notification_permission_title">Allow reminder notifications?</string>
     <string name="notification_permission_message">Turn on notifications to receive reminders for countdowns you choose. You can continue without notifications.</string>
     <string name="notification_permission_allow">Allow notifications</string>

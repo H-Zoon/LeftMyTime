@@ -23,6 +23,7 @@ object ReminderScheduler {
     const val EXTRA_TITLE = "com.devidea.timeleft.extra.REMINDER_TITLE"
     const val EXTRA_END_VALUE = "com.devidea.timeleft.extra.REMINDER_END_VALUE"
     const val EXTRA_OFFSET_DAYS = "com.devidea.timeleft.extra.REMINDER_OFFSET_DAYS"
+    const val EXTRA_ITEM_TYPE = "com.devidea.timeleft.extra.REMINDER_ITEM_TYPE"
 
     private const val ACTION_REMINDER = "com.devidea.timeleft.action.REMINDER"
     private const val REQUEST_CODE_BASE = 20_000
@@ -41,22 +42,48 @@ object ReminderScheduler {
 
     fun schedule(context: Context, item: ItemEntity) {
         cancel(context, item.id)
-        if (item.type != ItemType.Date) return
         if (item.reminderOffsetDays == ItemVisuals.REMINDER_DISABLED) return
         if (!context.canPostReminderNotifications()) return
 
         val triggerMillis = reminderTimeMillis(item) ?: return
         if (triggerMillis <= System.currentTimeMillis()) return
 
+        createChannel(context)
+        setReminderAlarm(context, item.id, reminderIntent(context, item), triggerMillis)
+    }
+
+    fun scheduleNextTimeReminder(
+        context: Context,
+        itemId: Int,
+        title: String,
+        endValue: String,
+        offsetMinutes: Int,
+    ) {
+        if (offsetMinutes == ItemVisuals.REMINDER_DISABLED) return
+        if (!context.canPostReminderNotifications()) return
+
+        val triggerMillis = timeReminderTimeMillis(endValue, offsetMinutes) ?: return
+        setReminderAlarm(
+            context,
+            itemId,
+            reminderIntent(context, itemId, title, ItemType.Time, endValue, offsetMinutes),
+            triggerMillis
+        )
+    }
+
+    private fun setReminderAlarm(
+        context: Context,
+        itemId: Int,
+        intent: Intent,
+        triggerMillis: Long,
+    ) {
         val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val intent = reminderIntent(context, item)
         val pendingIntent = PendingIntent.getBroadcast(
             context,
-            requestCode(item.id),
+            requestCode(itemId),
             intent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
-
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
             alarmManager.setAndAllowWhileIdle(
                 AlarmManager.RTC_WAKEUP,
@@ -91,7 +118,12 @@ object ReminderScheduler {
         }
     }
 
-    private fun reminderTimeMillis(item: ItemEntity): Long? {
+    private fun reminderTimeMillis(item: ItemEntity): Long? = when (item.type) {
+        ItemType.Date -> dateReminderTimeMillis(item)
+        ItemType.Time -> timeReminderTimeMillis(item.endValue, item.reminderOffsetDays)
+    }
+
+    private fun dateReminderTimeMillis(item: ItemEntity): Long? {
         val endDate = runCatching {
             LocalDate.parse(item.endValue, DateTimeFormatter.ofPattern("yyyy-M-d"))
         }.getOrNull() ?: return null
@@ -102,13 +134,47 @@ object ReminderScheduler {
             .toEpochMilli()
     }
 
+    private fun timeReminderTimeMillis(endValue: String, offsetMinutes: Int): Long? {
+        val endTime = runCatching {
+            LocalTime.parse(endValue, DateTimeFormatter.ofPattern("H:m"))
+        }.getOrNull() ?: return null
+        val now = LocalDateTime.now()
+        var triggerDateTime = LocalDateTime.of(now.toLocalDate(), endTime)
+            .minusMinutes(offsetMinutes.toLong())
+        if (!triggerDateTime.isAfter(now)) {
+            triggerDateTime = triggerDateTime.plusDays(1)
+        }
+        return triggerDateTime
+            .atZone(ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
+    }
+
     private fun reminderIntent(context: Context, item: ItemEntity): Intent =
+        reminderIntent(
+            context,
+            item.id,
+            item.title,
+            item.type,
+            item.endValue,
+            item.reminderOffsetDays
+        )
+
+    private fun reminderIntent(
+        context: Context,
+        itemId: Int,
+        title: String,
+        type: ItemType,
+        endValue: String,
+        offset: Int,
+    ): Intent =
         Intent(context, ReminderReceiver::class.java).apply {
             action = ACTION_REMINDER
-            putExtra(EXTRA_ITEM_ID, item.id)
-            putExtra(EXTRA_TITLE, item.title)
-            putExtra(EXTRA_END_VALUE, item.endValue)
-            putExtra(EXTRA_OFFSET_DAYS, item.reminderOffsetDays)
+            putExtra(EXTRA_ITEM_ID, itemId)
+            putExtra(EXTRA_TITLE, title)
+            putExtra(EXTRA_ITEM_TYPE, type.name)
+            putExtra(EXTRA_END_VALUE, endValue)
+            putExtra(EXTRA_OFFSET_DAYS, offset)
         }
 
     private fun requestCode(itemId: Int): Int = REQUEST_CODE_BASE + itemId
