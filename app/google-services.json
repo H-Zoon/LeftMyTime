@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "745525234458",
+    "project_id": "timeleft-f83ba",
+    "storage_bucket": "timeleft-f83ba.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:745525234458:android:ccd17d5a6cd5e3512d3aa3",
+        "android_client_info": {
+          "package_name": "com.devidea.timeleft"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCiOpcy6su7pN2ecE_KdBl5dKPDxkV4y7E"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
