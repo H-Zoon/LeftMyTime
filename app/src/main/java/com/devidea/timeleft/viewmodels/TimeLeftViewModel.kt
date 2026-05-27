@@ -35,7 +35,7 @@ import javax.inject.Inject
 class TimeLeftViewModel @Inject constructor(
     private val repository: TimeLeftRepository,
     private val itemGenerate: InterfaceItem,
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
 
     private val timeFormatter: DateTimeFormatter =

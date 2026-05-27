@@ -184,13 +184,13 @@ class TimeProgressCalculatorTest {
     }
 
     @Test
-    fun `customDateProgress with zero-length range yields infinity percent`() {
+    fun `customDateProgress with zero-length range is complete`() {
         val r = TimeProgressCalculator.customDateProgress(
             start = LocalDate.of(2025, 6, 1),
             end = LocalDate.of(2025, 6, 1),
             today = LocalDate.of(2025, 6, 1)
         )
-        assertTrue(r.percentElapsed.isInfinite())
+        assertEquals(100f, r.percentElapsed, EPSILON)
         assertEquals(0, r.daysLeft)
         assertEquals(0, r.daysBetween)
     }

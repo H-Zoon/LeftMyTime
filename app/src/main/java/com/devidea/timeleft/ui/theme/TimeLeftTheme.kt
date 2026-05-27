@@ -25,7 +25,7 @@ private val NanumSquareRound = FontFamily(
 
 enum class ThemePalette(
     val key: String,
-    @StringRes val labelRes: Int,
+    @param:StringRes val labelRes: Int,
     val lightColors: ColorScheme,
     val darkColors: ColorScheme,
 ) {

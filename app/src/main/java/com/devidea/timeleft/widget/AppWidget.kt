@@ -11,9 +11,11 @@ import android.os.Bundle
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
+import androidx.core.content.edit
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
@@ -23,9 +25,9 @@ import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import java.util.Locale
 
 open class AppWidget : AppWidgetProvider() {
 
@@ -91,10 +93,10 @@ open class AppWidget : AppWidgetProvider() {
         context ?: return
         val prefs = entryPoint(context).prefs()
         appWidgetIds?.forEach { id ->
-            prefs.edit()
-                .remove(id.toString())
-                .remove("${id}option")
-                .apply()
+            prefs.edit {
+                remove(id.toString())
+                remove("${id}option")
+            }
         }
     }
 
@@ -292,17 +294,15 @@ open class AppWidget : AppWidgetProvider() {
                 ?: rankedItems.firstOrNull()
 
             if (selected == null) {
-                renderWidgetItem(
+                renderMonthFallbackWidget(
+                    context = context,
                     views = views,
                     appWidgetManager = appWidgetManager,
                     appWidgetId = appWidgetId,
                     sizeClass = sizeClass,
-                    data = itemGenerator.monthItem().toWidgetData(
-                        context = context,
-                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                        useWidgetString = false
-                    ),
-                    flowItems = flowItems
+                    flowItems = flowItems,
+                    prefs = prefs,
+                    itemGenerator = itemGenerator
                 )
                 return@launch
             }
@@ -337,9 +337,25 @@ open class AppWidget : AppWidgetProvider() {
         val repository = ep.repository()
 
         CoroutineScope(Dispatchers.IO).launch {
+            val selectedItemId = prefs.getString(appWidgetId.toString(), null)?.toIntOrNull()
+            if (selectedItemId == null) {
+                clearWidgetSelection(prefs, appWidgetId)
+                renderMonthFallbackWidget(
+                    context,
+                    views,
+                    appWidgetManager,
+                    appWidgetId,
+                    sizeClass,
+                    flowItems,
+                    prefs,
+                    itemGenerator
+                )
+                return@launch
+            }
+
             try {
                 val itemEntity = repository.advanceExpiredRecurrence(
-                    repository.getItem(prefs.getString(appWidgetId.toString(), "0")!!.toInt())
+                    repository.getItem(selectedItemId)
                 )
                 val item = if (itemEntity.type == ItemType.Time) {
                     itemGenerator.customTimeItem(itemEntity)
@@ -359,10 +375,50 @@ open class AppWidget : AppWidgetProvider() {
                     ),
                     flowItems = flowItems
                 )
-            } catch (e: Exception) {
-                prefs.edit().remove(appWidgetId.toString()).apply()
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                clearWidgetSelection(prefs, appWidgetId)
+                renderMonthFallbackWidget(
+                    context,
+                    views,
+                    appWidgetManager,
+                    appWidgetId,
+                    sizeClass,
+                    flowItems,
+                    prefs,
+                    itemGenerator
+                )
             }
         }
+    }
+
+    private fun clearWidgetSelection(prefs: SharedPreferences, appWidgetId: Int) {
+        prefs.edit { remove(appWidgetId.toString()) }
+    }
+
+    private fun renderMonthFallbackWidget(
+        context: Context,
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
+        flowItems: WidgetFlowItems,
+        prefs: SharedPreferences,
+        itemGenerator: InterfaceItem,
+    ) {
+        renderWidgetItem(
+            views = views,
+            appWidgetManager = appWidgetManager,
+            appWidgetId = appWidgetId,
+            sizeClass = sizeClass,
+            data = itemGenerator.monthItem().toWidgetData(
+                context = context,
+                showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                useWidgetString = false
+            ),
+            flowItems = flowItems
+        )
     }
 
     private fun renderWidgetItem(
@@ -447,7 +503,7 @@ open class AppWidget : AppWidgetProvider() {
         showRemaining: Boolean,
         useWidgetString: Boolean,
     ): WidgetDisplayData {
-        val percentText = "${formatWidgetPercent(percent)}%"
+        val percentText = "${formatPercent(percent)}%"
         val remainingText = if (useWidgetString && widgetString.isNotBlank()) {
             widgetString
         } else {
@@ -456,7 +512,7 @@ open class AppWidget : AppWidgetProvider() {
         val value = if (showRemaining) remainingText else percentText
         val meta = when {
             dueText.isNotBlank() -> dueText
-            showRemaining -> context.getString(R.string.card_progress_value, formatWidgetPercent(percent))
+            showRemaining -> context.getString(R.string.card_progress_value, formatPercent(percent))
             else -> remainingText
         }
 
@@ -464,7 +520,7 @@ open class AppWidget : AppWidgetProvider() {
             title = title,
             value = value,
             meta = meta,
-            progressText = context.getString(R.string.card_progress_value, formatWidgetPercent(percent)),
+            progressText = context.getString(R.string.card_progress_value, formatPercent(percent)),
             progress = percent.toInt().coerceIn(0, 100),
             start = startString,
             end = endString,
@@ -485,15 +541,6 @@ open class AppWidget : AppWidgetProvider() {
             minWidth >= 245 -> WidgetSizeClass.Wide
             minHeight >= 115 -> WidgetSizeClass.Medium
             else -> WidgetSizeClass.Compact
-        }
-    }
-
-    private fun formatWidgetPercent(value: Float): String {
-        val safeValue = value.coerceIn(0f, 100f)
-        return if (safeValue % 1f == 0f) {
-            safeValue.toInt().toString()
-        } else {
-            String.format(Locale.getDefault(), "%.1f", safeValue)
         }
     }
 

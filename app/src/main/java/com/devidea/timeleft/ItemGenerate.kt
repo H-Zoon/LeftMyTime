@@ -17,20 +17,25 @@ import javax.inject.Singleton
 
 @Singleton
 class ItemGenerate @Inject constructor(
-    @ApplicationContext private val context: Context,
+    @param:ApplicationContext private val context: Context,
 ) : InterfaceItem {
 
     override fun timeItem(): AdapterItem {
         val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
-        val leftFormatted = LocalTime.ofSecondOfDay(progress.durationLeft.seconds)
-            .format(HEADER_TIME_FORMATTER)
-        val leftText = context.getString(R.string.home_time_left, leftFormatted)
+        val leftTime = LocalTime.ofSecondOfDay(progress.durationLeft.seconds)
+        val leftText = context.getString(
+            R.string.home_time_left,
+            leftTime.format(HEADER_TIME_FORMATTER)
+        )
 
         return AdapterItem(
             title = context.getString(R.string.home_today_title),
             percent = roundPercent(progress.percentElapsed),
             leftString = leftText,
-            widgetString = leftText.substring(0, leftText.length - 3),
+            widgetString = context.getString(
+                R.string.home_time_left,
+                leftTime.format(WIDGET_TIME_FORMATTER)
+            ),
         )
     }
 
@@ -73,13 +78,19 @@ class ItemGenerate @Inject constructor(
 
         return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, LocalTime.now())) {
             is CustomTimeProgress.Active -> {
-                val leftFormatted = LocalTime.ofSecondOfDay(result.durationLeft.seconds)
-                val leftText = context.getString(R.string.home_time_left, leftFormatted.toString())
+                val leftTime = LocalTime.ofSecondOfDay(result.durationLeft.seconds)
+                val leftText = context.getString(
+                    R.string.home_time_left,
+                    leftTime.format(HEADER_TIME_FORMATTER)
+                )
                 base.copy(
                     percent = roundPercent(result.percentElapsed),
                     leftString = leftText,
-                    widgetString = leftText.substring(0, leftText.length - 3),
-                    countdownText = leftFormatted.toString(),
+                    widgetString = context.getString(
+                        R.string.home_time_left,
+                        leftTime.format(WIDGET_TIME_FORMATTER)
+                    ),
+                    countdownText = leftTime.format(HEADER_TIME_FORMATTER),
                     dueText = context.getString(R.string.home_until_time, endTime.toString()),
                     remainingSortKey = result.durationLeft.seconds,
                 )
@@ -147,9 +158,6 @@ class ItemGenerate @Inject constructor(
             context.getString(ItemVisuals.reminderNameRes(type, offset))
         }
 
-    private fun roundPercent(raw: Float): Float =
-        String.format(Locale.getDefault(), "%.1f", raw).toFloat()
-
     private fun ddayText(daysLeft: Int): String =
         when {
             daysLeft > 0 -> context.getString(R.string.home_dday_before, daysLeft)
@@ -160,6 +168,7 @@ class ItemGenerate @Inject constructor(
     companion object {
         private const val SECONDS_PER_DAY = 86_400L
         private val HEADER_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm:ss")
+        private val WIDGET_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:mm")
         private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
         private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
     }

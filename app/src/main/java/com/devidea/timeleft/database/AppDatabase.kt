@@ -12,7 +12,7 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 
 @Database(
     entities = [ItemEntity::class],
-    version = 6,
+    version = 7,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -22,28 +22,37 @@ abstract class AppDatabase : RoomDatabase() {
     companion object {
         private var INSTANCE: AppDatabase? = null
 
-        // v5 → v6: drops alarmFlag/alarmRate/weekendAlarm; adds category/colorKey/iconKey/reminderOffsetDays.
-        // Date items preserve "alarm N days before end" as reminderOffsetDays = alarmRate.
-        // Time items can't be mapped cleanly (v5 used hours, v6 uses minutes) — disabled and re-set by user.
-        private val MIGRATION_5_6 = object : Migration(5, 6) {
-            override fun migrate(db: SupportSQLiteDatabase) {
-                db.execSQL(
-                    """
-                    CREATE TABLE IF NOT EXISTS `ItemEntity_new` (
-                        `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
-                        `type` TEXT NOT NULL,
-                        `title` TEXT NOT NULL,
-                        `startValue` TEXT NOT NULL,
-                        `endValue` TEXT NOT NULL,
-                        `updateFlag` INTEGER NOT NULL,
-                        `updateRate` INTEGER NOT NULL,
-                        `category` TEXT NOT NULL,
-                        `colorKey` TEXT NOT NULL,
-                        `iconKey` TEXT NOT NULL,
-                        `reminderOffsetDays` INTEGER NOT NULL
-                    )
-                    """.trimIndent()
+        private fun createV7ItemTable(db: SupportSQLiteDatabase) {
+            db.execSQL(
+                """
+                CREATE TABLE IF NOT EXISTS `ItemEntity_new` (
+                    `id` INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                    `type` TEXT NOT NULL,
+                    `title` TEXT NOT NULL,
+                    `startValue` TEXT NOT NULL,
+                    `endValue` TEXT NOT NULL,
+                    `updateFlag` INTEGER NOT NULL,
+                    `updateRate` INTEGER NOT NULL,
+                    `category` TEXT NOT NULL,
+                    `colorKey` TEXT NOT NULL,
+                    `iconKey` TEXT NOT NULL,
+                    `reminderOffsetDays` INTEGER NOT NULL
                 )
+                """.trimIndent()
+            )
+        }
+
+        private fun finishItemTableReplacement(db: SupportSQLiteDatabase) {
+            db.execSQL("DROP TABLE `ItemEntity`")
+            db.execSQL("ALTER TABLE `ItemEntity_new` RENAME TO `ItemEntity`")
+        }
+
+        // v5 -> v7: drops alarmFlag/alarmRate/weekendAlarm; adds category/colorKey/iconKey/reminderOffsetDays.
+        // Date items preserve "alarm N days before end" as reminderOffsetDays = alarmRate.
+        // Time items cannot be mapped cleanly (v5 used hours, v7 uses minutes), so they are disabled.
+        private val MIGRATION_5_7 = object : Migration(5, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                createV7ItemTable(db)
                 db.execSQL(
                     """
                     INSERT INTO `ItemEntity_new` (
@@ -62,8 +71,49 @@ abstract class AppDatabase : RoomDatabase() {
                     FROM `ItemEntity`
                     """.trimIndent()
                 )
-                db.execSQL("DROP TABLE `ItemEntity`")
-                db.execSQL("ALTER TABLE `ItemEntity_new` RENAME TO `ItemEntity`")
+                finishItemTableReplacement(db)
+            }
+        }
+
+        // v6 was released with the seven-column schema, then inadvertently reused for the
+        // expanded schema. Rebuild either variant into canonical v7 without dropping rows.
+        internal val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val columns = db.query("PRAGMA table_info(`ItemEntity`)").use { cursor ->
+                    val nameIndex = cursor.getColumnIndexOrThrow("name")
+                    buildSet {
+                        while (cursor.moveToNext()) {
+                            add(cursor.getString(nameIndex))
+                        }
+                    }
+                }
+                val hasExpandedColumns = setOf(
+                    "category",
+                    "colorKey",
+                    "iconKey",
+                    "reminderOffsetDays"
+                ).all(columns::contains)
+
+                createV7ItemTable(db)
+                val expandedValues = if (hasExpandedColumns) {
+                    "`category`, `colorKey`, `iconKey`, `reminderOffsetDays`"
+                } else {
+                    "'' AS `category`, 'auto' AS `colorKey`, " +
+                        "'event' AS `iconKey`, -1 AS `reminderOffsetDays`"
+                }
+                db.execSQL(
+                    """
+                    INSERT INTO `ItemEntity_new` (
+                        id, type, title, startValue, endValue, updateFlag, updateRate,
+                        category, colorKey, iconKey, reminderOffsetDays
+                    )
+                    SELECT
+                        id, type, title, startValue, endValue, updateFlag, updateRate,
+                        $expandedValues
+                    FROM `ItemEntity`
+                    """.trimIndent()
+                )
+                finishItemTableReplacement(db)
             }
         }
 
@@ -75,11 +125,10 @@ abstract class AppDatabase : RoomDatabase() {
                     AppDatabase::class.java,
                     "app_database"
                 )
-                    // v1–v4 schemas were never exported, so we cannot write proper migrations
-                    // for them. v5 has a defined migration to v6 below.
-                    // Any future schema change (v6 → v7 …) must add an explicit Migration.
-                    .fallbackToDestructiveMigrationFrom(1, 2, 3, 4)
-                    .addMigrations(MIGRATION_5_6)
+                    // Schemas v1-v4 were never exported, so only those legacy installs fall
+                    // back to recreation. v5 and both known v6 variants preserve item rows.
+                    .fallbackToDestructiveMigrationFrom(dropAllTables = false, 1, 2, 3, 4)
+                    .addMigrations(MIGRATION_5_7, MIGRATION_6_7)
                     .build()
                 INSTANCE = instance
 
