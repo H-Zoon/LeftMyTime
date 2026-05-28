@@ -8,6 +8,7 @@ plugins {
     id("com.google.devtools.ksp")
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
@@ -28,8 +29,8 @@ android {
         applicationId = "com.devidea.timeleft"
         minSdk = 26
         targetSdk = 35
-        versionCode = 16
-        versionName = "6.0"
+        versionCode = 18
+        versionName = "6.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -154,4 +155,5 @@ dependencies {
 
     implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
     implementation("com.google.firebase:firebase-analytics")
+    implementation("com.google.firebase:firebase-crashlytics")
 }
