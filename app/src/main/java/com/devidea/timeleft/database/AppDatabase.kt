@@ -1,12 +1,10 @@
 package com.devidea.timeleft.database
 
-import androidx.room.Room
 import androidx.room.Database
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import android.content.Context
 import com.devidea.timeleft.database.itemdata.ItemDao
 import com.devidea.timeleft.database.itemdata.ItemEntity
 
@@ -20,7 +18,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
 
     companion object {
-        private var INSTANCE: AppDatabase? = null
+        const val DATABASE_NAME = "app_database"
 
         private fun createV7ItemTable(db: SupportSQLiteDatabase) {
             db.execSQL(
@@ -50,7 +48,7 @@ abstract class AppDatabase : RoomDatabase() {
         // v5 -> v7: drops alarmFlag/alarmRate/weekendAlarm; adds category/colorKey/iconKey/reminderOffsetDays.
         // Date items preserve "alarm N days before end" as reminderOffsetDays = alarmRate.
         // Time items cannot be mapped cleanly (v5 used hours, v7 uses minutes), so they are disabled.
-        private val MIGRATION_5_7 = object : Migration(5, 7) {
+        internal val MIGRATION_5_7 = object : Migration(5, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
                 createV7ItemTable(db)
                 db.execSQL(
@@ -115,26 +113,6 @@ abstract class AppDatabase : RoomDatabase() {
                 )
                 finishItemTableReplacement(db)
             }
-        }
-
-        @Synchronized
-        fun getDatabase(context: Context): AppDatabase {
-            return INSTANCE ?: synchronized(this) {
-                val instance = Room.databaseBuilder(
-                    context,
-                    AppDatabase::class.java,
-                    "app_database"
-                )
-                    // Schemas v1-v4 were never exported, so only those legacy installs fall
-                    // back to recreation. v5 and both known v6 variants preserve item rows.
-                    .fallbackToDestructiveMigrationFrom(dropAllTables = false, 1, 2, 3, 4)
-                    .addMigrations(MIGRATION_5_7, MIGRATION_6_7)
-                    .build()
-                INSTANCE = instance
-
-                instance
-            }
-
         }
     }
 }

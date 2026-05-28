@@ -17,6 +17,7 @@ import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -24,14 +25,17 @@ import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
 import dagger.hilt.components.SingletonComponent
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
 open class AppWidget : AppWidgetProvider() {
 
     companion object {
+        private val widgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
         private val providerClasses = listOf(
             AppWidget::class.java,
             MediumAppWidget::class.java,
@@ -43,12 +47,12 @@ open class AppWidget : AppWidgetProvider() {
             context: Context,
             appWidgetManager: AppWidgetManager,
         ) {
+            val provider = AppWidget()
             providerClasses.forEach { providerClass ->
-                appWidgetManager
-                    .getAppWidgetIds(ComponentName(context, providerClass))
-                    .forEach { appWidgetId ->
-                        AppWidget().updateAppWidget(context, appWidgetManager, appWidgetId)
-                    }
+                val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, providerClass))
+                ids.forEach { appWidgetId ->
+                    provider.updateAppWidget(context, appWidgetManager, appWidgetId)
+                }
             }
         }
     }
@@ -73,8 +77,14 @@ open class AppWidget : AppWidgetProvider() {
         appWidgetIds: IntArray
     ) {
         super.onUpdate(context, appWidgetManager, appWidgetIds)
-        for (appWidgetId in appWidgetIds) {
-            updateAppWidget(context, appWidgetManager, appWidgetId)
+        val pendingResult = goAsync()
+        val appContext = context.applicationContext
+        widgetScope.launch {
+            try {
+                appWidgetIds.forEach { renderWidget(appContext, appWidgetManager, it) }
+            } finally {
+                pendingResult.finish()
+            }
         }
     }
 
@@ -85,7 +95,15 @@ open class AppWidget : AppWidgetProvider() {
         newOptions: Bundle,
     ) {
         super.onAppWidgetOptionsChanged(context, appWidgetManager, appWidgetId, newOptions)
-        updateAppWidget(context, appWidgetManager, appWidgetId)
+        val pendingResult = goAsync()
+        val appContext = context.applicationContext
+        widgetScope.launch {
+            try {
+                renderWidget(appContext, appWidgetManager, appWidgetId)
+            } finally {
+                pendingResult.finish()
+            }
+        }
     }
 
     override fun onDeleted(context: Context?, appWidgetIds: IntArray?) {
@@ -105,91 +123,106 @@ open class AppWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
     ) {
+        val appContext = context.applicationContext
+        widgetScope.launch {
+            renderWidget(appContext, appWidgetManager, appWidgetId)
+        }
+    }
+
+    private suspend fun renderWidget(
+        context: Context,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+    ) {
         val ep = entryPoint(context)
         val prefs = ep.prefs()
         val itemGenerator = ep.itemGenerator()
+        val repository = ep.repository()
+
         val sizeClass = resolveSizeClass(appWidgetManager, appWidgetId)
         val views = RemoteViews(context.packageName, sizeClass.layoutRes)
+        val palette = WidgetPalette.fromKey(
+            prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
+                ?: UserPreferences.COLOR_THEME_INDIGO
+        )
+        val source = prefs.getString(appWidgetId.toString(), "").orEmpty()
+        val showRemaining = prefs.getBoolean("${appWidgetId}option", false)
+
         val flowItems = WidgetFlowItems(
             today = itemGenerator.timeItem(),
             month = itemGenerator.monthItem(),
             year = itemGenerator.yearItem()
         )
 
-        applyPalette(
-            context = context,
-            views = views,
-            sizeClass = sizeClass,
-            palette = WidgetPalette.fromKey(
-                prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
-                    ?: UserPreferences.COLOR_THEME_INDIGO
-            )
-        )
+        applyPalette(context, views, sizeClass, palette)
         bindWidgetActions(context, appWidgetManager, views, appWidgetId)
 
-        when (prefs.getString(appWidgetId.toString(), "")) {
-            "embedYear" -> {
-                renderWidgetItem(
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    data = itemGenerator.yearItem().toWidgetData(
-                        context = context,
-                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                        useWidgetString = false
-                    ),
-                    flowItems = flowItems
-                )
-            }
-            "embedMonth" -> {
-                renderWidgetItem(
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    data = itemGenerator.monthItem().toWidgetData(
-                        context = context,
-                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                        useWidgetString = false
-                    ),
-                    flowItems = flowItems
-                )
-            }
-            "embedTime" -> {
-                renderWidgetItem(
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    data = itemGenerator.timeItem().toWidgetData(
-                        context = context,
-                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                        useWidgetString = true
-                    ),
-                    flowItems = flowItems
-                )
-            }
-            "nextCustom" -> {
-                renderNextCountdownWidget(
+        when (source) {
+            "embedYear" -> renderWidgetItem(
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                data = itemGenerator.yearItem().toWidgetData(
                     context = context,
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    flowItems = flowItems
-                )
-            }
-            else -> {
-                renderCustomWidget(
+                    showRemaining = showRemaining,
+                    useWidgetString = false
+                ),
+                flowItems = flowItems
+            )
+            "embedMonth" -> renderWidgetItem(
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                data = itemGenerator.monthItem().toWidgetData(
                     context = context,
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    flowItems = flowItems
-                )
-            }
+                    showRemaining = showRemaining,
+                    useWidgetString = false
+                ),
+                flowItems = flowItems
+            )
+            "embedTime" -> renderWidgetItem(
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                data = itemGenerator.timeItem().toWidgetData(
+                    context = context,
+                    showRemaining = showRemaining,
+                    useWidgetString = true
+                ),
+                flowItems = flowItems
+            )
+            "nextCustom" -> renderNextCountdownWidget(
+                context = context,
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                flowItems = flowItems,
+                showRemaining = showRemaining,
+                itemGenerator = itemGenerator,
+                repository = repository
+            )
+            else -> renderCustomWidget(
+                context = context,
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                flowItems = flowItems,
+                showRemaining = showRemaining,
+                source = source,
+                prefs = prefs,
+                itemGenerator = itemGenerator,
+                repository = repository
+            )
         }
     }
 
@@ -266,145 +299,126 @@ open class AppWidget : AppWidgetProvider() {
         }
     }
 
-    private fun renderNextCountdownWidget(
+    private suspend fun renderNextCountdownWidget(
         context: Context,
         views: RemoteViews,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         sizeClass: WidgetSizeClass,
+        palette: WidgetPalette,
         flowItems: WidgetFlowItems,
+        showRemaining: Boolean,
+        itemGenerator: InterfaceItem,
+        repository: TimeLeftRepository,
     ) {
-        val ep = entryPoint(context)
-        val prefs = ep.prefs()
-        val itemGenerator = ep.itemGenerator()
-        val repository = ep.repository()
+        val selected = NextCountdownSelector.select(
+            repository.advanceExpiredRecurrences(repository.allItems())
+        )
 
-        CoroutineScope(Dispatchers.IO).launch {
-            val rankedItems = repository.advanceExpiredRecurrences(repository.allItems())
-                .map { entity ->
-                    entity to if (entity.type == ItemType.Time) {
-                        itemGenerator.customTimeItem(entity)
-                    } else {
-                        itemGenerator.customMonthItem(entity)
-                    }
-                }
-            val selected = rankedItems
-                .filterNot { it.second.isExpired }
-                .minByOrNull { it.second.remainingSortKey }
-                ?: rankedItems.firstOrNull()
+        if (selected == null) {
+            renderMonthFallback(
+                context = context,
+                views = views,
+                appWidgetManager = appWidgetManager,
+                appWidgetId = appWidgetId,
+                sizeClass = sizeClass,
+                palette = palette,
+                flowItems = flowItems,
+                showRemaining = showRemaining,
+                itemGenerator = itemGenerator
+            )
+            return
+        }
 
-            if (selected == null) {
-                renderMonthFallbackWidget(
-                    context = context,
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    flowItems = flowItems,
-                    prefs = prefs,
-                    itemGenerator = itemGenerator
-                )
-                return@launch
-            }
+        val item = selected.toAdapterItem(itemGenerator)
+        renderWidgetItem(
+            views = views,
+            appWidgetManager = appWidgetManager,
+            appWidgetId = appWidgetId,
+            sizeClass = sizeClass,
+            palette = palette,
+            data = item.toWidgetData(
+                context = context,
+                showRemaining = showRemaining,
+                useWidgetString = selected.type == ItemType.Time
+            ),
+            flowItems = flowItems
+        )
+    }
 
-            val (entity, item) = selected
+    private suspend fun renderCustomWidget(
+        context: Context,
+        views: RemoteViews,
+        appWidgetManager: AppWidgetManager,
+        appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
+        palette: WidgetPalette,
+        flowItems: WidgetFlowItems,
+        showRemaining: Boolean,
+        source: String,
+        prefs: SharedPreferences,
+        itemGenerator: InterfaceItem,
+        repository: TimeLeftRepository,
+    ) {
+        val selectedItemId = source.toIntOrNull()
+        if (selectedItemId == null) {
+            clearWidgetSelection(prefs, appWidgetId)
+            renderMonthFallback(
+                context, views, appWidgetManager, appWidgetId, sizeClass, palette,
+                flowItems, showRemaining, itemGenerator
+            )
+            return
+        }
+
+        try {
+            val itemEntity = repository.advanceExpiredRecurrence(
+                repository.getItem(selectedItemId)
+            )
+            val item = itemEntity.toAdapterItem(itemGenerator)
+
             renderWidgetItem(
                 views = views,
                 appWidgetManager = appWidgetManager,
                 appWidgetId = appWidgetId,
                 sizeClass = sizeClass,
+                palette = palette,
                 data = item.toWidgetData(
                     context = context,
-                    showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                    useWidgetString = entity.type == ItemType.Time
+                    showRemaining = showRemaining,
+                    useWidgetString = itemEntity.type == ItemType.Time
                 ),
                 flowItems = flowItems
+            )
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            clearWidgetSelection(prefs, appWidgetId)
+            renderMonthFallback(
+                context, views, appWidgetManager, appWidgetId, sizeClass, palette,
+                flowItems, showRemaining, itemGenerator
             )
         }
     }
 
-    private fun renderCustomWidget(
-        context: Context,
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        sizeClass: WidgetSizeClass,
-        flowItems: WidgetFlowItems,
-    ) {
-        val ep = entryPoint(context)
-        val prefs = ep.prefs()
-        val itemGenerator = ep.itemGenerator()
-        val repository = ep.repository()
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val selectedItemId = prefs.getString(appWidgetId.toString(), null)?.toIntOrNull()
-            if (selectedItemId == null) {
-                clearWidgetSelection(prefs, appWidgetId)
-                renderMonthFallbackWidget(
-                    context,
-                    views,
-                    appWidgetManager,
-                    appWidgetId,
-                    sizeClass,
-                    flowItems,
-                    prefs,
-                    itemGenerator
-                )
-                return@launch
-            }
-
-            try {
-                val itemEntity = repository.advanceExpiredRecurrence(
-                    repository.getItem(selectedItemId)
-                )
-                val item = if (itemEntity.type == ItemType.Time) {
-                    itemGenerator.customTimeItem(itemEntity)
-                } else {
-                    itemGenerator.customMonthItem(itemEntity)
-                }
-
-                renderWidgetItem(
-                    views = views,
-                    appWidgetManager = appWidgetManager,
-                    appWidgetId = appWidgetId,
-                    sizeClass = sizeClass,
-                    data = item.toWidgetData(
-                        context = context,
-                        showRemaining = prefs.getBoolean("${appWidgetId}option", false),
-                        useWidgetString = itemEntity.type == ItemType.Time
-                    ),
-                    flowItems = flowItems
-                )
-            } catch (exception: CancellationException) {
-                throw exception
-            } catch (_: Exception) {
-                clearWidgetSelection(prefs, appWidgetId)
-                renderMonthFallbackWidget(
-                    context,
-                    views,
-                    appWidgetManager,
-                    appWidgetId,
-                    sizeClass,
-                    flowItems,
-                    prefs,
-                    itemGenerator
-                )
-            }
+    private fun ItemEntity.toAdapterItem(itemGenerator: InterfaceItem): AdapterItem =
+        when (type) {
+            ItemType.Time -> itemGenerator.customTimeItem(this)
+            ItemType.Date -> itemGenerator.customMonthItem(this)
         }
-    }
 
     private fun clearWidgetSelection(prefs: SharedPreferences, appWidgetId: Int) {
         prefs.edit { remove(appWidgetId.toString()) }
     }
 
-    private fun renderMonthFallbackWidget(
+    private fun renderMonthFallback(
         context: Context,
         views: RemoteViews,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         sizeClass: WidgetSizeClass,
+        palette: WidgetPalette,
         flowItems: WidgetFlowItems,
-        prefs: SharedPreferences,
+        showRemaining: Boolean,
         itemGenerator: InterfaceItem,
     ) {
         renderWidgetItem(
@@ -412,9 +426,10 @@ open class AppWidget : AppWidgetProvider() {
             appWidgetManager = appWidgetManager,
             appWidgetId = appWidgetId,
             sizeClass = sizeClass,
+            palette = palette,
             data = itemGenerator.monthItem().toWidgetData(
                 context = context,
-                showRemaining = prefs.getBoolean("${appWidgetId}option", false),
+                showRemaining = showRemaining,
                 useWidgetString = false
             ),
             flowItems = flowItems
@@ -426,10 +441,11 @@ open class AppWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
         sizeClass: WidgetSizeClass,
+        palette: WidgetPalette,
         data: WidgetDisplayData,
         flowItems: WidgetFlowItems,
     ) {
-        renderBase(views, data)
+        renderBase(views, data, palette)
         when (sizeClass) {
             WidgetSizeClass.Compact -> Unit
             WidgetSizeClass.Medium -> renderMedium(views, data)
@@ -442,12 +458,11 @@ open class AppWidget : AppWidgetProvider() {
     private fun renderBase(
         views: RemoteViews,
         data: WidgetDisplayData,
+        palette: WidgetPalette,
     ) {
         views.setTextViewText(R.id.summary, data.title)
         views.setTextViewText(R.id.percent, data.value)
-        WidgetPalette.entries.forEach { palette ->
-            views.setProgressBar(palette.progressViewId, 100, data.progress, false)
-        }
+        views.setProgressBar(palette.progressViewId, 100, data.progress, false)
     }
 
     private fun renderMedium(
