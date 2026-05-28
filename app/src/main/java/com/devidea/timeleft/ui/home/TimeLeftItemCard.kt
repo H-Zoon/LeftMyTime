@@ -11,9 +11,10 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
@@ -37,6 +38,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
@@ -46,6 +52,7 @@ import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
+import kotlin.math.min
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
@@ -96,7 +103,7 @@ internal fun TimeLeftItemCard(
     } else {
         Card(
             modifier = cardModifier,
-            shape = RoundedCornerShape(8.dp),
+            shape = MaterialTheme.shapes.small,
             colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
         ) {
             ItemCardContent(
@@ -158,22 +165,36 @@ private fun ItemCardContent(
 ) {
     Column(modifier = modifier) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                CountdownBadge(
-                    text = item.countdownText.ifBlank { formatPercent(item.percent) + "%" },
+                CountdownRingBadge(
+                    progress = progress,
                     iconKey = item.iconKey,
-                    color = accent
+                    color = accent,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-                Spacer(modifier = Modifier.width(10.dp))
+                Spacer(modifier = Modifier.width(12.dp))
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
-                    Text(
-                        text = item.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurface,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = item.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.onSurface,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            modifier = Modifier.weight(1f)
+                        )
+                        val countdown = item.countdownText.ifBlank {
+                            formatPercent(item.percent) + "%"
+                        }
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text(
+                            text = countdown,
+                            style = MaterialTheme.typography.titleSmall,
+                            color = accent,
+                            maxLines = 1
+                        )
+                    }
                     Text(
                         text = item.dueText.ifBlank { item.leftString },
                         style = MaterialTheme.typography.bodyMedium,
@@ -195,8 +216,8 @@ private fun ItemCardContent(
                     }
                 }
             }
-            if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
-                Spacer(modifier = Modifier.height(if (compact) 6.dp else 8.dp))
+            if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL && !compact) {
+                Spacer(modifier = Modifier.height(8.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
@@ -206,18 +227,16 @@ private fun ItemCardContent(
                         progress = { progress },
                         modifier = Modifier
                             .weight(1f)
-                            .height(6.dp),
+                            .height(4.dp),
                         color = accent,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant
                     )
-                    if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL) {
-                        Text(
-                            text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
-                            style = if (compact) MaterialTheme.typography.labelLarge else MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            maxLines = 1
-                        )
-                    }
+                    Text(
+                        text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
                 }
             }
             if (showDetails) {
@@ -296,37 +315,59 @@ private fun MetadataChips(
 }
 
 @Composable
-private fun CountdownBadge(
-    text: String,
+private fun CountdownRingBadge(
+    progress: Float,
     iconKey: String,
-    color: androidx.compose.ui.graphics.Color,
+    color: Color,
+    trackColor: Color,
+    modifier: Modifier = Modifier,
 ) {
-    Surface(
-        shape = RoundedCornerShape(8.dp),
-        color = color.copy(alpha = 0.10f),
-        contentColor = color,
-        modifier = Modifier.size(width = 58.dp, height = 48.dp)
+    Box(
+        modifier = modifier.size(BADGE_SIZE),
+        contentAlignment = Alignment.Center
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 8.dp, vertical = 7.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.Center
-        ) {
-            Icon(
-                imageVector = itemIconVector(iconKey),
-                contentDescription = null,
-                modifier = Modifier.size(16.dp)
+        Canvas(modifier = Modifier.size(BADGE_SIZE)) {
+            val strokePx = BADGE_STROKE.toPx()
+            val inset = strokePx / 2f
+            val diameter = min(size.width, size.height) - inset * 2f
+            val topLeft = Offset(
+                x = (size.width - diameter) / 2f,
+                y = (size.height - diameter) / 2f
             )
-            Spacer(modifier = Modifier.height(2.dp))
-            Text(
-                text = text,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
+            val arcSize = Size(diameter, diameter)
+            drawArc(
+                color = trackColor,
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                topLeft = topLeft,
+                size = arcSize,
+                style = Stroke(width = strokePx, cap = StrokeCap.Round)
             )
+            val clamped = progress.coerceIn(0f, 1f)
+            if (clamped > 0f) {
+                drawArc(
+                    color = color,
+                    startAngle = -90f,
+                    sweepAngle = 360f * clamped,
+                    useCenter = false,
+                    topLeft = topLeft,
+                    size = arcSize,
+                    style = Stroke(width = strokePx, cap = StrokeCap.Round)
+                )
+            }
         }
+        Icon(
+            imageVector = itemIconVector(iconKey),
+            contentDescription = null,
+            tint = color,
+            modifier = Modifier.size(18.dp)
+        )
     }
 }
+
+private val BADGE_SIZE = 48.dp
+private val BADGE_STROKE = 3.dp
 
 @Composable
 private fun DetailText(text: String) {

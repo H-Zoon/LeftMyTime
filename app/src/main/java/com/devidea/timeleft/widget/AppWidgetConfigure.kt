@@ -20,7 +20,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
@@ -271,7 +270,7 @@ private fun WidgetConfigureScreen(
 
                 Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    shape = RoundedCornerShape(8.dp),
+                    shape = MaterialTheme.shapes.small,
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Row(
@@ -324,7 +323,7 @@ private fun WidgetPreviewBand(
 
     Surface(
         modifier = Modifier.fillMaxWidth(),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
     ) {
         Column(
@@ -387,7 +386,7 @@ private fun WidgetSourceRow(
         modifier = Modifier
             .fillMaxWidth()
             .then(rowModifier),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.small,
         color = if (selected) {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
         } else {
@@ -472,7 +471,7 @@ private fun CustomItemRow(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(8.dp),
+        shape = MaterialTheme.shapes.small,
         color = if (selected) {
             MaterialTheme.colorScheme.secondary.copy(alpha = 0.11f)
         } else {
