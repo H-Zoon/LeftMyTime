@@ -8,6 +8,7 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
@@ -53,7 +54,9 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.KeyboardType
@@ -73,6 +76,7 @@ import com.devidea.timeleft.ui.permission.shouldOpenNotificationSettings
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
+import java.time.temporal.ChronoUnit
 
 data class ItemEditorDraft(
     val type: ItemType,
@@ -526,7 +530,13 @@ private fun DateRangeFields(
     onStartDateChange: (String) -> Unit,
     onEndDateChange: (String) -> Unit
 ) {
+    val startDate = parseDate(startDateValue)
+    val endDate = parseDate(endDateValue)
+
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+        if (startDate != null && endDate != null && !endDate.isBefore(startDate)) {
+            DateRangePreview(startDate = startDate, endDate = endDate)
+        }
         DatePickerField(
             label = stringResource(R.string.editor_start_date),
             value = startDateValue,
@@ -537,6 +547,136 @@ private fun DateRangeFields(
             value = endDateValue,
             onValueChange = onEndDateChange
         )
+    }
+}
+
+@Composable
+private fun DateRangePreview(
+    startDate: LocalDate,
+    endDate: LocalDate,
+) {
+    val today = LocalDate.now()
+    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date))
+    val daysLeft = ChronoUnit.DAYS.between(today, endDate).toInt()
+    val daysSpan = (ChronoUnit.DAYS.between(startDate, endDate).toInt()).coerceAtLeast(0)
+    val daysFromStart = ChronoUnit.DAYS.between(startDate, today).toInt()
+    val markerProgress = when {
+        daysSpan == 0 -> if (today.isBefore(startDate)) 0f else 1f
+        else -> (daysFromStart.toFloat() / daysSpan).coerceIn(0f, 1f)
+    }
+    val showMarker = !today.isBefore(startDate) && !today.isAfter(endDate)
+
+    val ddayText = when {
+        daysLeft > 0 -> stringResource(R.string.home_dday_before, daysLeft)
+        daysLeft == 0 -> stringResource(R.string.home_dday_today)
+        else -> stringResource(R.string.home_dday_after, -daysLeft)
+    }
+    val accent = MaterialTheme.colorScheme.primary
+    val trackColor = MaterialTheme.colorScheme.surfaceVariant
+    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
+
+    Surface(
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        color = accent.copy(alpha = 0.08f)
+    ) {
+        Column(
+            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
+            verticalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Bottom
+            ) {
+                Text(
+                    text = ddayText,
+                    style = MaterialTheme.typography.displaySmall,
+                    color = accent,
+                    maxLines = 1
+                )
+                Spacer(modifier = Modifier.weight(1f))
+                Text(
+                    text = stringResource(R.string.editor_date_range_days, daysSpan),
+                    style = MaterialTheme.typography.labelLarge,
+                    color = onSurfaceVariant,
+                    modifier = Modifier.padding(bottom = 4.dp)
+                )
+            }
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Text(
+                    text = startDate.format(displayFormatter),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = onSurfaceVariant
+                )
+                Text(
+                    text = endDate.format(displayFormatter),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = onSurfaceVariant
+                )
+            }
+            DateRangeBar(
+                progress = markerProgress,
+                showMarker = showMarker,
+                accent = accent,
+                trackColor = trackColor,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(18.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun DateRangeBar(
+    progress: Float,
+    showMarker: Boolean,
+    accent: Color,
+    trackColor: Color,
+    modifier: Modifier = Modifier,
+) {
+    Canvas(modifier = modifier) {
+        val barHeightPx = 6.dp.toPx()
+        val endcapRadiusPx = 5.dp.toPx()
+        val markerRadiusPx = 6.dp.toPx()
+        val centerY = size.height / 2f
+        val startX = endcapRadiusPx
+        val endX = size.width - endcapRadiusPx
+        val trackWidth = endX - startX
+
+        drawLine(
+            color = trackColor,
+            start = Offset(startX, centerY),
+            end = Offset(endX, centerY),
+            strokeWidth = barHeightPx,
+            cap = StrokeCap.Round
+        )
+        drawCircle(
+            color = accent,
+            radius = endcapRadiusPx,
+            center = Offset(startX, centerY)
+        )
+        drawCircle(
+            color = accent,
+            radius = endcapRadiusPx,
+            center = Offset(endX, centerY)
+        )
+        if (showMarker) {
+            val markerX = startX + trackWidth * progress.coerceIn(0f, 1f)
+            drawCircle(
+                color = accent.copy(alpha = 0.22f),
+                radius = markerRadiusPx + 3.dp.toPx(),
+                center = Offset(markerX, centerY)
+            )
+            drawCircle(
+                color = accent,
+                radius = markerRadiusPx,
+                center = Offset(markerX, centerY)
+            )
+        }
     }
 }
 

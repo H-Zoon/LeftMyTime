@@ -89,6 +89,7 @@
     <string name="editor_time_range_accessibility">Selected time range: %1$s to %2$s, %3$s</string>
     <string name="editor_start_date">Start date</string>
     <string name="editor_end_date">End date</string>
+    <string name="editor_date_range_days">%1$d day span</string>
     <string name="editor_repeat">Repeat</string>
     <string name="editor_repeat_none">No repeat</string>
     <string name="editor_repeat_every_n_days">Restart same length after N-day gap</string>

@@ -90,6 +90,7 @@
     <string name="editor_time_range_accessibility">선택 시간 범위: %1$s부터 %2$s까지, %3$s</string>
     <string name="editor_start_date">시작일</string>
     <string name="editor_end_date">종료일</string>
+    <string name="editor_date_range_days">총 %1$d일</string>
     <string name="editor_repeat">반복</string>
     <string name="editor_repeat_none">반복 없음</string>
     <string name="editor_repeat_every_n_days">종료 N일 후 같은 기간으로 반복</string>
