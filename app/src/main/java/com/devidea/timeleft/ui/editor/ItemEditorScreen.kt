@@ -8,6 +8,8 @@ import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
@@ -51,6 +53,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -274,40 +277,6 @@ fun ItemEditorScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                VisualFields(
-                    category = category,
-                    colorKey = colorKey,
-                    iconKey = iconKey,
-                    reminderOffsetDays = reminderOffsetDays,
-                    reminderType = selectedType,
-                    onCategoryChange = { category = it },
-                    onColorKeyChange = { colorKey = it },
-                    onIconKeyChange = { iconKey = it },
-                    showReminderPermissionMessage = notificationPermissionUnavailable &&
-                        !context.canPostReminderNotifications(),
-                    onReminderChange = { offset ->
-                        when {
-                            offset == ItemVisuals.REMINDER_DISABLED -> {
-                                reminderOffsetDays = offset
-                                notificationPermissionUnavailable = false
-                            }
-                            context.canPostReminderNotifications() -> {
-                                reminderOffsetDays = offset
-                                notificationPermissionUnavailable = false
-                            }
-                            else -> {
-                                pendingReminderOffsetDays = offset
-                                saveAfterNotificationPermission = false
-                                if (context.shouldOpenNotificationSettings()) {
-                                    showNotificationPermissionSettings = true
-                                } else {
-                                    showNotificationPermissionExplanation = true
-                                }
-                            }
-                        }
-                    }
-                )
-
                 if (selectedType == ItemType.Time) {
                     TimeRangeFields(
                         startTimeValue = startTimeValue,
@@ -347,6 +316,43 @@ fun ItemEditorScreen(
                         }
                     )
                 }
+
+                ReminderFields(
+                    reminderOffsetDays = reminderOffsetDays,
+                    reminderType = selectedType,
+                    showReminderPermissionMessage = notificationPermissionUnavailable &&
+                        !context.canPostReminderNotifications(),
+                    onReminderChange = { offset ->
+                        when {
+                            offset == ItemVisuals.REMINDER_DISABLED -> {
+                                reminderOffsetDays = offset
+                                notificationPermissionUnavailable = false
+                            }
+                            context.canPostReminderNotifications() -> {
+                                reminderOffsetDays = offset
+                                notificationPermissionUnavailable = false
+                            }
+                            else -> {
+                                pendingReminderOffsetDays = offset
+                                saveAfterNotificationPermission = false
+                                if (context.shouldOpenNotificationSettings()) {
+                                    showNotificationPermissionSettings = true
+                                } else {
+                                    showNotificationPermissionExplanation = true
+                                }
+                            }
+                        }
+                    }
+                )
+
+                AppearanceFields(
+                    category = category,
+                    colorKey = colorKey,
+                    iconKey = iconKey,
+                    onCategoryChange = { category = it },
+                    onColorKeyChange = { colorKey = it },
+                    onIconKeyChange = { iconKey = it }
+                )
 
                 errorRes?.let {
                     Text(
@@ -459,28 +465,21 @@ private fun TypeSelector(
     enabled: Boolean,
     onTypeSelected: (ItemType) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        Text(
-            text = stringResource(R.string.editor_type),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary
+    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        FilterChip(
+            selected = selectedType == ItemType.Time,
+            onClick = { if (enabled) onTypeSelected(ItemType.Time) },
+            enabled = enabled,
+            label = { Text(stringResource(R.string.home_add_time_range)) },
+            leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) }
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            FilterChip(
-                selected = selectedType == ItemType.Time,
-                onClick = { if (enabled) onTypeSelected(ItemType.Time) },
-                enabled = enabled,
-                label = { Text(stringResource(R.string.home_add_time_range)) },
-                leadingIcon = { Icon(Icons.Filled.Schedule, contentDescription = null) }
-            )
-            FilterChip(
-                selected = selectedType == ItemType.Date,
-                onClick = { if (enabled) onTypeSelected(ItemType.Date) },
-                enabled = enabled,
-                label = { Text(stringResource(R.string.home_add_date)) },
-                leadingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) }
-            )
-        }
+        FilterChip(
+            selected = selectedType == ItemType.Date,
+            onClick = { if (enabled) onTypeSelected(ItemType.Date) },
+            enabled = enabled,
+            label = { Text(stringResource(R.string.home_add_date)) },
+            leadingIcon = { Icon(Icons.Filled.CalendarMonth, contentDescription = null) }
+        )
     }
 }
 
@@ -767,17 +766,57 @@ private fun PickerCard(
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-private fun VisualFields(
+private fun ReminderFields(
+    reminderOffsetDays: Int,
+    reminderType: ItemType,
+    showReminderPermissionMessage: Boolean,
+    onReminderChange: (Int) -> Unit,
+) {
+    Surface(
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surface,
+        tonalElevation = 1.dp
+    ) {
+        Column(
+            modifier = Modifier.padding(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
+        ) {
+            Text(
+                text = stringResource(R.string.editor_reminder),
+                style = MaterialTheme.typography.titleMedium,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            FlowRow(
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
+            ) {
+                ItemVisuals.reminderOffsets(reminderType).forEach { offset ->
+                    FilterChip(
+                        selected = reminderOffsetDays == offset,
+                        onClick = { onReminderChange(offset) },
+                        label = { Text(stringResource(ItemVisuals.reminderNameRes(reminderType, offset))) }
+                    )
+                }
+            }
+            if (showReminderPermissionMessage) {
+                Text(
+                    text = stringResource(R.string.editor_reminder_permission_required),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.error
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun AppearanceFields(
     category: String,
     colorKey: String,
     iconKey: String,
-    reminderOffsetDays: Int,
-    reminderType: ItemType,
     onCategoryChange: (String) -> Unit,
     onColorKeyChange: (String) -> Unit,
     onIconKeyChange: (String) -> Unit,
-    showReminderPermissionMessage: Boolean,
-    onReminderChange: (Int) -> Unit,
 ) {
     Surface(
         shape = MaterialTheme.shapes.small,
@@ -805,73 +844,60 @@ private fun VisualFields(
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                verticalArrangement = Arrangement.spacedBy(Spacing.s)
-            ) {
-                ItemVisuals.colorKeys.forEach { key ->
-                    FilterChip(
-                        selected = colorKey == key,
-                        onClick = { onColorKeyChange(key) },
-                        label = { Text(stringResource(ItemVisuals.colorNameRes(key))) },
-                        leadingIcon = {
-                            ColorSwatch(
-                                color = if (key == ItemVisuals.AUTO_COLOR_KEY) {
-                                    MaterialTheme.colorScheme.primary
-                                } else {
-                                    Color(ItemVisuals.colorInt(key))
-                                }
-                            )
-                        }
-                    )
-                }
-            }
+            ColorSwatchRow(
+                selectedKey = colorKey,
+                onSelect = onColorKeyChange
+            )
             Text(
                 text = stringResource(R.string.editor_icon),
                 style = MaterialTheme.typography.labelLarge,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                verticalArrangement = Arrangement.spacedBy(Spacing.s)
-            ) {
-                ItemVisuals.iconKeys.forEach { key ->
-                    FilterChip(
-                        selected = iconKey == key,
-                        onClick = { onIconKeyChange(key) },
-                        label = { Text(stringResource(ItemVisuals.iconNameRes(key))) },
-                        leadingIcon = {
-                            Icon(
-                                imageVector = itemIconVector(key),
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                        }
-                    )
-                }
-            }
-            Text(
-                text = stringResource(R.string.editor_reminder),
-                style = MaterialTheme.typography.labelLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+            IconPickerGrid(
+                selectedKey = iconKey,
+                onSelect = onIconKeyChange
             )
-            FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-                verticalArrangement = Arrangement.spacedBy(Spacing.s)
+        }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun ColorSwatchRow(
+    selectedKey: String,
+    onSelect: (String) -> Unit,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s)
+    ) {
+        ItemVisuals.colorKeys.forEach { key ->
+            val color = if (key == ItemVisuals.AUTO_COLOR_KEY) primary else Color(ItemVisuals.colorInt(key))
+            val selected = key == selectedKey
+            Box(
+                modifier = Modifier
+                    .size(36.dp)
+                    .clip(CircleShape)
+                    .clickable { onSelect(key) },
+                contentAlignment = Alignment.Center
             ) {
-                ItemVisuals.reminderOffsets(reminderType).forEach { offset ->
-                    FilterChip(
-                        selected = reminderOffsetDays == offset,
-                        onClick = { onReminderChange(offset) },
-                        label = { Text(stringResource(ItemVisuals.reminderNameRes(reminderType, offset))) }
+                if (selected) {
+                    Box(
+                        modifier = Modifier
+                            .size(36.dp)
+                            .border(
+                                width = 2.dp,
+                                color = color,
+                                shape = CircleShape
+                            )
                     )
                 }
-            }
-            if (showReminderPermissionMessage) {
-                Text(
-                    text = stringResource(R.string.editor_reminder_permission_required),
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.error
+                Box(
+                    modifier = Modifier
+                        .size(if (selected) 26.dp else 30.dp)
+                        .clip(CircleShape)
+                        .background(color)
                 )
             }
         }
@@ -879,13 +905,43 @@ private fun VisualFields(
 }
 
 @Composable
-private fun ColorSwatch(color: Color) {
-    Surface(
-        modifier = Modifier.size(18.dp),
-        shape = CircleShape,
-        color = color,
+@OptIn(ExperimentalLayoutApi::class)
+private fun IconPickerGrid(
+    selectedKey: String,
+    onSelect: (String) -> Unit,
+) {
+    val primary = MaterialTheme.colorScheme.primary
+    val onSurface = MaterialTheme.colorScheme.onSurface
+    val outline = MaterialTheme.colorScheme.outline
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
-        Box(modifier = Modifier.size(18.dp))
+        ItemVisuals.iconKeys.forEach { key ->
+            val selected = key == selectedKey
+            Box(
+                modifier = Modifier
+                    .size(44.dp)
+                    .clip(MaterialTheme.shapes.extraSmall)
+                    .background(
+                        if (selected) primary.copy(alpha = 0.12f) else Color.Transparent
+                    )
+                    .border(
+                        width = 1.dp,
+                        color = if (selected) primary else outline.copy(alpha = 0.4f),
+                        shape = MaterialTheme.shapes.extraSmall
+                    )
+                    .clickable { onSelect(key) },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = itemIconVector(key),
+                    contentDescription = stringResource(ItemVisuals.iconNameRes(key)),
+                    tint = if (selected) primary else onSurface,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
     }
 }
 

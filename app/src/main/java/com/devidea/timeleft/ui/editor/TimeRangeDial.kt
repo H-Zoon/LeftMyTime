@@ -2,7 +2,9 @@ package com.devidea.timeleft.ui.editor
 
 import android.graphics.Paint
 import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.gestures.detectDragGestures
+import androidx.compose.foundation.gestures.awaitEachGesture
+import androidx.compose.foundation.gestures.awaitFirstDown
+import androidx.compose.foundation.gestures.drag
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
@@ -39,7 +41,6 @@ import java.time.Duration
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
 import kotlin.math.PI
-import kotlin.math.abs
 import kotlin.math.atan2
 import kotlin.math.cos
 import kotlin.math.min
@@ -87,6 +88,7 @@ internal fun TimeRangeDial(
                 handleHaloPx = 16.dp.toPx(),
                 handleOuterPx = 10.dp.toPx(),
                 handleInnerPx = 8.dp.toPx(),
+                handleTouchPx = 28.dp.toPx(),
             )
         }
     }
@@ -129,41 +131,40 @@ internal fun TimeRangeDial(
                 modifier = Modifier
                     .size(252.dp)
                     .semantics { contentDescription = accessibilityText }
-                    .pointerInput(Unit) {
-                        detectDragGestures(
-                            onDragStart = { position ->
-                                val handle = nearestHandle(
-                                    position = position,
-                                    size = size,
-                                    startTime = latestStart.value,
-                                    endTime = latestEnd.value
-                                )
-                                draggingHandle = handle
+                    .pointerInput(metrics) {
+                        awaitEachGesture {
+                            val down = awaitFirstDown(requireUnconsumed = false)
+                            val handle = handleAt(
+                                position = down.position,
+                                size = size,
+                                startTime = latestStart.value,
+                                endTime = latestEnd.value,
+                                outerInsetPx = metrics.outerInsetPx,
+                                touchRadiusPx = metrics.handleTouchPx
+                            ) ?: return@awaitEachGesture
+                            down.consume()
+                            draggingHandle = handle
+                            updateRange(
+                                handle = handle,
+                                position = down.position,
+                                size = size,
+                                startTime = latestStart.value,
+                                endTime = latestEnd.value,
+                                onRangeChange = latestOnRangeChange.value
+                            )
+                            drag(down.id) { change ->
+                                change.consume()
                                 updateRange(
                                     handle = handle,
-                                    position = position,
+                                    position = change.position,
                                     size = size,
                                     startTime = latestStart.value,
                                     endTime = latestEnd.value,
                                     onRangeChange = latestOnRangeChange.value
                                 )
-                            },
-                            onDragEnd = { draggingHandle = null },
-                            onDragCancel = { draggingHandle = null },
-                            onDrag = { change, _ ->
-                                change.consume()
-                                draggingHandle?.let { handle ->
-                                    updateRange(
-                                        handle = handle,
-                                        position = change.position,
-                                        size = size,
-                                        startTime = latestStart.value,
-                                        endTime = latestEnd.value,
-                                        onRangeChange = latestOnRangeChange.value
-                                    )
-                                }
                             }
-                        )
+                            draggingHandle = null
+                        }
                     }
             ) {
                 val center = Offset(size.width / 2f, size.height / 2f)
@@ -256,16 +257,23 @@ private fun androidx.compose.ui.graphics.drawscope.DrawScope.drawHandle(
     drawCircle(color = color, radius = metrics.handleInnerPx, center = center)
 }
 
-private fun nearestHandle(
+private fun handleAt(
     position: Offset,
     size: IntSize,
     startTime: LocalTime,
     endTime: LocalTime,
-): RangeHandle {
-    val candidate = minutesFromPosition(position, size)
-    val startDistance = dialMinuteDistance(candidate, minuteOfDay(startTime))
-    val endDistance = dialMinuteDistance(candidate, minuteOfDay(endTime))
-    return if (startDistance <= endDistance) RangeHandle.Start else RangeHandle.End
+    outerInsetPx: Float,
+    touchRadiusPx: Float,
+): RangeHandle? {
+    val center = Offset(size.width / 2f, size.height / 2f)
+    val radius = min(size.width, size.height) / 2f - outerInsetPx
+    val startPos = pointOnDial(minuteOfDay(startTime), center, radius)
+    val endPos = pointOnDial(minuteOfDay(endTime), center, radius)
+    val startDist = (position - startPos).getDistance()
+    val endDist = (position - endPos).getDistance()
+    val nearestDist = min(startDist, endDist)
+    if (nearestDist > touchRadiusPx) return null
+    return if (startDist <= endDist) RangeHandle.Start else RangeHandle.End
 }
 
 private fun updateRange(
@@ -312,11 +320,6 @@ private fun pointOnDial(minutes: Int, center: Offset, radius: Float): Offset {
 private fun dialAngle(minutes: Int): Float =
     minutes.toFloat() / MINUTES_PER_DAY * DEGREES_IN_CIRCLE - 90f
 
-private fun dialMinuteDistance(first: Int, second: Int): Int {
-    val direct = abs(first - second)
-    return min(direct, MINUTES_PER_DAY - direct)
-}
-
 private fun minuteOfDay(time: LocalTime): Int = time.hour * MINUTES_PER_HOUR + time.minute
 
 private fun timeOfDay(minutes: Int): LocalTime =
@@ -339,6 +342,7 @@ private data class DialMetrics(
     val handleHaloPx: Float,
     val handleOuterPx: Float,
     val handleInnerPx: Float,
+    val handleTouchPx: Float,
 )
 
 private val DIAL_LABELS = listOf(0 to "00", 6 to "06", 12 to "12", 18 to "18")

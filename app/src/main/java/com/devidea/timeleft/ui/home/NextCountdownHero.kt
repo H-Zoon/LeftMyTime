@@ -93,7 +93,7 @@ internal fun NextCountdownHero(
                 HeroLabelRow(item = item, accent = accent)
                 Text(
                     text = item.title,
-                    style = MaterialTheme.typography.titleLarge,
+                    style = MaterialTheme.typography.headlineSmall,
                     color = MaterialTheme.colorScheme.onSurface,
                     maxLines = 2,
                     overflow = TextOverflow.Ellipsis
