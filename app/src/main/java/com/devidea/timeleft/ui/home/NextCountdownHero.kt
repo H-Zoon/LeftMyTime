@@ -41,6 +41,7 @@ import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
+import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
 import kotlin.math.min
 
@@ -59,7 +60,7 @@ internal fun NextCountdownHero(
     LaunchedEffect(item.id) { entered = true }
     val progress by animateFloatAsState(
         targetValue = if (entered) targetProgress else 0f,
-        animationSpec = tween(durationMillis = 720, delayMillis = 60, easing = FastOutSlowInEasing),
+        animationSpec = tween(durationMillis = Motion.EmphasizedMs, delayMillis = 60, easing = FastOutSlowInEasing),
         label = "heroRingProgress"
     )
     val showRing = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN

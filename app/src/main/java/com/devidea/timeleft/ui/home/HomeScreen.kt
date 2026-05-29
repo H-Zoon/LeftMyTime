@@ -53,6 +53,7 @@ import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
@@ -96,7 +97,7 @@ fun HomeScreen(
     }
     val collapseFraction by animateFloatAsState(
         targetValue = targetCollapseFraction,
-        animationSpec = tween(durationMillis = 180),
+        animationSpec = tween(durationMillis = Motion.MediumMs),
         label = "timeFlowBandCollapse"
     )
     val displayedItems = remember(customItems, expiredItemsMode) {
@@ -445,8 +446,8 @@ private fun SectionHeader(
     ) {
         Text(
             text = title,
-            style = MaterialTheme.typography.titleLarge,
-            color = MaterialTheme.colorScheme.onBackground,
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary,
             modifier = Modifier.weight(1f)
         )
         if (count != null) {

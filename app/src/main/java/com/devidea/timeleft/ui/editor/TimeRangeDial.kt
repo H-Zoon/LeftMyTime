@@ -1,7 +1,6 @@
 package com.devidea.timeleft.ui.editor
 
 import android.graphics.Paint
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.gestures.detectDragGestures
 import androidx.compose.foundation.layout.Arrangement
@@ -104,7 +103,7 @@ internal fun TimeRangeDial(
         modifier = modifier,
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),

@@ -7,7 +7,6 @@ import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
@@ -463,8 +462,8 @@ private fun TypeSelector(
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(
             text = stringResource(R.string.editor_type),
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onBackground
+            style = MaterialTheme.typography.labelLarge,
+            color = MaterialTheme.colorScheme.primary
         )
         Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
             FilterChip(
@@ -748,7 +747,7 @@ private fun PickerCard(
             .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f))
+        tonalElevation = 1.dp
     ) {
         Column(modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
             Text(
@@ -783,7 +782,7 @@ private fun VisualFields(
     Surface(
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(Spacing.m),
@@ -900,7 +899,7 @@ private fun RepeatFields(
     Surface(
         shape = MaterialTheme.shapes.small,
         color = MaterialTheme.colorScheme.surface,
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
+        tonalElevation = 1.dp
     ) {
         Column(
             modifier = Modifier.padding(Spacing.m),

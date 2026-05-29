@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
@@ -121,7 +122,7 @@ private fun HeaderPagerDots(currentIndex: Int, total: Int) {
             val isActive = index == currentIndex
             val targetSize by animateDpAsState(
                 targetValue = if (isActive) 7.dp else 5.dp,
-                animationSpec = tween(durationMillis = 220),
+                animationSpec = tween(durationMillis = Motion.MediumMs),
                 label = "headerDotSize"
             )
             Box(

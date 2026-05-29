@@ -252,10 +252,9 @@ private fun WidgetConfigureScreen(
                 )
 
                 WidgetSource.values().forEach { source ->
-                    WidgetSourceRow(
-                        source = source,
+                    SelectableSurfaceRow(
+                        label = stringResource(source.labelRes),
                         selected = source == selectedSource,
-                        enabled = true,
                         onClick = { onSourceSelected(source) }
                     )
                 }
@@ -366,27 +365,15 @@ private fun WidgetPreviewBand(
 }
 
 @Composable
-private fun WidgetSourceRow(
-    source: WidgetSource,
+private fun SelectableSurfaceRow(
+    label: String,
     selected: Boolean,
-    enabled: Boolean,
     onClick: () -> Unit,
 ) {
-    val rowModifier = if (enabled) {
-        Modifier.clickable(onClick = onClick)
-    } else {
-        Modifier
-    }
-    val contentColor = if (enabled) {
-        MaterialTheme.colorScheme.onSurface
-    } else {
-        MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.55f)
-    }
-
     Surface(
         modifier = Modifier
             .fillMaxWidth()
-            .then(rowModifier),
+            .clickable(onClick = onClick),
         shape = MaterialTheme.shapes.small,
         color = if (selected) {
             MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
@@ -401,14 +388,15 @@ private fun WidgetSourceRow(
         ) {
             RadioButton(
                 selected = selected,
-                onClick = if (enabled) onClick else null,
-                enabled = enabled
+                onClick = onClick
             )
             Spacer(modifier = Modifier.width(Spacing.xs))
             Text(
-                text = stringResource(source.labelRes),
+                text = label,
                 style = MaterialTheme.typography.bodyLarge,
-                color = contentColor,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
         }
@@ -451,8 +439,8 @@ private fun CustomItemSection(
             }
             else -> {
                 items.forEach { item ->
-                    CustomItemRow(
-                        item = item,
+                    SelectableSurfaceRow(
+                        label = item.title,
                         selected = item.id == selectedItemId,
                         onClick = { onItemSelected(item.id) }
                     )
@@ -462,43 +450,6 @@ private fun CustomItemSection(
     }
 }
 
-@Composable
-private fun CustomItemRow(
-    item: ItemEntity,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.small,
-        color = if (selected) {
-            MaterialTheme.colorScheme.secondary.copy(alpha = 0.11f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        }
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = selected,
-                onClick = onClick
-            )
-            Spacer(modifier = Modifier.width(Spacing.xs))
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
 
 private enum class WidgetSource(
     val prefValue: String,
