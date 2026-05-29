@@ -55,15 +55,12 @@ import com.devidea.timeleft.preferences.UserPreferences
 
 @Composable
 fun HomeScreen(
-    themeMode: String,
     initialSortValue: String,
     initialTabValue: String,
     expiredItemsMode: String,
     progressDisplayMode: String,
-    animateStartupEntry: Boolean,
     topItems: List<AdapterItem>,
     customItems: List<AdapterItem>,
-    onToggleTheme: () -> Unit,
     onOpenSettings: () -> Unit,
     onSortChange: (String) -> Unit,
     onAddTime: () -> Unit,
@@ -80,12 +77,6 @@ fun HomeScreen(
     }
     val selectedTab = remember(selectedTabValue) {
         runCatching { HomeMainTab.valueOf(selectedTabValue) }.getOrDefault(HomeMainTab.Overview)
-    }
-    var overviewIntroConsumed by rememberSaveable { mutableStateOf(false) }
-    LaunchedEffect(selectedTab) {
-        if (selectedTab != HomeMainTab.Overview) {
-            overviewIntroConsumed = true
-        }
     }
     val overviewListState = rememberLazyListState()
     val itemsListState = rememberLazyListState()
@@ -234,15 +225,8 @@ fun HomeScreen(
                         verticalArrangement = Arrangement.spacedBy(dynamicDp(6.dp, 2.dp, collapseFraction))
                     ) {
                         HeaderSection(
-                            themeMode = themeMode,
-                            todayItem = topItems.firstOrNull(),
-                            onToggleTheme = onToggleTheme,
-                            onOpenSettings = onOpenSettings,
-                            collapseFraction = collapseFraction,
-                            animateEntry = animateStartupEntry && !overviewIntroConsumed
-                        )
-                        SummarySection(
                             topItems = topItems,
+                            onOpenSettings = onOpenSettings,
                             collapseFraction = collapseFraction
                         )
                     }

@@ -60,17 +60,12 @@ class MainActivity : AppCompatActivity() {
 
             TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey) {
                 HomeScreen(
-                    themeMode = themeMode,
                     initialSortValue = homeSort,
                     initialTabValue = startScreen,
                     expiredItemsMode = expiredItemsMode,
                     progressDisplayMode = progressDisplayMode,
-                    animateStartupEntry = savedInstanceState == null,
                     topItems = topItems,
                     customItems = customItems,
-                    onToggleTheme = {
-                        themeMode = nightModeChanger()
-                    },
                     onOpenSettings = {
                         startActivity(Intent(this@MainActivity, SettingsActivity::class.java))
                     },
@@ -104,17 +99,6 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::prefs.isInitialized) refreshPreferences()
-    }
-
-    private fun nightModeChanger(): String {
-        val nextMode = when (currentThemeMode()) {
-            UserPreferences.THEME_LIGHT -> UserPreferences.THEME_DARK
-            UserPreferences.THEME_DARK -> UserPreferences.THEME_AUTO
-            else -> UserPreferences.THEME_LIGHT
-        }
-        prefs.edit().putString(UserPreferences.KEY_THEME, nextMode).apply()
-        applyNightMode(nextMode)
-        return nextMode
     }
 
     private fun refreshPreferences() {
