@@ -23,6 +23,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
 internal fun AddItemDialog(
@@ -34,7 +35,7 @@ internal fun AddItemDialog(
         onDismissRequest = onDismiss,
         title = { Text(stringResource(R.string.home_add_item)) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
                 AddTypeRow(
                     title = stringResource(R.string.home_add_time_range),
                     icon = { Icon(Icons.Filled.AccessTime, contentDescription = null) },
@@ -70,11 +71,11 @@ private fun AddTypeRow(
         color = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.55f)
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.m),
             verticalAlignment = Alignment.CenterVertically
         ) {
             icon()
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(Spacing.m))
             Text(
                 text = title,
                 style = MaterialTheme.typography.titleMedium,

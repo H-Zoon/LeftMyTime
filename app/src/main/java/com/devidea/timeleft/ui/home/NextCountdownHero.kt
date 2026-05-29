@@ -8,10 +8,12 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
@@ -39,10 +41,11 @@ import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
+import com.devidea.timeleft.ui.theme.Spacing
 import kotlin.math.min
 
-private val RING_SIZE = 220.dp
-private val RING_STROKE = 16.dp
+private val RING_SIZE = 116.dp
+private val RING_STROKE = 10.dp
 
 @Composable
 internal fun NextCountdownHero(
@@ -60,7 +63,7 @@ internal fun NextCountdownHero(
         label = "heroRingProgress"
     )
     val showRing = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-    val showPercentLabel = progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL
+    val countdownText = item.countdownText.ifBlank { "${formatPercent(item.percent)}%" }
 
     Surface(
         modifier = modifier.fillMaxWidth(),
@@ -69,35 +72,50 @@ internal fun NextCountdownHero(
         tonalElevation = 1.dp,
         contentColor = MaterialTheme.colorScheme.onSurface
     ) {
-        Column(
-            modifier = Modifier.padding(horizontal = 18.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
+        Row(
+            modifier = Modifier.padding(Spacing.l),
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            HeroLabelRow(item = item, accent = accent)
-
             if (showRing) {
                 CountdownRingBlock(
-                    item = item,
-                    accent = accent,
                     progress = progress,
-                    showPercentLabel = showPercentLabel,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    accent = accent,
+                    trackColor = MaterialTheme.colorScheme.surfaceVariant,
+                    centerText = countdownText
                 )
-            } else {
-                CompactCenterBlock(item = item)
+                Spacer(modifier = Modifier.width(Spacing.l))
             }
-
-            val footer = item.dueText.ifBlank { item.leftString }
-            if (footer.isNotBlank()) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+            ) {
+                HeroLabelRow(item = item, accent = accent)
                 Text(
-                    text = footer,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
+                    text = item.title,
+                    style = MaterialTheme.typography.titleLarge,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 2,
                     overflow = TextOverflow.Ellipsis
                 )
+                if (!showRing) {
+                    Text(
+                        text = countdownText,
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
+                val footer = item.dueText.ifBlank { item.leftString }
+                if (footer.isNotBlank()) {
+                    Text(
+                        text = footer,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                }
             }
         }
     }
@@ -106,9 +124,8 @@ internal fun NextCountdownHero(
 @Composable
 private fun HeroLabelRow(item: AdapterItem, accent: Color) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
         verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(10.dp)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         Surface(
             shape = MaterialTheme.shapes.extraSmall,
@@ -119,26 +136,26 @@ private fun HeroLabelRow(item: AdapterItem, accent: Color) {
                 imageVector = itemIconVector(item.iconKey),
                 contentDescription = null,
                 modifier = Modifier
-                    .padding(7.dp)
-                    .size(18.dp)
+                    .padding(5.dp)
+                    .size(14.dp)
             )
         }
         Text(
             text = stringResource(R.string.home_next_countdown),
             style = MaterialTheme.typography.labelLarge,
             color = accent,
-            modifier = Modifier.weight(1f)
+            maxLines = 1,
+            overflow = TextOverflow.Ellipsis
         )
     }
 }
 
 @Composable
 private fun CountdownRingBlock(
-    item: AdapterItem,
-    accent: Color,
     progress: Float,
-    showPercentLabel: Boolean,
+    accent: Color,
     trackColor: Color,
+    centerText: String,
 ) {
     Box(
         modifier = Modifier.size(RING_SIZE),
@@ -150,63 +167,14 @@ private fun CountdownRingBlock(
             trackColor = trackColor,
             modifier = Modifier.fillMaxSize()
         )
-        Column(
-            modifier = Modifier.padding(horizontal = 32.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(2.dp)
-        ) {
-            Text(
-                text = item.title,
-                style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            Text(
-                text = item.countdownText.ifBlank { "${formatPercent(item.percent)}%" },
-                style = MaterialTheme.typography.displaySmall,
-                color = MaterialTheme.colorScheme.onSurface,
-                textAlign = TextAlign.Center,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            if (showPercentLabel) {
-                Text(
-                    text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = accent,
-                    textAlign = TextAlign.Center,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CompactCenterBlock(item: AdapterItem) {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(4.dp)
-    ) {
         Text(
-            text = item.title,
-            style = MaterialTheme.typography.titleMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant,
-            textAlign = TextAlign.Center,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-        Text(
-            text = item.countdownText.ifBlank { "${formatPercent(item.percent)}%" },
-            style = MaterialTheme.typography.displaySmall,
+            text = centerText,
+            style = MaterialTheme.typography.headlineSmall,
             color = MaterialTheme.colorScheme.onSurface,
             textAlign = TextAlign.Center,
             maxLines = 1,
-            overflow = TextOverflow.Ellipsis
+            overflow = TextOverflow.Ellipsis,
+            modifier = Modifier.padding(horizontal = Spacing.m)
         )
     }
 }
@@ -268,7 +236,7 @@ internal fun InfoChip(
         Text(
             text = text,
             style = MaterialTheme.typography.labelLarge,
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 6.dp),
+            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )

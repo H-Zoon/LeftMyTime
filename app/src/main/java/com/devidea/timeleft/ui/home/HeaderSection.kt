@@ -37,6 +37,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
 internal fun HeaderSection(
@@ -44,7 +45,7 @@ internal fun HeaderSection(
     onOpenSettings: () -> Unit,
     collapseFraction: Float,
 ) {
-    val topPadding = dynamicDp(16.dp, 8.dp, collapseFraction)
+    val topPadding = dynamicDp(Spacing.l, Spacing.s, collapseFraction)
     var cycleIndex by rememberSaveable { mutableIntStateOf(0) }
     val total = topItems.size
     val safeIndex = if (total > 0) cycleIndex.coerceAtMost(total - 1) else 0
@@ -57,7 +58,7 @@ internal fun HeaderSection(
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 16.dp)
+            .padding(horizontal = Spacing.l)
             .padding(top = topPadding)
     ) {
         if (displayedItem != null) {
@@ -100,7 +101,7 @@ private fun HeaderTodayFlow(
                 collapseFraction = collapseFraction
             )
         }
-        Spacer(modifier = Modifier.width(8.dp))
+        Spacer(modifier = Modifier.width(Spacing.s))
         HeaderPagerDots(currentIndex = currentIndex, total = total)
         SettingsButton(onClick = onOpenSettings)
     }
@@ -112,8 +113,8 @@ private fun HeaderPagerDots(currentIndex: Int, total: Int) {
     val activeColor = MaterialTheme.colorScheme.primary
     val inactiveColor = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.32f)
     Row(
-        modifier = Modifier.padding(end = 4.dp),
-        horizontalArrangement = Arrangement.spacedBy(4.dp),
+        modifier = Modifier.padding(end = Spacing.xs),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.xs),
         verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(total) { index ->
@@ -198,7 +199,7 @@ private fun HeaderTodayText(
                 maxLines = 1,
                 overflow = TextOverflow.Ellipsis,
                 modifier = Modifier
-                    .padding(start = 8.dp)
+                    .padding(start = Spacing.s)
                     .weight(1f)
             )
         }

@@ -20,8 +20,6 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -52,6 +50,7 @@ import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
+import com.devidea.timeleft.ui.theme.Spacing
 import kotlin.math.min
 
 @Composable
@@ -77,7 +76,7 @@ internal fun TimeLeftItemCard(
     )
 
     val cardModifier = modifier.fillMaxWidth()
-    val contentPadding = if (compact) 0.dp else 12.dp
+    val contentPadding = if (compact) 0.dp else Spacing.m
 
     if (compact) {
         Column(modifier = cardModifier) {
@@ -101,10 +100,10 @@ internal fun TimeLeftItemCard(
             )
         }
     } else {
-        Card(
+        Surface(
             modifier = cardModifier,
             shape = MaterialTheme.shapes.small,
-            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+            color = MaterialTheme.colorScheme.surface
         ) {
             ItemCardContent(
                 item = item,
@@ -171,7 +170,7 @@ private fun ItemCardContent(
                     color = accent,
                     trackColor = MaterialTheme.colorScheme.surfaceVariant
                 )
-                Spacer(modifier = Modifier.width(12.dp))
+                Spacer(modifier = Modifier.width(Spacing.m))
                 Column(
                     modifier = Modifier.weight(1f)
                 ) {
@@ -187,7 +186,7 @@ private fun ItemCardContent(
                         val countdown = item.countdownText.ifBlank {
                             formatPercent(item.percent) + "%"
                         }
-                        Spacer(modifier = Modifier.width(8.dp))
+                        Spacer(modifier = Modifier.width(Spacing.s))
                         Text(
                             text = countdown,
                             style = MaterialTheme.typography.titleSmall,
@@ -217,11 +216,11 @@ private fun ItemCardContent(
                 }
             }
             if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL && !compact) {
-                Spacer(modifier = Modifier.height(8.dp))
+                Spacer(modifier = Modifier.height(Spacing.s))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    horizontalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
                     LinearProgressIndicator(
                         progress = { progress },
@@ -241,23 +240,23 @@ private fun ItemCardContent(
             }
             if (showDetails) {
                 if (item.recurrenceText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(Spacing.s))
                     MetadataChips(item = item, accent = accent)
                 } else if (item.category.isNotBlank() || item.reminderText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(Spacing.s))
                     MetadataChips(item = item, accent = accent)
                 }
             }
             AnimatedVisibility(visible = expanded && showDetails) {
                 Column {
-                    Spacer(modifier = Modifier.height(10.dp))
+                    Spacer(modifier = Modifier.height(Spacing.m))
                     DetailText(item.startString)
                     DetailText(item.endString)
                     DetailText(item.leftString)
                     if (item.updateInfo.isNotBlank()) {
                         DetailText(item.updateInfo)
                     }
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(Spacing.s))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.End,
@@ -269,10 +268,10 @@ private fun ItemCardContent(
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(Spacing.s))
                             Text(stringResource(R.string.card_action_edit))
                         }
-                        Spacer(modifier = Modifier.width(4.dp))
+                        Spacer(modifier = Modifier.width(Spacing.xs))
                         TextButton(onClick = onDeleteClick) {
                             Icon(
                                 imageVector = Icons.Filled.Delete,
@@ -280,7 +279,7 @@ private fun ItemCardContent(
                                 tint = MaterialTheme.colorScheme.error,
                                 modifier = Modifier.size(18.dp)
                             )
-                            Spacer(modifier = Modifier.width(6.dp))
+                            Spacer(modifier = Modifier.width(Spacing.s))
                             Text(
                                 text = stringResource(R.string.card_action_delete),
                                 color = MaterialTheme.colorScheme.error
@@ -299,8 +298,8 @@ private fun MetadataChips(
     accent: androidx.compose.ui.graphics.Color,
 ) {
     FlowRow(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+        verticalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         if (item.recurrenceText.isNotBlank()) {
             InfoChip(text = item.recurrenceText, color = MaterialTheme.colorScheme.secondary)

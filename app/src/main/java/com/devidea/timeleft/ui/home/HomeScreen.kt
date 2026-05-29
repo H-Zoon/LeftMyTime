@@ -48,10 +48,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
 fun HomeScreen(
@@ -153,7 +155,7 @@ fun HomeScreen(
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 AnimatedVisibility(
                     visible = fabExpanded,
@@ -162,7 +164,7 @@ fun HomeScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(Spacing.s)
                     ) {
                         ExtendedFloatingActionButton(
                             onClick = {
@@ -221,8 +223,8 @@ fun HomeScreen(
                     tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
                 ) {
                     Column(
-                        modifier = Modifier.padding(bottom = dynamicDp(12.dp, 6.dp, collapseFraction)),
-                        verticalArrangement = Arrangement.spacedBy(dynamicDp(6.dp, 2.dp, collapseFraction))
+                        modifier = Modifier.padding(bottom = dynamicDp(Spacing.m, Spacing.s, collapseFraction)),
+                        verticalArrangement = Arrangement.spacedBy(dynamicDp(Spacing.s, 2.dp, collapseFraction))
                     ) {
                         HeaderSection(
                             topItems = topItems,
@@ -316,15 +318,15 @@ private fun OverviewTabContent(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 14.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(top = Spacing.m, bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         if (nextCountdown != null) {
             item {
                 NextCountdownHero(
                     item = nextCountdown,
                     progressDisplayMode = progressDisplayMode,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
         }
@@ -334,7 +336,7 @@ private fun OverviewTabContent(
                 EmptyItemState(
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
         } else if (upcomingItems.isNotEmpty()) {
@@ -342,7 +344,7 @@ private fun OverviewTabContent(
                 SectionHeader(
                     title = stringResource(R.string.home_upcoming_items),
                     count = upcomingItems.size.takeIf { it > 0 },
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
             items(upcomingItems, key = { it.id }) { item ->
@@ -352,7 +354,7 @@ private fun OverviewTabContent(
                     onEditItem = onEditItem,
                     onDeleteItem = onDeleteItem,
                     compact = true,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
         }
@@ -378,14 +380,14 @@ private fun ItemsTabContent(
     LazyColumn(
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = 16.dp, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
+        contentPadding = PaddingValues(top = Spacing.l, bottom = 88.dp),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         item {
             SectionHeader(
                 title = stringResource(R.string.home_my_items),
                 count = if (customItems.isNotEmpty()) visibleItems.size else null,
-                modifier = Modifier.padding(horizontal = 16.dp)
+                modifier = Modifier.padding(horizontal = Spacing.l)
             )
         }
 
@@ -394,7 +396,7 @@ private fun ItemsTabContent(
                 EmptyItemState(
                     onAddTime = onAddTime,
                     onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
         } else {
@@ -404,7 +406,7 @@ private fun ItemsTabContent(
                     selectedSort = selectedSort,
                     onQueryChange = onQueryChange,
                     onSortChange = onSortChange,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = Spacing.l)
                 )
             }
             if (visibleItems.isEmpty()) {
@@ -413,7 +415,7 @@ private fun ItemsTabContent(
                         text = stringResource(R.string.home_empty_search),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = Spacing.l)
                     )
                 }
             } else {
@@ -423,7 +425,7 @@ private fun ItemsTabContent(
                         progressDisplayMode = progressDisplayMode,
                         onEditItem = onEditItem,
                         onDeleteItem = onDeleteItem,
-                        modifier = Modifier.padding(horizontal = 16.dp)
+                        modifier = Modifier.padding(horizontal = Spacing.l)
                     )
                 }
             }
@@ -482,14 +484,20 @@ private fun SearchAndSortSection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(top = 8.dp),
-            horizontalArrangement = Arrangement.spacedBy(6.dp)
+                .padding(top = Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             HomeSortMode.values().forEach { mode ->
                 FilterChip(
                     selected = selectedSort == mode,
                     onClick = { onSortChange(mode) },
-                    label = { Text(stringResource(mode.labelRes)) },
+                    label = {
+                        Text(
+                            text = stringResource(mode.labelRes),
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    },
                     modifier = Modifier.weight(1f)
                 )
             }

@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
 internal fun EmptyItemState(
@@ -33,10 +34,10 @@ internal fun EmptyItemState(
         color = MaterialTheme.colorScheme.surface
     ) {
         Column(
-            modifier = Modifier.padding(18.dp),
-            verticalArrangement = Arrangement.spacedBy(14.dp)
+            modifier = Modifier.padding(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
-            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                 Text(
                     text = stringResource(R.string.home_empty_title),
                     style = MaterialTheme.typography.titleLarge,
@@ -49,7 +50,7 @@ internal fun EmptyItemState(
                 )
             }
             Row(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 FilledTonalButton(
@@ -59,7 +60,7 @@ internal fun EmptyItemState(
                     Icon(Icons.Filled.CalendarMonth, contentDescription = null)
                     Text(
                         text = stringResource(R.string.home_add_date),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = Spacing.s)
                     )
                 }
                 OutlinedButton(
@@ -69,7 +70,7 @@ internal fun EmptyItemState(
                     Icon(Icons.Filled.AccessTime, contentDescription = null)
                     Text(
                         text = stringResource(R.string.home_add_time_range),
-                        modifier = Modifier.padding(start = 8.dp)
+                        modifier = Modifier.padding(start = Spacing.s)
                     )
                 }
             }

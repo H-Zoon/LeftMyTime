@@ -46,6 +46,7 @@ import androidx.lifecycle.lifecycleScope
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.preferences.UserPreferences
 import dagger.hilt.android.AndroidEntryPoint
@@ -222,7 +223,7 @@ private fun WidgetConfigureScreen(
                         end = 20.dp,
                         bottom = 16.dp
                     ),
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
                 ) {
                     Text(
                         text = stringResource(R.string.widget_configure_title),
@@ -241,8 +242,8 @@ private fun WidgetConfigureScreen(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(horizontal = 20.dp, vertical = 18.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                verticalArrangement = Arrangement.spacedBy(Spacing.m)
             ) {
                 Text(
                     text = stringResource(R.string.widget_configure_source_title),
@@ -274,7 +275,7 @@ private fun WidgetConfigureScreen(
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = 14.dp, vertical = 12.dp),
+                        modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.m),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -296,7 +297,7 @@ private fun WidgetConfigureScreen(
                 enabled = saveEnabled,
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = 20.dp, end = 20.dp, bottom = 18.dp)
+                    .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.l)
             ) {
                 Text(stringResource(R.string.action_save))
             }
@@ -327,8 +328,8 @@ private fun WidgetPreviewBand(
         color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
@@ -395,7 +396,7 @@ private fun WidgetSourceRow(
         tonalElevation = if (selected) 1.dp else 0.dp
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
@@ -403,7 +404,7 @@ private fun WidgetSourceRow(
                 onClick = if (enabled) onClick else null,
                 enabled = enabled
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(Spacing.xs))
             Text(
                 text = stringResource(source.labelRes),
                 style = MaterialTheme.typography.bodyLarge,
@@ -422,7 +423,7 @@ private fun CustomItemSection(
     onItemSelected: (Int) -> Unit,
 ) {
     Column(
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+        verticalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         Text(
             text = stringResource(R.string.widget_configure_custom_item_title),
@@ -434,7 +435,7 @@ private fun CustomItemSection(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(vertical = 14.dp),
+                        .padding(vertical = Spacing.m),
                     horizontalArrangement = Arrangement.Center
                 ) {
                     CircularProgressIndicator(modifier = Modifier.size(24.dp))
@@ -445,7 +446,7 @@ private fun CustomItemSection(
                     text = stringResource(R.string.widget_configure_no_items),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = 8.dp)
+                    modifier = Modifier.padding(vertical = Spacing.s)
                 )
             }
             else -> {
@@ -479,14 +480,14 @@ private fun CustomItemRow(
         }
     ) {
         Row(
-            modifier = Modifier.padding(horizontal = 10.dp, vertical = 8.dp),
+            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
             verticalAlignment = Alignment.CenterVertically
         ) {
             RadioButton(
                 selected = selected,
                 onClick = onClick
             )
-            Spacer(modifier = Modifier.width(4.dp))
+            Spacer(modifier = Modifier.width(Spacing.xs))
             Text(
                 text = item.title,
                 style = MaterialTheme.typography.bodyLarge,

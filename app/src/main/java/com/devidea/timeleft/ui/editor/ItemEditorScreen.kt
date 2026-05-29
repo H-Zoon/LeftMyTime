@@ -33,8 +33,6 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -73,6 +71,7 @@ import com.devidea.timeleft.ui.permission.NotificationPermissionExplanationDialo
 import com.devidea.timeleft.ui.permission.NotificationPermissionSettingsDialog
 import com.devidea.timeleft.ui.permission.markNotificationPermissionRequested
 import com.devidea.timeleft.ui.permission.shouldOpenNotificationSettings
+import com.devidea.timeleft.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter
@@ -239,8 +238,8 @@ fun ItemEditorScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = 20.dp, vertical = 18.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.l)
         ) {
             EditorHeader(
                 title = stringResource(
@@ -461,13 +460,13 @@ private fun TypeSelector(
     enabled: Boolean,
     onTypeSelected: (ItemType) -> Unit
 ) {
-    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         Text(
             text = stringResource(R.string.editor_type),
             style = MaterialTheme.typography.titleMedium,
             color = MaterialTheme.colorScheme.onBackground
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
             FilterChip(
                 selected = selectedType == ItemType.Time,
                 onClick = { if (enabled) onTypeSelected(ItemType.Time) },
@@ -496,7 +495,7 @@ private fun TimeRangeFields(
     val startTime = parseTime(startTimeValue) ?: LocalTime.now()
     val endTime = parseTime(endTimeValue) ?: startTime.plusHours(1)
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         TimeRangeDial(
             startTime = startTime,
             endTime = endTime,
@@ -506,7 +505,7 @@ private fun TimeRangeFields(
             },
             modifier = Modifier.fillMaxWidth()
         )
-        Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             TimePickerField(
                 label = stringResource(R.string.editor_start_time),
                 value = startTimeValue,
@@ -533,7 +532,7 @@ private fun DateRangeFields(
     val startDate = parseDate(startDateValue)
     val endDate = parseDate(endDateValue)
 
-    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (startDate != null && endDate != null && !endDate.isBefore(startDate)) {
             DateRangePreview(startDate = startDate, endDate = endDate)
         }
@@ -581,8 +580,8 @@ private fun DateRangePreview(
         color = accent.copy(alpha = 0.08f)
     ) {
         Column(
-            modifier = Modifier.padding(horizontal = 16.dp, vertical = 14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -751,13 +750,13 @@ private fun PickerCard(
         color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.55f))
     ) {
-        Column(modifier = Modifier.padding(horizontal = 16.dp, vertical = 12.dp)) {
+        Column(modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
-            Spacer(modifier = Modifier.height(4.dp))
+            Spacer(modifier = Modifier.height(Spacing.xs))
             Text(
                 text = value,
                 style = MaterialTheme.typography.titleMedium,
@@ -781,14 +780,14 @@ private fun VisualFields(
     showReminderPermissionMessage: Boolean,
     onReminderChange: (Int) -> Unit,
 ) {
-    Card(
+    Surface(
         shape = MaterialTheme.shapes.small,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+            modifier = Modifier.padding(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(
                 text = stringResource(R.string.editor_appearance),
@@ -808,8 +807,8 @@ private fun VisualFields(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 ItemVisuals.colorKeys.forEach { key ->
                     FilterChip(
@@ -834,8 +833,8 @@ private fun VisualFields(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 ItemVisuals.iconKeys.forEach { key ->
                     FilterChip(
@@ -858,8 +857,8 @@ private fun VisualFields(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
             FlowRow(
-                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+                verticalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
                 ItemVisuals.reminderOffsets(reminderType).forEach { offset ->
                     FilterChip(
@@ -898,14 +897,14 @@ private fun RepeatFields(
     onRepeatFlagChange: (RecurrenceMode) -> Unit,
     onRepeatRateChange: (String) -> Unit
 ) {
-    Card(
+    Surface(
         shape = MaterialTheme.shapes.small,
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+        color = MaterialTheme.colorScheme.surface,
         border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.45f))
     ) {
         Column(
-            modifier = Modifier.padding(14.dp),
-            verticalArrangement = Arrangement.spacedBy(10.dp)
+            modifier = Modifier.padding(Spacing.m),
+            verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(
                 text = stringResource(R.string.editor_repeat),
@@ -970,7 +969,7 @@ private fun RepeatOption(
             .clickable(onClick = onClick)
     ) {
         RadioButton(selected = selected, onClick = onClick)
-        Spacer(modifier = Modifier.width(4.dp))
+        Spacer(modifier = Modifier.width(Spacing.xs))
         Text(
             text = text,
             style = MaterialTheme.typography.bodyLarge,
