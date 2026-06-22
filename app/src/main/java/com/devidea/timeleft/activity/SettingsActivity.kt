@@ -49,7 +49,6 @@ class SettingsActivity : AppCompatActivity() {
     private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
     private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_INDIGO)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
-    private var startScreen by mutableStateOf(UserPreferences.START_SCREEN_OVERVIEW)
     private var expiredItemsMode by mutableStateOf(UserPreferences.EXPIRED_ITEMS_SHOW)
     private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
     private var defaultDateReminderOffset by mutableStateOf(ItemVisuals.REMINDER_DISABLED)
@@ -67,7 +66,6 @@ class SettingsActivity : AppCompatActivity() {
                     themeMode = themeMode,
                     paletteKey = paletteKey,
                     homeSort = homeSort,
-                    startScreen = startScreen,
                     expiredItemsMode = expiredItemsMode,
                     progressDisplayMode = progressDisplayMode,
                     defaultDateReminderOffset = defaultDateReminderOffset,
@@ -79,7 +77,6 @@ class SettingsActivity : AppCompatActivity() {
                     onThemeSelected = ::selectTheme,
                     onPaletteSelected = ::selectPalette,
                     onSortSelected = ::selectSort,
-                    onStartScreenSelected = ::selectStartScreen,
                     onExpiredItemsModeSelected = ::selectExpiredItemsMode,
                     onProgressDisplayModeSelected = ::selectProgressDisplayMode,
                     onDefaultDateReminderSelected = ::selectDefaultDateReminder,
@@ -108,10 +105,6 @@ class SettingsActivity : AppCompatActivity() {
         ) ?: UserPreferences.COLOR_THEME_INDIGO
         homeSort = prefs.getString(UserPreferences.KEY_HOME_SORT, UserPreferences.SORT_NEAREST)
             ?: UserPreferences.SORT_NEAREST
-        startScreen = prefs.getString(
-            UserPreferences.KEY_START_SCREEN,
-            UserPreferences.START_SCREEN_OVERVIEW
-        ) ?: UserPreferences.START_SCREEN_OVERVIEW
         expiredItemsMode = prefs.getString(
             UserPreferences.KEY_EXPIRED_ITEMS,
             UserPreferences.EXPIRED_ITEMS_SHOW
@@ -156,11 +149,6 @@ class SettingsActivity : AppCompatActivity() {
     private fun selectSort(value: String) {
         prefs.edit().putString(UserPreferences.KEY_HOME_SORT, value).apply()
         homeSort = value
-    }
-
-    private fun selectStartScreen(value: String) {
-        prefs.edit().putString(UserPreferences.KEY_START_SCREEN, value).apply()
-        startScreen = value
     }
 
     private fun selectExpiredItemsMode(value: String) {

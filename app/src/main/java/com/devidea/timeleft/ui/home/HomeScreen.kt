@@ -13,32 +13,26 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.FormatListBulleted
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -59,7 +53,6 @@ import com.devidea.timeleft.ui.theme.Spacing
 @Composable
 fun HomeScreen(
     initialSortValue: String,
-    initialTabValue: String,
     expiredItemsMode: String,
     progressDisplayMode: String,
     topItems: List<AdapterItem>,
@@ -74,20 +67,14 @@ fun HomeScreen(
     var fabExpanded by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedSortValue by rememberSaveable(initialSortValue) { mutableStateOf(initialSortValue) }
-    var selectedTabValue by rememberSaveable { mutableStateOf(initialTabValue) }
     val selectedSort = remember(selectedSortValue) {
         runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     }
-    val selectedTab = remember(selectedTabValue) {
-        runCatching { HomeMainTab.valueOf(selectedTabValue) }.getOrDefault(HomeMainTab.Overview)
-    }
-    val overviewListState = rememberLazyListState()
-    val itemsListState = rememberLazyListState()
-    val activeListState = if (selectedTab == HomeMainTab.Overview) overviewListState else itemsListState
-    val targetCollapseFraction by remember(activeListState) {
+    val listState = rememberLazyListState()
+    val targetCollapseFraction by remember(listState) {
         derivedStateOf {
-            if (activeListState.firstVisibleItemIndex > 0 ||
-                activeListState.firstVisibleItemScrollOffset >= HEADER_COLLAPSE_THRESHOLD_PX
+            if (listState.firstVisibleItemIndex > 0 ||
+                listState.firstVisibleItemScrollOffset >= HEADER_COLLAPSE_THRESHOLD_PX
             ) {
                 1f
             } else {
@@ -136,23 +123,8 @@ fun HomeScreen(
                 }
             }
     }
-    val upcomingItems = remember(displayedItems, nextCountdown) {
-        val nextId = nextCountdown?.id
-        displayedItems
-            .filterNot { it.isExpired }
-            .filterNot { it.id == nextId }
-            .sortedWith(compareBy<AdapterItem> { it.remainingSortKey }.thenBy { it.id })
-            .take(3)
-            .ifEmpty { displayedItems.filterNot { it.id == nextId }.take(3) }
-    }
 
     Scaffold(
-        bottomBar = {
-            HomeBottomBar(
-                selectedTab = selectedTab,
-                onTabSelected = { selectedTabValue = it.name }
-            )
-        },
         floatingActionButton = {
             Column(
                 horizontalAlignment = Alignment.End,
@@ -217,99 +189,57 @@ fun HomeScreen(
                 .fillMaxSize()
                 .padding(innerPadding)
         ) {
-            if (selectedTab == HomeMainTab.Overview) {
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = MaterialTheme.colorScheme.surface,
-                    tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
+            Surface(
+                modifier = Modifier.fillMaxWidth(),
+                color = MaterialTheme.colorScheme.surface,
+                tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
+            ) {
+                Column(
+                    modifier = Modifier.padding(bottom = dynamicDp(Spacing.m, Spacing.s, collapseFraction)),
+                    verticalArrangement = Arrangement.spacedBy(dynamicDp(Spacing.s, 2.dp, collapseFraction))
                 ) {
-                    Column(
-                        modifier = Modifier.padding(bottom = dynamicDp(Spacing.m, Spacing.s, collapseFraction)),
-                        verticalArrangement = Arrangement.spacedBy(dynamicDp(Spacing.s, 2.dp, collapseFraction))
-                    ) {
-                        HeaderSection(
-                            topItems = topItems,
-                            onOpenSettings = onOpenSettings,
-                            collapseFraction = collapseFraction
-                        )
-                    }
-                }
-            }
-
-            if (selectedTab == HomeMainTab.Overview) {
-                OverviewTabContent(
-                    listState = overviewListState,
-                    nextCountdown = nextCountdown,
-                    upcomingItems = upcomingItems,
-                    customItemsEmpty = displayedItems.isEmpty(),
-                    progressDisplayMode = progressDisplayMode,
-                    onAddTime = onAddTime,
-                    onAddDate = onAddDate,
-                    onEditItem = onEditItem,
-                    onDeleteItem = onDeleteItem,
-                    modifier = Modifier.weight(1f)
-                )
-            } else {
-                ItemsTabContent(
-                    listState = itemsListState,
-                    customItems = displayedItems,
-                    visibleItems = visibleItems,
-                    progressDisplayMode = progressDisplayMode,
-                    searchQuery = searchQuery,
-                    selectedSort = selectedSort,
-                    onQueryChange = { searchQuery = it },
-                    onSortChange = {
-                        selectedSortValue = it.name
-                        onSortChange(it.name)
-                    },
-                    onAddTime = onAddTime,
-                    onAddDate = onAddDate,
-                    onEditItem = onEditItem,
-                    onDeleteItem = onDeleteItem,
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun HomeBottomBar(
-    selectedTab: HomeMainTab,
-    onTabSelected: (HomeMainTab) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    NavigationBar(
-        modifier = modifier
-            .fillMaxWidth()
-            .height(60.dp),
-        containerColor = MaterialTheme.colorScheme.surface,
-    ) {
-        HomeMainTab.values().forEach { tab ->
-            NavigationBarItem(
-                selected = selectedTab == tab,
-                onClick = { onTabSelected(tab) },
-                icon = {
-                    Icon(
-                        imageVector = when (tab) {
-                            HomeMainTab.Overview -> Icons.Filled.Home
-                            HomeMainTab.Items -> Icons.AutoMirrored.Filled.FormatListBulleted
-                        },
-                        contentDescription = stringResource(tab.labelRes)
+                    HeaderSection(
+                        topItems = topItems,
+                        onOpenSettings = onOpenSettings,
+                        collapseFraction = collapseFraction
                     )
                 }
+            }
+
+            HomeContent(
+                listState = listState,
+                nextCountdown = nextCountdown,
+                customItems = displayedItems,
+                visibleItems = visibleItems,
+                progressDisplayMode = progressDisplayMode,
+                searchQuery = searchQuery,
+                selectedSort = selectedSort,
+                onQueryChange = { searchQuery = it },
+                onSortChange = {
+                    selectedSortValue = it.name
+                    onSortChange(it.name)
+                },
+                onAddTime = onAddTime,
+                onAddDate = onAddDate,
+                onEditItem = onEditItem,
+                onDeleteItem = onDeleteItem,
+                modifier = Modifier.weight(1f)
             )
         }
     }
 }
 
 @Composable
-private fun OverviewTabContent(
+private fun HomeContent(
     listState: androidx.compose.foundation.lazy.LazyListState,
     nextCountdown: AdapterItem?,
-    upcomingItems: List<AdapterItem>,
-    customItemsEmpty: Boolean,
+    customItems: List<AdapterItem>,
+    visibleItems: List<AdapterItem>,
     progressDisplayMode: String,
+    searchQuery: String,
+    selectedSort: HomeSortMode,
+    onQueryChange: (String) -> Unit,
+    onSortChange: (HomeSortMode) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -332,58 +262,6 @@ private fun OverviewTabContent(
             }
         }
 
-        if (customItemsEmpty) {
-            item {
-                EmptyItemState(
-                    onAddTime = onAddTime,
-                    onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = Spacing.l)
-                )
-            }
-        } else if (upcomingItems.isNotEmpty()) {
-            item {
-                SectionHeader(
-                    title = stringResource(R.string.home_upcoming_items),
-                    count = upcomingItems.size.takeIf { it > 0 },
-                    modifier = Modifier.padding(horizontal = Spacing.l)
-                )
-            }
-            items(upcomingItems, key = { it.id }) { item ->
-                TimeLeftItemCard(
-                    item = item,
-                    progressDisplayMode = progressDisplayMode,
-                    onEditItem = onEditItem,
-                    onDeleteItem = onDeleteItem,
-                    compact = true,
-                    modifier = Modifier.padding(horizontal = Spacing.l)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun ItemsTabContent(
-    listState: androidx.compose.foundation.lazy.LazyListState,
-    customItems: List<AdapterItem>,
-    visibleItems: List<AdapterItem>,
-    progressDisplayMode: String,
-    searchQuery: String,
-    selectedSort: HomeSortMode,
-    onQueryChange: (String) -> Unit,
-    onSortChange: (HomeSortMode) -> Unit,
-    onAddTime: () -> Unit,
-    onAddDate: () -> Unit,
-    onEditItem: (Int) -> Unit,
-    onDeleteItem: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    LazyColumn(
-        state = listState,
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = Spacing.l, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m)
-    ) {
         item {
             SectionHeader(
                 title = stringResource(R.string.home_my_items),
@@ -511,11 +389,6 @@ private enum class HomeSortMode(val labelRes: Int) {
     Created(R.string.home_sort_created),
     Title(R.string.home_sort_title),
     Progress(R.string.home_sort_progress)
-}
-
-private enum class HomeMainTab(val labelRes: Int) {
-    Overview(R.string.home_tab_overview),
-    Items(R.string.home_tab_items)
 }
 
 private const val HEADER_COLLAPSE_THRESHOLD_PX = 32

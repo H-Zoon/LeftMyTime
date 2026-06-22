@@ -46,7 +46,6 @@ fun SettingsScreen(
     themeMode: String,
     paletteKey: String,
     homeSort: String,
-    startScreen: String,
     expiredItemsMode: String,
     progressDisplayMode: String,
     defaultDateReminderOffset: Int,
@@ -58,7 +57,6 @@ fun SettingsScreen(
     onThemeSelected: (String) -> Unit,
     onPaletteSelected: (String) -> Unit,
     onSortSelected: (String) -> Unit,
-    onStartScreenSelected: (String) -> Unit,
     onExpiredItemsModeSelected: (String) -> Unit,
     onProgressDisplayModeSelected: (String) -> Unit,
     onDefaultDateReminderSelected: (Int) -> Unit,
@@ -132,22 +130,6 @@ fun SettingsScreen(
         }
 
         SettingsSection(title = stringResource(R.string.settings_home_behavior)) {
-            Text(
-                text = stringResource(R.string.settings_start_screen),
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = Spacing.l, top = Spacing.m, bottom = 2.dp)
-            )
-            ChoiceRow(
-                labelRes = R.string.home_tab_overview,
-                selected = startScreen == UserPreferences.START_SCREEN_OVERVIEW,
-                onClick = { onStartScreenSelected(UserPreferences.START_SCREEN_OVERVIEW) }
-            )
-            ChoiceRow(
-                labelRes = R.string.home_tab_items,
-                selected = startScreen == UserPreferences.START_SCREEN_ITEMS,
-                onClick = { onStartScreenSelected(UserPreferences.START_SCREEN_ITEMS) }
-            )
             Text(
                 text = stringResource(R.string.settings_expired_items),
                 style = MaterialTheme.typography.bodyLarge,
