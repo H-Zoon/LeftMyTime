@@ -61,6 +61,7 @@ import com.devidea.timeleft.ui.theme.Spacing
 fun HomeScreen(
     initialSortValue: String,
     initialLayoutValue: String,
+    headerItemIndex: Int,
     expiredItemsMode: String,
     progressDisplayMode: String,
     topItems: List<AdapterItem>,
@@ -68,6 +69,7 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onSortChange: (String) -> Unit,
     onLayoutChange: (String) -> Unit,
+    onHeaderItemChange: (Int) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -213,6 +215,8 @@ fun HomeScreen(
                 ) {
                     HeaderSection(
                         topItems = topItems,
+                        selectedIndex = headerItemIndex,
+                        onSelectedIndexChange = onHeaderItemChange,
                         onOpenSettings = onOpenSettings,
                         collapseFraction = collapseFraction
                     )

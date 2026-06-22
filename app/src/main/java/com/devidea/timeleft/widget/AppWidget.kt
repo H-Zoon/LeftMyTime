@@ -34,6 +34,8 @@ import kotlinx.coroutines.launch
 open class AppWidget : AppWidgetProvider() {
 
     companion object {
+        private const val ACTION_OPEN_FROM_WIDGET =
+            "com.devidea.timeleft.action.OPEN_FROM_WIDGET"
         private val widgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
         private val providerClasses = listOf(
@@ -249,10 +251,14 @@ open class AppWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
+        val activityIntent = Intent(context, MainActivity::class.java).apply {
+            action = ACTION_OPEN_FROM_WIDGET
+            addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        }
         val activityPendingIntent = PendingIntent.getActivity(
             context,
             appWidgetId,
-            Intent(context, MainActivity::class.java),
+            activityIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 

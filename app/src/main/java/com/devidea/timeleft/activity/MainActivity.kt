@@ -9,6 +9,7 @@ import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
@@ -33,6 +34,7 @@ class MainActivity : AppCompatActivity() {
     private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_INDIGO)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
     private var homeLayout by mutableStateOf(UserPreferences.HOME_LAYOUT_LIST)
+    private var headerItemIndex by mutableIntStateOf(0)
     private var expiredItemsMode by mutableStateOf(UserPreferences.EXPIRED_ITEMS_SHOW)
     private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
 
@@ -62,6 +64,7 @@ class MainActivity : AppCompatActivity() {
                 HomeScreen(
                     initialSortValue = homeSort,
                     initialLayoutValue = homeLayout,
+                    headerItemIndex = headerItemIndex,
                     expiredItemsMode = expiredItemsMode,
                     progressDisplayMode = progressDisplayMode,
                     topItems = topItems,
@@ -76,6 +79,12 @@ class MainActivity : AppCompatActivity() {
                     onLayoutChange = { value ->
                         prefs.edit().putString(UserPreferences.KEY_HOME_LAYOUT, value).apply()
                         homeLayout = value
+                    },
+                    onHeaderItemChange = { index ->
+                        prefs.edit()
+                            .putInt(UserPreferences.KEY_HOME_HEADER_INDEX, index)
+                            .apply()
+                        headerItemIndex = index
                     },
                     onAddTime = {
                         startActivity(
@@ -117,6 +126,7 @@ class MainActivity : AppCompatActivity() {
             UserPreferences.KEY_HOME_LAYOUT,
             UserPreferences.HOME_LAYOUT_LIST
         ) ?: UserPreferences.HOME_LAYOUT_LIST
+        headerItemIndex = prefs.getInt(UserPreferences.KEY_HOME_HEADER_INDEX, 0)
         expiredItemsMode = prefs.getString(
             UserPreferences.KEY_EXPIRED_ITEMS,
             UserPreferences.EXPIRED_ITEMS_SHOW

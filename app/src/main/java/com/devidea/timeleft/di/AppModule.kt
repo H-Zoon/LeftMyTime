@@ -29,9 +29,13 @@ object AppModule {
             AppDatabase.DATABASE_NAME
         )
             // Schemas v1-v4 were never exported, so only those legacy installs fall
-            // back to recreation. v5 and both known v6 variants preserve item rows.
+            // back to recreation. v5-v7 preserve rows when their base columns are intact.
             .fallbackToDestructiveMigrationFrom(dropAllTables = false, 1, 2, 3, 4)
-            .addMigrations(AppDatabase.MIGRATION_5_7, AppDatabase.MIGRATION_6_7)
+            .addMigrations(
+                AppDatabase.MIGRATION_5_7,
+                AppDatabase.MIGRATION_6_7,
+                AppDatabase.MIGRATION_7_8
+            )
             .build()
 
     @Provides

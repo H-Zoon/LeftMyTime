@@ -61,7 +61,8 @@ internal fun TimeLeftItemCard(
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
-    val accent = itemAccentColor(item.colorKey, countdownAccent(item))
+    val accent = MaterialTheme.colorScheme.primary
+    val metadataAccent = itemAccentColor(item.colorKey, accent)
     val progress by animateFloatAsState(
         targetValue = (item.percent / 100f).coerceIn(0f, 1f),
         label = "itemProgress"
@@ -86,6 +87,7 @@ internal fun TimeLeftItemCard(
             onEditItem = onEditItem,
             onDeleteClick = { showDeleteDialog = true },
             grid = grid,
+            metadataAccent = metadataAccent,
             modifier = Modifier.padding(Spacing.m)
         )
     }
@@ -126,6 +128,7 @@ private fun ItemCardContent(
     onEditItem: (Int) -> Unit,
     onDeleteClick: () -> Unit,
     grid: Boolean,
+    metadataAccent: Color,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
@@ -153,7 +156,7 @@ private fun ItemCardContent(
                 )
         ) {
             Spacer(modifier = Modifier.height(Spacing.s))
-            MetadataChips(item = item, accent = accent)
+            MetadataChips(item = item, accent = metadataAccent)
         }
         AnimatedVisibility(visible = expanded) {
             Column {

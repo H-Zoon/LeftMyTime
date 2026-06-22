@@ -23,9 +23,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,17 +40,18 @@ import com.devidea.timeleft.ui.theme.Spacing
 @Composable
 internal fun HeaderSection(
     topItems: List<AdapterItem>,
+    selectedIndex: Int,
+    onSelectedIndexChange: (Int) -> Unit,
     onOpenSettings: () -> Unit,
     collapseFraction: Float,
 ) {
     val topPadding = dynamicDp(Spacing.l, Spacing.s, collapseFraction)
-    var cycleIndex by rememberSaveable { mutableIntStateOf(0) }
     val total = topItems.size
-    val safeIndex = if (total > 0) cycleIndex.coerceAtMost(total - 1) else 0
+    val safeIndex = if (total > 0) selectedIndex.coerceIn(0, total - 1) else 0
     val displayedItem = if (total > 0) topItems[safeIndex] else null
 
     val onCycle = {
-        if (total > 0) cycleIndex = (cycleIndex + 1) % total
+        if (total > 0) onSelectedIndexChange((safeIndex + 1) % total)
     }
 
     Column(
@@ -236,4 +234,3 @@ private fun SettingsButton(onClick: () -> Unit) {
         )
     }
 }
-

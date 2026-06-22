@@ -10,7 +10,7 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 
 @Database(
     entities = [ItemEntity::class],
-    version = 7,
+    version = 8,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
@@ -41,9 +41,19 @@ abstract class AppDatabase : RoomDatabase() {
         }
 
         private fun finishItemTableReplacement(db: SupportSQLiteDatabase) {
-            db.execSQL("DROP TABLE `ItemEntity`")
+            db.execSQL("DROP TABLE IF EXISTS `ItemEntity`")
             db.execSQL("ALTER TABLE `ItemEntity_new` RENAME TO `ItemEntity`")
         }
+
+        private fun itemColumns(db: SupportSQLiteDatabase): Set<String> =
+            db.query("PRAGMA table_info(`ItemEntity`)").use { cursor ->
+                val nameIndex = cursor.getColumnIndexOrThrow("name")
+                buildSet {
+                    while (cursor.moveToNext()) {
+                        add(cursor.getString(nameIndex))
+                    }
+                }
+            }
 
         // v5 -> v7: drops alarmFlag/alarmRate/weekendAlarm; adds category/colorKey/iconKey/reminderOffsetDays.
         // Date items preserve "alarm N days before end" as reminderOffsetDays = alarmRate.
@@ -77,14 +87,7 @@ abstract class AppDatabase : RoomDatabase() {
         // expanded schema. Rebuild either variant into canonical v7 without dropping rows.
         internal val MIGRATION_6_7 = object : Migration(6, 7) {
             override fun migrate(db: SupportSQLiteDatabase) {
-                val columns = db.query("PRAGMA table_info(`ItemEntity`)").use { cursor ->
-                    val nameIndex = cursor.getColumnIndexOrThrow("name")
-                    buildSet {
-                        while (cursor.moveToNext()) {
-                            add(cursor.getString(nameIndex))
-                        }
-                    }
-                }
+                val columns = itemColumns(db)
                 val hasExpandedColumns = setOf(
                     "category",
                     "colorKey",
@@ -114,5 +117,60 @@ abstract class AppDatabase : RoomDatabase() {
                 finishItemTableReplacement(db)
             }
         }
+
+        // Some released databases report user_version=7 while retaining the original v6
+        // identity/table. Preserve rows whenever the seven required base columns are intact;
+        // otherwise recreate the canonical table empty and let Room write the v8 identity.
+        internal val MIGRATION_7_8 = object : Migration(7, 8) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                val columns = itemColumns(db)
+                db.execSQL("DROP TABLE IF EXISTS `ItemEntity_new`")
+
+                if (CANONICAL_COLUMNS.all(columns::contains)) return
+
+                createV7ItemTable(db)
+                if (BASE_COLUMNS.all(columns::contains)) {
+                    val category = columns.valueOrDefault("category", "''")
+                    val colorKey = columns.valueOrDefault("colorKey", "'auto'")
+                    val iconKey = columns.valueOrDefault("iconKey", "'event'")
+                    val reminderOffsetDays = columns.valueOrDefault(
+                        "reminderOffsetDays",
+                        "-1"
+                    )
+                    db.execSQL(
+                        """
+                        INSERT INTO `ItemEntity_new` (
+                            id, type, title, startValue, endValue, updateFlag, updateRate,
+                            category, colorKey, iconKey, reminderOffsetDays
+                        )
+                        SELECT
+                            id, type, title, startValue, endValue, updateFlag, updateRate,
+                            $category, $colorKey, $iconKey, $reminderOffsetDays
+                        FROM `ItemEntity`
+                        """.trimIndent()
+                    )
+                }
+                finishItemTableReplacement(db)
+            }
+        }
+
+        private fun Set<String>.valueOrDefault(column: String, defaultSql: String): String =
+            if (column in this) "`$column`" else "$defaultSql AS `$column`"
+
+        private val BASE_COLUMNS = setOf(
+            "id",
+            "type",
+            "title",
+            "startValue",
+            "endValue",
+            "updateFlag",
+            "updateRate"
+        )
+        private val CANONICAL_COLUMNS = BASE_COLUMNS + setOf(
+            "category",
+            "colorKey",
+            "iconKey",
+            "reminderOffsetDays"
+        )
     }
 }

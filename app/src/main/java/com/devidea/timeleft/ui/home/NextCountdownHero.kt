@@ -39,7 +39,6 @@ import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
 import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
@@ -54,7 +53,7 @@ internal fun NextCountdownHero(
     progressDisplayMode: String,
     modifier: Modifier = Modifier,
 ) {
-    val accent = itemAccentColor(item.colorKey, countdownAccent(item))
+    val accent = MaterialTheme.colorScheme.primary
     val targetProgress = (item.percent / 100f).coerceIn(0f, 1f)
     var entered by remember { mutableStateOf(false) }
     LaunchedEffect(item.id) { entered = true }
@@ -243,15 +242,3 @@ internal fun InfoChip(
         )
     }
 }
-
-@Composable
-internal fun countdownAccent(item: AdapterItem): Color =
-    when {
-        item.isExpired -> MaterialTheme.colorScheme.onSurfaceVariant
-        item.remainingSortKey <= SECONDS_PER_DAY -> MaterialTheme.colorScheme.error
-        item.remainingSortKey <= SECONDS_PER_WEEK -> MaterialTheme.colorScheme.tertiary
-        else -> MaterialTheme.colorScheme.primary
-    }
-
-private const val SECONDS_PER_DAY = 86_400L
-private const val SECONDS_PER_WEEK = SECONDS_PER_DAY * 7
