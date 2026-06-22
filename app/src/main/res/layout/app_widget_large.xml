@@ -22,18 +22,9 @@
             android:ellipsize="end"
             android:fontFamily="@font/nanum_square_round_b"
             android:maxLines="1"
+            android:text="@string/widget_preview_title"
             android:textColor="@color/widget_primary"
             android:textSize="14sp" />
-
-        <TextView
-            android:id="@+id/progressLabel"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginEnd="8dp"
-            android:fontFamily="@font/nanum_square_round_b"
-            android:maxLines="1"
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="11sp" />
 
         <ImageButton
             android:id="@+id/refresh"
@@ -47,121 +38,48 @@
             app:tint="@color/widget_primary" />
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/percent"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="8dp"
-        android:ellipsize="end"
-        android:fontFamily="@font/nanum_square_round_eb"
-        android:maxLines="1"
-        android:text="@string/widget_loading"
-        android:textColor="@color/widget_on_surface"
-        android:textSize="31sp" />
-
-    <TextView
-        android:id="@+id/widgetMeta"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="3dp"
-        android:ellipsize="end"
-        android:fontFamily="@font/nanum_square_round_r"
-        android:maxLines="1"
-        android:textColor="@color/widget_on_surface_variant"
-        android:textSize="12sp" />
-
-    <FrameLayout
-        android:layout_width="match_parent"
-        android:layout_height="7dp"
-        android:layout_marginTop="11dp">
-
-        <ProgressBar
-            android:id="@+id/progress"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="7dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar_widget" />
-
-        <ProgressBar
-            android:id="@+id/progressEmerald"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="7dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar_widget_emerald"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/progressRose"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="7dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar_widget_rose"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/progressAmber"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="7dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar_widget_amber"
-            android:visibility="gone" />
-
-        <ProgressBar
-            android:id="@+id/progressSlate"
-            style="?android:attr/progressBarStyleHorizontal"
-            android:layout_width="match_parent"
-            android:layout_height="7dp"
-            android:indeterminate="false"
-            android:max="100"
-            android:progressDrawable="@drawable/progressbar_widget_slate"
-            android:visibility="gone" />
-    </FrameLayout>
-
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="12dp"
-        android:orientation="vertical">
+        android:layout_marginTop="10dp"
+        android:gravity="center_vertical"
+        android:orientation="horizontal">
 
-        <TextView
-            android:id="@+id/widgetDetailStart"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:fontFamily="@font/nanum_square_round_r"
-            android:maxLines="1"
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="12sp" />
+        <include
+            layout="@layout/widget_progress_ring_only"
+            android:layout_width="76dp"
+            android:layout_height="76dp" />
 
-        <TextView
-            android:id="@+id/widgetDetailEnd"
-            android:layout_width="match_parent"
+        <LinearLayout
+            android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:ellipsize="end"
-            android:fontFamily="@font/nanum_square_round_r"
-            android:maxLines="1"
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="12sp" />
+            android:layout_marginStart="14dp"
+            android:layout_weight="1"
+            android:orientation="vertical">
 
-        <TextView
-            android:id="@+id/widgetDetailUpdate"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="3dp"
-            android:ellipsize="end"
-            android:fontFamily="@font/nanum_square_round_r"
-            android:maxLines="1"
-            android:textColor="@color/widget_on_surface_variant"
-            android:textSize="12sp" />
+            <TextView
+                android:id="@+id/percent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:ellipsize="end"
+                android:fontFamily="@font/nanum_square_round_eb"
+                android:maxLines="1"
+                android:text="@string/widget_preview_value"
+                android:textColor="@color/widget_on_surface"
+                android:textSize="28sp" />
+
+            <TextView
+                android:id="@+id/widgetMeta"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="4dp"
+                android:ellipsize="end"
+                android:fontFamily="@font/nanum_square_round_r"
+                android:maxLines="2"
+                android:text="@string/widget_preview_meta"
+                android:textColor="@color/widget_on_surface_variant"
+                android:textSize="13sp" />
+        </LinearLayout>
     </LinearLayout>
 
     <LinearLayout
@@ -180,6 +98,7 @@
             android:ellipsize="end"
             android:fontFamily="@font/nanum_square_round_b"
             android:maxLines="1"
+            android:text="@string/widget_preview_today"
             android:paddingHorizontal="10dp"
             android:paddingVertical="6dp"
             android:textColor="@color/widget_on_surface"
@@ -194,6 +113,7 @@
             android:ellipsize="end"
             android:fontFamily="@font/nanum_square_round_b"
             android:maxLines="1"
+            android:text="@string/widget_preview_month"
             android:paddingHorizontal="10dp"
             android:paddingVertical="6dp"
             android:textColor="@color/widget_on_surface"
@@ -208,6 +128,7 @@
             android:ellipsize="end"
             android:fontFamily="@font/nanum_square_round_b"
             android:maxLines="1"
+            android:text="@string/widget_preview_year"
             android:paddingHorizontal="10dp"
             android:paddingVertical="6dp"
             android:textColor="@color/widget_on_surface"

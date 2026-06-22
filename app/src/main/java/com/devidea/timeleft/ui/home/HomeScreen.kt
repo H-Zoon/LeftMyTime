@@ -14,19 +14,25 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ViewList
 import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.GridView
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExtendedFloatingActionButton
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
@@ -41,6 +47,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -53,12 +60,14 @@ import com.devidea.timeleft.ui.theme.Spacing
 @Composable
 fun HomeScreen(
     initialSortValue: String,
+    initialLayoutValue: String,
     expiredItemsMode: String,
     progressDisplayMode: String,
     topItems: List<AdapterItem>,
     customItems: List<AdapterItem>,
     onOpenSettings: () -> Unit,
     onSortChange: (String) -> Unit,
+    onLayoutChange: (String) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -67,10 +76,14 @@ fun HomeScreen(
     var fabExpanded by rememberSaveable { mutableStateOf(false) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedSortValue by rememberSaveable(initialSortValue) { mutableStateOf(initialSortValue) }
+    var selectedLayoutValue by rememberSaveable(initialLayoutValue) {
+        mutableStateOf(initialLayoutValue)
+    }
     val selectedSort = remember(selectedSortValue) {
         runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     }
-    val listState = rememberLazyListState()
+    val isGrid = selectedLayoutValue == UserPreferences.HOME_LAYOUT_GRID
+    val listState = rememberLazyGridState()
     val targetCollapseFraction by remember(listState) {
         derivedStateOf {
             if (listState.firstVisibleItemIndex > 0 ||
@@ -219,6 +232,16 @@ fun HomeScreen(
                     selectedSortValue = it.name
                     onSortChange(it.name)
                 },
+                isGrid = isGrid,
+                onGridChange = { enabled ->
+                    val value = if (enabled) {
+                        UserPreferences.HOME_LAYOUT_GRID
+                    } else {
+                        UserPreferences.HOME_LAYOUT_LIST
+                    }
+                    selectedLayoutValue = value
+                    onLayoutChange(value)
+                },
                 onAddTime = onAddTime,
                 onAddDate = onAddDate,
                 onEditItem = onEditItem,
@@ -231,7 +254,7 @@ fun HomeScreen(
 
 @Composable
 private fun HomeContent(
-    listState: androidx.compose.foundation.lazy.LazyListState,
+    listState: androidx.compose.foundation.lazy.grid.LazyGridState,
     nextCountdown: AdapterItem?,
     customItems: List<AdapterItem>,
     visibleItems: List<AdapterItem>,
@@ -240,71 +263,76 @@ private fun HomeContent(
     selectedSort: HomeSortMode,
     onQueryChange: (String) -> Unit,
     onSortChange: (HomeSortMode) -> Unit,
+    isGrid: Boolean,
+    onGridChange: (Boolean) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    LazyColumn(
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(if (isGrid) 2 else 1),
         state = listState,
         modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(top = Spacing.m, bottom = 88.dp),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m)
+        contentPadding = PaddingValues(
+            start = Spacing.l,
+            top = Spacing.m,
+            end = Spacing.l,
+            bottom = 88.dp
+        ),
+        verticalArrangement = Arrangement.spacedBy(Spacing.m),
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
         if (nextCountdown != null) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 NextCountdownHero(
                     item = nextCountdown,
-                    progressDisplayMode = progressDisplayMode,
-                    modifier = Modifier.padding(horizontal = Spacing.l)
+                    progressDisplayMode = progressDisplayMode
                 )
             }
         }
 
-        item {
+        item(span = { GridItemSpan(maxLineSpan) }) {
             SectionHeader(
                 title = stringResource(R.string.home_my_items),
                 count = if (customItems.isNotEmpty()) visibleItems.size else null,
-                modifier = Modifier.padding(horizontal = Spacing.l)
+                isGrid = isGrid,
+                onGridChange = onGridChange
             )
         }
 
         if (customItems.isEmpty()) {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 EmptyItemState(
                     onAddTime = onAddTime,
-                    onAddDate = onAddDate,
-                    modifier = Modifier.padding(horizontal = Spacing.l)
+                    onAddDate = onAddDate
                 )
             }
         } else {
-            item {
+            item(span = { GridItemSpan(maxLineSpan) }) {
                 SearchAndSortSection(
                     query = searchQuery,
                     selectedSort = selectedSort,
                     onQueryChange = onQueryChange,
-                    onSortChange = onSortChange,
-                    modifier = Modifier.padding(horizontal = Spacing.l)
+                    onSortChange = onSortChange
                 )
             }
             if (visibleItems.isEmpty()) {
-                item {
+                item(span = { GridItemSpan(maxLineSpan) }) {
                     Text(
                         text = stringResource(R.string.home_empty_search),
                         style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        modifier = Modifier.padding(horizontal = Spacing.l)
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             } else {
                 items(visibleItems, key = { it.id }) { item ->
                     TimeLeftItemCard(
                         item = item,
-                        progressDisplayMode = progressDisplayMode,
                         onEditItem = onEditItem,
                         onDeleteItem = onDeleteItem,
-                        modifier = Modifier.padding(horizontal = Spacing.l)
+                        grid = isGrid
                     )
                 }
             }
@@ -316,6 +344,8 @@ private fun HomeContent(
 private fun SectionHeader(
     title: String,
     count: Int?,
+    isGrid: Boolean,
+    onGridChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     Row(
@@ -333,6 +363,55 @@ private fun SectionHeader(
                 text = stringResource(R.string.home_item_count, count),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+        Row(
+            modifier = Modifier.padding(start = Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+        ) {
+            LayoutModeButton(
+                selected = !isGrid,
+                onClick = { onGridChange(false) },
+                icon = Icons.AutoMirrored.Filled.ViewList,
+                contentDescription = stringResource(R.string.home_layout_list)
+            )
+            LayoutModeButton(
+                selected = isGrid,
+                onClick = { onGridChange(true) },
+                icon = Icons.Filled.GridView,
+                contentDescription = stringResource(R.string.home_layout_grid)
+            )
+        }
+    }
+}
+
+@Composable
+private fun LayoutModeButton(
+    selected: Boolean,
+    onClick: () -> Unit,
+    icon: ImageVector,
+    contentDescription: String,
+) {
+    Surface(
+        shape = MaterialTheme.shapes.extraSmall,
+        color = if (selected) {
+            MaterialTheme.colorScheme.primaryContainer
+        } else {
+            MaterialTheme.colorScheme.surface
+        }
+    ) {
+        IconButton(
+            onClick = onClick,
+            modifier = Modifier.size(40.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = contentDescription,
+                tint = if (selected) {
+                    MaterialTheme.colorScheme.onPrimaryContainer
+                } else {
+                    MaterialTheme.colorScheme.onSurfaceVariant
+                }
             )
         }
     }

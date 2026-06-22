@@ -20,10 +20,8 @@ import androidx.compose.material.icons.filled.Delete
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -47,7 +45,6 @@ import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.formatPercent
-import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.itemIconVector
 import com.devidea.timeleft.ui.theme.Spacing
@@ -59,9 +56,8 @@ internal fun TimeLeftItemCard(
     item: AdapterItem,
     onEditItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit,
-    progressDisplayMode: String,
     modifier: Modifier = Modifier,
-    compact: Boolean = false,
+    grid: Boolean = false,
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
@@ -75,51 +71,23 @@ internal fun TimeLeftItemCard(
         label = "itemChevron"
     )
 
-    val cardModifier = modifier.fillMaxWidth()
-    val contentPadding = if (compact) 0.dp else Spacing.m
-
-    if (compact) {
-        Column(modifier = cardModifier) {
-            ItemCardContent(
-                item = item,
-                accent = accent,
-                progress = progress,
-                progressDisplayMode = progressDisplayMode,
-                expanded = false,
-                chevronRotation = chevronRotation,
-                showDetails = false,
-                onToggleExpanded = {},
-                onEditItem = onEditItem,
-                onDeleteClick = { showDeleteDialog = true },
-                compact = true,
-                modifier = Modifier.padding(horizontal = 0.dp, vertical = 2.dp)
-            )
-            HorizontalDivider(
-                color = MaterialTheme.colorScheme.outline.copy(alpha = 0.12f),
-                modifier = Modifier.padding(start = 76.dp)
-            )
-        }
-    } else {
-        Surface(
-            modifier = cardModifier,
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface
-        ) {
-            ItemCardContent(
-                item = item,
-                accent = accent,
-                progress = progress,
-                progressDisplayMode = progressDisplayMode,
-                expanded = expanded,
-                chevronRotation = chevronRotation,
-                showDetails = true,
-                onToggleExpanded = { expanded = !expanded },
-                onEditItem = onEditItem,
-                onDeleteClick = { showDeleteDialog = true },
-                compact = false,
-                modifier = Modifier.padding(contentPadding)
-            )
-        }
+    Surface(
+        modifier = modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.small,
+        color = MaterialTheme.colorScheme.surface
+    ) {
+        ItemCardContent(
+            item = item,
+            accent = accent,
+            progress = progress,
+            expanded = expanded,
+            chevronRotation = chevronRotation,
+            onToggleExpanded = { expanded = !expanded },
+            onEditItem = onEditItem,
+            onDeleteClick = { showDeleteDialog = true },
+            grid = grid,
+            modifier = Modifier.padding(Spacing.m)
+        )
     }
 
     if (showDeleteDialog) {
@@ -152,133 +120,74 @@ private fun ItemCardContent(
     item: AdapterItem,
     accent: androidx.compose.ui.graphics.Color,
     progress: Float,
-    progressDisplayMode: String,
     expanded: Boolean,
     chevronRotation: Float,
-    showDetails: Boolean,
     onToggleExpanded: () -> Unit,
     onEditItem: (Int) -> Unit,
     onDeleteClick: () -> Unit,
-    compact: Boolean,
+    grid: Boolean,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                CountdownRingBadge(
-                    progress = progress,
-                    iconKey = item.iconKey,
-                    color = accent,
-                    trackColor = MaterialTheme.colorScheme.surfaceVariant
+        if (grid) {
+            GridItemSummary(
+                item = item,
+                accent = accent,
+                progress = progress,
+                chevronRotation = chevronRotation,
+                onToggleExpanded = onToggleExpanded
+            )
+        } else {
+            ListItemSummary(
+                item = item,
+                accent = accent,
+                progress = progress,
+                chevronRotation = chevronRotation,
+                onToggleExpanded = onToggleExpanded
+            )
+        }
+        if (!grid && (
+                item.recurrenceText.isNotBlank() ||
+                    item.category.isNotBlank() ||
+                    item.reminderText.isNotBlank()
                 )
-                Spacer(modifier = Modifier.width(Spacing.m))
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Text(
-                            text = item.title,
-                            style = MaterialTheme.typography.titleMedium,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            modifier = Modifier.weight(1f)
-                        )
-                        val countdown = item.countdownText.ifBlank {
-                            formatPercent(item.percent) + "%"
-                        }
-                        Spacer(modifier = Modifier.width(Spacing.s))
-                        Text(
-                            text = countdown,
-                            style = MaterialTheme.typography.titleSmall,
-                            color = accent,
-                            maxLines = 1
-                        )
-                    }
-                    Text(
-                        text = item.dueText.ifBlank { item.leftString },
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1,
-                        overflow = TextOverflow.Ellipsis
-                    )
+        ) {
+            Spacer(modifier = Modifier.height(Spacing.s))
+            MetadataChips(item = item, accent = accent)
+        }
+        AnimatedVisibility(visible = expanded) {
+            Column {
+                Spacer(modifier = Modifier.height(Spacing.m))
+                DetailText(item.startString)
+                DetailText(item.endString)
+                DetailText(item.leftString)
+                if (item.updateInfo.isNotBlank()) {
+                    DetailText(item.updateInfo)
                 }
-                if (showDetails) {
-                    IconButton(
-                        onClick = onToggleExpanded,
-                        modifier = Modifier.size(40.dp)
-                    ) {
-                        Icon(
-                            imageVector = Icons.Filled.KeyboardArrowDown,
-                            contentDescription = stringResource(R.string.card_show_details),
-                            modifier = Modifier.rotate(chevronRotation)
-                        )
-                    }
-                }
-            }
-            if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL && !compact) {
                 Spacer(modifier = Modifier.height(Spacing.s))
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically,
-                    horizontalArrangement = Arrangement.spacedBy(Spacing.m)
+                    horizontalArrangement = Arrangement.End,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    LinearProgressIndicator(
-                        progress = { progress },
-                        modifier = Modifier
-                            .weight(1f)
-                            .height(4.dp),
-                        color = accent,
-                        trackColor = MaterialTheme.colorScheme.surfaceVariant
-                    )
-                    Text(
-                        text = stringResource(R.string.card_progress_value, formatPercent(item.percent)),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant,
-                        maxLines = 1
-                    )
-                }
-            }
-            if (showDetails) {
-                if (item.recurrenceText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(Spacing.s))
-                    MetadataChips(item = item, accent = accent)
-                } else if (item.category.isNotBlank() || item.reminderText.isNotBlank()) {
-                    Spacer(modifier = Modifier.height(Spacing.s))
-                    MetadataChips(item = item, accent = accent)
-                }
-            }
-            AnimatedVisibility(visible = expanded && showDetails) {
-                Column {
-                    Spacer(modifier = Modifier.height(Spacing.m))
-                    DetailText(item.startString)
-                    DetailText(item.endString)
-                    DetailText(item.leftString)
-                    if (item.updateInfo.isNotBlank()) {
-                        DetailText(item.updateInfo)
+                    TextButton(onClick = { onEditItem(item.id) }) {
+                        Icon(
+                            imageVector = Icons.Filled.Edit,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        Spacer(modifier = Modifier.width(Spacing.s))
+                        Text(stringResource(R.string.card_action_edit))
                     }
-                    Spacer(modifier = Modifier.height(Spacing.s))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.End,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        TextButton(onClick = { onEditItem(item.id) }) {
-                            Icon(
-                                imageVector = Icons.Filled.Edit,
-                                contentDescription = null,
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(Spacing.s))
-                            Text(stringResource(R.string.card_action_edit))
-                        }
-                        Spacer(modifier = Modifier.width(Spacing.xs))
-                        TextButton(onClick = onDeleteClick) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = null,
-                                tint = MaterialTheme.colorScheme.error,
-                                modifier = Modifier.size(18.dp)
-                            )
+                    Spacer(modifier = Modifier.width(Spacing.xs))
+                    TextButton(onClick = onDeleteClick) {
+                        Icon(
+                            imageVector = Icons.Filled.Delete,
+                            contentDescription = null,
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(18.dp)
+                        )
+                        if (!grid) {
                             Spacer(modifier = Modifier.width(Spacing.s))
                             Text(
                                 text = stringResource(R.string.card_action_delete),
@@ -289,7 +198,123 @@ private fun ItemCardContent(
                 }
             }
         }
+    }
 }
+
+@Composable
+private fun ListItemSummary(
+    item: AdapterItem,
+    accent: Color,
+    progress: Float,
+    chevronRotation: Float,
+    onToggleExpanded: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CountdownRingBadge(
+            progress = progress,
+            iconKey = item.iconKey,
+            color = accent,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Spacer(modifier = Modifier.width(Spacing.m))
+        Column(modifier = Modifier.weight(1f)) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Text(
+                    text = item.title,
+                    style = MaterialTheme.typography.titleMedium,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis,
+                    modifier = Modifier.weight(1f)
+                )
+                Spacer(modifier = Modifier.width(Spacing.s))
+                Text(
+                    text = item.countdownLabel(),
+                    style = MaterialTheme.typography.titleSmall,
+                    color = accent,
+                    maxLines = 1
+                )
+            }
+            Text(
+                text = item.dueText.ifBlank { item.leftString },
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
+            )
+        }
+        ExpandButton(
+            rotation = chevronRotation,
+            onClick = onToggleExpanded
+        )
+    }
+}
+
+@Composable
+private fun GridItemSummary(
+    item: AdapterItem,
+    accent: Color,
+    progress: Float,
+    chevronRotation: Float,
+    onToggleExpanded: () -> Unit,
+) {
+    Row(verticalAlignment = Alignment.CenterVertically) {
+        CountdownRingBadge(
+            progress = progress,
+            iconKey = item.iconKey,
+            color = accent,
+            trackColor = MaterialTheme.colorScheme.surfaceVariant
+        )
+        Spacer(modifier = Modifier.weight(1f))
+        ExpandButton(
+            rotation = chevronRotation,
+            onClick = onToggleExpanded
+        )
+    }
+    Spacer(modifier = Modifier.height(Spacing.m))
+    Text(
+        text = item.title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.onSurface,
+        maxLines = 2,
+        overflow = TextOverflow.Ellipsis
+    )
+    Spacer(modifier = Modifier.height(Spacing.xs))
+    Text(
+        text = item.countdownLabel(),
+        style = MaterialTheme.typography.titleSmall,
+        color = accent,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+    Text(
+        text = item.dueText.ifBlank { item.leftString },
+        style = MaterialTheme.typography.bodySmall,
+        color = MaterialTheme.colorScheme.onSurfaceVariant,
+        maxLines = 1,
+        overflow = TextOverflow.Ellipsis
+    )
+}
+
+@Composable
+private fun ExpandButton(
+    rotation: Float,
+    onClick: () -> Unit,
+) {
+    IconButton(
+        onClick = onClick,
+        modifier = Modifier.size(40.dp)
+    ) {
+        Icon(
+            imageVector = Icons.Filled.KeyboardArrowDown,
+            contentDescription = stringResource(R.string.card_show_details),
+            modifier = Modifier.rotate(rotation)
+        )
+    }
+}
+
+private fun AdapterItem.countdownLabel(): String =
+    countdownText.ifBlank { formatPercent(percent) + "%" }
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)

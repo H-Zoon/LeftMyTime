@@ -1,9 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <layer-list xmlns:android="http://schemas.android.com/apk/res/android">
-    <item android:id="@android:id/background">
-        <shape><corners android:radius="8dp" /><solid android:color="@color/widget_track_slate" /><size android:height="7dp" /></shape>
+    <item>
+        <shape android:shape="ring" android:innerRadiusRatio="2.8" android:thicknessRatio="11" android:useLevel="false">
+            <solid android:color="@color/widget_track_slate" />
+        </shape>
     </item>
     <item android:id="@android:id/progress">
-        <clip><shape><corners android:radius="8dp" /><solid android:color="@color/widget_primary_slate" /></shape></clip>
+        <rotate android:fromDegrees="270" android:toDegrees="270">
+            <shape android:shape="ring" android:innerRadiusRatio="2.8" android:thicknessRatio="11" android:useLevel="true">
+                <solid android:color="@color/widget_primary_slate" />
+            </shape>
+        </rotate>
     </item>
 </layer-list>

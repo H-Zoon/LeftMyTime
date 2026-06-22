@@ -32,6 +32,7 @@ class MainActivity : AppCompatActivity() {
     private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
     private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_INDIGO)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
+    private var homeLayout by mutableStateOf(UserPreferences.HOME_LAYOUT_LIST)
     private var expiredItemsMode by mutableStateOf(UserPreferences.EXPIRED_ITEMS_SHOW)
     private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
 
@@ -60,6 +61,7 @@ class MainActivity : AppCompatActivity() {
             TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey) {
                 HomeScreen(
                     initialSortValue = homeSort,
+                    initialLayoutValue = homeLayout,
                     expiredItemsMode = expiredItemsMode,
                     progressDisplayMode = progressDisplayMode,
                     topItems = topItems,
@@ -70,6 +72,10 @@ class MainActivity : AppCompatActivity() {
                     onSortChange = { value ->
                         prefs.edit().putString(UserPreferences.KEY_HOME_SORT, value).apply()
                         homeSort = value
+                    },
+                    onLayoutChange = { value ->
+                        prefs.edit().putString(UserPreferences.KEY_HOME_LAYOUT, value).apply()
+                        homeLayout = value
                     },
                     onAddTime = {
                         startActivity(
@@ -107,6 +113,10 @@ class MainActivity : AppCompatActivity() {
         ) ?: UserPreferences.COLOR_THEME_INDIGO
         homeSort = prefs.getString(UserPreferences.KEY_HOME_SORT, UserPreferences.SORT_NEAREST)
             ?: UserPreferences.SORT_NEAREST
+        homeLayout = prefs.getString(
+            UserPreferences.KEY_HOME_LAYOUT,
+            UserPreferences.HOME_LAYOUT_LIST
+        ) ?: UserPreferences.HOME_LAYOUT_LIST
         expiredItemsMode = prefs.getString(
             UserPreferences.KEY_EXPIRED_ITEMS,
             UserPreferences.EXPIRED_ITEMS_SHOW

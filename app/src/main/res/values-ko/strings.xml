@@ -5,6 +5,12 @@
     <string name="widget_medium_label">중형 위젯</string>
     <string name="widget_wide_label">와이드 위젯</string>
     <string name="widget_large_label">대형 위젯</string>
+    <string name="widget_preview_title">여행 카운트다운</string>
+    <string name="widget_preview_value">D-12</string>
+    <string name="widget_preview_meta">6월 30일까지</string>
+    <string name="widget_preview_today">오늘 · 7시간 12분 남음</string>
+    <string name="widget_preview_month">이번 달 · 8일 남음</string>
+    <string name="widget_preview_year">올해 · 192일 남음</string>
 
     <!-- Date / time patterns (locale-aware) -->
     <string name="pattern_header_time">a h:m:ss</string>
@@ -22,6 +28,8 @@
     <string name="home_tab_items">항목</string>
     <string name="home_item_count">%1$d개</string>
     <string name="home_my_items">내 항목</string>
+    <string name="home_layout_list">목록 보기</string>
+    <string name="home_layout_grid">2열 그리드 보기</string>
     <string name="home_upcoming_items">다가오는 일들</string>
     <string name="home_search_hint">제목 또는 카테고리</string>
     <string name="home_sort_nearest">가까운</string>
@@ -189,8 +197,7 @@
     <string name="settings_expired_bottom">아래로 이동</string>
     <string name="settings_expired_hide">숨김</string>
     <string name="settings_progress_display">카운트다운 진행률</string>
-    <string name="settings_progress_full">막대와 퍼센트</string>
-    <string name="settings_progress_bar_only">막대만</string>
+    <string name="settings_progress_full">표시</string>
     <string name="settings_progress_hidden">숨김</string>
     <string name="settings_notifications">알림</string>
     <string name="settings_notification_permission">리마인더 알림</string>

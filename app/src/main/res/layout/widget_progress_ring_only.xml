@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="utf-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <ProgressBar
+        android:id="@+id/progress"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="100"
+        android:progress="70"
+        android:progressDrawable="@drawable/progressbar_widget" />
+
+    <ProgressBar
+        android:id="@+id/progressEmerald"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_widget_emerald"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progressRose"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_widget_rose"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progressAmber"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_widget_amber"
+        android:visibility="gone" />
+
+    <ProgressBar
+        android:id="@+id/progressSlate"
+        style="?android:attr/progressBarStyleHorizontal"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:indeterminate="false"
+        android:max="100"
+        android:progressDrawable="@drawable/progressbar_widget_slate"
+        android:visibility="gone" />
+
+</FrameLayout>

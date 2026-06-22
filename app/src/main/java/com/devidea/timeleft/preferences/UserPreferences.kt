@@ -4,6 +4,7 @@ object UserPreferences {
     const val KEY_THEME = "theme"
     const val KEY_COLOR_THEME = "color_theme"
     const val KEY_HOME_SORT = "home_sort"
+    const val KEY_HOME_LAYOUT = "home_layout"
     const val KEY_START_SCREEN = "start_screen"
     const val KEY_EXPIRED_ITEMS = "expired_items"
     const val KEY_PROGRESS_DISPLAY = "progress_display"
@@ -25,6 +26,9 @@ object UserPreferences {
     const val SORT_CREATED = "Created"
     const val SORT_TITLE = "Title"
     const val SORT_PROGRESS = "Progress"
+
+    const val HOME_LAYOUT_LIST = "list"
+    const val HOME_LAYOUT_GRID = "grid"
 
     const val START_SCREEN_OVERVIEW = "Overview"
     const val START_SCREEN_ITEMS = "Items"

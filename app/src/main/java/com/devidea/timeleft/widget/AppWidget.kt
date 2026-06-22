@@ -155,7 +155,7 @@ open class AppWidget : AppWidgetProvider() {
         )
 
         applyPalette(context, views, sizeClass, palette)
-        bindWidgetActions(context, appWidgetManager, views, appWidgetId)
+        bindWidgetActions(context, appWidgetManager, views, appWidgetId, sizeClass)
 
         when (source) {
             "embedYear" -> renderWidgetItem(
@@ -231,6 +231,7 @@ open class AppWidget : AppWidgetProvider() {
         appWidgetManager: AppWidgetManager,
         views: RemoteViews,
         appWidgetId: Int,
+        sizeClass: WidgetSizeClass,
     ) {
         val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
             ?: ComponentName(context, AppWidget::class.java)
@@ -255,7 +256,9 @@ open class AppWidget : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
+        if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
+            views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
+        }
         views.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
         views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
     }
@@ -271,8 +274,10 @@ open class AppWidget : AppWidgetProvider() {
         val onSurfaceVariant = ContextCompat.getColor(context, palette.onSurfaceVariantColorRes)
 
         views.setInt(R.id.widgetRoot, "setBackgroundResource", palette.backgroundDrawableRes)
-        views.setInt(R.id.refresh, "setBackgroundResource", palette.iconBackgroundDrawableRes)
-        views.setInt(R.id.refresh, "setColorFilter", primary)
+        if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
+            views.setInt(R.id.refresh, "setBackgroundResource", palette.iconBackgroundDrawableRes)
+            views.setInt(R.id.refresh, "setColorFilter", primary)
+        }
         views.setTextColor(R.id.summary, primary)
         views.setTextColor(R.id.percent, onSurface)
         WidgetPalette.entries.forEach { widgetPalette ->
@@ -284,17 +289,11 @@ open class AppWidget : AppWidgetProvider() {
 
         if (sizeClass != WidgetSizeClass.Compact) {
             views.setTextColor(R.id.widgetMeta, onSurfaceVariant)
-            views.setTextColor(R.id.progressLabel, onSurfaceVariant)
         }
-        if (sizeClass == WidgetSizeClass.Wide || sizeClass == WidgetSizeClass.Large) {
+        if (sizeClass == WidgetSizeClass.Large) {
             listOf(R.id.widgetFlowToday, R.id.widgetFlowMonth, R.id.widgetFlowYear).forEach { id ->
                 views.setInt(id, "setBackgroundResource", palette.iconBackgroundDrawableRes)
                 views.setTextColor(id, onSurface)
-            }
-        }
-        if (sizeClass == WidgetSizeClass.Large) {
-            listOf(R.id.widgetDetailStart, R.id.widgetDetailEnd, R.id.widgetDetailUpdate).forEach { id ->
-                views.setTextColor(id, onSurfaceVariant)
             }
         }
     }
@@ -449,7 +448,7 @@ open class AppWidget : AppWidgetProvider() {
         when (sizeClass) {
             WidgetSizeClass.Compact -> Unit
             WidgetSizeClass.Medium -> renderMedium(views, data)
-            WidgetSizeClass.Wide -> renderWide(views, data, flowItems)
+            WidgetSizeClass.Wide -> renderMedium(views, data)
             WidgetSizeClass.Large -> renderLarge(views, data, flowItems)
         }
         appWidgetManager.updateAppWidget(appWidgetId, views)
@@ -470,10 +469,9 @@ open class AppWidget : AppWidgetProvider() {
         data: WidgetDisplayData,
     ) {
         views.setTextViewText(R.id.widgetMeta, data.meta)
-        views.setTextViewText(R.id.progressLabel, data.progressText)
     }
 
-    private fun renderWide(
+    private fun renderLarge(
         views: RemoteViews,
         data: WidgetDisplayData,
         flowItems: WidgetFlowItems,
@@ -482,17 +480,6 @@ open class AppWidget : AppWidgetProvider() {
         setFlowText(views, R.id.widgetFlowToday, flowItems.today)
         setFlowText(views, R.id.widgetFlowMonth, flowItems.month)
         setFlowText(views, R.id.widgetFlowYear, flowItems.year)
-    }
-
-    private fun renderLarge(
-        views: RemoteViews,
-        data: WidgetDisplayData,
-        flowItems: WidgetFlowItems,
-    ) {
-        renderWide(views, data, flowItems)
-        setTextOrGone(views, R.id.widgetDetailStart, data.start)
-        setTextOrGone(views, R.id.widgetDetailEnd, data.end)
-        setTextOrGone(views, R.id.widgetDetailUpdate, data.update)
     }
 
     private fun setFlowText(
@@ -504,42 +491,31 @@ open class AppWidget : AppWidgetProvider() {
         views.setTextViewText(viewId, "${item.title} - $value")
     }
 
-    private fun setTextOrGone(
-        views: RemoteViews,
-        viewId: Int,
-        text: String,
-    ) {
-        views.setViewVisibility(viewId, if (text.isBlank()) View.GONE else View.VISIBLE)
-        views.setTextViewText(viewId, text)
-    }
-
     private fun AdapterItem.toWidgetData(
         context: Context,
         showRemaining: Boolean,
         useWidgetString: Boolean,
     ): WidgetDisplayData {
-        val percentText = "${formatPercent(percent)}%"
         val remainingText = if (useWidgetString && widgetString.isNotBlank()) {
             widgetString
         } else {
             leftString
         }
-        val value = if (showRemaining) remainingText else percentText
+        val value = if (showRemaining) {
+            remainingText
+        } else {
+            countdownText.ifBlank { remainingText }
+        }
         val meta = when {
             dueText.isNotBlank() -> dueText
-            showRemaining -> context.getString(R.string.card_progress_value, formatPercent(percent))
-            else -> remainingText
+            else -> context.getString(R.string.card_progress_value, formatPercent(percent))
         }
 
         return WidgetDisplayData(
             title = title,
             value = value,
             meta = meta,
-            progressText = context.getString(R.string.card_progress_value, formatPercent(percent)),
             progress = percent.toInt().coerceIn(0, 100),
-            start = startString,
-            end = endString,
-            update = updateInfo.ifBlank { recurrenceText }
         )
     }
 
@@ -553,7 +529,7 @@ open class AppWidget : AppWidgetProvider() {
 
         return when {
             minWidth >= 245 && minHeight >= 185 -> WidgetSizeClass.Large
-            minWidth >= 245 -> WidgetSizeClass.Wide
+            minWidth >= 245 && minHeight < 115 -> WidgetSizeClass.Wide
             minHeight >= 115 -> WidgetSizeClass.Medium
             else -> WidgetSizeClass.Compact
         }
@@ -631,11 +607,7 @@ open class AppWidget : AppWidgetProvider() {
         val title: String,
         val value: String,
         val meta: String,
-        val progressText: String,
         val progress: Int,
-        val start: String,
-        val end: String,
-        val update: String,
     )
 
     private data class WidgetFlowItems(

@@ -4,6 +4,12 @@
     <string name="widget_medium_label">TimeLeft medium</string>
     <string name="widget_wide_label">TimeLeft wide</string>
     <string name="widget_large_label">TimeLeft large</string>
+    <string name="widget_preview_title">Trip countdown</string>
+    <string name="widget_preview_value">D-12</string>
+    <string name="widget_preview_meta">Until Jun 30</string>
+    <string name="widget_preview_today">Today · 7h 12m left</string>
+    <string name="widget_preview_month">This month · 8 days left</string>
+    <string name="widget_preview_year">This year · 192 days left</string>
 
     <!-- Date / time patterns (locale-aware) -->
     <string name="pattern_header_time">h:mm:ss a</string>
@@ -21,6 +27,8 @@
     <string name="home_tab_items">Items</string>
     <string name="home_item_count">%1$d items</string>
     <string name="home_my_items">My items</string>
+    <string name="home_layout_list">List view</string>
+    <string name="home_layout_grid">Two-column grid view</string>
     <string name="home_upcoming_items">Coming up</string>
     <string name="home_search_hint">Search title or category</string>
     <string name="home_sort_nearest">Nearest</string>
@@ -188,8 +196,7 @@
     <string name="settings_expired_bottom">Move to bottom</string>
     <string name="settings_expired_hide">Hide</string>
     <string name="settings_progress_display">Countdown progress</string>
-    <string name="settings_progress_full">Bar and percentage</string>
-    <string name="settings_progress_bar_only">Bar only</string>
+    <string name="settings_progress_full">Show</string>
     <string name="settings_progress_hidden">Hide</string>
     <string name="settings_notifications">Notifications</string>
     <string name="settings_notification_permission">Reminder notifications</string>
