@@ -22,7 +22,7 @@ class BootReceiver : BroadcastReceiver() {
         val appContext = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
             try {
-                val items = repository.allItems()
+                val items = repository.advanceExpiredRecurrences(repository.allItems())
                 ReminderScheduler.rescheduleAll(appContext, items)
             } finally {
                 pendingResult.finish()

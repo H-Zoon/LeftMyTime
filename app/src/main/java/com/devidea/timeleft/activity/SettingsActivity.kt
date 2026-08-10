@@ -298,7 +298,13 @@ private fun styledPrivacyHtml(
           margin: 0;
           padding: 12px 16px 24px;
         }
+        h1 { font-size: 24px; line-height: 1.3; margin: 4px 0 8px; }
+        h2 { font-size: 18px; line-height: 1.4; margin: 28px 0 8px; }
+        p, li { word-break: keep-all; }
+        ul { padding-left: 22px; }
         a { color: ${accent.toCssColor()}; }
+        .effective-date { margin-top: 0; opacity: 0.75; }
+        .notice { border-left: 3px solid ${accent.toCssColor()}; padding-left: 12px; }
       </style>
     </head>
     <body>$body</body>

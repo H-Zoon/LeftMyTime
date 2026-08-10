@@ -23,12 +23,12 @@ val hasReleaseSigningProperties = keystorePropertiesFile.exists() &&
 
 android {
     namespace = "com.devidea.timeleft"
-    compileSdk = 35
+    compileSdk = 36
 
     defaultConfig {
         applicationId = "com.devidea.timeleft"
         minSdk = 26
-        targetSdk = 35
+        targetSdk = 36
         versionCode = 18
         versionName = "6.1"
 

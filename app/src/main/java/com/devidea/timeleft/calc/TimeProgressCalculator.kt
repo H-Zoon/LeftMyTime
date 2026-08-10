@@ -74,10 +74,11 @@ object TimeProgressCalculator {
         updateFlag: RecurrenceMode,
         updateRate: Int
     ): RecurrenceShift? {
-        if (!today.isAfter(currentEnd)) return null
+        if (!today.isAfter(currentEnd) || currentEnd.isBefore(currentStart)) return null
         val duration = ChronoUnit.DAYS.between(currentStart, currentEnd)
         return when (updateFlag) {
             RecurrenceMode.Day -> {
+                if (updateRate < 1) return null
                 val newStart = currentEnd.plusDays(updateRate.toLong())
                 RecurrenceShift(
                     newStart = newStart,
@@ -86,6 +87,7 @@ object TimeProgressCalculator {
             }
 
             RecurrenceMode.Month -> {
+                if (updateRate !in 1..31) return null
                 var candidate = currentEnd.plusDays(1)
                 while (candidate.lengthOfMonth() < updateRate || candidate.dayOfMonth > updateRate) {
                     candidate = candidate.plusMonths(1).withDayOfMonth(1)
@@ -95,6 +97,57 @@ object TimeProgressCalculator {
                     newStart = newStart,
                     newEnd = newStart.plusDays(duration)
                 )
+            }
+
+            RecurrenceMode.None, RecurrenceMode.TimeRange -> null
+        }
+    }
+
+    // Advances every expired cycle and returns the first recurrence whose end is
+    // today or later. The caller can persist this final window with a single write.
+    fun catchUpRecurrence(
+        currentStart: LocalDate,
+        currentEnd: LocalDate,
+        today: LocalDate,
+        updateFlag: RecurrenceMode,
+        updateRate: Int
+    ): RecurrenceShift? {
+        if (!today.isAfter(currentEnd) || currentEnd.isBefore(currentStart)) return null
+
+        val duration = ChronoUnit.DAYS.between(currentStart, currentEnd)
+        return when (updateFlag) {
+            RecurrenceMode.Day -> {
+                if (updateRate < 1) return null
+
+                val cycleStep = duration + updateRate.toLong()
+                val daysPastEnd = ChronoUnit.DAYS.between(currentEnd, today)
+                val expiredCycles = (daysPastEnd - 1) / cycleStep + 1
+                val newEnd = currentEnd.plusDays(expiredCycles * cycleStep)
+                RecurrenceShift(
+                    newStart = newEnd.minusDays(duration),
+                    newEnd = newEnd
+                )
+            }
+
+            RecurrenceMode.Month -> {
+                if (updateRate !in 1..31) return null
+
+                var start = currentStart
+                var end = currentEnd
+                while (today.isAfter(end)) {
+                    val next = nextRecurrence(
+                        currentStart = start,
+                        currentEnd = end,
+                        today = today,
+                        updateFlag = updateFlag,
+                        updateRate = updateRate
+                    ) ?: return null
+
+                    if (!next.newEnd.isAfter(end)) return null
+                    start = next.newStart
+                    end = next.newEnd
+                }
+                RecurrenceShift(newStart = start, newEnd = end)
             }
 
             RecurrenceMode.None, RecurrenceMode.TimeRange -> null

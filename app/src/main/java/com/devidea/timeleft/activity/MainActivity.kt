@@ -15,12 +15,10 @@ import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
-import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -99,11 +97,7 @@ class MainActivity : AppCompatActivity() {
                     onEditItem = { id ->
                         startActivity(ItemEditorActivity.editIntent(this@MainActivity, id))
                     },
-                    onDeleteItem = { id ->
-                        viewModel.deleteItem(id)
-                        ReminderScheduler.cancel(this@MainActivity, id)
-                        AppWidget().onDeleted(this@MainActivity, intArrayOf(id))
-                    }
+                    onDeleteItem = viewModel::deleteItem
                 )
             }
         }

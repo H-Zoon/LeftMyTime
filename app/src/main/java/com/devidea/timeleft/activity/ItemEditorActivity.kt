@@ -1,7 +1,9 @@
 package com.devidea.timeleft.activity
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.os.Bundle
 import android.widget.Toast
 import androidx.activity.compose.setContent
@@ -10,7 +12,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.lifecycleScope
-import android.content.SharedPreferences
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
@@ -22,6 +23,7 @@ import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.editor.ItemEditorDraft
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
+import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -113,6 +115,10 @@ class ItemEditorActivity : AppCompatActivity() {
                 }
             }.onSuccess { savedItem ->
                 ReminderScheduler.schedule(this@ItemEditorActivity, savedItem)
+                AppWidget.updateAllWidgets(
+                    context = this@ItemEditorActivity,
+                    appWidgetManager = AppWidgetManager.getInstance(this@ItemEditorActivity)
+                )
                 finish()
             }.onFailure {
                 isSaving = false

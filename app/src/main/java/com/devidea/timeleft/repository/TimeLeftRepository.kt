@@ -51,7 +51,7 @@ class TimeLeftRepository @Inject constructor(
 
         val startDate = LocalDate.parse(entity.startValue, DATE_FORMATTER)
         val endDate = LocalDate.parse(entity.endValue, DATE_FORMATTER)
-        val shift = TimeProgressCalculator.nextRecurrence(
+        val shift = TimeProgressCalculator.catchUpRecurrence(
             currentStart = startDate,
             currentEnd = endDate,
             today = today,

@@ -304,6 +304,71 @@ class TimeProgressCalculatorTest {
         assertEquals(LocalDate.of(2025, 6, 20), r?.newStart)
     }
 
+    // ---------- catchUpRecurrence ----------
+
+    @Test
+    fun `catchUpRecurrence Day advances every expired cycle at once`() {
+        val r = TimeProgressCalculator.catchUpRecurrence(
+            currentStart = LocalDate.of(2025, 1, 1),
+            currentEnd = LocalDate.of(2025, 1, 2),
+            today = LocalDate.of(2025, 1, 10),
+            updateFlag = RecurrenceMode.Day,
+            updateRate = 1
+        )
+
+        assertEquals(LocalDate.of(2025, 1, 9), r?.newStart)
+        assertEquals(LocalDate.of(2025, 1, 10), r?.newEnd)
+    }
+
+    @Test
+    fun `catchUpRecurrence Day handles a schedule expired for many years`() {
+        val r = TimeProgressCalculator.catchUpRecurrence(
+            currentStart = LocalDate.of(2000, 1, 1),
+            currentEnd = LocalDate.of(2000, 1, 1),
+            today = LocalDate.of(2026, 8, 11),
+            updateFlag = RecurrenceMode.Day,
+            updateRate = 1
+        )
+
+        assertEquals(LocalDate.of(2026, 8, 11), r?.newStart)
+        assertEquals(LocalDate.of(2026, 8, 11), r?.newEnd)
+    }
+
+    @Test
+    fun `catchUpRecurrence Month advances through multiple expired windows`() {
+        val r = TimeProgressCalculator.catchUpRecurrence(
+            currentStart = LocalDate.of(2025, 1, 1),
+            currentEnd = LocalDate.of(2025, 1, 10),
+            today = LocalDate.of(2025, 4, 5),
+            updateFlag = RecurrenceMode.Month,
+            updateRate = 20
+        )
+
+        assertEquals(LocalDate.of(2025, 4, 20), r?.newStart)
+        assertEquals(LocalDate.of(2025, 4, 29), r?.newEnd)
+    }
+
+    @Test
+    fun `catchUpRecurrence rejects invalid recurrence rates`() {
+        val day = TimeProgressCalculator.catchUpRecurrence(
+            currentStart = LocalDate.of(2025, 1, 1),
+            currentEnd = LocalDate.of(2025, 1, 2),
+            today = LocalDate.of(2025, 2, 1),
+            updateFlag = RecurrenceMode.Day,
+            updateRate = 0
+        )
+        val month = TimeProgressCalculator.catchUpRecurrence(
+            currentStart = LocalDate.of(2025, 1, 1),
+            currentEnd = LocalDate.of(2025, 1, 2),
+            today = LocalDate.of(2025, 2, 1),
+            updateFlag = RecurrenceMode.Month,
+            updateRate = 32
+        )
+
+        assertNull(day)
+        assertNull(month)
+    }
+
     companion object {
         private const val EPSILON = 0.001f
     }

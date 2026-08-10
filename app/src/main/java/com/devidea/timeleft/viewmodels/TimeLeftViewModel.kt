@@ -1,5 +1,6 @@
 package com.devidea.timeleft.viewmodels
 
+import android.appwidget.AppWidgetManager
 import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -9,6 +10,7 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.Dispatchers
@@ -129,6 +131,11 @@ class TimeLeftViewModel @Inject constructor(
     fun deleteItem(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             repository.delete(id)
+            ReminderScheduler.cancel(context, id)
+            AppWidget.updateAllWidgets(
+                context = context,
+                appWidgetManager = AppWidgetManager.getInstance(context)
+            )
         }
     }
 
