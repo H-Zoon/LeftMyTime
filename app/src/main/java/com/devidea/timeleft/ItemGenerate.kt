@@ -3,6 +3,8 @@ package com.devidea.timeleft
 import android.content.Context
 import com.devidea.timeleft.calc.CustomTimeProgress
 import com.devidea.timeleft.calc.TimeProgressCalculator
+import com.devidea.timeleft.calc.TimeRangePhase
+import com.devidea.timeleft.calc.timeRangeSnapshot
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
@@ -22,7 +24,7 @@ class ItemGenerate @Inject constructor(
 
     override fun timeItem(): AdapterItem {
         val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
-        val leftTime = LocalTime.ofSecondOfDay(progress.durationLeft.seconds)
+        val leftTime = LocalTime.ofSecondOfDay(progress.durationLeft.seconds.coerceIn(0, 86399))
         val leftText = context.getString(
             R.string.home_time_left,
             leftTime.format(HEADER_TIME_FORMATTER)
@@ -30,6 +32,7 @@ class ItemGenerate @Inject constructor(
 
         return AdapterItem(
             title = context.getString(R.string.home_today_title),
+            remainingSeconds = progress.durationLeft.seconds.coerceAtLeast(0),
             percent = roundPercent(progress.percentElapsed),
             leftString = leftText,
             widgetString = context.getString(
@@ -44,6 +47,7 @@ class ItemGenerate @Inject constructor(
         val progress = TimeProgressCalculator.yearProgress(today)
         return AdapterItem(
             title = context.getString(R.string.home_year_title, today.year),
+            remainingDays = progress.daysLeft,
             percent = roundPercent(progress.percentElapsed),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
@@ -55,6 +59,7 @@ class ItemGenerate @Inject constructor(
         val monthName = today.month.getDisplayName(TextStyle.FULL, Locale.getDefault())
         return AdapterItem(
             title = context.getString(R.string.home_month_title, monthName),
+            remainingDays = progress.daysLeft,
             percent = roundPercent(progress.percentElapsed),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
@@ -64,7 +69,16 @@ class ItemGenerate @Inject constructor(
         val startTime = LocalTime.parse(itemEntity.startValue, STORAGE_TIME_FORMATTER)
         val endTime = LocalTime.parse(itemEntity.endValue, STORAGE_TIME_FORMATTER)
 
+        val now = LocalTime.now()
+        val snapshot = timeRangeSnapshot(startTime, endTime, now)
         val base = AdapterItem(
+            type = ItemType.Time,
+            timePhase = snapshot.phase,
+            remainingSeconds = if (snapshot.phase == TimeRangePhase.Active) snapshot.secondsLeft else null,
+            secondsUntilStart = snapshot.secondsUntilStart,
+            startLabel = startTime.format(WIDGET_TIME_FORMATTER),
+            endLabel = endTime.format(WIDGET_TIME_FORMATTER),
+            currentLabel = now.format(WIDGET_TIME_FORMATTER),
             id = itemEntity.id,
             title = itemEntity.title,
             startString = context.getString(R.string.card_time_start, startTime.toString()),
@@ -76,7 +90,7 @@ class ItemGenerate @Inject constructor(
             reminderText = reminderText(ItemType.Time, itemEntity.reminderOffsetDays),
         )
 
-        return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, LocalTime.now())) {
+        return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, now)) {
             is CustomTimeProgress.Active -> {
                 val leftTime = LocalTime.ofSecondOfDay(result.durationLeft.seconds)
                 val leftText = context.getString(
@@ -96,7 +110,7 @@ class ItemGenerate @Inject constructor(
                 )
             }
             CustomTimeProgress.Idle -> base.copy(
-                percent = 100f,
+                percent = snapshot.percentElapsed,
                 leftString = context.getString(R.string.card_time_idle_hint),
                 widgetString = context.getString(R.string.card_time_widget_idle),
                 countdownText = context.getString(R.string.home_waiting_countdown),
@@ -132,6 +146,8 @@ class ItemGenerate @Inject constructor(
         val countdownText = ddayText(progress.daysLeft)
 
         return AdapterItem(
+            type = ItemType.Date,
+            remainingDays = progress.daysLeft,
             id = itemEntity.id,
             title = itemEntity.title,
             startString = context.getString(R.string.card_date_start, startDate.toString()),

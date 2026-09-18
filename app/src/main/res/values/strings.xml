@@ -25,7 +25,10 @@
     <string name="home_next_countdown">Coming up next</string>
     <string name="home_tab_overview">Home</string>
     <string name="home_tab_items">Items</string>
-    <string name="home_item_count">%1$d items</string>
+    <plurals name="home_item_count">
+        <item quantity="one">%1$d item</item>
+        <item quantity="other">%1$d items</item>
+    </plurals>
     <string name="home_my_items">My items</string>
     <string name="home_layout_list">List view</string>
     <string name="home_layout_grid">Two-column grid view</string>
@@ -35,8 +38,8 @@
     <string name="home_sort_created">Recent</string>
     <string name="home_sort_title">Title</string>
     <string name="home_sort_progress">Progress</string>
-    <string name="home_empty_title">Got a day in mind?</string>
-    <string name="home_empty_body">Save the deadlines, trips, and focus blocks you don\'t want to miss.</string>
+    <string name="home_empty_title">Add a time range</string>
+    <string name="home_empty_body">Add work or study time, or an important date.</string>
     <string name="home_empty_search">Nothing matches your search.</string>
     <string name="home_change_theme">Change theme</string>
     <string name="home_open_settings">Open settings</string>
@@ -65,7 +68,7 @@
     <string name="card_time_auto_start_hint">Kicks off when the time arrives</string>
     <string name="card_time_idle_hint">Will let you know when it starts</string>
     <string name="card_time_widget_idle">00:00 left</string>
-    <string name="card_update_info_none">Wraps up at 100%%</string>
+    <string name="card_update_info_none">Wraps up at 100%</string>
     <string name="card_update_info_day">Restarts with the same length after a %1$d-day break</string>
     <string name="card_update_info_month">Restarts on day %1$d every month, same length</string>
     <string name="card_recurrence_day">+%1$d-day break, then repeat</string>
@@ -209,4 +212,53 @@
     <string name="settings_about">About</string>
     <string name="settings_privacy_policy">Privacy policy</string>
     <string name="settings_version">Version</string>
+    <string name="settings_palette_clay">Clay</string>
+    <string name="period_today">Today</string>
+    <string name="period_month">This month</string>
+    <string name="period_year">This year</string>
+    <string name="home_all_items">All schedules</string>
+    <plurals name="home_active_count">
+        <item quantity="one">%1$d active range</item>
+        <item quantity="other">%1$d active ranges</item>
+    </plurals>
+    <string name="home_active_until">In progress · until %1$s</string>
+    <string name="home_next_ranges">Next ranges</string>
+    <string name="home_add_range">Add range</string>
+    <string name="home_no_next_range">No upcoming time ranges.</string>
+    <plurals name="home_view_all_count">
+        <item quantity="one">View all %1$d schedule</item>
+        <item quantity="other">View all %1$d schedules</item>
+    </plurals>
+    <string name="card_details_expanded">Details expanded</string>
+    <string name="card_details_collapsed">Details collapsed</string>
+    <string name="editor_more_options">More options</string>
+    <plurals name="time_days">
+        <item quantity="one">%1$d day</item>
+        <item quantity="other">%1$d days</item>
+    </plurals>
+    <string name="time_minutes">%1$d min</string>
+    <string name="time_hours_minutes">%1$d hr %2$d min</string>
+    <string name="time_under_minute">Less than a minute</string>
+    <string name="time_remaining">left</string>
+    <string name="time_remaining_description">%1$s left</string>
+    <string name="time_until_start">until start</string>
+    <string name="time_unit_hours">hr</string>
+    <string name="time_unit_minutes">min</string>
+    <plurals name="time_unit_days">
+        <item quantity="one">day</item>
+        <item quantity="other">days</item>
+    </plurals>
+    <string name="time_now">Now %1$s</string>
+    <string name="time_ruler_description">From %1$s to %2$s, %3$d percent remaining</string>
+    <string name="editor_adjust_range">Adjust time range</string>
+    <string name="action_confirm">OK</string>
+    <string name="time_hour_field">Hour</string>
+    <string name="time_minute_field">Minute</string>
+    <string name="time_input_invalid">Enter a valid hour and minute.</string>
+    <string name="time_ruler_remaining_description">%1$d percent remaining</string>
+    <string name="date_input_title">Select date</string>
+    <string name="date_year_field">Year</string>
+    <string name="date_month_field">Month</string>
+    <string name="date_day_field">Day</string>
+    <string name="date_input_invalid">Enter a valid date.</string>
 </resources>

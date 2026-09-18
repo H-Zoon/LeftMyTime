@@ -1,43 +1,50 @@
 package com.devidea.timeleft.ui.editor
 
 import android.Manifest
-import android.app.DatePickerDialog
-import android.app.TimePickerDialog
 import android.content.Intent
 import android.provider.Settings
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
-import androidx.compose.foundation.Canvas
+import androidx.annotation.StringRes
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.imePadding
+import androidx.compose.foundation.layout.widthIn
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
-import androidx.annotation.StringRes
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.material3.TextFieldDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.RadioButton
@@ -56,11 +63,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
@@ -68,11 +76,17 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import com.devidea.timeleft.notification.canPostReminderNotifications
+import com.devidea.timeleft.ui.components.TimeLeftSection
+import com.devidea.timeleft.ui.components.TimeRuler
+import com.devidea.timeleft.ui.components.TimeLeftDatePicker
+import com.devidea.timeleft.ui.components.TimeLeftTimePicker
+import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.itemIconVector
 import com.devidea.timeleft.ui.permission.NotificationPermissionExplanationDialog
 import com.devidea.timeleft.ui.permission.NotificationPermissionSettingsDialog
 import com.devidea.timeleft.ui.permission.markNotificationPermissionRequested
 import com.devidea.timeleft.ui.permission.shouldOpenNotificationSettings
+import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import java.time.LocalDate
 import java.time.LocalTime
@@ -114,6 +128,7 @@ fun ItemEditorScreen(
     onSave: (ItemEditorDraft) -> Unit
 ) {
     val context = LocalContext.current
+    var moreOptions by rememberSaveable { mutableStateOf(false) }
     var initialized by rememberSaveable { mutableStateOf(false) }
     var selectedType by rememberSaveable(stateSaver = itemTypeSaver) { mutableStateOf(initialType) }
     var title by rememberSaveable { mutableStateOf("") }
@@ -234,23 +249,26 @@ fun ItemEditorScreen(
         }
     }
 
-    Scaffold { innerPadding ->
+    Scaffold(
+        containerColor = MaterialTheme.colorScheme.background,
+        topBar = {
+            TimeLeftTopAppBar(
+                title = stringResource(
+                    if (initialItem == null) R.string.editor_add_title else R.string.editor_edit_title
+                ),
+                onBack = onBack
+            )
+        }
+    ) { innerPadding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
+                .imePadding()
                 .verticalScroll(rememberScrollState())
-                .padding(horizontal = Spacing.xl, vertical = Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.l)
+                .padding(horizontal = LayoutTokens.ScreenHorizontal, vertical = LayoutTokens.ScreenVertical),
+            verticalArrangement = Arrangement.spacedBy(LayoutTokens.SectionGap)
         ) {
-            EditorHeader(
-                title = stringResource(
-                    if (initialItem == null) R.string.editor_add_title
-                    else R.string.editor_edit_title
-                ),
-                onBack = onBack
-            )
-
             if (isLoading) {
                 LoadingState()
             } else {
@@ -266,7 +284,8 @@ fun ItemEditorScreen(
                     }
                 )
 
-                OutlinedTextField(
+                TextField(
+                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent),
                     value = title,
                     onValueChange = {
                         title = it
@@ -303,6 +322,14 @@ fun ItemEditorScreen(
                             errorRes = null
                         }
                     )
+                }
+
+                TextButton(onClick = { moreOptions = !moreOptions }, modifier = Modifier.fillMaxWidth()) {
+                    Text(stringResource(R.string.editor_more_options), modifier = Modifier.weight(1f))
+                    Icon(if (moreOptions) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
+                }
+                if (moreOptions) {
+                    if (selectedType == ItemType.Date) {
                     RepeatFields(
                         repeatFlag = repeatFlag,
                         repeatRateText = repeatRateText,
@@ -315,7 +342,7 @@ fun ItemEditorScreen(
                             errorRes = null
                         }
                     )
-                }
+                    }
 
                 ReminderFields(
                     reminderOffsetDays = reminderOffsetDays,
@@ -354,6 +381,8 @@ fun ItemEditorScreen(
                     onIconKeyChange = { iconKey = it }
                 )
 
+                }
+
                 errorRes?.let {
                     Text(
                         text = stringResource(it),
@@ -379,7 +408,9 @@ fun ItemEditorScreen(
                         }
                     },
                     enabled = !isSaving,
-                    modifier = Modifier.fillMaxWidth()
+                    shape = MaterialTheme.shapes.small,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background),
+                    modifier = Modifier.fillMaxWidth().heightIn(min = 52.dp)
                 ) {
                     Text(stringResource(if (isSaving) R.string.action_saving else R.string.action_save))
                 }
@@ -423,31 +454,6 @@ fun ItemEditorScreen(
 }
 
 @Composable
-private fun EditorHeader(
-    title: String,
-    onBack: () -> Unit
-) {
-    Row(
-        verticalAlignment = Alignment.CenterVertically,
-        modifier = Modifier.fillMaxWidth()
-    ) {
-        IconButton(onClick = onBack) {
-            Icon(
-                Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = stringResource(R.string.action_back)
-            )
-        }
-        Text(
-            text = title,
-            style = MaterialTheme.typography.headlineSmall,
-            color = MaterialTheme.colorScheme.onBackground,
-            maxLines = 1,
-            overflow = TextOverflow.Ellipsis
-        )
-    }
-}
-
-@Composable
 private fun LoadingState() {
     Row(
         modifier = Modifier
@@ -460,12 +466,13 @@ private fun LoadingState() {
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun TypeSelector(
     selectedType: ItemType,
     enabled: Boolean,
     onTypeSelected: (ItemType) -> Unit
 ) {
-    Row(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
         FilterChip(
             selected = selectedType == ItemType.Time,
             onClick = { if (enabled) onTypeSelected(ItemType.Time) },
@@ -484,6 +491,7 @@ private fun TypeSelector(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun TimeRangeFields(
     startTimeValue: String,
     endTimeValue: String,
@@ -493,30 +501,19 @@ private fun TimeRangeFields(
     val startTime = parseTime(startTimeValue) ?: LocalTime.now()
     val endTime = parseTime(endTimeValue) ?: startTime.plusHours(1)
 
+    var showAdjustment by rememberSaveable { mutableStateOf(false) }
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
-        TimeRangeDial(
-            startTime = startTime,
-            endTime = endTime,
-            onRangeChange = { start, end ->
-                onStartTimeChange(formatStorageTime(start))
-                onEndTimeChange(formatStorageTime(end))
-            },
-            modifier = Modifier.fillMaxWidth()
-        )
-        Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            TimePickerField(
-                label = stringResource(R.string.editor_start_time),
-                value = startTimeValue,
-                onValueChange = onStartTimeChange,
-                modifier = Modifier.weight(1f)
-            )
-            TimePickerField(
-                label = stringResource(R.string.editor_end_time),
-                value = endTimeValue,
-                onValueChange = onEndTimeChange,
-                modifier = Modifier.weight(1f)
-            )
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.xl), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+            val width = 130.dp * LocalDensity.current.fontScale.coerceAtLeast(1f)
+            TimePickerField(stringResource(R.string.editor_start_time), startTimeValue, onStartTimeChange, Modifier.weight(1f).widthIn(min = width))
+            TimePickerField(stringResource(R.string.editor_end_time), endTimeValue, onEndTimeChange, Modifier.weight(1f).widthIn(min = width))
         }
+        Text(rangeDurationText(startTime, endTime), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TextButton(onClick = { showAdjustment = !showAdjustment }) { Text(stringResource(R.string.editor_adjust_range)) }
+        if (showAdjustment) TimeRangeDial(startTime, endTime, onRangeChange = { start, end ->
+            onStartTimeChange(formatStorageTime(start))
+            onEndTimeChange(formatStorageTime(end))
+        })
     }
 }
 
@@ -553,7 +550,7 @@ private fun DateRangePreview(
     endDate: LocalDate,
 ) {
     val today = LocalDate.now()
-    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date))
+    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date), LocalContext.current.resources.configuration.locales[0])
     val daysLeft = ChronoUnit.DAYS.between(today, endDate).toInt()
     val daysSpan = (ChronoUnit.DAYS.between(startDate, endDate).toInt()).coerceAtLeast(0)
     val daysFromStart = ChronoUnit.DAYS.between(startDate, today).toInt()
@@ -568,112 +565,10 @@ private fun DateRangePreview(
         daysLeft == 0 -> stringResource(R.string.home_dday_today)
         else -> stringResource(R.string.home_dday_after, -daysLeft)
     }
-    val accent = MaterialTheme.colorScheme.primary
-    val trackColor = MaterialTheme.colorScheme.surfaceVariant
-    val onSurfaceVariant = MaterialTheme.colorScheme.onSurfaceVariant
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        color = accent.copy(alpha = 0.08f)
-    ) {
-        Column(
-            modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.m)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Bottom
-            ) {
-                Text(
-                    text = ddayText,
-                    style = MaterialTheme.typography.displaySmall,
-                    color = accent,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.weight(1f))
-                Text(
-                    text = stringResource(R.string.editor_date_range_days, daysSpan),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = onSurfaceVariant,
-                    modifier = Modifier.padding(bottom = 4.dp)
-                )
-            }
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(
-                    text = startDate.format(displayFormatter),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = onSurfaceVariant
-                )
-                Text(
-                    text = endDate.format(displayFormatter),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = onSurfaceVariant
-                )
-            }
-            DateRangeBar(
-                progress = markerProgress,
-                showMarker = showMarker,
-                accent = accent,
-                trackColor = trackColor,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(18.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun DateRangeBar(
-    progress: Float,
-    showMarker: Boolean,
-    accent: Color,
-    trackColor: Color,
-    modifier: Modifier = Modifier,
-) {
-    Canvas(modifier = modifier) {
-        val barHeightPx = 6.dp.toPx()
-        val endcapRadiusPx = 5.dp.toPx()
-        val markerRadiusPx = 6.dp.toPx()
-        val centerY = size.height / 2f
-        val startX = endcapRadiusPx
-        val endX = size.width - endcapRadiusPx
-        val trackWidth = endX - startX
-
-        drawLine(
-            color = trackColor,
-            start = Offset(startX, centerY),
-            end = Offset(endX, centerY),
-            strokeWidth = barHeightPx,
-            cap = StrokeCap.Round
-        )
-        drawCircle(
-            color = accent,
-            radius = endcapRadiusPx,
-            center = Offset(startX, centerY)
-        )
-        drawCircle(
-            color = accent,
-            radius = endcapRadiusPx,
-            center = Offset(endX, centerY)
-        )
-        if (showMarker) {
-            val markerX = startX + trackWidth * progress.coerceIn(0f, 1f)
-            drawCircle(
-                color = accent.copy(alpha = 0.22f),
-                radius = markerRadiusPx + 3.dp.toPx(),
-                center = Offset(markerX, centerY)
-            )
-            drawCircle(
-                color = accent,
-                radius = markerRadiusPx,
-                center = Offset(markerX, centerY)
-            )
-        }
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+        Text(ddayText, style = MaterialTheme.typography.displaySmall)
+        Text(stringResource(R.string.editor_date_range_days, daysSpan), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TimeRuler(markerProgress * 100, startDate.format(displayFormatter), endDate.format(displayFormatter))
     }
 }
 
@@ -683,25 +578,11 @@ private fun DatePickerField(
     value: String,
     onValueChange: (String) -> Unit
 ) {
-    val context = LocalContext.current
+    var open by rememberSaveable { mutableStateOf(false) }
     val selectedDate = parseDate(value) ?: LocalDate.now()
-    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date))
-
-    PickerCard(
-        label = label,
-        value = selectedDate.format(displayFormatter),
-        onClick = {
-            DatePickerDialog(
-                context,
-                { _, year, month, day ->
-                    onValueChange(LocalDate.of(year, month + 1, day).toString())
-                },
-                selectedDate.year,
-                selectedDate.monthValue - 1,
-                selectedDate.dayOfMonth
-            ).show()
-        }
-    )
+    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_date), LocalContext.current.resources.configuration.locales[0])
+    PickerCard(label, selectedDate.format(displayFormatter), onClick = { open = true })
+    if (open) TimeLeftDatePicker(selectedDate, onDismiss = { open = false }, onSelect = { onValueChange(it.toString()) })
 }
 
 @Composable
@@ -711,26 +592,13 @@ private fun TimePickerField(
     onValueChange: (String) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val context = LocalContext.current
+    var open by rememberSaveable { mutableStateOf(false) }
     val selectedTime = parseTime(value) ?: LocalTime.now()
-    val displayFormatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_time))
-
-    PickerCard(
-        label = label,
-        value = selectedTime.format(displayFormatter),
-        modifier = modifier,
-        onClick = {
-            TimePickerDialog(
-                context,
-                { _, hour, minute ->
-                    onValueChange(formatStorageTime(LocalTime.of(hour, minute)))
-                },
-                selectedTime.hour,
-                selectedTime.minute,
-                false
-            ).show()
-        }
-    )
+    val context = LocalContext.current
+    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else stringResource(R.string.pattern_display_time)
+    val displayFormatter = DateTimeFormatter.ofPattern(pattern, context.resources.configuration.locales[0])
+    PickerCard(label, selectedTime.format(displayFormatter), modifier = modifier, onClick = { open = true })
+    if (open) TimeLeftTimePicker(selectedTime, label, onDismiss = { open = false }, onSelect = { onValueChange(formatStorageTime(it)) })
 }
 
 @Composable
@@ -740,15 +608,12 @@ private fun PickerCard(
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Surface(
+    TimeLeftSection(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
+            .clickable(onClick = onClick)
     ) {
-        Column(modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m)) {
+        Column(modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).padding(vertical = Spacing.m)) {
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyMedium,
@@ -772,13 +637,9 @@ private fun ReminderFields(
     showReminderPermissionMessage: Boolean,
     onReminderChange: (Int) -> Unit,
 ) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(Spacing.m),
+            modifier = Modifier.padding(vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(
@@ -818,13 +679,9 @@ private fun AppearanceFields(
     onColorKeyChange: (String) -> Unit,
     onIconKeyChange: (String) -> Unit,
 ) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(Spacing.m),
+            modifier = Modifier.padding(vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(
@@ -875,11 +732,13 @@ private fun ColorSwatchRow(
         ItemVisuals.colorKeys.forEach { key ->
             val color = if (key == ItemVisuals.AUTO_COLOR_KEY) primary else Color(ItemVisuals.colorInt(key))
             val selected = key == selectedKey
+            val colorLabel = stringResource(ItemVisuals.colorNameRes(key))
             Box(
                 modifier = Modifier
-                    .size(36.dp)
+                    .size(LayoutTokens.MinTouchTarget)
                     .clip(CircleShape)
-                    .clickable { onSelect(key) },
+                    .selectable(selected = selected, role = Role.RadioButton) { onSelect(key) }
+                    .semantics { contentDescription = colorLabel },
                 contentAlignment = Alignment.Center
             ) {
                 if (selected) {
@@ -921,7 +780,7 @@ private fun IconPickerGrid(
             val selected = key == selectedKey
             Box(
                 modifier = Modifier
-                    .size(44.dp)
+                    .size(LayoutTokens.MinTouchTarget)
                     .clip(MaterialTheme.shapes.extraSmall)
                     .background(
                         if (selected) primary.copy(alpha = 0.12f) else Color.Transparent
@@ -931,7 +790,7 @@ private fun IconPickerGrid(
                         color = if (selected) primary else outline.copy(alpha = 0.4f),
                         shape = MaterialTheme.shapes.extraSmall
                     )
-                    .clickable { onSelect(key) },
+                    .selectable(selected = selected, role = Role.RadioButton) { onSelect(key) },
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
@@ -952,13 +811,9 @@ private fun RepeatFields(
     onRepeatFlagChange: (RecurrenceMode) -> Unit,
     onRepeatRateChange: (String) -> Unit
 ) {
-    Surface(
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.surface,
-        tonalElevation = 1.dp
-    ) {
+    TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
         Column(
-            modifier = Modifier.padding(Spacing.m),
+            modifier = Modifier.padding(vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.m)
         ) {
             Text(
@@ -1021,9 +876,10 @@ private fun RepeatOption(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .heightIn(min = LayoutTokens.MinTouchTarget)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
     ) {
-        RadioButton(selected = selected, onClick = onClick)
+        RadioButton(selected = selected, onClick = null)
         Spacer(modifier = Modifier.width(Spacing.xs))
         Text(
             text = text,

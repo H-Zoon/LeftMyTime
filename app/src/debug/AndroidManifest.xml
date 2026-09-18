@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+    <application>
+        <!-- Design QA only: this activity and its fixtures are absent from release builds. -->
+        <activity
+            android:name="com.devidea.timeleft.design.DesignGalleryActivity"
+            android:exported="true" />
+        <activity android:name="com.devidea.timeleft.design.EnglishDesignGalleryActivity" android:exported="true" />
+    </application>
+</manifest>

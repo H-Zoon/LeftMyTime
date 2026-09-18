@@ -8,6 +8,12 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.content.res.Configuration
+import android.graphics.Bitmap
+import android.graphics.Canvas
+import android.graphics.Paint
+import androidx.compose.ui.graphics.toArgb
+import com.devidea.timeleft.ui.theme.ThemePalette
 import android.view.View
 import android.widget.RemoteViews
 import androidx.core.content.ContextCompat
@@ -15,7 +21,6 @@ import androidx.core.content.edit
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatPercent
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
@@ -143,10 +148,7 @@ open class AppWidget : AppWidgetProvider() {
 
         val sizeClass = resolveSizeClass(appWidgetManager, appWidgetId)
         val views = RemoteViews(context.packageName, sizeClass.layoutRes)
-        val palette = WidgetPalette.fromKey(
-            prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
-                ?: UserPreferences.COLOR_THEME_INDIGO
-        )
+        val palette = WidgetPalette.fromPreferences(context, prefs)
         val source = prefs.getString(appWidgetId.toString(), "").orEmpty()
         val showRemaining = prefs.getBoolean("${appWidgetId}option", false)
 
@@ -275,31 +277,16 @@ open class AppWidget : AppWidgetProvider() {
         sizeClass: WidgetSizeClass,
         palette: WidgetPalette,
     ) {
-        val primary = ContextCompat.getColor(context, palette.primaryColorRes)
-        val onSurface = ContextCompat.getColor(context, palette.onSurfaceColorRes)
-        val onSurfaceVariant = ContextCompat.getColor(context, palette.onSurfaceVariantColorRes)
-
         views.setInt(R.id.widgetRoot, "setBackgroundResource", palette.backgroundDrawableRes)
+        views.setTextColor(R.id.summary, palette.onSurface)
+        views.setTextColor(R.id.percent, palette.onSurface)
         if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
-            views.setInt(R.id.refresh, "setBackgroundResource", palette.iconBackgroundDrawableRes)
-            views.setInt(R.id.refresh, "setColorFilter", primary)
+            views.setInt(R.id.refresh, "setColorFilter", palette.muted)
         }
-        views.setTextColor(R.id.summary, primary)
-        views.setTextColor(R.id.percent, onSurface)
-        WidgetPalette.entries.forEach { widgetPalette ->
-            views.setViewVisibility(
-                widgetPalette.progressViewId,
-                if (widgetPalette == palette) View.VISIBLE else View.GONE
-            )
-        }
-
-        if (sizeClass != WidgetSizeClass.Compact) {
-            views.setTextColor(R.id.widgetMeta, onSurfaceVariant)
-        }
+        if (sizeClass != WidgetSizeClass.Compact) views.setTextColor(R.id.widgetMeta, palette.muted)
         if (sizeClass == WidgetSizeClass.Large) {
             listOf(R.id.widgetFlowToday, R.id.widgetFlowMonth, R.id.widgetFlowYear).forEach { id ->
-                views.setInt(id, "setBackgroundResource", palette.iconBackgroundDrawableRes)
-                views.setTextColor(id, onSurface)
+                views.setTextColor(id, palette.muted)
             }
         }
     }
@@ -450,7 +437,9 @@ open class AppWidget : AppWidgetProvider() {
         data: WidgetDisplayData,
         flowItems: WidgetFlowItems,
     ) {
-        renderBase(views, data, palette)
+        renderBase(views, data, palette, sizeClass)
+        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
+        adaptToHeight(views, sizeClass, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 200), palette.fontScale)
         when (sizeClass) {
             WidgetSizeClass.Compact -> Unit
             WidgetSizeClass.Medium -> renderMedium(views, data)
@@ -464,10 +453,15 @@ open class AppWidget : AppWidgetProvider() {
         views: RemoteViews,
         data: WidgetDisplayData,
         palette: WidgetPalette,
+        sizeClass: WidgetSizeClass,
     ) {
         views.setTextViewText(R.id.summary, data.title)
         views.setTextViewText(R.id.percent, data.value)
-        views.setProgressBar(palette.progressViewId, 100, data.progress, false)
+        if (sizeClass == WidgetSizeClass.Compact) views.setTextViewTextSize(R.id.percent, android.util.TypedValue.COMPLEX_UNIT_SP, if (data.value.length >= 7) 16f else 22f)
+        views.setContentDescription(R.id.percent, data.accessibilityText)
+        if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
+            views.setImageViewBitmap(R.id.widgetRuler, rulerBitmap(data.progress, palette))
+        }
     }
 
     private fun renderMedium(
@@ -497,32 +491,45 @@ open class AppWidget : AppWidgetProvider() {
         views.setTextViewText(viewId, "${item.title} - $value")
     }
 
-    private fun AdapterItem.toWidgetData(
-        context: Context,
-        showRemaining: Boolean,
-        useWidgetString: Boolean,
-    ): WidgetDisplayData {
-        val remainingText = if (useWidgetString && widgetString.isNotBlank()) {
-            widgetString
-        } else {
-            leftString
+    private fun rulerBitmap(elapsed: Int, palette: WidgetPalette): Bitmap {
+        val bitmap = Bitmap.createBitmap(600, 48, Bitmap.Config.ARGB_8888)
+        val canvas = Canvas(bitmap)
+        val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeWidth = 3f }
+        repeat(60) { index ->
+            paint.color = if ((index + .5f) / 60 < elapsed / 100f) palette.track else palette.primary
+            val x = index * 10f + 5f
+            canvas.drawLine(x, 48f, x, if (index % 5 == 0) 0f else 24f, paint)
         }
-        val value = if (showRemaining) {
-            remainingText
-        } else {
-            countdownText.ifBlank { remainingText }
-        }
-        val meta = when {
-            dueText.isNotBlank() -> dueText
-            else -> context.getString(R.string.card_progress_value, formatPercent(percent))
-        }
+        return bitmap
+    }
 
-        return WidgetDisplayData(
-            title = title,
-            value = value,
-            meta = meta,
-            progress = percent.toInt().coerceIn(0, 100),
-        )
+    /** Small widgets keep the title and value; optional detail appears as space allows. */
+    private fun adaptToHeight(views: RemoteViews, size: WidgetSizeClass, height: Int, fontScale: Float) {
+        if (size == WidgetSizeClass.Medium || size == WidgetSizeClass.Large) {
+            views.setViewVisibility(R.id.refresh, if (height >= 180 * fontScale) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetRuler, if (height >= (if (size == WidgetSizeClass.Large) 260 else 180) * fontScale) View.VISIBLE else View.GONE)
+        }
+        if (size == WidgetSizeClass.Large) {
+            views.setViewVisibility(R.id.widgetFlowMonth, if (height >= 210 * fontScale) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetFlowYear, if (height >= 240 * fontScale) View.VISIBLE else View.GONE)
+        }
+    }
+
+    /** Debug gallery inflates exactly the same RemoteViews and binders as installed widgets. */
+    internal fun previewViews(
+        context: Context, sizeName: String, item: AdapterItem, periods: List<AdapterItem>,
+        paletteKey: String, dark: Boolean, height: Int,
+    ): RemoteViews {
+        val size = WidgetSizeClass.valueOf(sizeName)
+        val palette = WidgetPalette.create(context, paletteKey, dark)
+        val views = RemoteViews(context.packageName, size.layoutRes)
+        val data = item.toWidgetData(context, true, item.type == ItemType.Time)
+        applyPalette(context, views, size, palette)
+        renderBase(views, data, palette, size)
+        if (size != WidgetSizeClass.Compact) renderMedium(views, data)
+        if (size == WidgetSizeClass.Large) renderLarge(views, data, WidgetFlowItems(periods[0], periods[1], periods[2]))
+        adaptToHeight(views, size, height, palette.fontScale)
+        return views
     }
 
     private fun resolveSizeClass(
@@ -548,73 +555,34 @@ open class AppWidget : AppWidgetProvider() {
         Large(R.layout.app_widget_large)
     }
 
-    private enum class WidgetPalette(
-        val key: String,
+    private data class WidgetPalette(
         val backgroundDrawableRes: Int,
-        val iconBackgroundDrawableRes: Int,
-        val progressViewId: Int,
-        val primaryColorRes: Int,
-        val onSurfaceColorRes: Int,
-        val onSurfaceVariantColorRes: Int,
+        val primary: Int,
+        val onSurface: Int,
+        val muted: Int,
+        val track: Int,
+        val fontScale: Float,
     ) {
-        Indigo(
-            UserPreferences.COLOR_THEME_INDIGO,
-            R.drawable.line_widget,
-            R.drawable.widget_icon_button,
-            R.id.progress,
-            R.color.widget_primary,
-            R.color.widget_on_surface,
-            R.color.widget_on_surface_variant
-        ),
-        Emerald(
-            UserPreferences.COLOR_THEME_EMERALD,
-            R.drawable.line_widget_emerald,
-            R.drawable.widget_icon_button_emerald,
-            R.id.progressEmerald,
-            R.color.widget_primary_emerald,
-            R.color.widget_on_surface_emerald,
-            R.color.widget_on_surface_variant_emerald
-        ),
-        Rose(
-            UserPreferences.COLOR_THEME_ROSE,
-            R.drawable.line_widget_rose,
-            R.drawable.widget_icon_button_rose,
-            R.id.progressRose,
-            R.color.widget_primary_rose,
-            R.color.widget_on_surface_rose,
-            R.color.widget_on_surface_variant_rose
-        ),
-        Amber(
-            UserPreferences.COLOR_THEME_AMBER,
-            R.drawable.line_widget_amber,
-            R.drawable.widget_icon_button_amber,
-            R.id.progressAmber,
-            R.color.widget_primary_amber,
-            R.color.widget_on_surface_amber,
-            R.color.widget_on_surface_variant_amber
-        ),
-        Slate(
-            UserPreferences.COLOR_THEME_SLATE,
-            R.drawable.line_widget_slate,
-            R.drawable.widget_icon_button_slate,
-            R.id.progressSlate,
-            R.color.widget_primary_slate,
-            R.color.widget_on_surface_slate,
-            R.color.widget_on_surface_variant_slate
-        );
-
         companion object {
-            fun fromKey(key: String): WidgetPalette =
-                entries.firstOrNull { it.key == key } ?: Indigo
+            fun fromPreferences(context: Context, prefs: SharedPreferences): WidgetPalette {
+                val dark = when (prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)) {
+                    UserPreferences.THEME_DARK -> true
+                    UserPreferences.THEME_LIGHT -> false
+                    else -> context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+                }
+                return create(context, prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY) ?: UserPreferences.COLOR_THEME_CLAY, dark)
+            }
+            fun create(context: Context, key: String, dark: Boolean): WidgetPalette {
+                val palette = ThemePalette.fromKey(key)
+                val colors = if (dark) palette.darkColors else palette.lightColors
+                return WidgetPalette(
+                    if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
+                    colors.primary.toArgb(), colors.onBackground.toArgb(), colors.onSurfaceVariant.toArgb(), colors.outlineVariant.toArgb(),
+                    context.resources.configuration.fontScale
+                )
+            }
         }
     }
-
-    private data class WidgetDisplayData(
-        val title: String,
-        val value: String,
-        val meta: String,
-        val progress: Int,
-    )
 
     private data class WidgetFlowItems(
         val today: AdapterItem,

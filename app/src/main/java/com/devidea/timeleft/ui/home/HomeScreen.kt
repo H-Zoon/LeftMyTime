@@ -1,60 +1,32 @@
 package com.devidea.timeleft.ui.home
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.expandVertically
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
-import androidx.compose.animation.shrinkVertically
-import androidx.compose.animation.core.animateFloatAsState
-import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
+import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
-import androidx.compose.material.icons.filled.AccessTime
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.Close
-import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.ExtendedFloatingActionButton
-import androidx.compose.material3.FilterChip
-import androidx.compose.material3.FloatingActionButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.ui.theme.Motion
+import com.devidea.timeleft.ui.components.remainingTimeLabel
+import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
@@ -74,276 +46,139 @@ fun HomeScreen(
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
     onDeleteItem: (Int) -> Unit,
+    initialShowAll: Boolean = false,
 ) {
-    var fabExpanded by rememberSaveable { mutableStateOf(false) }
+    var showAll by rememberSaveable { mutableStateOf(initialShowAll) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
     var selectedSortValue by rememberSaveable(initialSortValue) { mutableStateOf(initialSortValue) }
-    var selectedLayoutValue by rememberSaveable(initialLayoutValue) {
-        mutableStateOf(initialLayoutValue)
-    }
-    val selectedSort = remember(selectedSortValue) {
-        runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
-    }
+    var selectedLayoutValue by rememberSaveable(initialLayoutValue) { mutableStateOf(initialLayoutValue) }
+    var selectedActiveId by rememberSaveable { mutableStateOf<Int?>(null) }
+    var showActiveMenu by remember { mutableStateOf(false) }
+    var showAddMenu by remember { mutableStateOf(false) }
+    val selectedSort = runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     val isGrid = selectedLayoutValue == UserPreferences.HOME_LAYOUT_GRID
-    val listState = rememberLazyGridState()
-    val targetCollapseFraction by remember(listState) {
-        derivedStateOf {
-            if (listState.firstVisibleItemIndex > 0 ||
-                listState.firstVisibleItemScrollOffset >= HEADER_COLLAPSE_THRESHOLD_PX
-            ) {
-                1f
-            } else {
-                0f
-            }
+    // Keep the saved grid preference, but use one column when text cannot fit two.
+    val compactToolbar = LocalConfiguration.current.screenWidthDp < 360 && LocalDensity.current.fontScale > 1.2f
+    val columns = if (showAll && isGrid && LocalConfiguration.current.screenWidthDp >= 360 && LocalDensity.current.fontScale <= 1.15f) 2 else 1
+    val displayedItems = customItems.filterNot { expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE && it.isExpired }
+    val activeItems = activeTimeItems(displayedItems)
+    val hero = selectActiveTimeItem(displayedItems, selectedActiveId)
+    LaunchedEffect(hero?.id) { selectedActiveId = hero?.id }
+    val upcomingItems = upcomingTimeItems(displayedItems)
+    val visibleItems = displayedItems.filter {
+        searchQuery.isBlank() || it.title.contains(searchQuery.trim(), true) || it.category.contains(searchQuery.trim(), true)
+    }.let { items ->
+        val sorted = when (selectedSort) {
+            HomeSortMode.Nearest -> items.sortedWith(compareBy<AdapterItem> { it.remainingSortKey }.thenBy { it.id })
+            HomeSortMode.Created -> items.sortedByDescending { it.id }
+            HomeSortMode.Title -> items.sortedBy { it.title.lowercase() }
+            HomeSortMode.Progress -> items.sortedByDescending { it.percent }
         }
+        if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_BOTTOM) sorted.sortedBy { it.isExpired } else sorted
     }
-    val collapseFraction by animateFloatAsState(
-        targetValue = targetCollapseFraction,
-        animationSpec = tween(durationMillis = Motion.MediumMs),
-        label = "timeFlowBandCollapse"
-    )
-    val displayedItems = remember(customItems, expiredItemsMode) {
-        if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE) {
-            customItems.filterNot { it.isExpired }
-        } else {
-            customItems
-        }
-    }
-    val nextCountdown = displayedItems
-        .filterNot { it.isExpired }
-        .minByOrNull { it.remainingSortKey }
-        ?: displayedItems.firstOrNull()
-    val visibleItems = remember(displayedItems, searchQuery, selectedSort, expiredItemsMode) {
-        val query = searchQuery.trim()
-        displayedItems
-            .filter { item ->
-                query.isBlank() ||
-                    item.title.contains(query, ignoreCase = true) ||
-                    item.category.contains(query, ignoreCase = true)
-            }
-            .let { items ->
-                val sorted = when (selectedSort) {
-                    HomeSortMode.Nearest -> items.sortedWith(
-                        compareBy<AdapterItem> { it.remainingSortKey }
-                            .thenBy { it.id }
-                    )
-                    HomeSortMode.Created -> items.sortedByDescending { it.id }
-                    HomeSortMode.Title -> items.sortedBy { it.title.lowercase() }
-                    HomeSortMode.Progress -> items.sortedByDescending { it.percent }
-                }
-                if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_BOTTOM) {
-                    sorted.sortedBy { it.isExpired }
-                } else {
-                    sorted
-                }
-            }
-    }
+    val scrollState = rememberLazyGridState()
+    LaunchedEffect(showAll) { scrollState.scrollToItem(0) }
+    BackHandler(showAll) { showAll = false }
 
-    Scaffold(
-        floatingActionButton = {
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(Spacing.s)
-            ) {
-                AnimatedVisibility(
-                    visible = fabExpanded,
-                    enter = fadeIn() + expandVertically(),
-                    exit = fadeOut() + shrinkVertically()
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.End,
-                        verticalArrangement = Arrangement.spacedBy(Spacing.s)
-                    ) {
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                fabExpanded = false
-                                onAddTime()
-                            },
-                            containerColor = MaterialTheme.colorScheme.secondary,
-                            contentColor = MaterialTheme.colorScheme.onSecondary,
-                            icon = {
-                                Icon(
-                                    Icons.Filled.AccessTime,
-                                    contentDescription = stringResource(R.string.home_add_time_range)
-                                )
-                            },
-                            text = { Text(stringResource(R.string.home_add_time_range)) }
-                        )
-                        ExtendedFloatingActionButton(
-                            onClick = {
-                                fabExpanded = false
-                                onAddDate()
-                            },
-                            containerColor = MaterialTheme.colorScheme.primary,
-                            contentColor = MaterialTheme.colorScheme.onPrimary,
-                            icon = {
-                                Icon(
-                                    Icons.Filled.CalendarMonth,
-                                    contentDescription = stringResource(R.string.home_add_date)
-                                )
-                            },
-                            text = { Text(stringResource(R.string.home_add_date)) }
-                        )
-                    }
-                }
-                FloatingActionButton(
-                    onClick = { fabExpanded = !fabExpanded },
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    contentColor = MaterialTheme.colorScheme.onPrimary
-                ) {
-                    Icon(
-                        imageVector = if (fabExpanded) Icons.Filled.Close else Icons.Filled.Add,
-                        contentDescription = stringResource(R.string.home_add_item)
-                    )
-                }
-            }
-        }
-    ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
+    Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(columns),
+            state = scrollState,
+            modifier = Modifier.fillMaxSize().padding(innerPadding),
+            contentPadding = PaddingValues(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.s),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.l)
         ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = dynamicDp(2.dp, 1.dp, collapseFraction)
-            ) {
-                Column(
-                    modifier = Modifier.padding(bottom = dynamicDp(Spacing.m, Spacing.s, collapseFraction)),
-                    verticalArrangement = Arrangement.spacedBy(dynamicDp(Spacing.s, 2.dp, collapseFraction))
-                ) {
-                    HeaderSection(
-                        topItems = topItems,
-                        selectedIndex = headerItemIndex,
-                        onSelectedIndexChange = onHeaderItemChange,
-                        onOpenSettings = onOpenSettings,
-                        collapseFraction = collapseFraction
+            item(key = "toolbar", span = { GridItemSpan(maxLineSpan) }) {
+                Row(Modifier.fillMaxWidth().padding(bottom = Spacing.l), verticalAlignment = Alignment.CenterVertically) {
+                    if (showAll) {
+                        IconButton(onClick = { showAll = false }) {
+                            Icon(Icons.AutoMirrored.Filled.ArrowBack, stringResource(R.string.action_back))
+                        }
+                    }
+                    Text(
+                        stringResource(if (showAll) R.string.home_all_items else R.string.app_name),
+                        style = MaterialTheme.typography.titleMedium,
+                        modifier = Modifier.weight(1f)
                     )
+                    if (!showAll) {
+                        if (compactToolbar) IconButton(onClick = { showAll = true }) {
+                            Icon(Icons.AutoMirrored.Filled.ViewList, stringResource(R.string.home_all_items))
+                        } else TextButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
+                    } else Box {
+                        IconButton(onClick = { showAddMenu = true }) { Icon(Icons.Default.Add, stringResource(R.string.home_add_item)) }
+                        DropdownMenu(showAddMenu, { showAddMenu = false }) {
+                            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_time_range)) }, onClick = { showAddMenu = false; onAddTime() })
+                            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_date)) }, onClick = { showAddMenu = false; onAddDate() })
+                        }
+                    }
+                    IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, stringResource(R.string.home_open_settings), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
             }
-
-            HomeContent(
-                listState = listState,
-                nextCountdown = nextCountdown,
-                customItems = displayedItems,
-                visibleItems = visibleItems,
-                progressDisplayMode = progressDisplayMode,
-                searchQuery = searchQuery,
-                selectedSort = selectedSort,
-                onQueryChange = { searchQuery = it },
-                onSortChange = {
-                    selectedSortValue = it.name
-                    onSortChange(it.name)
-                },
-                isGrid = isGrid,
-                onGridChange = { enabled ->
-                    val value = if (enabled) {
-                        UserPreferences.HOME_LAYOUT_GRID
-                    } else {
-                        UserPreferences.HOME_LAYOUT_LIST
+            if (!showAll) {
+                if (hero != null) {
+                    item(key = "hero", span = { GridItemSpan(maxLineSpan) }) {
+                        Column {
+                            if (activeItems.size > 1) Box {
+                                TextButton(onClick = { showActiveMenu = true }) {
+                                    Text(pluralStringResource(R.plurals.home_active_count, activeItems.size, activeItems.size))
+                                    Icon(Icons.Default.KeyboardArrowDown, null)
+                                }
+                                DropdownMenu(showActiveMenu, { showActiveMenu = false }) {
+                                    activeItems.forEach { item ->
+                                        DropdownMenuItem(text = { Text(item.title + " · " + remainingTimeLabel(item.remainingSeconds, null)) }, onClick = { selectedActiveId = item.id; showActiveMenu = false })
+                                    }
+                                }
+                            }
+                            NextCountdownHero(hero, progressDisplayMode, onEditItem = onEditItem)
+                        }
                     }
-                    selectedLayoutValue = value
-                    onLayoutChange(value)
-                },
-                onAddTime = onAddTime,
-                onAddDate = onAddDate,
-                onEditItem = onEditItem,
-                onDeleteItem = onDeleteItem,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun HomeContent(
-    listState: androidx.compose.foundation.lazy.grid.LazyGridState,
-    nextCountdown: AdapterItem?,
-    customItems: List<AdapterItem>,
-    visibleItems: List<AdapterItem>,
-    progressDisplayMode: String,
-    searchQuery: String,
-    selectedSort: HomeSortMode,
-    onQueryChange: (String) -> Unit,
-    onSortChange: (HomeSortMode) -> Unit,
-    isGrid: Boolean,
-    onGridChange: (Boolean) -> Unit,
-    onAddTime: () -> Unit,
-    onAddDate: () -> Unit,
-    onEditItem: (Int) -> Unit,
-    onDeleteItem: (Int) -> Unit,
-    modifier: Modifier = Modifier,
-) {
-    LazyVerticalGrid(
-        columns = GridCells.Fixed(if (isGrid) 2 else 1),
-        state = listState,
-        modifier = modifier.fillMaxWidth(),
-        contentPadding = PaddingValues(
-            start = Spacing.l,
-            top = Spacing.m,
-            end = Spacing.l,
-            bottom = 88.dp
-        ),
-        verticalArrangement = Arrangement.spacedBy(Spacing.m),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m)
-    ) {
-        if (nextCountdown != null) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                NextCountdownHero(
-                    item = nextCountdown,
-                    progressDisplayMode = progressDisplayMode
-                )
-            }
-        }
-
-        item(span = { GridItemSpan(maxLineSpan) }) {
-            SectionHeader(
-                title = stringResource(R.string.home_my_items),
-                count = if (customItems.isNotEmpty()) visibleItems.size else null,
-                isGrid = isGrid,
-                onGridChange = onGridChange
-            )
-        }
-
-        if (customItems.isEmpty()) {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                EmptyItemState(
-                    onAddTime = onAddTime,
-                    onAddDate = onAddDate
-                )
-            }
-        } else {
-            item(span = { GridItemSpan(maxLineSpan) }) {
-                SearchAndSortSection(
-                    query = searchQuery,
-                    selectedSort = selectedSort,
-                    onQueryChange = onQueryChange,
-                    onSortChange = onSortChange
-                )
-            }
-            if (visibleItems.isEmpty()) {
-                item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = stringResource(R.string.home_empty_search),
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                }
+                item(key = "period", span = { GridItemSpan(maxLineSpan) }) {
+                    HeaderSection(topItems, headerItemIndex, onHeaderItemChange, prominent = hero == null)
+                }
+                item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
+                    Column {
+                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
+                            Text(stringResource(R.string.home_next_ranges), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
+                            TextButton(onClick = onAddTime) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text(stringResource(R.string.home_add_range)) }
+                        }
+                    }
+                }
+                if (displayedItems.isEmpty()) {
+                    item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
+                } else {
+                    if (upcomingItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
+                        Text(stringResource(R.string.home_no_next_range), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.l))
+                    }
+                    items(upcomingItems.take(3), key = { "next-${it.id}" }, span = { GridItemSpan(maxLineSpan) }) { item ->
+                        TimeLeftItemCard(item, onEditItem, onDeleteItem, upcoming = true)
+                    }
+                    item(key = "manage", span = { GridItemSpan(maxLineSpan) }) {
+                        TextButton(onClick = { showAll = true }, modifier = Modifier.fillMaxWidth().padding(top = Spacing.m)) {
+                            Text(pluralStringResource(R.plurals.home_view_all_count, displayedItems.size, displayedItems.size))
+                        }
+                    }
                 }
             } else {
-                items(visibleItems, key = { it.id }) { item ->
-                    TimeLeftItemCard(
-                        item = item,
-                        onEditItem = onEditItem,
-                        onDeleteItem = onDeleteItem,
-                        grid = isGrid
-                    )
+                item(key = "controls", span = { GridItemSpan(maxLineSpan) }) {
+                    Column {
+                        SectionHeader(stringResource(R.string.home_my_items), visibleItems.size, isGrid, onGridChange = { grid ->
+                            selectedLayoutValue = if (grid) UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST
+                            onLayoutChange(selectedLayoutValue)
+                        })
+                        SearchAndSortSection(searchQuery, selectedSort, { searchQuery = it }, { selectedSortValue = it.name; onSortChange(it.name) })
+                        Spacer(Modifier.height(Spacing.l))
+                    }
                 }
+                if (displayedItems.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
+                else if (visibleItems.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text(stringResource(R.string.home_empty_search)) }
+                items(visibleItems, key = { it.id }) { item -> TimeLeftItemCard(item, onEditItem, onDeleteItem, grid = columns == 2) }
             }
+            item(key = "bottom-space", span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.height(Spacing.xxl)) }
         }
     }
 }
-
 @Composable
 private fun SectionHeader(
     title: String,
@@ -364,7 +199,7 @@ private fun SectionHeader(
         )
         if (count != null) {
             Text(
-                text = stringResource(R.string.home_item_count, count),
+                text = pluralStringResource(R.plurals.home_item_count, count, count),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -406,7 +241,7 @@ private fun LayoutModeButton(
     ) {
         IconButton(
             onClick = onClick,
-            modifier = Modifier.size(40.dp)
+            modifier = Modifier.size(LayoutTokens.MinTouchTarget)
         ) {
             Icon(
                 imageVector = icon,
@@ -422,6 +257,7 @@ private fun LayoutModeButton(
 }
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun SearchAndSortSection(
     query: String,
     selectedSort: HomeSortMode,
@@ -443,11 +279,12 @@ private fun SearchAndSortSection(
             singleLine = true,
             modifier = Modifier.fillMaxWidth()
         )
-        Row(
+        FlowRow(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(top = Spacing.s),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
             HomeSortMode.values().forEach { mode ->
                 FilterChip(
@@ -455,12 +292,9 @@ private fun SearchAndSortSection(
                     onClick = { onSortChange(mode) },
                     label = {
                         Text(
-                            text = stringResource(mode.labelRes),
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.fillMaxWidth()
+                            text = stringResource(mode.labelRes)
                         )
-                    },
-                    modifier = Modifier.weight(1f)
+                    }
                 )
             }
         }
@@ -473,5 +307,3 @@ private enum class HomeSortMode(val labelRes: Int) {
     Title(R.string.home_sort_title),
     Progress(R.string.home_sort_progress)
 }
-
-private const val HEADER_COLLAPSE_THRESHOLD_PX = 32

@@ -93,13 +93,16 @@ class TimeProgressCalculatorTest {
     }
 
     @Test
-    fun `customTimeProgress is Idle at exact start (strict isAfter)`() {
+    fun `customTimeProgress starts at the exact start time`() {
         val r = TimeProgressCalculator.customTimeProgress(
             start = LocalTime.of(9, 0),
             end = LocalTime.of(17, 0),
             now = LocalTime.of(9, 0)
         )
-        assertEquals(CustomTimeProgress.Idle, r)
+        assertTrue(r is CustomTimeProgress.Active)
+        r as CustomTimeProgress.Active
+        assertEquals(0f, r.percentElapsed, EPSILON)
+        assertEquals(28_800L, r.durationLeft.seconds)
     }
 
     @Test

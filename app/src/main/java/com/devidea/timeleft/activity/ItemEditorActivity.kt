@@ -74,8 +74,8 @@ class ItemEditorActivity : AppCompatActivity() {
                     ?: UserPreferences.THEME_AUTO,
                 paletteKey = prefs.getString(
                     UserPreferences.KEY_COLOR_THEME,
-                    UserPreferences.COLOR_THEME_INDIGO
-                ) ?: UserPreferences.COLOR_THEME_INDIGO
+                    UserPreferences.COLOR_THEME_CLAY
+                ) ?: UserPreferences.COLOR_THEME_CLAY
             ) {
                 ItemEditorScreen(
                     initialType = initialType,

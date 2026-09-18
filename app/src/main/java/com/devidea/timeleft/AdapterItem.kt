@@ -1,5 +1,8 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.calc.TimeRangePhase
+import com.devidea.timeleft.database.itemdata.ItemType
+
 data class AdapterItem(
     val id: Int = 0,
     val title: String = "",
@@ -18,4 +21,12 @@ data class AdapterItem(
     val reminderText: String = "",
     val remainingSortKey: Long = Long.MAX_VALUE,
     val isExpired: Boolean = false,
+    val type: ItemType? = null,
+    val timePhase: TimeRangePhase? = null,
+    val remainingSeconds: Long? = null,
+    val remainingDays: Int? = null,
+    val secondsUntilStart: Long? = null,
+    val startLabel: String = "",
+    val endLabel: String = "",
+    val currentLabel: String = "",
 )

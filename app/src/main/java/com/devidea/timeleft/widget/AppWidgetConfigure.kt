@@ -16,6 +16,14 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.toggleable
+import androidx.compose.ui.semantics.Role
+import com.devidea.timeleft.ui.components.TimeRuler
+import com.devidea.timeleft.ui.components.TimeLeftSection
+import com.devidea.timeleft.ui.theme.LayoutTokens
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -23,7 +31,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
@@ -40,9 +47,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.platform.LocalContext
+import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -147,8 +157,8 @@ class AppWidgetConfigure : AppCompatActivity() {
             ?: UserPreferences.THEME_AUTO
 
     private fun currentPaletteKey(): String =
-        prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_INDIGO)
-            ?: UserPreferences.COLOR_THEME_INDIGO
+        prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY)
+            ?: UserPreferences.COLOR_THEME_CLAY
 }
 
 @Composable
@@ -160,7 +170,7 @@ private fun WidgetConfigureRoute(
     var loading by remember { mutableStateOf(true) }
     var selectedSourceValue by rememberSaveable { mutableStateOf(WidgetSource.Today.prefValue) }
     var selectedItemId by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showRemaining by rememberSaveable { mutableStateOf(false) }
+    var showRemaining by rememberSaveable { mutableStateOf(true) }
     val selectedSource = WidgetSource.fromPrefValue(selectedSourceValue)
 
     LaunchedEffect(Unit) {
@@ -201,6 +211,18 @@ private fun WidgetConfigureScreen(
 ) {
     val scrollState = rememberScrollState()
     val selectedItemTitle = items.firstOrNull { it.id == selectedItemId }?.title
+    val context = LocalContext.current
+    val generator = remember(context) { ItemGenerate(context) }
+    fun previewCustom(entity: ItemEntity?): AdapterItem? = entity?.let {
+        if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
+    }
+    val previewItem = when (selectedSource) {
+        WidgetSource.Today -> generator.timeItem()
+        WidgetSource.Month -> generator.monthItem()
+        WidgetSource.Year -> generator.yearItem()
+        WidgetSource.Next -> previewCustom(NextCountdownSelector.select(items)) ?: generator.monthItem()
+        WidgetSource.Custom -> previewCustom(items.firstOrNull { it.id == selectedItemId })
+    }
     val saveEnabled = selectedSource != WidgetSource.Custom || selectedItemTitle != null
 
     Scaffold(
@@ -213,14 +235,13 @@ private fun WidgetConfigureScreen(
         ) {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.surface,
-                tonalElevation = 2.dp
+                color = MaterialTheme.colorScheme.background
             ) {
                 Column(
                     modifier = Modifier.padding(
-                        start = 20.dp,
-                        top = 20.dp,
-                        end = 20.dp,
+                        start = LayoutTokens.ScreenHorizontal,
+                        top = Spacing.l,
+                        end = LayoutTokens.ScreenHorizontal,
                         bottom = 16.dp
                     ),
                     verticalArrangement = Arrangement.spacedBy(Spacing.m)
@@ -231,8 +252,7 @@ private fun WidgetConfigureScreen(
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     WidgetPreviewBand(
-                        source = selectedSource,
-                        selectedItemTitle = selectedItemTitle,
+                        item = previewItem,
                         showRemaining = showRemaining
                     )
                 }
@@ -242,7 +262,7 @@ private fun WidgetConfigureScreen(
                 modifier = Modifier
                     .weight(1f)
                     .verticalScroll(scrollState)
-                    .padding(horizontal = Spacing.xl, vertical = Spacing.l),
+                    .padding(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l),
                 verticalArrangement = Arrangement.spacedBy(Spacing.m)
             ) {
                 Text(
@@ -274,7 +294,7 @@ private fun WidgetConfigureScreen(
                     color = MaterialTheme.colorScheme.surface
                 ) {
                     Row(
-                        modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.m),
+                        modifier = Modifier.fillMaxWidth().toggleable(value = showRemaining, role = Role.Switch, onValueChange = onShowRemainingChanged).padding(horizontal = Spacing.m, vertical = Spacing.m),
                         verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
@@ -285,7 +305,7 @@ private fun WidgetConfigureScreen(
                         )
                         Switch(
                             checked = showRemaining,
-                            onCheckedChange = onShowRemainingChanged
+                            onCheckedChange = null
                         )
                     }
                 }
@@ -294,9 +314,12 @@ private fun WidgetConfigureScreen(
             Button(
                 onClick = onSave,
                 enabled = saveEnabled,
+                shape = MaterialTheme.shapes.small,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(start = Spacing.xl, end = Spacing.xl, bottom = Spacing.l)
+                    .padding(start = LayoutTokens.ScreenHorizontal, end = LayoutTokens.ScreenHorizontal, bottom = Spacing.l)
+                    .heightIn(min = 52.dp)
             ) {
                 Text(stringResource(R.string.action_save))
             }
@@ -305,61 +328,19 @@ private fun WidgetConfigureScreen(
 }
 
 @Composable
-private fun WidgetPreviewBand(
-    source: WidgetSource,
-    selectedItemTitle: String?,
-    showRemaining: Boolean,
-) {
-    val title = selectedItemTitle ?: stringResource(source.labelRes)
-    val value = if (showRemaining) {
-        if (source == WidgetSource.Today) {
-            stringResource(R.string.home_time_left, "12:34")
-        } else {
-            stringResource(R.string.home_days_left, 12)
-        }
-    } else {
-        "68%"
-    }
-
-    Surface(
-        modifier = Modifier.fillMaxWidth(),
-        shape = MaterialTheme.shapes.small,
-        color = MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-    ) {
-        Column(
-            modifier = Modifier.padding(Spacing.m),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s)
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(
-                    text = stringResource(R.string.widget_configure_preview),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.weight(1f)
-                )
-                Text(
-                    text = title,
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
+private fun WidgetPreviewBand(item: AdapterItem?, showRemaining: Boolean) {
+    val context = LocalContext.current
+    val data = item?.toWidgetData(context, showRemaining, item.type == ItemType.Time)
+    TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
+        Column(Modifier.padding(vertical = Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Text(stringResource(R.string.widget_configure_preview), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            if (data == null) Text(stringResource(R.string.widget_configure_no_items), style = MaterialTheme.typography.bodyMedium)
+            else {
+                Text(data.title, style = MaterialTheme.typography.titleMedium)
+                Text(data.value, style = MaterialTheme.typography.displaySmall)
+                Text(data.meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                TimeRuler(item.percent, item.startLabel, item.endLabel)
             }
-            Text(
-                text = value,
-                style = MaterialTheme.typography.titleLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-            LinearProgressIndicator(
-                progress = { 0.68f },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(7.dp),
-                color = MaterialTheme.colorScheme.primary,
-                trackColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.75f)
-            )
         }
     }
 }
@@ -370,17 +351,9 @@ private fun SelectableSurfaceRow(
     selected: Boolean,
     onClick: () -> Unit,
 ) {
-    Surface(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable(onClick = onClick),
-        shape = MaterialTheme.shapes.small,
-        color = if (selected) {
-            MaterialTheme.colorScheme.primary.copy(alpha = 0.10f)
-        } else {
-            MaterialTheme.colorScheme.surface
-        },
-        tonalElevation = if (selected) 1.dp else 0.dp
+    TimeLeftSection(
+        modifier = Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
     ) {
         Row(
             modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
@@ -388,15 +361,13 @@ private fun SelectableSurfaceRow(
         ) {
             RadioButton(
                 selected = selected,
-                onClick = onClick
+                onClick = null
             )
             Spacer(modifier = Modifier.width(Spacing.xs))
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis,
                 modifier = Modifier.weight(1f)
             )
         }

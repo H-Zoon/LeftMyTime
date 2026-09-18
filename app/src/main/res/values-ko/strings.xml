@@ -26,7 +26,9 @@
     <string name="home_next_countdown">곧 다가와요</string>
     <string name="home_tab_overview">홈</string>
     <string name="home_tab_items">항목</string>
-    <string name="home_item_count">%1$d개</string>
+    <plurals name="home_item_count">
+        <item quantity="other">%1$d개</item>
+    </plurals>
     <string name="home_my_items">내 항목</string>
     <string name="home_layout_list">목록 보기</string>
     <string name="home_layout_grid">2열 그리드 보기</string>
@@ -36,8 +38,8 @@
     <string name="home_sort_created">최근</string>
     <string name="home_sort_title">이름</string>
     <string name="home_sort_progress">진행률</string>
-    <string name="home_empty_title">마음에 두고 있는 날이 있나요?</string>
-    <string name="home_empty_body">잊고 싶지 않은 마감일, 여행, 집중 시간을 모아두세요.</string>
+    <string name="home_empty_title">시간 구간을 추가해 보세요</string>
+    <string name="home_empty_body">업무·공부 시간이나 중요한 날짜를 등록할 수 있습니다.</string>
     <string name="home_empty_search">찾는 항목이 없어요</string>
     <string name="home_change_theme">테마 변경</string>
     <string name="home_open_settings">설정 열기</string>
@@ -66,7 +68,7 @@
     <string name="card_time_auto_start_hint">시작 시간이 되면 알아서 시작해요</string>
     <string name="card_time_idle_hint">시작 시간이 되면 알려드릴게요</string>
     <string name="card_time_widget_idle">00:00 남음</string>
-    <string name="card_update_info_none">100%% 달성하면 끝나는 일정이에요</string>
+    <string name="card_update_info_none">100% 달성하면 끝나는 일정이에요</string>
     <string name="card_update_info_day">종료 후 %1$d일 쉬고 같은 기간으로 다시 시작해요</string>
     <string name="card_update_info_month">매달 %1$d일에 같은 기간으로 다시 시작해요</string>
     <string name="card_recurrence_day">+%1$d일 쉬고 반복</string>
@@ -210,4 +212,49 @@
     <string name="settings_about">정보</string>
     <string name="settings_privacy_policy">개인정보처리방침</string>
     <string name="settings_version">버전</string>
+    <string name="settings_palette_clay">클레이</string>
+    <string name="period_today">오늘</string>
+    <string name="period_month">이번 달</string>
+    <string name="period_year">올해</string>
+    <string name="home_all_items">전체 일정</string>
+    <plurals name="home_active_count">
+        <item quantity="other">진행 중 %1$d개</item>
+    </plurals>
+    <string name="home_active_until">진행 중 · %1$s까지</string>
+    <string name="home_next_ranges">다음 구간</string>
+    <string name="home_add_range">구간 추가</string>
+    <string name="home_no_next_range">예정된 시간 구간이 없습니다.</string>
+    <plurals name="home_view_all_count">
+        <item quantity="other">전체 일정 %1$d개 보기</item>
+    </plurals>
+    <string name="card_details_expanded">상세 정보 펼침</string>
+    <string name="card_details_collapsed">상세 정보 접힘</string>
+    <string name="editor_more_options">추가 설정</string>
+    <plurals name="time_days">
+        <item quantity="other">%1$d일</item>
+    </plurals>
+    <string name="time_minutes">%1$d분</string>
+    <string name="time_hours_minutes">%1$d시간 %2$d분</string>
+    <string name="time_under_minute">1분 미만</string>
+    <string name="time_remaining">남음</string>
+    <string name="time_remaining_description">%1$s 남음</string>
+    <string name="time_until_start">시작까지</string>
+    <string name="time_unit_hours">시간</string>
+    <string name="time_unit_minutes">분</string>
+    <plurals name="time_unit_days">
+        <item quantity="other">일</item>
+    </plurals>
+    <string name="time_now">지금 %1$s</string>
+    <string name="time_ruler_description">%1$s부터 %2$s까지, %3$d퍼센트 남음</string>
+    <string name="editor_adjust_range">구간 조정</string>
+    <string name="action_confirm">확인</string>
+    <string name="time_hour_field">시</string>
+    <string name="time_minute_field">분</string>
+    <string name="time_input_invalid">올바른 시와 분을 입력해 주세요.</string>
+    <string name="time_ruler_remaining_description">%1$d퍼센트 남음</string>
+    <string name="date_input_title">날짜 선택</string>
+    <string name="date_year_field">년</string>
+    <string name="date_month_field">월</string>
+    <string name="date_day_field">일</string>
+    <string name="date_input_invalid">올바른 날짜를 입력해 주세요.</string>
 </resources>

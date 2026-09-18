@@ -17,6 +17,7 @@ object UserPreferences {
     const val THEME_LIGHT = "light"
     const val THEME_DARK = "dark"
 
+    const val COLOR_THEME_CLAY = "clay"
     const val COLOR_THEME_INDIGO = "indigo"
     const val COLOR_THEME_EMERALD = "emerald"
     const val COLOR_THEME_ROSE = "rose"

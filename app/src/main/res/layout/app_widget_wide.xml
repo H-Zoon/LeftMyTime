@@ -1,64 +1,17 @@
 <?xml version="1.0" encoding="utf-8"?>
-<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widgetRoot"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:background="@drawable/line_widget"
-    android:padding="10dp"
-    android:theme="@style/ThemeOverlay.MyApplication.AppWidgetContainer">
-
-    <LinearLayout
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:gravity="center_vertical"
-        android:orientation="horizontal">
-
-        <include
-            layout="@layout/widget_progress_ring_only"
-            android:layout_width="52dp"
-            android:layout_height="52dp" />
-
-        <LinearLayout
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="12dp"
-            android:layout_weight="1"
-            android:gravity="center_vertical"
-            android:orientation="vertical">
-
-            <TextView
-                android:id="@+id/summary"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/nanum_square_round_b"
-                android:maxLines="1"
-                android:text="@string/widget_preview_title"
-                android:textColor="@color/widget_primary"
-                android:textSize="12sp" />
-
-            <TextView
-                android:id="@+id/percent"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/nanum_square_round_eb"
-                android:maxLines="1"
-                android:text="@string/widget_preview_value"
-                android:textColor="@color/widget_on_surface"
-                android:textSize="21sp" />
-
-            <TextView
-                android:id="@+id/widgetMeta"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:ellipsize="end"
-                android:fontFamily="@font/nanum_square_round_r"
-                android:maxLines="1"
-                android:text="@string/widget_preview_meta"
-                android:textColor="@color/widget_on_surface_variant"
-                android:textSize="10sp" />
-        </LinearLayout>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_background_light" android:paddingHorizontal="16dp" android:paddingVertical="8dp"
+    android:orientation="vertical" android:gravity="center_vertical">
+    <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:fontFamily="sans" android:textSize="12sp" android:textColor="@color/widget_on_surface_variant"
+        android:maxLines="1" android:ellipsize="end" android:text="@string/widget_preview_title" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal" android:gravity="center_vertical">
+        <TextView android:id="@+id/percent" android:layout_width="0dp" android:layout_weight="1" android:layout_height="wrap_content"
+            android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="28sp"
+            android:textColor="@color/widget_on_surface" android:maxLines="2" android:text="@string/widget_preview_value" />
+        <TextView android:id="@+id/widgetMeta" android:layout_width="wrap_content" android:layout_height="wrap_content"
+            android:layout_marginStart="8dp" android:fontFamily="sans" android:textSize="12sp"
+            android:textColor="@color/widget_on_surface_variant" android:maxLines="2" android:text="@string/widget_preview_meta" />
     </LinearLayout>
-
-</FrameLayout>
+</LinearLayout>

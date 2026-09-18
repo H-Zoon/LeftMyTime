@@ -36,7 +36,7 @@ object TimeProgressCalculator {
     }
 
     fun customTimeProgress(start: LocalTime, end: LocalTime, now: LocalTime): CustomTimeProgress {
-        if (!(now.isAfter(start) && now.isBefore(end))) return CustomTimeProgress.Idle
+        if (now.isBefore(start) || !now.isBefore(end) || !end.isAfter(start)) return CustomTimeProgress.Idle
         val total = Duration.between(start, end).seconds.toFloat()
         val elapsed = Duration.between(start, now).seconds.toFloat()
         return CustomTimeProgress.Active(

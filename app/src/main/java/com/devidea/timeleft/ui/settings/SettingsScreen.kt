@@ -1,45 +1,46 @@
 package com.devidea.timeleft.ui.settings
 
 import androidx.annotation.StringRes
-import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.R
 import com.devidea.timeleft.ItemVisuals
+import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.ui.components.TimeLeftSection
+import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
+import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.ui.theme.ThemePalette
 
@@ -92,10 +93,10 @@ fun SettingsScreen(
                 text = stringResource(R.string.settings_color_theme),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = Spacing.l, top = Spacing.m, bottom = 2.dp)
+                modifier = Modifier.padding(start = 0.dp, top = Spacing.m, bottom = Spacing.xs)
             )
             FlowRow(
-                modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
+                modifier = Modifier.padding(vertical = Spacing.s),
                 horizontalArrangement = Arrangement.spacedBy(Spacing.s),
                 verticalArrangement = Arrangement.spacedBy(Spacing.s)
             ) {
@@ -137,7 +138,7 @@ fun SettingsScreen(
                 text = stringResource(R.string.settings_expired_items),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = Spacing.l, top = Spacing.m, bottom = 2.dp)
+                modifier = Modifier.padding(start = 0.dp, top = Spacing.m, bottom = Spacing.xs)
             )
             ChoiceRow(
                 labelRes = R.string.settings_expired_show,
@@ -158,7 +159,7 @@ fun SettingsScreen(
                 text = stringResource(R.string.settings_progress_display),
                 style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.padding(start = Spacing.l, top = Spacing.m, bottom = 2.dp)
+                modifier = Modifier.padding(start = 0.dp, top = Spacing.m, bottom = Spacing.xs)
             )
             ChoiceRow(
                 labelRes = R.string.settings_progress_full,
@@ -226,9 +227,7 @@ private fun PaletteChip(
         leadingIcon = {
             Row {
                 listOf(
-                    palette.lightColors.primary,
-                    palette.lightColors.secondary,
-                    palette.lightColors.tertiary
+                    palette.lightColors.primary
                 ).forEachIndexed { index, color ->
                     if (index > 0) Spacer(modifier = Modifier.width(2.dp))
                     Surface(
@@ -251,7 +250,7 @@ private fun ReminderChoiceGroup(
     onSelected: (Int) -> Unit,
 ) {
     Column(
-        modifier = Modifier.padding(horizontal = Spacing.l, vertical = Spacing.m),
+        modifier = Modifier.padding(vertical = Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.s)
     ) {
         Text(
@@ -294,7 +293,6 @@ fun PrivacyPolicyScreen(
 }
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 private fun SettingsScaffold(
     title: String,
     onBack: () -> Unit,
@@ -304,28 +302,7 @@ private fun SettingsScaffold(
     Scaffold(
         containerColor = MaterialTheme.colorScheme.background,
         topBar = {
-            TopAppBar(
-                title = {
-                    Text(
-                        text = title,
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                },
-                navigationIcon = {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = stringResource(R.string.action_back)
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface,
-                    navigationIconContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
+            TimeLeftTopAppBar(title = title, onBack = onBack)
         }
     ) { innerPadding ->
         val modifier = Modifier
@@ -334,11 +311,11 @@ private fun SettingsScaffold(
             .let {
                 if (scrollable) it.verticalScroll(rememberScrollState()) else it
             }
-            .padding(horizontal = if (scrollable) Spacing.xl else 0.dp, vertical = if (scrollable) Spacing.l else 0.dp)
+            .padding(horizontal = if (scrollable) LayoutTokens.ScreenHorizontal else 0.dp, vertical = if (scrollable) LayoutTokens.ScreenVertical else 0.dp)
 
         Column(
             modifier = modifier,
-            verticalArrangement = Arrangement.spacedBy(if (scrollable) Spacing.l else 0.dp),
+            verticalArrangement = Arrangement.spacedBy(if (scrollable) LayoutTokens.SectionGap else 0.dp),
             content = content
         )
     }
@@ -353,14 +330,10 @@ private fun SettingsSection(
         Text(
             text = title,
             style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.padding(horizontal = Spacing.xs)
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(bottom = Spacing.xs)
         )
-        Surface(
-            modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.small,
-            color = MaterialTheme.colorScheme.surface
-        ) {
+        TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
             Column(content = content)
         }
     }
@@ -375,11 +348,12 @@ private fun ChoiceRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
-            .padding(horizontal = Spacing.m, vertical = Spacing.m),
+            .heightIn(min = LayoutTokens.MinTouchTarget)
+            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
+            .padding(vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
-        RadioButton(selected = selected, onClick = onClick)
+        RadioButton(selected = selected, onClick = null)
         Text(
             text = stringResource(labelRes),
             style = MaterialTheme.typography.bodyLarge,
@@ -398,13 +372,14 @@ private fun NavigationRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .heightIn(min = LayoutTokens.MinTouchTarget)
             .clickable(onClick = onClick)
-            .padding(horizontal = Spacing.l, vertical = Spacing.m),
+            .padding(vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Column(
             modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(3.dp)
+            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
             Text(
                 text = title,
@@ -435,7 +410,7 @@ private fun ValueRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = Spacing.l, vertical = Spacing.m),
+            .padding(vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Text(

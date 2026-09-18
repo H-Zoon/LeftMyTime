@@ -16,6 +16,16 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 * **사용자 맞춤 설정**: 다양한 테마와 설정을 통해 자신만의 스타일로 앱을 꾸밀 수 있습니다.
 * **로컬 데이터 저장**: 일정은 기기의 Room 데이터베이스에 저장됩니다. Android 백업 및 복원은 현재 비활성화되어 있습니다.
 
+## 디자인과 장기 운영
+
+* [디자인 기준 v2 — 확정된 A안 ‘시간 중심’](design/DESIGN_SYSTEM.md) (홈·입력·설정·위젯 적용)
+* [A안 구현 검수 기록](design/QA_V2_2026-09-18.md)
+* [A/B/C 비교와 선택 기록](design/REDESIGN_PROPOSAL.md)
+* [개편 전 구현 기준 v1](design/DESIGN_SYSTEM_V1.md)
+* [프로젝트 분석과 개선 우선순위](design/PRODUCT_REVIEW.md)
+* [AI 개발 작업 기준](AGENTS.md)
+* 디자인 미리보기: `app/src/debug/java/com/devidea/timeleft/design/DesignGallery.kt` (debug 빌드 전용)
+
 ## 기술
 
 * **언어**: [Kotlin](https://kotlinlang.org/)

@@ -29,7 +29,7 @@ class MainActivity : AppCompatActivity() {
 
     private val viewModel: TimeLeftViewModel by viewModels()
     private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
-    private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_INDIGO)
+    private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_CLAY)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
     private var homeLayout by mutableStateOf(UserPreferences.HOME_LAYOUT_LIST)
     private var headerItemIndex by mutableIntStateOf(0)
@@ -112,8 +112,8 @@ class MainActivity : AppCompatActivity() {
         themeMode = currentThemeMode()
         paletteKey = prefs.getString(
             UserPreferences.KEY_COLOR_THEME,
-            UserPreferences.COLOR_THEME_INDIGO
-        ) ?: UserPreferences.COLOR_THEME_INDIGO
+            UserPreferences.COLOR_THEME_CLAY
+        ) ?: UserPreferences.COLOR_THEME_CLAY
         homeSort = prefs.getString(UserPreferences.KEY_HOME_SORT, UserPreferences.SORT_NEAREST)
             ?: UserPreferences.SORT_NEAREST
         homeLayout = prefs.getString(
