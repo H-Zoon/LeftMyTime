@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:minWidth="245dp"
+    android:minHeight="115dp"
+    android:minResizeWidth="110dp"
+    android:minResizeHeight="74dp"
+    android:maxResizeWidth="624dp"
+    android:maxResizeHeight="422dp"
+    android:targetCellWidth="4"
+    android:targetCellHeight="2"
+    android:updatePeriodMillis="1800000"
+    android:previewImage="@drawable/widget_picker_schedule"
+    android:previewLayout="@layout/widget_picker_schedule"
+    android:initialLayout="@layout/widget_picker_schedule"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen"
+    android:initialKeyguardLayout="@layout/widget_picker_schedule"
+    android:widgetFeatures="reconfigurable"
+    android:description="@string/widget_schedule_description"
+    android:configure="com.devidea.timeleft.widget.AppWidgetConfigure">
+</appwidget-provider>

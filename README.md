@@ -18,6 +18,7 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 
 ## 디자인과 장기 운영
 
+* [다른 PC에서 이어서 작업하기 — 현재 상태와 남은 검증](design/WORK_HANDOFF.md)
 * [디자인 기준 v2 — 확정된 A안 ‘시간 중심’](design/DESIGN_SYSTEM.md) (홈·입력·설정·위젯 적용)
 * [A안 구현 검수 기록](design/QA_V2_2026-09-18.md)
 * [A/B/C 비교와 선택 기록](design/REDESIGN_PROPOSAL.md)
@@ -66,6 +67,7 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 ### 요구사항
 
 * Android Studio
+* JDK 17 (Kotlin/Java toolchain)
 * Min SDK 26
 * Compile SDK 36
 * Target SDK 36
@@ -74,8 +76,10 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 
 1.  이 저장소를 클론합니다.
     ```bash
-    git clone [https://github.com/h-zoon/leftmytime.git](https://github.com/h-zoon/leftmytime.git)
+    git clone https://github.com/h-zoon/leftmytime.git
     ```
 2.  Android Studio에서 프로젝트를 엽니다.
 3.  필요한 Gradle 종속성이 동기화될 때까지 기다립니다.
 4.  'Run' 버튼을 클릭하거나 `Shift+F10`을 눌러 앱을 빌드하고 실행합니다.
+
+현재 AI 작업에서는 사용자 지시에 따라 명시적 요청 전 빌드·Lint·단위 테스트를 실행하지 않습니다. 새 PC의 SDK 경로는 그 환경의 `local.properties`에 설정하며 이 파일은 Git에 포함하지 않습니다.

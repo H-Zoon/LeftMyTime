@@ -1,9 +1,9 @@
 <resources>
     <string name="app_name">TimeLeft</string>
-    <string name="widget_small_label">TimeLeft small</string>
-    <string name="widget_medium_label">TimeLeft medium</string>
-    <string name="widget_wide_label">TimeLeft wide</string>
-    <string name="widget_large_label">TimeLeft large</string>
+    <string name="widget_small_label">Today</string>
+    <string name="widget_medium_label">This month</string>
+    <string name="widget_wide_label">This year</string>
+    <string name="widget_large_label">Period overview</string>
     <string name="widget_preview_title">Trip countdown</string>
     <string name="widget_preview_value">D-12</string>
     <string name="widget_preview_meta">Until Jun 30</string>
@@ -167,15 +167,15 @@
     <string name="widget_configure_select_required">Pick one to continue</string>
     <string name="widget_loading">Just a moment…</string>
     <string name="widget_refresh">Refresh widget</string>
-    <string name="widget_configure_title">Widget</string>
-    <string name="widget_configure_source_title">Display</string>
-    <string name="widget_configure_today">Time left today</string>
-    <string name="widget_configure_month">This month\'s flow</string>
-    <string name="widget_configure_year">This year\'s flow</string>
-    <string name="widget_configure_next">Coming up next</string>
-    <string name="widget_configure_custom">My item</string>
-    <string name="widget_configure_custom_item_title">Item</string>
-    <string name="widget_configure_no_items">Nothing to pick yet</string>
+    <string name="widget_configure_title">Widget settings</string>
+    <string name="widget_configure_source_title">Content</string>
+    <string name="widget_configure_today">Today</string>
+    <string name="widget_configure_month">This month</string>
+    <string name="widget_configure_year">This year</string>
+    <string name="widget_configure_next">Choose automatically</string>
+    <string name="widget_configure_custom">Choose a schedule</string>
+    <string name="widget_configure_custom_item_title">Selected schedule</string>
+    <string name="widget_configure_no_items">No schedules yet</string>
     <string name="widget_configure_remaining_option">Show remaining time</string>
     <string name="widget_configure_preview">Preview</string>
 
@@ -263,4 +263,43 @@
     <string name="period_close_details">Close period details</string>
     <string name="period_summary_description">%1$s, %2$s left</string>
     <string name="period_days_explanation">Remaining days exclude today.</string>
+    <string name="widget_configure_overview">Period overview</string>
+    <string name="widget_overview_resize">Enlarge this widget</string>
+    <string name="widget_overview_size_hint">All three periods do not fit at this size. After applying, touch and hold the widget on your home screen to resize it.</string>
+    <string name="widget_legacy_summary_option">Include period summary on large widgets</string>
+    <string name="widget_no_upcoming">No schedule to display</string>
+    <string name="widget_item_unavailable">Select a schedule again</string>
+
+    <!-- Content-based widget selection -->
+    <string name="widget_schedule_label">My schedule</string>
+    <string name="widget_today_description">Time remaining today. Resize after adding.</string>
+    <string name="widget_month_description">Days remaining this month. Resize after adding.</string>
+    <string name="widget_year_description">Days remaining this year. Resize after adding.</string>
+    <string name="widget_overview_description">Today, this month and this year together</string>
+    <string name="widget_schedule_description">Follow a schedule automatically or choose one to keep displayed.</string>
+    <string name="widget_change">Change</string>
+    <string name="widget_change_description">Change %1$s</string>
+    <string name="widget_choose_content">Choose content</string>
+    <string name="widget_choose_schedule">Choose a schedule</string>
+    <string name="widget_group_periods">Periods</string>
+    <string name="widget_group_schedules">Schedules</string>
+    <string name="widget_auto_hint">Ongoing time ranges are shown first. Otherwise, a schedule is chosen based on its start time or date.</string>
+    <string name="widget_manual_hint">Keep one schedule displayed</string>
+    <string name="widget_auto_empty_hint">Add a schedule in the app and it will appear here automatically.</string>
+    <string name="widget_load_failed">Could not load schedules</string>
+    <string name="widget_selected_deleted">The selected schedule was deleted</string>
+    <string name="widget_empty_selection_hint">Add a schedule in the app, or go back to choose a period.</string>
+    <string name="widget_retry">Try again</string>
+    <string name="widget_clear_search">Clear search</string>
+    <string name="widget_display_format">Display format</string>
+    <string name="widget_format_units">Hours, minutes or days</string>
+    <string name="widget_format_countdown">Clock or D-day</string>
+    <string name="widget_preview_current_size">Preview · current size</string>
+    <string name="widget_preview_scroll_hint">Swipe sideways to see the full widget</string>
+    <string name="widget_add">Add widget</string>
+    <string name="widget_apply_changes">Apply changes</string>
+    <string name="widget_saving">Applying…</string>
+    <string name="widget_schedule_time">Time range</string>
+    <string name="widget_schedule_date">Date schedule</string>
+    <string name="widget_preview_placeholder">—</string>
 </resources>

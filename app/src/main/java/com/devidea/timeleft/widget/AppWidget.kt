@@ -16,13 +16,11 @@ import androidx.compose.ui.graphics.toArgb
 import com.devidea.timeleft.ui.theme.ThemePalette
 import android.view.View
 import android.widget.RemoteViews
-import androidx.core.content.ContextCompat
 import androidx.core.content.edit
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.InterfaceItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
-import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -47,7 +45,8 @@ open class AppWidget : AppWidgetProvider() {
             AppWidget::class.java,
             MediumAppWidget::class.java,
             WideAppWidget::class.java,
-            LargeAppWidget::class.java
+            LargeAppWidget::class.java,
+            ScheduleAppWidget::class.java
         )
 
         fun updateAllWidgets(
@@ -121,6 +120,7 @@ open class AppWidget : AppWidgetProvider() {
             prefs.edit {
                 remove(id.toString())
                 remove("${id}option")
+                remove(WidgetConfiguration.displayKey(id))
             }
         }
     }
@@ -146,88 +146,58 @@ open class AppWidget : AppWidgetProvider() {
         val itemGenerator = ep.itemGenerator()
         val repository = ep.repository()
 
-        val sizeClass = resolveSizeClass(appWidgetManager, appWidgetId)
-        val views = RemoteViews(context.packageName, sizeClass.layoutRes)
-        val palette = WidgetPalette.fromPreferences(context, prefs)
-        val source = prefs.getString(appWidgetId.toString(), "").orEmpty()
-        val showRemaining = prefs.getBoolean("${appWidgetId}option", false)
-
-        val flowItems = WidgetFlowItems(
-            today = itemGenerator.timeItem(),
-            month = itemGenerator.monthItem(),
-            year = itemGenerator.yearItem()
-        )
-
-        applyPalette(context, views, sizeClass, palette)
-        bindWidgetActions(context, appWidgetManager, views, appWidgetId, sizeClass)
-
-        when (source) {
-            "embedYear" -> renderWidgetItem(
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                data = itemGenerator.yearItem().toWidgetData(
-                    context = context,
-                    showRemaining = showRemaining,
-                    useWidgetString = false
-                ),
-                flowItems = flowItems
-            )
-            "embedMonth" -> renderWidgetItem(
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                data = itemGenerator.monthItem().toWidgetData(
-                    context = context,
-                    showRemaining = showRemaining,
-                    useWidgetString = false
-                ),
-                flowItems = flowItems
-            )
-            "embedTime" -> renderWidgetItem(
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                data = itemGenerator.timeItem().toWidgetData(
-                    context = context,
-                    showRemaining = showRemaining,
-                    useWidgetString = true
-                ),
-                flowItems = flowItems
-            )
-            "nextCustom" -> renderNextCountdownWidget(
-                context = context,
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                flowItems = flowItems,
-                showRemaining = showRemaining,
-                itemGenerator = itemGenerator,
-                repository = repository
-            )
-            else -> renderCustomWidget(
-                context = context,
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                flowItems = flowItems,
-                showRemaining = showRemaining,
-                source = source,
-                prefs = prefs,
-                itemGenerator = itemGenerator,
-                repository = repository
-            )
+        val configuration = WidgetConfiguration.read(prefs, appWidgetId)
+        val dimensions = WidgetDimensions.fromOptions(appWidgetManager.getAppWidgetOptions(appWidgetId))
+        val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
+        var emptyMessage = R.string.widget_no_upcoming
+        val item = when (configuration.source) {
+            WidgetSource.Today -> periods[0]
+            WidgetSource.Month -> periods[1]
+            WidgetSource.Year -> periods[2]
+            WidgetSource.Overview -> null
+            WidgetSource.Next -> {
+                try {
+                    val selected = NextCountdownSelector.select(
+                        repository.advanceExpiredRecurrences(repository.allItems())
+                    )
+                    selected?.let {
+                        when (it.type) {
+                            ItemType.Time -> itemGenerator.customTimeItem(it)
+                            ItemType.Date -> itemGenerator.customMonthItem(it)
+                        }
+                    } ?: periods[1].takeIf { configuration.legacySummary }
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    emptyMessage = R.string.widget_item_unavailable
+                    periods[1].takeIf { configuration.legacySummary }
+                }
+            }
+            WidgetSource.Custom -> {
+                emptyMessage = R.string.widget_item_unavailable
+                try {
+                    val itemId = configuration.itemId ?: error("Missing widget item")
+                    val selected = repository.advanceExpiredRecurrence(repository.getItem(itemId))
+                    when (selected.type) {
+                        ItemType.Time -> itemGenerator.customTimeItem(selected)
+                        ItemType.Date -> itemGenerator.customMonthItem(selected)
+                    }
+                } catch (exception: CancellationException) {
+                    throw exception
+                } catch (_: Exception) {
+                    if (configuration.legacySummary) {
+                        prefs.edit { remove(appWidgetId.toString()) }
+                        periods[1]
+                    } else null // Keep the ID so a transient failure does not erase the user's choice.
+                }
+            }
         }
+        val views = createViews(
+            context, dimensions, configuration, item, periods,
+            WidgetPalette.fromPreferences(context, prefs), emptyMessage,
+        )
+        bindWidgetActions(context, appWidgetManager, views, appWidgetId, dimensions.sizeClass, configuration.source)
+        appWidgetManager.updateAppWidget(appWidgetId, views)
     }
 
     private fun bindWidgetActions(
@@ -236,6 +206,7 @@ open class AppWidget : AppWidgetProvider() {
         views: RemoteViews,
         appWidgetId: Int,
         sizeClass: WidgetSizeClass,
+        source: WidgetSource,
     ) {
         val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
             ?: ComponentName(context, AppWidget::class.java)
@@ -264,11 +235,11 @@ open class AppWidget : AppWidgetProvider() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
         )
 
-        if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
+        if (source != WidgetSource.Overview && (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large)) {
             views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
         }
         views.setOnClickPendingIntent(R.id.widgetRoot, activityPendingIntent)
-        views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
+        if (source != WidgetSource.Overview) views.setOnClickPendingIntent(R.id.percent, activityPendingIntent)
     }
 
     private fun applyPalette(
@@ -291,162 +262,45 @@ open class AppWidget : AppWidgetProvider() {
         }
     }
 
-    private suspend fun renderNextCountdownWidget(
+    /** Shared by configuration previews, the debug gallery, and installed widgets. */
+    private fun createViews(
         context: Context,
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        sizeClass: WidgetSizeClass,
+        dimensions: WidgetDimensions,
+        configuration: WidgetConfiguration,
+        item: AdapterItem?,
+        periods: List<AdapterItem>,
         palette: WidgetPalette,
-        flowItems: WidgetFlowItems,
-        showRemaining: Boolean,
-        itemGenerator: InterfaceItem,
-        repository: TimeLeftRepository,
-    ) {
-        val selected = NextCountdownSelector.select(
-            repository.advanceExpiredRecurrences(repository.allItems())
+        emptyMessage: Int,
+    ): RemoteViews {
+        if (configuration.source == WidgetSource.Overview) {
+            return createOverviewViews(context, dimensions, periods, palette.backgroundDrawableRes, palette.onSurface, palette.muted)
+        }
+        val size = dimensions.sizeClass
+        val views = RemoteViews(context.packageName, size.layoutRes)
+        applyPalette(context, views, size, palette)
+        val data = item?.toWidgetData(
+            context, configuration.showRemaining,
+            configuration.source == WidgetSource.Today || item.type == ItemType.Time,
+        ) ?: WidgetDisplayData(
+            title = context.getString(configuration.source.labelRes),
+            value = context.getString(emptyMessage),
+            meta = "", progress = 0,
+            accessibilityText = context.getString(configuration.source.labelRes) + ", " + context.getString(emptyMessage),
         )
-
-        if (selected == null) {
-            renderMonthFallback(
-                context = context,
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                flowItems = flowItems,
-                showRemaining = showRemaining,
-                itemGenerator = itemGenerator
-            )
-            return
+        renderBase(views, data, palette, size)
+        if (item == null) {
+            views.setTextViewTextSize(R.id.percent, android.util.TypedValue.COMPLEX_UNIT_SP, 14f)
+            views.setInt(R.id.percent, "setMaxLines", Int.MAX_VALUE)
         }
-
-        val item = selected.toAdapterItem(itemGenerator)
-        renderWidgetItem(
-            views = views,
-            appWidgetManager = appWidgetManager,
-            appWidgetId = appWidgetId,
-            sizeClass = sizeClass,
-            palette = palette,
-            data = item.toWidgetData(
-                context = context,
-                showRemaining = showRemaining,
-                useWidgetString = selected.type == ItemType.Time
-            ),
-            flowItems = flowItems
-        )
-    }
-
-    private suspend fun renderCustomWidget(
-        context: Context,
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        sizeClass: WidgetSizeClass,
-        palette: WidgetPalette,
-        flowItems: WidgetFlowItems,
-        showRemaining: Boolean,
-        source: String,
-        prefs: SharedPreferences,
-        itemGenerator: InterfaceItem,
-        repository: TimeLeftRepository,
-    ) {
-        val selectedItemId = source.toIntOrNull()
-        if (selectedItemId == null) {
-            clearWidgetSelection(prefs, appWidgetId)
-            renderMonthFallback(
-                context, views, appWidgetManager, appWidgetId, sizeClass, palette,
-                flowItems, showRemaining, itemGenerator
-            )
-            return
+        if (size != WidgetSizeClass.Compact) renderMedium(views, data)
+        if (size == WidgetSizeClass.Large && configuration.legacySummary) {
+            renderLarge(views, data, WidgetFlowItems(periods[0], periods[1], periods[2]))
         }
-
-        try {
-            val itemEntity = repository.advanceExpiredRecurrence(
-                repository.getItem(selectedItemId)
-            )
-            val item = itemEntity.toAdapterItem(itemGenerator)
-
-            renderWidgetItem(
-                views = views,
-                appWidgetManager = appWidgetManager,
-                appWidgetId = appWidgetId,
-                sizeClass = sizeClass,
-                palette = palette,
-                data = item.toWidgetData(
-                    context = context,
-                    showRemaining = showRemaining,
-                    useWidgetString = itemEntity.type == ItemType.Time
-                ),
-                flowItems = flowItems
-            )
-        } catch (exception: CancellationException) {
-            throw exception
-        } catch (_: Exception) {
-            clearWidgetSelection(prefs, appWidgetId)
-            renderMonthFallback(
-                context, views, appWidgetManager, appWidgetId, sizeClass, palette,
-                flowItems, showRemaining, itemGenerator
-            )
+        adaptToHeight(views, size, dimensions.height, palette.fontScale, configuration.legacySummary)
+        if (item == null && (size == WidgetSizeClass.Medium || size == WidgetSizeClass.Large)) {
+            views.setViewVisibility(R.id.widgetRuler, View.GONE)
         }
-    }
-
-    private fun ItemEntity.toAdapterItem(itemGenerator: InterfaceItem): AdapterItem =
-        when (type) {
-            ItemType.Time -> itemGenerator.customTimeItem(this)
-            ItemType.Date -> itemGenerator.customMonthItem(this)
-        }
-
-    private fun clearWidgetSelection(prefs: SharedPreferences, appWidgetId: Int) {
-        prefs.edit { remove(appWidgetId.toString()) }
-    }
-
-    private fun renderMonthFallback(
-        context: Context,
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        sizeClass: WidgetSizeClass,
-        palette: WidgetPalette,
-        flowItems: WidgetFlowItems,
-        showRemaining: Boolean,
-        itemGenerator: InterfaceItem,
-    ) {
-        renderWidgetItem(
-            views = views,
-            appWidgetManager = appWidgetManager,
-            appWidgetId = appWidgetId,
-            sizeClass = sizeClass,
-            palette = palette,
-            data = itemGenerator.monthItem().toWidgetData(
-                context = context,
-                showRemaining = showRemaining,
-                useWidgetString = false
-            ),
-            flowItems = flowItems
-        )
-    }
-
-    private fun renderWidgetItem(
-        views: RemoteViews,
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-        sizeClass: WidgetSizeClass,
-        palette: WidgetPalette,
-        data: WidgetDisplayData,
-        flowItems: WidgetFlowItems,
-    ) {
-        renderBase(views, data, palette, sizeClass)
-        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        adaptToHeight(views, sizeClass, options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT, 200), palette.fontScale)
-        when (sizeClass) {
-            WidgetSizeClass.Compact -> Unit
-            WidgetSizeClass.Medium -> renderMedium(views, data)
-            WidgetSizeClass.Wide -> renderMedium(views, data)
-            WidgetSizeClass.Large -> renderLarge(views, data, flowItems)
-        }
-        appWidgetManager.updateAppWidget(appWidgetId, views)
+        return views
     }
 
     private fun renderBase(
@@ -457,7 +311,15 @@ open class AppWidget : AppWidgetProvider() {
     ) {
         views.setTextViewText(R.id.summary, data.title)
         views.setTextViewText(R.id.percent, data.value)
-        if (sizeClass == WidgetSizeClass.Compact) views.setTextViewTextSize(R.id.percent, android.util.TypedValue.COMPLEX_UNIT_SP, if (data.value.length >= 7) 16f else 22f)
+        // Hosts may reapply the same layout after an empty state; restore the XML's value typography.
+        val valueSize = when (sizeClass) {
+            WidgetSizeClass.Compact -> if (data.value.length >= 7) 16f else 22f
+            WidgetSizeClass.Medium -> 32f
+            WidgetSizeClass.Wide -> 28f
+            WidgetSizeClass.Large -> 36f
+        }
+        views.setTextViewTextSize(R.id.percent, android.util.TypedValue.COMPLEX_UNIT_SP, valueSize)
+        views.setInt(R.id.percent, "setMaxLines", 2)
         views.setContentDescription(R.id.percent, data.accessibilityText)
         if (sizeClass == WidgetSizeClass.Medium || sizeClass == WidgetSizeClass.Large) {
             views.setImageViewBitmap(R.id.widgetRuler, rulerBitmap(data.progress, palette))
@@ -504,56 +366,31 @@ open class AppWidget : AppWidgetProvider() {
     }
 
     /** Small widgets keep the title and value; optional detail appears as space allows. */
-    private fun adaptToHeight(views: RemoteViews, size: WidgetSizeClass, height: Int, fontScale: Float) {
+    private fun adaptToHeight(views: RemoteViews, size: WidgetSizeClass, height: Int, fontScale: Float, legacySummary: Boolean) {
         if (size == WidgetSizeClass.Medium || size == WidgetSizeClass.Large) {
             views.setViewVisibility(R.id.refresh, if (height >= 180 * fontScale) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.widgetRuler, if (height >= (if (size == WidgetSizeClass.Large) 260 else 180) * fontScale) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetRuler, if (height >= (if (size == WidgetSizeClass.Large && legacySummary) 260 else 180) * fontScale) View.VISIBLE else View.GONE)
         }
         if (size == WidgetSizeClass.Large) {
-            views.setViewVisibility(R.id.widgetFlowMonth, if (height >= 210 * fontScale) View.VISIBLE else View.GONE)
-            views.setViewVisibility(R.id.widgetFlowYear, if (height >= 240 * fontScale) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetFlowToday, if (legacySummary) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetFlowMonth, if (legacySummary && height >= 210 * fontScale) View.VISIBLE else View.GONE)
+            views.setViewVisibility(R.id.widgetFlowYear, if (legacySummary && height >= 240 * fontScale) View.VISIBLE else View.GONE)
         }
     }
 
-    /** Debug gallery inflates exactly the same RemoteViews and binders as installed widgets. */
     internal fun previewViews(
-        context: Context, sizeName: String, item: AdapterItem, periods: List<AdapterItem>,
-        paletteKey: String, dark: Boolean, height: Int,
-    ): RemoteViews {
-        val size = WidgetSizeClass.valueOf(sizeName)
-        val palette = WidgetPalette.create(context, paletteKey, dark)
-        val views = RemoteViews(context.packageName, size.layoutRes)
-        val data = item.toWidgetData(context, true, item.type == ItemType.Time)
-        applyPalette(context, views, size, palette)
-        renderBase(views, data, palette, size)
-        if (size != WidgetSizeClass.Compact) renderMedium(views, data)
-        if (size == WidgetSizeClass.Large) renderLarge(views, data, WidgetFlowItems(periods[0], periods[1], periods[2]))
-        adaptToHeight(views, size, height, palette.fontScale)
-        return views
-    }
-
-    private fun resolveSizeClass(
-        appWidgetManager: AppWidgetManager,
-        appWidgetId: Int,
-    ): WidgetSizeClass {
-        val options = appWidgetManager.getAppWidgetOptions(appWidgetId)
-        val minWidth = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH)
-        val minHeight = options.getInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT)
-
-        return when {
-            minWidth >= 245 && minHeight >= 185 -> WidgetSizeClass.Large
-            minWidth >= 245 && minHeight < 115 -> WidgetSizeClass.Wide
-            minHeight >= 115 -> WidgetSizeClass.Medium
-            else -> WidgetSizeClass.Compact
-        }
-    }
-
-    private enum class WidgetSizeClass(val layoutRes: Int) {
-        Compact(R.layout.app_widget),
-        Medium(R.layout.app_widget_medium),
-        Wide(R.layout.app_widget_wide),
-        Large(R.layout.app_widget_large)
-    }
+        context: Context,
+        dimensions: WidgetDimensions,
+        configuration: WidgetConfiguration,
+        item: AdapterItem?,
+        periods: List<AdapterItem>,
+        paletteKey: String,
+        dark: Boolean,
+        emptyMessage: Int = R.string.widget_no_upcoming,
+    ): RemoteViews = createViews(
+        context, dimensions, configuration, item, periods,
+        WidgetPalette.create(context, paletteKey, dark), emptyMessage,
+    )
 
     private data class WidgetPalette(
         val backgroundDrawableRes: Int,
@@ -596,3 +433,5 @@ class MediumAppWidget : AppWidget()
 class WideAppWidget : AppWidget()
 
 class LargeAppWidget : AppWidget()
+
+class ScheduleAppWidget : AppWidget()

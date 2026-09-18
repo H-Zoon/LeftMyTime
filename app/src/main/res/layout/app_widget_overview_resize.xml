@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_background_light" android:padding="8dp"
+    android:orientation="vertical" android:gravity="center_vertical">
+    <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:fontFamily="sans" android:textSize="14sp" />
+</LinearLayout>

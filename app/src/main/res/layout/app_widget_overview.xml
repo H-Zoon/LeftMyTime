@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent"
+    android:background="@drawable/widget_background_light" android:padding="16dp"
+    android:orientation="vertical" android:gravity="center_vertical">
+    <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:fontFamily="sans" android:textSize="14sp" />
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
+        android:layout_marginTop="12dp" android:orientation="vertical">
+        <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/overviewTodayLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no" />
+            <TextView android:id="@+id/overviewTodayValue" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_marginTop="12dp" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/overviewMonthLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no" />
+            <TextView android:id="@+id/overviewMonthValue" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp" />
+        </LinearLayout>
+        <LinearLayout android:layout_width="match_parent" android:layout_marginTop="12dp" android:layout_height="wrap_content" android:orientation="vertical">
+            <TextView android:id="@+id/overviewYearLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no" />
+            <TextView android:id="@+id/overviewYearValue" android:layout_width="match_parent" android:layout_height="wrap_content"
+                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp" />
+        </LinearLayout>
+    </LinearLayout>
+</LinearLayout>

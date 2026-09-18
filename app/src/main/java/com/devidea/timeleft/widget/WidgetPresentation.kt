@@ -4,8 +4,26 @@ import android.content.Context
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
+import com.devidea.timeleft.calc.TimeProgressCalculator
+import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.formatRemainingTime
+import java.time.LocalDate
+import java.time.format.DateTimeFormatter
+
+/** Match the next rendered recurrence without persisting anything when configuration is canceled. */
+internal fun ItemEntity.forWidgetPreview(today: LocalDate = LocalDate.now()): ItemEntity {
+    if (type == ItemType.Time) return this
+    val format = DateTimeFormatter.ofPattern("yyyy-M-d")
+    val shift = TimeProgressCalculator.catchUpRecurrence(
+        currentStart = LocalDate.parse(startValue, format),
+        currentEnd = LocalDate.parse(endValue, format),
+        today = today,
+        updateFlag = updateFlag,
+        updateRate = updateRate,
+    ) ?: return this
+    return copy(startValue = shift.newStart.toString(), endValue = shift.newEnd.toString())
+}
 
 internal fun AdapterItem.toWidgetData(
     context: Context,

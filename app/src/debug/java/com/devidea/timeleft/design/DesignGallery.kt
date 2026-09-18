@@ -28,7 +28,13 @@ import androidx.compose.ui.platform.LocalContext
 import com.devidea.timeleft.ui.components.TimeLeftDatePicker
 import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.widget.AppWidget
+import com.devidea.timeleft.widget.WidgetConfiguration
+import com.devidea.timeleft.widget.WidgetDimensions
+import com.devidea.timeleft.widget.WidgetSource
+import com.devidea.timeleft.widget.WidgetConfigureRoute
+import com.devidea.timeleft.widget.WidgetSaveResult
 import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.database.itemdata.ItemEntity
@@ -120,6 +126,40 @@ private fun GalleryScreen(
     when {
         screen == "picker-time" -> TimeLeftTimePicker(java.time.LocalTime.of(14, 0), "시작 시간", {}, {})
         screen == "picker-date" -> TimeLeftDatePicker(java.time.LocalDate.of(2026, 9, 18), {}, {})
+        screen.startsWith("widget-configure") -> {
+            val activity = LocalContext.current as? android.app.Activity
+            val failNextLoad = remember(screen) { booleanArrayOf(screen.contains("error")) }
+            val fixtures = remember(screen) {
+                if (screen.contains("empty")) emptyList() else (1..(if (screen.contains("many")) 60 else 3)).map { id ->
+                    ItemEntity(
+                        id = id, type = if (id % 2 == 0) ItemType.Date else ItemType.Time,
+                        title = if (id == 1) longTitle else if (id % 2 == 0) "여행 준비" else "집중 시간",
+                        startValue = if (id % 2 == 0) "2026-09-01" else "14:0",
+                        endValue = if (id % 2 == 0) "2026-10-01" else "15:0",
+                        updateFlag = if (id % 2 == 0) RecurrenceMode.None else RecurrenceMode.TimeRange,
+                        updateRate = 0,
+                    )
+                }
+            }
+            WidgetConfigureRoute(
+                initial = WidgetConfiguration(
+                    source = if (screen.contains("overview")) WidgetSource.Overview else WidgetSource.Custom,
+                    itemId = if (screen.contains("deleted")) 900 else 1,
+                    legacySummary = screen.contains("legacy"),
+                ),
+                dimensions = if (screen.contains("small")) WidgetDimensions(110, 74) else WidgetDimensions(280, 185),
+                paletteKey = paletteKey, themeMode = themeMode,
+                loadItems = {
+                    if (failNextLoad[0]) {
+                        failNextLoad[0] = false
+                        error("Debug widget loading failure")
+                    }
+                    fixtures
+                },
+                isEditing = screen.contains("legacy"), onBack = { activity?.finish() },
+                onSave = { activity?.finish(); WidgetSaveResult.Saved },
+            )
+        }
         screen.startsWith("widget-") -> {
             val sizeName = when {
                 screen.contains("small") -> "Compact"
@@ -132,7 +172,26 @@ private fun GalleryScreen(
             val base = LocalContext.current
             val config = android.content.res.Configuration(base.resources.configuration).apply { fontScale = LocalDensity.current.fontScale }
             val context = base.createConfigurationContext(config)
-            val views = AppWidget().previewViews(context, sizeName, sampleItems.first { it.id == 1 }, periodItems, paletteKey, themeMode == UserPreferences.THEME_DARK, height)
+            val source = when {
+                screen.contains("overview") -> WidgetSource.Overview
+                screen.contains("today") -> WidgetSource.Today
+                screen.contains("month") -> WidgetSource.Month
+                screen.contains("year") -> WidgetSource.Year
+                else -> WidgetSource.Custom
+            }
+            val item = when {
+                screen.contains("missing") -> null
+                source == WidgetSource.Today -> periodItems[0]
+                source == WidgetSource.Month -> periodItems[1]
+                source == WidgetSource.Year -> periodItems[2]
+                else -> sampleItems.first { it.id == 1 }
+            }
+            val views = AppWidget().previewViews(
+                context, WidgetDimensions(width, height),
+                WidgetConfiguration(source = source, itemId = 1, legacySummary = screen.contains("legacy")),
+                item, periodItems, paletteKey, themeMode == UserPreferences.THEME_DARK,
+                emptyMessage = R.string.widget_item_unavailable,
+            )
             Surface(color = MaterialTheme.colorScheme.outlineVariant) {
                 Column(Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text("RemoteViews · $sizeName · $width × $height", style = MaterialTheme.typography.bodySmall)

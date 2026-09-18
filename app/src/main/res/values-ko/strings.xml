@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">TimeLeft</string>
-    <string name="widget_small_label">소형 위젯</string>
-    <string name="widget_medium_label">중형 위젯</string>
-    <string name="widget_wide_label">와이드 위젯</string>
-    <string name="widget_large_label">대형 위젯</string>
+    <string name="widget_small_label">오늘</string>
+    <string name="widget_medium_label">이번 달</string>
+    <string name="widget_wide_label">올해</string>
+    <string name="widget_large_label">기간 요약</string>
     <string name="widget_preview_title">여행 카운트다운</string>
     <string name="widget_preview_value">D-12</string>
     <string name="widget_preview_meta">6월 30일까지</string>
@@ -167,15 +167,15 @@
     <string name="widget_configure_select_required">하나를 정해주세요</string>
     <string name="widget_loading">잠시만요…</string>
     <string name="widget_refresh">위젯 새로고침</string>
-    <string name="widget_configure_title">위젯</string>
-    <string name="widget_configure_source_title">표시 항목</string>
-    <string name="widget_configure_today">오늘 남은 시간</string>
-    <string name="widget_configure_month">이번 달 흐름</string>
-    <string name="widget_configure_year">올해 흐름</string>
-    <string name="widget_configure_next">곧 다가오는 일정</string>
-    <string name="widget_configure_custom">내 항목</string>
-    <string name="widget_configure_custom_item_title">항목</string>
-    <string name="widget_configure_no_items">선택할 항목이 없어요</string>
+    <string name="widget_configure_title">위젯 설정</string>
+    <string name="widget_configure_source_title">표시할 내용</string>
+    <string name="widget_configure_today">오늘</string>
+    <string name="widget_configure_month">이번 달</string>
+    <string name="widget_configure_year">올해</string>
+    <string name="widget_configure_next">일정 자동 선택</string>
+    <string name="widget_configure_custom">일정 직접 선택</string>
+    <string name="widget_configure_custom_item_title">선택한 일정</string>
+    <string name="widget_configure_no_items">등록된 일정이 없어요</string>
     <string name="widget_configure_remaining_option">남은 시간으로 보기</string>
     <string name="widget_configure_preview">미리보기</string>
 
@@ -260,4 +260,43 @@
     <string name="period_close_details">기간 상세 닫기</string>
     <string name="period_summary_description">%1$s, %2$s 남음</string>
     <string name="period_days_explanation">남은 일수는 오늘을 제외한 날짜 수입니다.</string>
+    <string name="widget_configure_overview">기간 요약</string>
+    <string name="widget_overview_resize">크기를 늘려 주세요</string>
+    <string name="widget_overview_size_hint">현재 크기에는 세 기간이 모두 들어가지 않아요. 적용 후 홈 화면에서 위젯을 길게 눌러 크기를 늘려 주세요.</string>
+    <string name="widget_legacy_summary_option">큰 위젯에 기간 요약 함께 표시</string>
+    <string name="widget_no_upcoming">표시할 일정이 없어요</string>
+    <string name="widget_item_unavailable">일정을 다시 선택해 주세요</string>
+
+    <!-- Content-based widget selection -->
+    <string name="widget_schedule_label">내 일정</string>
+    <string name="widget_today_description">오늘 남은 시간. 추가 후 크기를 조절할 수 있어요.</string>
+    <string name="widget_month_description">이번 달 남은 일수. 추가 후 크기를 조절할 수 있어요.</string>
+    <string name="widget_year_description">올해 남은 일수. 추가 후 크기를 조절할 수 있어요.</string>
+    <string name="widget_overview_description">오늘·이번 달·올해를 함께</string>
+    <string name="widget_schedule_description">일정을 자동으로 표시하거나 직접 선택해 고정하세요.</string>
+    <string name="widget_change">변경</string>
+    <string name="widget_change_description">%1$s 변경</string>
+    <string name="widget_choose_content">표시할 내용 선택</string>
+    <string name="widget_choose_schedule">일정 선택</string>
+    <string name="widget_group_periods">기간</string>
+    <string name="widget_group_schedules">일정</string>
+    <string name="widget_auto_hint">진행 중인 시간 구간을 우선 표시해요. 그 외에는 시작 시각이나 날짜를 기준으로 자동 선택해요.</string>
+    <string name="widget_manual_hint">선택한 일정 하나를 계속 표시해요</string>
+    <string name="widget_auto_empty_hint">앱에서 일정을 추가하면 자동으로 표시돼요.</string>
+    <string name="widget_load_failed">일정을 불러오지 못했어요</string>
+    <string name="widget_selected_deleted">선택한 일정이 삭제됐어요</string>
+    <string name="widget_empty_selection_hint">앱에서 일정을 추가하거나, 뒤로 가서 기간을 선택해 주세요.</string>
+    <string name="widget_retry">다시 시도</string>
+    <string name="widget_clear_search">검색 지우기</string>
+    <string name="widget_display_format">표시 형식</string>
+    <string name="widget_format_units">시간·분·일로 표시</string>
+    <string name="widget_format_countdown">시계·D-day로 표시</string>
+    <string name="widget_preview_current_size">미리보기 · 현재 크기</string>
+    <string name="widget_preview_scroll_hint">좌우로 밀어 전체 보기</string>
+    <string name="widget_add">위젯 추가</string>
+    <string name="widget_apply_changes">변경 적용</string>
+    <string name="widget_saving">적용 중…</string>
+    <string name="widget_schedule_time">시간 구간</string>
+    <string name="widget_schedule_date">날짜 일정</string>
+    <string name="widget_preview_placeholder">—</string>
 </resources>

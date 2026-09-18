@@ -4,62 +4,46 @@ import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
-import android.widget.Toast
+import android.widget.FrameLayout
+import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
 import androidx.appcompat.app.AppCompatActivity
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.heightIn
-import androidx.compose.foundation.selection.selectable
-import androidx.compose.foundation.selection.toggleable
-import androidx.compose.ui.semantics.Role
-import com.devidea.timeleft.ui.components.TimeRuler
-import com.devidea.timeleft.ui.components.TimeLeftSection
-import com.devidea.timeleft.ui.theme.LayoutTokens
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.isSystemInDarkTheme
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Switch
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.saveable.rememberSaveable
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.dp
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalContext
-import com.devidea.timeleft.ItemGenerate
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.viewinterop.AndroidView
 import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
+import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
-import com.devidea.timeleft.preferences.UserPreferences
 import dagger.hilt.android.AndroidEntryPoint
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -87,69 +71,58 @@ class AppWidgetConfigure : AppCompatActivity() {
             finish()
             return
         }
+        setResult(RESULT_CANCELED, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
 
+        val manager = AppWidgetManager.getInstance(this)
+        val isEditing = WidgetConfiguration.hasSavedSettings(prefs, widgetId)
+        val initial = WidgetConfiguration.read(
+            prefs, widgetId, forConfiguration = true,
+            defaultSource = WidgetSource.defaultForProvider(manager.getAppWidgetInfo(widgetId)?.provider?.className),
+        )
         setContent {
             TimeLeftTheme(themeMode = currentThemeMode(), paletteKey = currentPaletteKey()) {
                 WidgetConfigureRoute(
-                    loadItems = { repository.allItems() },
+                    initial = initial,
+                    isEditing = isEditing,
+                    dimensions = WidgetDimensions.fromOptions(AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId)),
+                    paletteKey = currentPaletteKey(),
+                    themeMode = currentThemeMode(),
+                    loadItems = { repository.allItems().map { it.forWidgetPreview() } },
+                    onBack = ::finish,
                     onSave = ::saveWidgetConfiguration
                 )
             }
         }
     }
 
-    private fun saveWidgetConfiguration(
-        source: WidgetSource,
-        selectedItemId: Int?,
-        showRemaining: Boolean,
-    ) {
-        val appWidgetManager = AppWidgetManager.getInstance(this)
-
-        if (source == WidgetSource.Custom) {
-            val itemId = selectedItemId
-            if (itemId == null) {
-                showSelectionToast()
-                return
+    private suspend fun saveWidgetConfiguration(configuration: WidgetConfiguration): WidgetSaveResult {
+        if (configuration.source == WidgetSource.Custom) {
+            val itemId = configuration.itemId ?: return WidgetSaveResult.MissingItem
+            try {
+                val exists = withContext(Dispatchers.IO) { repository.allItems().any { it.id == itemId } }
+                if (!exists) return WidgetSaveResult.MissingItem
+            } catch (exception: CancellationException) {
+                throw exception
+            } catch (_: Exception) {
+                return WidgetSaveResult.LoadFailed
             }
-
-            lifecycleScope.launch {
-                val exists = withContext(Dispatchers.IO) {
-                    runCatching { repository.getItem(itemId) }.isSuccess
-                }
-                if (!exists) {
-                    showSelectionToast()
-                    return@launch
-                }
-                persistAndFinish(itemId.toString(), showRemaining, appWidgetManager)
-            }
-        } else {
-            persistAndFinish(source.prefValue, showRemaining, appWidgetManager)
         }
+        persistAndFinish(configuration, AppWidgetManager.getInstance(this))
+        return WidgetSaveResult.Saved
     }
 
-    private fun persistAndFinish(
-        value: String,
-        showRemaining: Boolean,
-        appWidgetManager: AppWidgetManager,
-    ) {
+    private fun persistAndFinish(configuration: WidgetConfiguration, appWidgetManager: AppWidgetManager) {
+        val value = if (configuration.source == WidgetSource.Custom) {
+            requireNotNull(configuration.itemId).toString()
+        } else configuration.source.prefValue
         prefs.edit()
             .putString(widgetId.toString(), value)
-            .putBoolean("${widgetId}option", showRemaining)
+            .putBoolean("${widgetId}option", configuration.showRemaining)
+            .putString(WidgetConfiguration.displayKey(widgetId), if (configuration.legacySummary) "legacy" else "focused")
             .apply()
-
-        val resultValue = Intent()
-            .putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId)
-        setResult(RESULT_OK, resultValue)
+        setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
         AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
         finish()
-    }
-
-    private fun showSelectionToast() {
-        Toast.makeText(
-            this,
-            getString(R.string.widget_configure_select_required),
-            Toast.LENGTH_SHORT
-        ).show()
     }
 
     private fun currentThemeMode(): String =
@@ -161,279 +134,360 @@ class AppWidgetConfigure : AppCompatActivity() {
             ?: UserPreferences.COLOR_THEME_CLAY
 }
 
+internal enum class WidgetSaveResult { Saved, MissingItem, LoadFailed }
+
+/** Also used by the debug gallery, so selection and preview never become separate mock screens. */
 @Composable
-private fun WidgetConfigureRoute(
+internal fun WidgetConfigureRoute(
+    initial: WidgetConfiguration,
+    dimensions: WidgetDimensions,
+    paletteKey: String,
+    themeMode: String,
     loadItems: suspend () -> List<ItemEntity>,
-    onSave: (WidgetSource, Int?, Boolean) -> Unit,
+    onBack: () -> Unit,
+    onSave: suspend (WidgetConfiguration) -> WidgetSaveResult,
+    isEditing: Boolean = false,
 ) {
     var items by remember { mutableStateOf<List<ItemEntity>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
-    var selectedSourceValue by rememberSaveable { mutableStateOf(WidgetSource.Today.prefValue) }
-    var selectedItemId by rememberSaveable { mutableStateOf<Int?>(null) }
-    var showRemaining by rememberSaveable { mutableStateOf(true) }
-    val selectedSource = WidgetSource.fromPrefValue(selectedSourceValue)
-
-    LaunchedEffect(Unit) {
-        items = withContext(Dispatchers.IO) { loadItems() }
-        loading = false
-    }
-
-    LaunchedEffect(selectedSource, items) {
-        if (selectedSource == WidgetSource.Custom && items.none { it.id == selectedItemId }) {
-            selectedItemId = items.firstOrNull()?.id
+    var loadFailed by remember { mutableStateOf(false) }
+    var reload by remember { mutableStateOf(0) }
+    var saving by remember { mutableStateOf(false) }
+    var sourceValue by rememberSaveable { mutableStateOf(initial.source.prefValue) }
+    var selectedItemId by rememberSaveable { mutableStateOf(initial.itemId) }
+    var showRemaining by rememberSaveable { mutableStateOf(initial.showRemaining) }
+    var legacySummary by rememberSaveable { mutableStateOf(initial.legacySummary) }
+    var selectionPage by rememberSaveable { mutableStateOf<String?>(null) }
+    var returnToSources by rememberSaveable { mutableStateOf(false) }
+    var returnFocusTo by rememberSaveable { mutableStateOf<String?>(null) }
+    val sourceFocus = remember { FocusRequester() }
+    val itemFocus = remember { FocusRequester() }
+    val scope = rememberCoroutineScope()
+    val source = WidgetSource.fromPrefValue(sourceValue)
+    LaunchedEffect(selectionPage) {
+        if (selectionPage == null && returnFocusTo != null) {
+            withFrameNanos { }
+            if (returnFocusTo == "item") itemFocus.requestFocus() else sourceFocus.requestFocus()
+            returnFocusTo = null
         }
     }
-
+    LaunchedEffect(reload) {
+        loading = true
+        loadFailed = false
+        try {
+            items = withContext(Dispatchers.IO) { loadItems() }
+        } catch (exception: CancellationException) {
+            throw exception
+        } catch (_: Exception) {
+            loadFailed = true
+        } finally {
+            loading = false
+        }
+    }
+    fun selectSource(next: WidgetSource) {
+        if (next != source) legacySummary = false
+        sourceValue = next.prefValue
+    }
+    fun closeSelection() {
+        selectionPage = if (selectionPage == "items" && returnToSources) "sources" else null
+    }
+    BackHandler(enabled = selectionPage != null || saving) {
+        if (!saving) closeSelection()
+    }
+    if (selectionPage != null) {
+        WidgetSelectionScreen(
+            pickingItems = selectionPage == "items", source = source, selectedItemId = selectedItemId,
+            items = items, loading = loading, loadFailed = loadFailed,
+            onBack = ::closeSelection, onRetry = { reload++ },
+            onSourceSelected = { next ->
+                if (next == WidgetSource.Custom) {
+                    returnToSources = true
+                    selectionPage = "items"
+                } else {
+                    selectSource(next)
+                    selectionPage = null
+                }
+            },
+            onItemSelected = { id ->
+                selectSource(WidgetSource.Custom)
+                selectedItemId = id
+                selectionPage = null
+            },
+        )
+        return
+    }
+    val configuration = WidgetConfiguration(source, selectedItemId, showRemaining,
+        legacySummary && source != WidgetSource.Overview)
     WidgetConfigureScreen(
-        loading = loading,
-        items = items,
-        selectedSource = selectedSource,
-        selectedItemId = selectedItemId,
-        showRemaining = showRemaining,
-        onSourceSelected = { selectedSourceValue = it.prefValue },
-        onItemSelected = { selectedItemId = it },
+        configuration = configuration, dimensions = dimensions, paletteKey = paletteKey,
+        dark = when (themeMode) {
+            UserPreferences.THEME_DARK -> true
+            UserPreferences.THEME_LIGHT -> false
+            else -> isSystemInDarkTheme()
+        },
+        items = items, loading = loading, loadFailed = loadFailed, saving = saving, isEditing = isEditing,
+        canKeepLegacySummary = initial.legacySummary,
+        onBack = { if (!saving) onBack() },
+        sourceFocus = sourceFocus, itemFocus = itemFocus,
+        onChangeSource = { returnFocusTo = "source"; selectionPage = "sources" },
+        onChangeItem = { returnFocusTo = "item"; returnToSources = false; selectionPage = "items" },
+        onRetry = { reload++ },
         onShowRemainingChanged = { showRemaining = it },
-        onSave = { onSave(selectedSource, selectedItemId, showRemaining) }
+        onLegacySummaryChanged = { legacySummary = it },
+        onSave = {
+            if (!saving) {
+                saving = true
+                scope.launch {
+                    var saved = false
+                    try {
+                        when (onSave(configuration)) {
+                            WidgetSaveResult.Saved -> saved = true
+                            WidgetSaveResult.MissingItem -> items = items.filterNot { it.id == selectedItemId }
+                            WidgetSaveResult.LoadFailed -> loadFailed = true
+                        }
+                    } finally {
+                        // Keep the completed action disabled until the activity leaves the screen.
+                        if (!saved) saving = false
+                    }
+                }
+            }
+        },
     )
 }
 
 @Composable
 private fun WidgetConfigureScreen(
-    loading: Boolean,
+    configuration: WidgetConfiguration,
+    dimensions: WidgetDimensions,
+    paletteKey: String,
+    dark: Boolean,
     items: List<ItemEntity>,
-    selectedSource: WidgetSource,
-    selectedItemId: Int?,
-    showRemaining: Boolean,
-    onSourceSelected: (WidgetSource) -> Unit,
-    onItemSelected: (Int) -> Unit,
+    loading: Boolean,
+    loadFailed: Boolean,
+    saving: Boolean,
+    isEditing: Boolean,
+    canKeepLegacySummary: Boolean,
+    sourceFocus: FocusRequester,
+    itemFocus: FocusRequester,
+    onBack: () -> Unit,
+    onChangeSource: () -> Unit,
+    onChangeItem: () -> Unit,
+    onRetry: () -> Unit,
     onShowRemainingChanged: (Boolean) -> Unit,
+    onLegacySummaryChanged: (Boolean) -> Unit,
     onSave: () -> Unit,
 ) {
-    val scrollState = rememberScrollState()
-    val selectedItemTitle = items.firstOrNull { it.id == selectedItemId }?.title
     val context = LocalContext.current
     val generator = remember(context) { ItemGenerate(context) }
-    fun previewCustom(entity: ItemEntity?): AdapterItem? = entity?.let {
+    val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
+    fun customItem(entity: ItemEntity?): AdapterItem? = entity?.let {
         if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
     }
-    val previewItem = when (selectedSource) {
-        WidgetSource.Today -> generator.timeItem()
-        WidgetSource.Month -> generator.monthItem()
-        WidgetSource.Year -> generator.yearItem()
-        WidgetSource.Next -> previewCustom(NextCountdownSelector.select(items)) ?: generator.monthItem()
-        WidgetSource.Custom -> previewCustom(items.firstOrNull { it.id == selectedItemId })
+    val source = configuration.source
+    val personal = source == WidgetSource.Custom || source == WidgetSource.Next
+    val selectedItem = items.firstOrNull { it.id == configuration.itemId }
+    val customMissing = source == WidgetSource.Custom && !loading && !loadFailed && selectedItem == null
+    val unavailable = personal && (loading || loadFailed)
+    val previewItem = if (unavailable) null else when (source) {
+        WidgetSource.Today -> periods[0]
+        WidgetSource.Month -> periods[1]
+        WidgetSource.Year -> periods[2]
+        WidgetSource.Overview -> null
+        WidgetSource.Next -> customItem(NextCountdownSelector.select(items))
+            ?: periods[1].takeIf { configuration.legacySummary }
+        WidgetSource.Custom -> customItem(selectedItem)
+            ?: periods[1].takeIf { configuration.legacySummary }
     }
-    val saveEnabled = selectedSource != WidgetSource.Custom || selectedItemTitle != null
-
+    val emptyMessage = when {
+        loading -> R.string.widget_loading
+        loadFailed -> R.string.widget_load_failed
+        source == WidgetSource.Custom && configuration.itemId != null -> R.string.widget_selected_deleted
+        source == WidgetSource.Custom -> R.string.widget_choose_schedule
+        else -> R.string.widget_no_upcoming
+    }
+    // Compare actual formatted results; built-in periods and waiting time ranges need no switch.
+    val remainingValue = previewItem?.let { it.toWidgetData(context, true, it.type == ItemType.Time).value }
+    val countdownValue = previewItem?.let { it.toWidgetData(context, false, it.type == ItemType.Time).value }
+    val showFormat = personal && !unavailable && !customMissing && remainingValue != countdownValue
     Scaffold(
-        containerColor = MaterialTheme.colorScheme.background
+        topBar = { TimeLeftTopAppBar(stringResource(R.string.widget_configure_title), onBack) },
+        containerColor = MaterialTheme.colorScheme.background,
     ) { innerPadding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(innerPadding)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxWidth(),
-                color = MaterialTheme.colorScheme.background
-            ) {
-                Column(
-                    modifier = Modifier.padding(
-                        start = LayoutTokens.ScreenHorizontal,
-                        top = Spacing.l,
-                        end = LayoutTokens.ScreenHorizontal,
-                        bottom = 16.dp
-                    ),
-                    verticalArrangement = Arrangement.spacedBy(Spacing.m)
-                ) {
-                    Text(
-                        text = stringResource(R.string.widget_configure_title),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-                    WidgetPreviewBand(
-                        item = previewItem,
-                        showRemaining = showRemaining
-                    )
-                }
-            }
-
+        Column(Modifier.fillMaxSize().padding(innerPadding)) {
             Column(
-                modifier = Modifier
-                    .weight(1f)
-                    .verticalScroll(scrollState)
+                Modifier.weight(1f).verticalScroll(rememberScrollState())
                     .padding(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l),
-                verticalArrangement = Arrangement.spacedBy(Spacing.m)
+                verticalArrangement = Arrangement.spacedBy(LayoutTokens.SectionGap),
             ) {
-                Text(
-                    text = stringResource(R.string.widget_configure_source_title),
-                    style = MaterialTheme.typography.labelLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                WidgetSelectionSummary(
+                    label = stringResource(R.string.widget_configure_source_title),
+                    value = stringResource(source.labelRes), enabled = !saving, onChange = onChangeSource,
+                    focusRequester = sourceFocus,
                 )
-
-                WidgetSource.values().forEach { source ->
-                    SelectableSurfaceRow(
-                        label = stringResource(source.labelRes),
-                        selected = source == selectedSource,
-                        onClick = { onSourceSelected(source) }
+                if (source == WidgetSource.Custom) {
+                    WidgetSelectionSummary(
+                        label = stringResource(R.string.widget_configure_custom_item_title),
+                        value = when {
+                            loading -> stringResource(R.string.widget_loading)
+                            loadFailed -> stringResource(R.string.widget_load_failed)
+                            selectedItem != null -> selectedItem.title
+                            configuration.itemId != null -> stringResource(R.string.widget_selected_deleted)
+                            else -> stringResource(R.string.widget_choose_schedule)
+                        },
+                        detail = selectedItem?.takeUnless { unavailable }?.let { widgetScheduleDescription(context, it) },
+                        enabled = !saving, onChange = onChangeItem,
+                        focusRequester = itemFocus,
                     )
+                } else if (source == WidgetSource.Next) {
+                    Text(stringResource(R.string.widget_auto_hint), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else if (source == WidgetSource.Overview) {
+                    Text(stringResource(R.string.widget_overview_description), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-
-                AnimatedVisibility(visible = selectedSource == WidgetSource.Custom) {
-                    CustomItemSection(
-                        loading = loading,
-                        items = items,
-                        selectedItemId = selectedItemId,
-                        onItemSelected = onItemSelected
-                    )
+                if (personal && loadFailed) {
+                    TextButton(onClick = onRetry, enabled = !saving) { Text(stringResource(R.string.widget_retry)) }
+                } else if (source == WidgetSource.Next && !loading && items.isEmpty()) {
+                    Text(stringResource(R.string.widget_auto_empty_hint), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.small,
-                    color = MaterialTheme.colorScheme.surface
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth().toggleable(value = showRemaining, role = Role.Switch, onValueChange = onShowRemainingChanged).padding(horizontal = Spacing.m, vertical = Spacing.m),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Text(
-                            text = stringResource(R.string.widget_configure_remaining_option),
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface,
-                            modifier = Modifier.weight(1f)
-                        )
-                        Switch(
-                            checked = showRemaining,
-                            onCheckedChange = null
-                        )
+                WidgetPreviewBand(dimensions, configuration, previewItem, periods, paletteKey, dark, emptyMessage)
+                if (showFormat) {
+                    Column(Modifier.selectableGroup()) {
+                        WidgetSectionLabel(stringResource(R.string.widget_display_format))
+                        WidgetChoiceRow(stringResource(R.string.widget_format_units), configuration.showRemaining,
+                            detail = remainingValue, enabled = !saving) { onShowRemainingChanged(true) }
+                        WidgetChoiceRow(stringResource(R.string.widget_format_countdown), !configuration.showRemaining,
+                            detail = countdownValue, enabled = !saving) { onShowRemainingChanged(false) }
                     }
                 }
-            }
-
-            Button(
-                onClick = onSave,
-                enabled = saveEnabled,
-                shape = MaterialTheme.shapes.small,
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground, contentColor = MaterialTheme.colorScheme.background),
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(start = LayoutTokens.ScreenHorizontal, end = LayoutTokens.ScreenHorizontal, bottom = Spacing.l)
-                    .heightIn(min = 52.dp)
-            ) {
-                Text(stringResource(R.string.action_save))
-            }
-        }
-    }
-}
-
-@Composable
-private fun WidgetPreviewBand(item: AdapterItem?, showRemaining: Boolean) {
-    val context = LocalContext.current
-    val data = item?.toWidgetData(context, showRemaining, item.type == ItemType.Time)
-    TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(vertical = Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-            Text(stringResource(R.string.widget_configure_preview), style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (data == null) Text(stringResource(R.string.widget_configure_no_items), style = MaterialTheme.typography.bodyMedium)
-            else {
-                Text(data.title, style = MaterialTheme.typography.titleMedium)
-                Text(data.value, style = MaterialTheme.typography.displaySmall)
-                Text(data.meta, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                TimeRuler(item.percent, item.startLabel, item.endLabel)
-            }
-        }
-    }
-}
-
-@Composable
-private fun SelectableSurfaceRow(
-    label: String,
-    selected: Boolean,
-    onClick: () -> Unit,
-) {
-    TimeLeftSection(
-        modifier = Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
-            .selectable(selected = selected, role = Role.RadioButton, onClick = onClick)
-    ) {
-        Row(
-            modifier = Modifier.padding(horizontal = Spacing.m, vertical = Spacing.s),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            RadioButton(
-                selected = selected,
-                onClick = null
-            )
-            Spacer(modifier = Modifier.width(Spacing.xs))
-            Text(
-                text = label,
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurface,
-                modifier = Modifier.weight(1f)
-            )
-        }
-    }
-}
-
-@Composable
-private fun CustomItemSection(
-    loading: Boolean,
-    items: List<ItemEntity>,
-    selectedItemId: Int?,
-    onItemSelected: (Int) -> Unit,
-) {
-    Column(
-        verticalArrangement = Arrangement.spacedBy(Spacing.s)
-    ) {
-        Text(
-            text = stringResource(R.string.widget_configure_custom_item_title),
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        when {
-            loading -> {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = Spacing.m),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                if (source != WidgetSource.Overview && canKeepLegacySummary) {
+                    WidgetOptionRow(stringResource(R.string.widget_legacy_summary_option),
+                        configuration.legacySummary, !saving, onLegacySummaryChanged)
                 }
             }
-            items.isEmpty() -> {
-                Text(
-                    text = stringResource(R.string.widget_configure_no_items),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    modifier = Modifier.padding(vertical = Spacing.s)
-                )
+            Button(
+                onClick = onSave,
+                enabled = !saving && (!personal || (!loading && !loadFailed && !customMissing)),
+                shape = MaterialTheme.shapes.small,
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.onBackground,
+                    contentColor = MaterialTheme.colorScheme.background),
+                modifier = Modifier.fillMaxWidth()
+                    .padding(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l)
+                    .heightIn(min = 52.dp),
+            ) {
+                Text(stringResource(when {
+                    saving -> R.string.widget_saving
+                    isEditing -> R.string.widget_apply_changes
+                    else -> R.string.widget_add
+                }))
             }
-            else -> {
-                items.forEach { item ->
-                    SelectableSurfaceRow(
-                        label = item.title,
-                        selected = item.id == selectedItemId,
-                        onClick = { onItemSelected(item.id) }
+        }
+    }
+}
+
+@Composable
+private fun WidgetSelectionSummary(
+    label: String, value: String, detail: String? = null, enabled: Boolean,
+    focusRequester: FocusRequester, onChange: () -> Unit,
+) {
+    val changeDescription = stringResource(R.string.widget_change_description, label)
+    Column {
+        WidgetSectionLabel(label)
+        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                Text(value, style = MaterialTheme.typography.titleLarge)
+                detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant) }
+            }
+            TextButton(onClick = onChange, enabled = enabled,
+                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).focusRequester(focusRequester)
+                    .semantics { contentDescription = changeDescription }) {
+                Text(stringResource(R.string.widget_change))
+            }
+        }
+        HorizontalDivider(Modifier.padding(top = Spacing.s), color = MaterialTheme.colorScheme.outlineVariant)
+    }
+}
+
+@Composable
+internal fun WidgetSectionLabel(label: String) {
+    Text(label, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(bottom = Spacing.s))
+}
+
+@Composable
+internal fun WidgetChoiceRow(label: String, selected: Boolean, detail: String? = null, enabled: Boolean = true, onClick: () -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
+            .selectable(selected, enabled = enabled, role = Role.RadioButton, onClick = onClick)
+            .padding(vertical = Spacing.m),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+    ) {
+        RadioButton(selected = selected, onClick = null, enabled = enabled)
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            detail?.let { Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant) }
+        }
+    }
+}
+
+@Composable
+private fun WidgetOptionRow(label: String, checked: Boolean, enabled: Boolean, onCheckedChange: (Boolean) -> Unit) {
+    Row(
+        Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
+            .toggleable(checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
+            .padding(vertical = Spacing.s),
+        verticalAlignment = Alignment.CenterVertically,
+    ) {
+        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Switch(checked = checked, onCheckedChange = null, enabled = enabled)
+    }
+}
+
+@Composable
+private fun WidgetPreviewBand(
+    dimensions: WidgetDimensions,
+    configuration: WidgetConfiguration,
+    item: AdapterItem?,
+    periods: List<AdapterItem>,
+    paletteKey: String,
+    dark: Boolean,
+    emptyMessage: Int,
+) {
+    val base = LocalContext.current
+    val previewFontScale = LocalDensity.current.fontScale
+    val context = remember(base, previewFontScale) {
+        base.createConfigurationContext(android.content.res.Configuration(base.resources.configuration).apply {
+            fontScale = previewFontScale
+        })
+    }
+    val views = AppWidget().previewViews(context, dimensions, configuration, item, periods, paletteKey, dark, emptyMessage)
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        WidgetSectionLabel(stringResource(R.string.widget_preview_current_size))
+        if (configuration.source == WidgetSource.Overview && views.layoutId == R.layout.app_widget_overview_resize) {
+            Text(stringResource(R.string.widget_overview_size_hint), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
+        BoxWithConstraints(Modifier.fillMaxWidth()) {
+            val availableWidth = maxWidth
+            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                if (dimensions.width.dp > availableWidth) {
+                    Text(stringResource(R.string.widget_preview_scroll_hint), style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
+                    AndroidView(
+                        factory = { FrameLayout(context) },
+                        update = { parent ->
+                            parent.removeAllViews()
+                            parent.addView(views.apply(context, parent))
+                        },
+                        modifier = Modifier.width(dimensions.width.dp).height(dimensions.height.dp),
                     )
                 }
             }
         }
-    }
-}
-
-
-private enum class WidgetSource(
-    val prefValue: String,
-    val labelRes: Int,
-) {
-    Today("embedTime", R.string.widget_configure_today),
-    Month("embedMonth", R.string.widget_configure_month),
-    Year("embedYear", R.string.widget_configure_year),
-    Next("nextCustom", R.string.widget_configure_next),
-    Custom("custom", R.string.widget_configure_custom);
-
-    companion object {
-        fun fromPrefValue(value: String): WidgetSource =
-            values().firstOrNull { it.prefValue == value } ?: Today
     }
 }

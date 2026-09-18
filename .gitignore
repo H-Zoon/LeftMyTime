@@ -14,6 +14,21 @@
 .cxx
 local.properties
 
+# Generated caches and local QA captures; keep design decisions and app resources.
+/.kotlin/
+__pycache__/
+*.py[cod]
+/design/qa/
+/design/qa-*/
+*.apk
+*.aab
+
+# Machine-specific Android Studio device selections.
+/.idea/deploymentTargetDropDown.xml
+/.idea/deploymentTargetSelector.xml
+/.idea/deviceManager.xml
+/.idea/other.xml
+
 # Release signing material. Keep private keys and credentials outside Git.
 *.jks
 *.keystore
