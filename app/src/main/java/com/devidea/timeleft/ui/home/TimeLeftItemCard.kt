@@ -1,5 +1,11 @@
 package com.devidea.timeleft.ui.home
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.shrinkVertically
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -13,6 +19,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import com.devidea.timeleft.AdapterItem
@@ -23,6 +30,9 @@ import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
+
+private const val DetailExpandDurationMillis = 220
+private const val DetailCollapseDurationMillis = 180
 
 /** A quiet list/grid cell. The historic name is kept to avoid duplicating public call sites. */
 @Composable
@@ -76,14 +86,28 @@ internal fun TimeLeftItemCard(
             }
             if (item.category.isNotBlank()) Text(item.category, style = MaterialTheme.typography.bodySmall, color = itemAccentColor(item.colorKey, MaterialTheme.colorScheme.primary))
         }
-        if (expanded) {
-            Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        AnimatedVisibility(
+            visible = expanded,
+            enter = expandVertically(
+                animationSpec = tween(durationMillis = DetailExpandDurationMillis),
+                expandFrom = Alignment.Top,
+            ) + fadeIn(animationSpec = tween(durationMillis = DetailExpandDurationMillis)),
+            exit = shrinkVertically(
+                animationSpec = tween(durationMillis = DetailCollapseDurationMillis),
+                shrinkTowards = Alignment.Top,
+            ) + fadeOut(animationSpec = tween(durationMillis = DetailCollapseDurationMillis)),
+        ) {
+            Column(
+                // Closing content stays composed until the exit finishes; hide it from accessibility immediately.
+                modifier = if (expanded) Modifier else Modifier.clearAndSetSemantics {},
+                verticalArrangement = Arrangement.spacedBy(Spacing.s),
+            ) {
                 listOf(item.startString, item.endString, item.updateInfo, item.recurrenceText, item.reminderText).filter { it.isNotBlank() }.distinct().forEach {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    TextButton(onClick = { onEditItem(item.id) }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
-                    TextButton(onClick = { showDeleteDialog = true }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
+                    TextButton(onClick = { onEditItem(item.id) }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
+                    TextButton(onClick = { showDeleteDialog = true }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }

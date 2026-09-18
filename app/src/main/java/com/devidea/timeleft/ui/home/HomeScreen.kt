@@ -7,6 +7,9 @@ import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.foundation.selection.selectableGroup
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ViewList
@@ -19,13 +22,18 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.pluralStringResource
+import androidx.compose.ui.semantics.selected
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.remainingTimeLabel
+import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 
@@ -33,7 +41,6 @@ import com.devidea.timeleft.ui.theme.Spacing
 fun HomeScreen(
     initialSortValue: String,
     initialLayoutValue: String,
-    headerItemIndex: Int,
     expiredItemsMode: String,
     progressDisplayMode: String,
     topItems: List<AdapterItem>,
@@ -41,7 +48,6 @@ fun HomeScreen(
     onOpenSettings: () -> Unit,
     onSortChange: (String) -> Unit,
     onLayoutChange: (String) -> Unit,
-    onHeaderItemChange: (Int) -> Unit,
     onAddTime: () -> Unit,
     onAddDate: () -> Unit,
     onEditItem: (Int) -> Unit,
@@ -115,6 +121,9 @@ fun HomeScreen(
                 }
             }
             if (!showAll) {
+                item(key = "period", span = { GridItemSpan(maxLineSpan) }) {
+                    HeaderSection(topItems, progressDisplayMode)
+                }
                 if (hero != null) {
                     item(key = "hero", span = { GridItemSpan(maxLineSpan) }) {
                         Column {
@@ -133,12 +142,9 @@ fun HomeScreen(
                         }
                     }
                 }
-                item(key = "period", span = { GridItemSpan(maxLineSpan) }) {
-                    HeaderSection(topItems, headerItemIndex, onHeaderItemChange, prominent = hero == null)
-                }
                 item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
                     Column {
-                        HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        if (hero != null) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
                             Text(stringResource(R.string.home_next_ranges), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
                             TextButton(onClick = onAddTime) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text(stringResource(R.string.home_add_range)) }
@@ -154,21 +160,15 @@ fun HomeScreen(
                     items(upcomingItems.take(3), key = { "next-${it.id}" }, span = { GridItemSpan(maxLineSpan) }) { item ->
                         TimeLeftItemCard(item, onEditItem, onDeleteItem, upcoming = true)
                     }
-                    item(key = "manage", span = { GridItemSpan(maxLineSpan) }) {
-                        TextButton(onClick = { showAll = true }, modifier = Modifier.fillMaxWidth().padding(top = Spacing.m)) {
-                            Text(pluralStringResource(R.plurals.home_view_all_count, displayedItems.size, displayedItems.size))
-                        }
-                    }
                 }
             } else {
                 item(key = "controls", span = { GridItemSpan(maxLineSpan) }) {
-                    Column {
+                    Column(Modifier.padding(bottom = Spacing.page), verticalArrangement = Arrangement.spacedBy(Spacing.page)) {
                         SectionHeader(stringResource(R.string.home_my_items), visibleItems.size, isGrid, onGridChange = { grid ->
                             selectedLayoutValue = if (grid) UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST
                             onLayoutChange(selectedLayoutValue)
                         })
                         SearchAndSortSection(searchQuery, selectedSort, { searchQuery = it }, { selectedSortValue = it.name; onSortChange(it.name) })
-                        Spacer(Modifier.height(Spacing.l))
                     }
                 }
                 if (displayedItems.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
@@ -180,6 +180,7 @@ fun HomeScreen(
     }
 }
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 private fun SectionHeader(
     title: String,
     count: Int?,
@@ -187,26 +188,32 @@ private fun SectionHeader(
     onGridChange: (Boolean) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Row(
+    FlowRow(
         modifier = modifier.fillMaxWidth(),
-        verticalAlignment = Alignment.CenterVertically
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalArrangement = Arrangement.spacedBy(Spacing.m)
     ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.labelLarge,
-            color = MaterialTheme.colorScheme.primary,
-            modifier = Modifier.weight(1f)
-        )
-        if (count != null) {
+        Row(
+            modifier = Modifier.align(Alignment.CenterVertically).padding(end = Spacing.l),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
+        ) {
             Text(
-                text = pluralStringResource(R.plurals.home_item_count, count, count),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                text = title,
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
             )
+            if (count != null) {
+                Text(
+                    text = pluralStringResource(R.plurals.home_item_count, count, count),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
         }
         Row(
-            modifier = Modifier.padding(start = Spacing.s),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.xs)
+            modifier = Modifier.selectableGroup(),
+            horizontalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             LayoutModeButton(
                 selected = !isGrid,
@@ -241,7 +248,7 @@ private fun LayoutModeButton(
     ) {
         IconButton(
             onClick = onClick,
-            modifier = Modifier.size(LayoutTokens.MinTouchTarget)
+            modifier = Modifier.size(LayoutTokens.MinTouchTarget).semantics { this.selected = selected }
         ) {
             Icon(
                 imageVector = icon,
@@ -265,8 +272,9 @@ private fun SearchAndSortSection(
     onSortChange: (HomeSortMode) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    Column(modifier = modifier.fillMaxWidth()) {
-        OutlinedTextField(
+    val focusManager = LocalFocusManager.current
+    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
+        TimeLeftUnderlineTextField(
             value = query,
             onValueChange = onQueryChange,
             leadingIcon = {
@@ -275,16 +283,15 @@ private fun SearchAndSortSection(
                     contentDescription = null
                 )
             },
-            placeholder = { Text(stringResource(R.string.home_search_hint)) },
-            singleLine = true,
+            label = { Text(stringResource(R.string.home_search_hint)) },
+            keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
+            keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
             modifier = Modifier.fillMaxWidth()
         )
         FlowRow(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(top = Spacing.s),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs)
+            verticalArrangement = Arrangement.spacedBy(Spacing.s)
         ) {
             HomeSortMode.values().forEach { mode ->
                 FilterChip(

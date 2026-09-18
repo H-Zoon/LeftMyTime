@@ -37,8 +37,6 @@ import androidx.compose.material.icons.filled.Schedule
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowUp
@@ -81,6 +79,7 @@ import com.devidea.timeleft.ui.components.TimeRuler
 import com.devidea.timeleft.ui.components.TimeLeftDatePicker
 import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
+import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
 import com.devidea.timeleft.ui.itemIconVector
 import com.devidea.timeleft.ui.permission.NotificationPermissionExplanationDialog
 import com.devidea.timeleft.ui.permission.NotificationPermissionSettingsDialog
@@ -284,15 +283,13 @@ fun ItemEditorScreen(
                     }
                 )
 
-                TextField(
-                    colors = TextFieldDefaults.colors(focusedContainerColor = Color.Transparent, unfocusedContainerColor = Color.Transparent),
+                TimeLeftUnderlineTextField(
                     value = title,
                     onValueChange = {
                         title = it
                         errorRes = null
                     },
                     label = { Text(stringResource(R.string.editor_title_label)) },
-                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
 

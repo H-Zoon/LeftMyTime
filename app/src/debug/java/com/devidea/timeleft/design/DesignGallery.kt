@@ -22,7 +22,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -69,7 +68,7 @@ open class DesignGalleryActivity : ComponentActivity() {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
                 TimeLeftTheme(themeMode = mode, paletteKey = palette) {
-                    GalleryScreen(screen, palette, mode, intent.getIntExtra("period", 0), intent.getBooleanExtra("exportWidget", false))
+                    GalleryScreen(screen, palette, mode, intent.getBooleanExtra("exportWidget", false))
                 }
             }
         }
@@ -104,12 +103,20 @@ private fun GalleryScreen(
     screen: String,
     paletteKey: String,
     themeMode: String = UserPreferences.THEME_AUTO,
-    initialPeriod: Int = 0,
     exportWidget: Boolean = false,
 ) {
-    var periodIndex by remember { mutableIntStateOf(initialPeriod) }
     val longTitle = if (LocalContext.current.resources.configuration.locales[0].language == "en") "Review quarterly service metrics and prepare the work plan for next week" else "분기별 서비스 운영 지표를 검토하고 다음 주 업무 계획 정리하기"
-    val periodItems = listOf(AdapterItem(title = "오늘", remainingSeconds = 34920, leftString = "9시간 42분 남음"), AdapterItem(title = "이번 달", remainingDays = 12, leftString = "12일 남음"), AdapterItem(title = "올해", remainingDays = 104, leftString = "104일 남음"))
+    val periodItems = listOf(
+        AdapterItem(title = "오늘", remainingSeconds = if (screen == "period-long") 86340 else if (screen == "period-boundary") 0 else 34920,
+            leftString = "9시간 42분 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.07f; else -> 59.58f },
+            startLabel = "00:00", endLabel = "23:59:59"),
+        AdapterItem(title = "이번 달", remainingDays = if (screen == "period-boundary") 0 else 12,
+            leftString = "12일 남음", percent = if (screen == "period-boundary") 100f else 60f,
+            startLabel = "2026-09-01", endLabel = "2026-09-30"),
+        AdapterItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
+            leftString = "104일 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.27f; else -> 71.51f },
+            startLabel = "2026-01-01", endLabel = "2026-12-31")
+    )
     when {
         screen == "picker-time" -> TimeLeftTimePicker(java.time.LocalTime.of(14, 0), "시작 시간", {}, {})
         screen == "picker-date" -> TimeLeftDatePicker(java.time.LocalDate.of(2026, 9, 18), {}, {})
@@ -177,9 +184,8 @@ private fun GalleryScreen(
         else -> HomeScreen(
             initialSortValue = UserPreferences.SORT_NEAREST,
             initialLayoutValue = if (screen == "grid") UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST,
-            headerItemIndex = periodIndex,
             expiredItemsMode = UserPreferences.EXPIRED_ITEMS_SHOW,
-            progressDisplayMode = UserPreferences.PROGRESS_DISPLAY_FULL,
+            progressDisplayMode = if (screen == "progress-hidden") UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
             topItems = periodItems,
             customItems = when (screen) {
                 "empty" -> emptyList()
@@ -190,7 +196,7 @@ private fun GalleryScreen(
                 else -> sampleItems
             },
             initialShowAll = screen == "grid" || screen == "items",
-            onOpenSettings = {}, onSortChange = {}, onLayoutChange = {}, onHeaderItemChange = { periodIndex = it },
+            onOpenSettings = {}, onSortChange = {}, onLayoutChange = {},
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
         )
     }

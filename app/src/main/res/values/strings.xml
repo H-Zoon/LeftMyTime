@@ -225,10 +225,6 @@
     <string name="home_next_ranges">Next ranges</string>
     <string name="home_add_range">Add range</string>
     <string name="home_no_next_range">No upcoming time ranges.</string>
-    <plurals name="home_view_all_count">
-        <item quantity="one">View all %1$d schedule</item>
-        <item quantity="other">View all %1$d schedules</item>
-    </plurals>
     <string name="card_details_expanded">Details expanded</string>
     <string name="card_details_collapsed">Details collapsed</string>
     <string name="editor_more_options">More options</string>
@@ -261,4 +257,10 @@
     <string name="date_month_field">Month</string>
     <string name="date_day_field">Day</string>
     <string name="date_input_invalid">Enter a valid date.</string>
+    <string name="period_summary_title">Time left</string>
+    <string name="period_tap_hint">You can tap each period to see details</string>
+    <string name="period_show_details">Show period details</string>
+    <string name="period_close_details">Close period details</string>
+    <string name="period_summary_description">%1$s, %2$s left</string>
+    <string name="period_days_explanation">Remaining days exclude today.</string>
 </resources>

@@ -5,6 +5,7 @@ object UserPreferences {
     const val KEY_COLOR_THEME = "color_theme"
     const val KEY_HOME_SORT = "home_sort"
     const val KEY_HOME_LAYOUT = "home_layout"
+    // Legacy key: calendar details now open only from the period the user taps.
     const val KEY_HOME_HEADER_INDEX = "home_header_index"
     const val KEY_START_SCREEN = "start_screen"
     const val KEY_EXPIRED_ITEMS = "expired_items"

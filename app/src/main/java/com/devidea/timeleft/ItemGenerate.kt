@@ -33,6 +33,8 @@ class ItemGenerate @Inject constructor(
         return AdapterItem(
             title = context.getString(R.string.home_today_title),
             remainingSeconds = progress.durationLeft.seconds.coerceAtLeast(0),
+            startLabel = "00:00",
+            endLabel = "23:59:59",
             percent = roundPercent(progress.percentElapsed),
             leftString = leftText,
             widgetString = context.getString(
@@ -48,6 +50,8 @@ class ItemGenerate @Inject constructor(
         return AdapterItem(
             title = context.getString(R.string.home_year_title, today.year),
             remainingDays = progress.daysLeft,
+            startLabel = today.withDayOfYear(1).toString(),
+            endLabel = today.withDayOfYear(today.lengthOfYear()).toString(),
             percent = roundPercent(progress.percentElapsed),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
@@ -60,6 +64,8 @@ class ItemGenerate @Inject constructor(
         return AdapterItem(
             title = context.getString(R.string.home_month_title, monthName),
             remainingDays = progress.daysLeft,
+            startLabel = today.withDayOfMonth(1).toString(),
+            endLabel = today.withDayOfMonth(today.lengthOfMonth()).toString(),
             percent = roundPercent(progress.percentElapsed),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )

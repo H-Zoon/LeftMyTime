@@ -224,9 +224,6 @@
     <string name="home_next_ranges">다음 구간</string>
     <string name="home_add_range">구간 추가</string>
     <string name="home_no_next_range">예정된 시간 구간이 없습니다.</string>
-    <plurals name="home_view_all_count">
-        <item quantity="other">전체 일정 %1$d개 보기</item>
-    </plurals>
     <string name="card_details_expanded">상세 정보 펼침</string>
     <string name="card_details_collapsed">상세 정보 접힘</string>
     <string name="editor_more_options">추가 설정</string>
@@ -257,4 +254,10 @@
     <string name="date_month_field">월</string>
     <string name="date_day_field">일</string>
     <string name="date_input_invalid">올바른 날짜를 입력해 주세요.</string>
+    <string name="period_summary_title">남은 시간</string>
+    <string name="period_tap_hint">각 기간을 누르면 자세히 볼 수 있어요</string>
+    <string name="period_show_details">기간 자세히 보기</string>
+    <string name="period_close_details">기간 상세 닫기</string>
+    <string name="period_summary_description">%1$s, %2$s 남음</string>
+    <string name="period_days_explanation">남은 일수는 오늘을 제외한 날짜 수입니다.</string>
 </resources>

@@ -28,7 +28,7 @@ internal fun remainingTimeLabel(seconds: Long?, days: Int?, fallback: String = "
 /** Units stay attached to their values; groups wrap instead of shrinking accessible text. */
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-internal fun RemainingTimeText(item: AdapterItem, hero: Boolean, modifier: Modifier = Modifier) {
+internal fun RemainingTimeText(item: AdapterItem, hero: Boolean, modifier: Modifier = Modifier, compact: Boolean = false) {
     val seconds = item.remainingSeconds
     val days = item.remainingDays
     val label = remainingTimeLabel(seconds, days, item.countdownText.ifBlank { item.leftString })
@@ -44,7 +44,7 @@ internal fun RemainingTimeText(item: AdapterItem, hero: Boolean, modifier: Modif
     }
     FlowRow(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
+        horizontalArrangement = Arrangement.spacedBy(if (compact) Spacing.xs else Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
         if (groups.isEmpty()) {
@@ -52,13 +52,14 @@ internal fun RemainingTimeText(item: AdapterItem, hero: Boolean, modifier: Modif
         } else {
             groups.forEachIndexed { index, (value, unit) ->
                 val numberStyle = when {
+                    compact -> MaterialTheme.typography.titleLarge
                     !hero -> MaterialTheme.typography.displaySmall
                     groups.size > 1 || value.length > 2 -> MaterialTheme.typography.displayMedium
                     else -> MaterialTheme.typography.displayLarge
                 }
-                val unitLabel = if (index == groups.lastIndex) unit + " " + stringResource(R.string.time_remaining) else unit
-                val unitStyle = if (hero) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium
-                if (LocalDensity.current.fontScale > 1.5f) {
+                val unitLabel = if (!compact && index == groups.lastIndex) unit + " " + stringResource(R.string.time_remaining) else unit
+                val unitStyle = if (compact) MaterialTheme.typography.bodySmall else if (hero) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium
+                if (!compact && LocalDensity.current.fontScale > 1.5f) {
                     Column {
                         Text(value, style = numberStyle, maxLines = 1)
                         Text(unitLabel, style = unitStyle, color = MaterialTheme.colorScheme.onSurfaceVariant)
