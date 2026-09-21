@@ -33,6 +33,7 @@ import com.devidea.timeleft.widget.WidgetDimensions
 import com.devidea.timeleft.widget.WidgetSource
 import com.devidea.timeleft.widget.WidgetConfigureRoute
 import com.devidea.timeleft.widget.WidgetSaveResult
+import com.devidea.timeleft.widget.LocalWidgetPinAllowed
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
@@ -72,7 +73,7 @@ open class DesignGalleryActivity : ComponentActivity() {
         }
         setContent {
             val density = LocalDensity.current
-            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale)) {
+            CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale), LocalWidgetPinAllowed provides false) {
                 TimeLeftTheme(themeMode = mode, paletteKey = palette) {
                     GalleryScreen(screen, palette, mode, intent.getBooleanExtra("exportWidget", false))
                 }
@@ -95,12 +96,14 @@ private val sampleItems = listOf(
     AdapterItem(
         id = 2, title = "가족과 함께하는 제주 여행 준비", percent = 62f, type = ItemType.Date, remainingDays = 12,
         countdownText = "D-12", dueText = "2026-10-01까지", leftString = "12일 남음",
+        startLabel = "2026-09-01", endLabel = "2026-10-01",
         category = "여행", colorKey = "blue", iconKey = "flight", reminderText = "하루 전",
         remainingSortKey = 1_036_800
     ),
     AdapterItem(
         id = 3, type = ItemType.Date, remainingDays = -3, title = "완료한 일정", percent = 100f, countdownText = "D+3",
-        dueText = "2026-09-16까지", leftString = "3일 지남", isExpired = true
+        dueText = "2026-09-16까지", leftString = "3일 지남", isExpired = true,
+        startLabel = "2026-09-01", endLabel = "2026-09-16",
     )
 )
 
@@ -147,7 +150,8 @@ private fun GalleryScreen(
                     itemId = if (screen.contains("deleted")) 900 else 1,
                     legacySummary = screen.contains("legacy"),
                 ),
-                dimensions = if (screen.contains("small")) WidgetDimensions(110, 74) else WidgetDimensions(280, 185),
+                dimensions = if (screen.contains("small")) WidgetDimensions(110, 74)
+                    else WidgetDimensions.previewFor(if (screen.contains("overview")) WidgetSource.Overview else WidgetSource.Custom),
                 paletteKey = paletteKey, themeMode = themeMode,
                 loadItems = {
                     if (failNextLoad[0]) {
@@ -162,13 +166,28 @@ private fun GalleryScreen(
         }
         screen.startsWith("widget-") -> {
             val sizeName = when {
+                screen.contains("4x1") -> "4x1"
+                screen.contains("4x2") -> "4x2"
                 screen.contains("small") -> "Compact"
                 screen.contains("wide") -> "Wide"
                 screen.contains("medium") -> "Medium"
                 else -> "Large"
             }
-            val width = when (sizeName) { "Compact" -> if (screen.endsWith("min")) 110 else 160; "Medium" -> 220; else -> 300 }
-            val height = when (sizeName) { "Compact" -> if (screen.endsWith("min")) 74 else 100; "Wide" -> 88; "Medium" -> 200; else -> 320 }
+            val width = when (sizeName) {
+                "4x1", "4x2" -> if (screen.endsWith("min") || screen.contains("narrow")) 250 else 320
+                "Compact" -> if (screen.endsWith("min")) 110 else 160
+                "Medium" -> 250
+                "Wide" -> 400
+                else -> 360
+            }
+            val height = when (sizeName) {
+                "4x1" -> if (screen.endsWith("min")) WidgetDimensions.OverviewMinimum.height else 96
+                "4x2" -> if (screen.endsWith("min")) WidgetDimensions.Minimum.height else 200
+                "Compact" -> if (screen.endsWith("min")) 74 else 100
+                "Wide" -> 200
+                "Medium" -> if (screen.contains("overview")) 240 else 200
+                else -> 320
+            }
             val base = LocalContext.current
             val config = android.content.res.Configuration(base.resources.configuration).apply { fontScale = LocalDensity.current.fontScale }
             val context = base.createConfigurationContext(config)
@@ -181,6 +200,10 @@ private fun GalleryScreen(
             }
             val item = when {
                 screen.contains("missing") -> null
+                screen.contains("waiting") -> sampleItems.first { it.id == 4 }
+                screen.contains("expired") -> sampleItems.first { it.id == 3 }
+                screen.contains("date") -> sampleItems.first { it.id == 2 }
+                screen.contains("under-minute") -> sampleItems.first { it.id == 1 }.copy(remainingSeconds = 30)
                 source == WidgetSource.Today -> periodItems[0]
                 source == WidgetSource.Month -> periodItems[1]
                 source == WidgetSource.Year -> periodItems[2]
@@ -188,12 +211,13 @@ private fun GalleryScreen(
             }
             val views = AppWidget().previewViews(
                 context, WidgetDimensions(width, height),
-                WidgetConfiguration(source = source, itemId = 1, legacySummary = screen.contains("legacy")),
-                item, periodItems, paletteKey, themeMode == UserPreferences.THEME_DARK,
+                WidgetConfiguration(source = source, itemId = 1, showRemaining = !screen.contains("countdown"), legacySummary = screen.contains("legacy")),
+                item?.let { if (screen.contains("long")) it.copy(title = longTitle) else it }, periodItems, paletteKey, themeMode == UserPreferences.THEME_DARK,
                 emptyMessage = R.string.widget_item_unavailable,
+                showProgress = !screen.contains("hidden"),
             )
             Surface(color = MaterialTheme.colorScheme.outlineVariant) {
-                Column(Modifier.fillMaxSize().padding(10.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Column(Modifier.fillMaxSize().safeDrawingPadding().padding(10.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
                     Text("RemoteViews · $sizeName · $width × $height", style = MaterialTheme.typography.bodySmall)
                     AndroidView(factory = {
                         views.apply(context, null).also { view ->

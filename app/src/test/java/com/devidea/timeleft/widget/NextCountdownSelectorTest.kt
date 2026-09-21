@@ -24,4 +24,12 @@ class NextCountdownSelectorTest {
         assertEquals(3, NextCountdownSelector.select(items, LocalTime.of(15, 0), today)?.id)
         assertNull(NextCountdownSelector.select(emptyList(), LocalTime.NOON, today))
     }
+
+    @Test fun `expired dates alone leave the automatic widget empty`() {
+        assertNull(NextCountdownSelector.select(listOf(date(1, "2026-09-16"), date(2, "2026-09-17")), LocalTime.NOON, today))
+    }
+
+    @Test fun `expired date never replaces an upcoming date`() {
+        assertEquals(2, NextCountdownSelector.select(listOf(date(1, "2026-09-17"), date(2, "2026-09-20")), LocalTime.NOON, today)?.id)
+    }
 }

@@ -15,7 +15,6 @@ internal object NextCountdownSelector {
             .filterNot { it.second.expired }
             .minWithOrNull(compareBy<Pair<ItemEntity, CountdownRank>> { it.second.priority }
                 .thenBy { it.second.seconds }.thenBy { it.first.id })?.first
-            ?: entities.firstOrNull()
 
     private fun rank(entity: ItemEntity, now: LocalTime, today: LocalDate): CountdownRank = when (entity.type) {
         ItemType.Time -> {

@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- RemoteViews equivalents of Spacing.l/s/xs and the v2 typography roles. -->
+    <dimen name="widget_padding">16dp</dimen>
+    <!-- Short widgets keep horizontal breathing room but use Spacing.s vertically. -->
+    <dimen name="widget_compact_vertical_padding">8dp</dimen>
+    <dimen name="widget_gap">8dp</dimen>
+    <dimen name="widget_small_gap">4dp</dimen>
+    <dimen name="widget_section_gap">16dp</dimen>
+    <dimen name="widget_touch_target">48dp</dimen>
+    <dimen name="widget_title_size">14sp</dimen>
+    <dimen name="widget_value_size">30sp</dimen>
+    <dimen name="widget_large_value_size">56sp</dimen>
+    <dimen name="widget_unit_size">14sp</dimen>
+    <dimen name="widget_summary_value_size">22sp</dimen>
+    <dimen name="widget_message_value_size">22sp</dimen>
+    <dimen name="widget_label_size">12sp</dimen>
+    <dimen name="widget_ruler_height">28dp</dimen>
+    <dimen name="widget_min_width">250dp</dimen>
+    <!-- Legacy launcher cell hints (70 * cells - 30), distinct from rendering bounds.
+         Some hosts still infer the picker/default span from these alongside targetCellHeight. -->
+    <dimen name="widget_host_min_height">110dp</dimen>
+    <dimen name="widget_overview_host_min_height">40dp</dimen>
+    <!-- Real content bounds: verify actual text and available size in the renderer as well. -->
+    <dimen name="widget_min_height">160dp</dimen>
+    <dimen name="widget_overview_min_height">64dp</dimen>
+    <!-- Representative previews, not a conversion from launcher cells to dp. -->
+    <dimen name="widget_preview_width">320dp</dimen>
+    <dimen name="widget_preview_height">200dp</dimen>
+    <dimen name="widget_overview_preview_height">96dp</dimen>
+    <dimen name="widget_background_radius">24dp</dimen>
+    <style name="WidgetTextBase">
+        <item name="android:fontFamily">sans-serif</item>
+        <item name="android:textStyle">normal</item>
+        <item name="android:includeFontPadding">false</item>
+        <item name="android:breakStrategy">simple</item>
+        <item name="android:hyphenationFrequency">none</item>
+        <item name="android:textColor">@color/widget_on_surface</item>
+        <item name="android:textSize">@dimen/widget_title_size</item>
+    </style>
+    <style name="WidgetText" parent="WidgetTextBase" />
+    <style name="WidgetText.Value">
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:textSize">@dimen/widget_value_size</item>
+    </style>
+    <style name="WidgetText.Label">
+        <item name="android:textColor">@color/widget_on_surface_variant</item>
+        <item name="android:textSize">@dimen/widget_label_size</item>
+    </style>
+    <style name="WidgetText.Summary">
+        <item name="android:fontFamily">sans-serif-medium</item>
+        <item name="android:fontFeatureSettings">tnum</item>
+        <item name="android:textSize">@dimen/widget_summary_value_size</item>
+    </style>
+</resources>

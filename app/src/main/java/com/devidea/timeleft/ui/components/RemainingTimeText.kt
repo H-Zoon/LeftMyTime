@@ -12,9 +12,9 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.platform.LocalContext
 import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.remainingTimeGroups
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
 import com.devidea.timeleft.AdapterItem
@@ -33,15 +33,7 @@ internal fun RemainingTimeText(item: AdapterItem, hero: Boolean, modifier: Modif
     val days = item.remainingDays
     val label = remainingTimeLabel(seconds, days, item.countdownText.ifBlank { item.leftString })
     val description = stringResource(R.string.time_remaining_description, label)
-    val groups = when {
-        days != null -> listOf(days.coerceAtLeast(0).toString() to pluralStringResource(R.plurals.time_unit_days, days.coerceAtLeast(0)))
-        seconds == null || seconds < 60 -> emptyList()
-        seconds < 3600 -> listOf((seconds / 60).toString() to stringResource(R.string.time_unit_minutes))
-        else -> listOf(
-            (seconds / 3600).toString() to stringResource(R.string.time_unit_hours),
-            (seconds % 3600 / 60).toString() to stringResource(R.string.time_unit_minutes)
-        )
-    }
+    val groups = remainingTimeGroups(LocalContext.current, seconds, days)
     FlowRow(
         modifier = modifier.clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(if (compact) Spacing.xs else Spacing.m),

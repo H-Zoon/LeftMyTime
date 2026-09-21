@@ -8,6 +8,8 @@ import com.devidea.timeleft.calc.TimeProgressCalculator
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.remainingTimeGroups
+import com.devidea.timeleft.RemainingTimeGroup
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
@@ -35,19 +37,29 @@ internal fun AdapterItem.toWidgetData(
         context, if (waiting) secondsUntilStart else remainingSeconds,
         remainingDays?.takeIf { it >= 0 }, countdownText.ifBlank { leftString }
     )
+    val useCountdown = !showRemaining && (type == ItemType.Date || (useWidgetString && !waiting)) && countdownText.isNotBlank()
     val value = when {
-        !showRemaining && (type == ItemType.Date || (useWidgetString && !waiting)) -> countdownText.ifBlank { remainingText }
+        useCountdown -> countdownText
         else -> remainingText
     }
-    val meta = when {
-        waiting -> context.getString(R.string.time_until_start)
-        dueText.isNotBlank() -> dueText
-        else -> context.getString(R.string.time_remaining)
+    val valueTemplateRes = when {
+        waiting -> R.string.widget_value_until_start
+        isExpired || (remainingDays ?: 0) < 0 -> null
+        useCountdown && type == ItemType.Date -> null // D-day already expresses its own state.
+        else -> R.string.widget_value_remaining
     }
+    // The renderer hides the repeated deadline when the range is visible, retaining it otherwise.
+    val meta = dueText
+    val spokenValue = valueTemplateRes?.let { context.getString(it).replace("^1", value) } ?: value
+    val groups = if (useCountdown) emptyList() else remainingTimeGroups(context,
+        if (waiting) secondsUntilStart else remainingSeconds, remainingDays?.takeIf { it >= 0 })
     return WidgetDisplayData(
         title = title, value = value, meta = meta,
         progress = percent.toInt().coerceIn(0, 100),
-        accessibilityText = "$title, $value, $meta"
+        accessibilityText = listOf(title, spokenValue, meta).filter { it.isNotBlank() }.joinToString(", "),
+        valueTemplateRes = valueTemplateRes,
+        groups = groups, isTextValue = !useCountdown && groups.isEmpty(),
+        startLabel = startLabel, endLabel = endLabel,
     )
 }
 
@@ -58,4 +70,9 @@ internal data class WidgetDisplayData(
     val meta: String,
     val progress: Int,
     val accessibilityText: String,
+    val groups: List<RemainingTimeGroup> = emptyList(),
+    val startLabel: String = "",
+    val endLabel: String = "",
+    val isTextValue: Boolean = false,
+    val valueTemplateRes: Int? = null,
 )

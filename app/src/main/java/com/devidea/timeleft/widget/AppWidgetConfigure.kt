@@ -84,7 +84,8 @@ class AppWidgetConfigure : AppCompatActivity() {
                 WidgetConfigureRoute(
                     initial = initial,
                     isEditing = isEditing,
-                    dimensions = WidgetDimensions.fromOptions(AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId)),
+                    dimensions = WidgetDimensions.fromOptions(AppWidgetManager.getInstance(this).getAppWidgetOptions(widgetId), initial.source),
+                    showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
                     paletteKey = currentPaletteKey(),
                     themeMode = currentThemeMode(),
                     loadItems = { repository.allItems().map { it.forWidgetPreview() } },
@@ -112,14 +113,7 @@ class AppWidgetConfigure : AppCompatActivity() {
     }
 
     private fun persistAndFinish(configuration: WidgetConfiguration, appWidgetManager: AppWidgetManager) {
-        val value = if (configuration.source == WidgetSource.Custom) {
-            requireNotNull(configuration.itemId).toString()
-        } else configuration.source.prefValue
-        prefs.edit()
-            .putString(widgetId.toString(), value)
-            .putBoolean("${widgetId}option", configuration.showRemaining)
-            .putString(WidgetConfiguration.displayKey(widgetId), if (configuration.legacySummary) "legacy" else "focused")
-            .apply()
+        configuration.write(prefs, widgetId)
         setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
         AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
         finish()
@@ -147,6 +141,7 @@ internal fun WidgetConfigureRoute(
     onBack: () -> Unit,
     onSave: suspend (WidgetConfiguration) -> WidgetSaveResult,
     isEditing: Boolean = false,
+    showProgress: Boolean = true,
 ) {
     var items by remember { mutableStateOf<List<ItemEntity>>(emptyList()) }
     var loading by remember { mutableStateOf(true) }
@@ -219,7 +214,7 @@ internal fun WidgetConfigureRoute(
     val configuration = WidgetConfiguration(source, selectedItemId, showRemaining,
         legacySummary && source != WidgetSource.Overview)
     WidgetConfigureScreen(
-        configuration = configuration, dimensions = dimensions, paletteKey = paletteKey,
+        configuration = configuration, dimensions = dimensions, paletteKey = paletteKey, showProgress = showProgress,
         dark = when (themeMode) {
             UserPreferences.THEME_DARK -> true
             UserPreferences.THEME_LIGHT -> false
@@ -261,6 +256,7 @@ private fun WidgetConfigureScreen(
     dimensions: WidgetDimensions,
     paletteKey: String,
     dark: Boolean,
+    showProgress: Boolean,
     items: List<ItemEntity>,
     loading: Boolean,
     loadFailed: Boolean,
@@ -351,7 +347,7 @@ private fun WidgetConfigureScreen(
                     Text(stringResource(R.string.widget_auto_empty_hint), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                WidgetPreviewBand(dimensions, configuration, previewItem, periods, paletteKey, dark, emptyMessage)
+                WidgetPreviewBand(dimensions, configuration, previewItem, periods, paletteKey, dark, emptyMessage, showProgress)
                 if (showFormat) {
                     Column(Modifier.selectableGroup()) {
                         WidgetSectionLabel(stringResource(R.string.widget_display_format))
@@ -455,6 +451,7 @@ private fun WidgetPreviewBand(
     paletteKey: String,
     dark: Boolean,
     emptyMessage: Int,
+    showProgress: Boolean,
 ) {
     val base = LocalContext.current
     val previewFontScale = LocalDensity.current.fontScale
@@ -463,17 +460,21 @@ private fun WidgetPreviewBand(
             fontScale = previewFontScale
         })
     }
-    val views = AppWidget().previewViews(context, dimensions, configuration, item, periods, paletteKey, dark, emptyMessage)
+    val meetsMinimum = dimensions.meetsMinimumFor(configuration.source)
+    val previewDimensions = if (meetsMinimum) dimensions else WidgetDimensions.previewFor(configuration.source)
+    val views = AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress)
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        WidgetSectionLabel(stringResource(R.string.widget_preview_current_size))
-        if (configuration.source == WidgetSource.Overview && views.layoutId == R.layout.app_widget_overview_resize) {
-            Text(stringResource(R.string.widget_overview_size_hint), style = MaterialTheme.typography.bodyMedium,
+        WidgetSectionLabel(stringResource(if (meetsMinimum) R.string.widget_preview_current_size else R.string.widget_preview_recommended_size))
+        Text(stringResource(if (configuration.source == WidgetSource.Overview) R.string.widget_overview_size_hint else R.string.widget_minimum_size_hint), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (!meetsMinimum || views.layoutId == R.layout.app_widget_resize) {
+            Text(stringResource(R.string.widget_size_hint), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {
             val availableWidth = maxWidth
             Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                if (dimensions.width.dp > availableWidth) {
+                if (previewDimensions.width.dp > availableWidth) {
                     Text(stringResource(R.string.widget_preview_scroll_hint), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
@@ -484,7 +485,7 @@ private fun WidgetPreviewBand(
                             parent.removeAllViews()
                             parent.addView(views.apply(context, parent))
                         },
-                        modifier = Modifier.width(dimensions.width.dp).height(dimensions.height.dp),
+                        modifier = Modifier.width(previewDimensions.width.dp).height(previewDimensions.height.dp),
                     )
                 }
             }

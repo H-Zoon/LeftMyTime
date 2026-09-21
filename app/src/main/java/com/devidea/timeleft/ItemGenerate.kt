@@ -154,6 +154,8 @@ class ItemGenerate @Inject constructor(
         return AdapterItem(
             type = ItemType.Date,
             remainingDays = progress.daysLeft,
+            startLabel = startDate.toString(),
+            endLabel = endDate.toString(),
             id = itemEntity.id,
             title = itemEntity.title,
             startString = context.getString(R.string.card_date_start, startDate.toString()),

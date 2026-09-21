@@ -173,6 +173,7 @@ class SettingsActivity : AppCompatActivity() {
     private fun selectProgressDisplayMode(value: String) {
         prefs.edit().putString(UserPreferences.KEY_PROGRESS_DISPLAY, value).apply()
         progressDisplayMode = value
+        updateWidgets()
     }
 
     private fun selectDefaultDateReminder(value: Int) {

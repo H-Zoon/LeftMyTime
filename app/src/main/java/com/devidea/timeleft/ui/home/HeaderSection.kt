@@ -28,6 +28,8 @@ import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import kotlinx.coroutines.launch
+import com.devidea.timeleft.widget.PinWidgetButton
+import com.devidea.timeleft.widget.WidgetSource
 
 /** All calendar periods remain visible; only an explicit action opens a larger view. */
 @Composable
@@ -128,6 +130,9 @@ internal fun HeaderSection(
                     if (item.remainingDays != null) {
                         Text(stringResource(R.string.period_days_explanation), style = MaterialTheme.typography.bodySmall,
                             color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                    listOf(WidgetSource.Today, WidgetSource.Month, WidgetSource.Year).getOrNull(position)?.let { source ->
+                        PinWidgetButton(item, source)
                     }
                 }
             }

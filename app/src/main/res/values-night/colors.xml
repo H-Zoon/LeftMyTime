@@ -5,4 +5,5 @@
     <color name="widget_on_surface_variant">#FFA7AFA5</color>
 
     <color name="activity_background">#FF181B19</color>
+    <color name="widget_track">#3C443C</color>
 </resources>

@@ -5,9 +5,6 @@
     <string name="widget_medium_label">이번 달</string>
     <string name="widget_wide_label">올해</string>
     <string name="widget_large_label">기간 요약</string>
-    <string name="widget_preview_title">여행 카운트다운</string>
-    <string name="widget_preview_value">D-12</string>
-    <string name="widget_preview_meta">6월 30일까지</string>
     <string name="widget_preview_today">오늘 · 7시간 12분 남음</string>
     <string name="widget_preview_month">이번 달 · 8일 남음</string>
     <string name="widget_preview_year">올해 · 192일 남음</string>
@@ -262,7 +259,6 @@
     <string name="period_days_explanation">남은 일수는 오늘을 제외한 날짜 수입니다.</string>
     <string name="widget_configure_overview">기간 요약</string>
     <string name="widget_overview_resize">크기를 늘려 주세요</string>
-    <string name="widget_overview_size_hint">현재 크기에는 세 기간이 모두 들어가지 않아요. 적용 후 홈 화면에서 위젯을 길게 눌러 크기를 늘려 주세요.</string>
     <string name="widget_legacy_summary_option">큰 위젯에 기간 요약 함께 표시</string>
     <string name="widget_no_upcoming">표시할 일정이 없어요</string>
     <string name="widget_item_unavailable">일정을 다시 선택해 주세요</string>
@@ -299,4 +295,19 @@
     <string name="widget_schedule_time">시간 구간</string>
     <string name="widget_schedule_date">날짜 일정</string>
     <string name="widget_preview_placeholder">—</string>
+    <!-- ^1 is the styled value; keep exactly one placeholder and localize word order. -->
+    <string name="widget_value_remaining">^1 남음</string>
+    <string name="widget_value_until_start">시작까지 ^1</string>
+    <string name="widget_range_start">시작 %1$s</string>
+    <string name="widget_range_end">종료 %1$s</string>
+    <string name="widget_range_start_placeholder">시작 —</string>
+    <string name="widget_range_end_placeholder">종료 —</string>
+    <string name="widget_resize_required">크기를 늘려 주세요</string>
+    <string name="widget_size_hint">시간을 온전히 표시하려면 공간이 더 필요해요. 홈 화면에서 위젯을 길게 누른 뒤 가장자리를 끌어 크기를 늘려 주세요. 큰 글자나 긴 제목에는 더 넓은 공간이 필요할 수 있어요.</string>
+    <string name="widget_minimum_size_hint">홈 화면에서 4 × 2칸으로 시작해 보세요. 실제 크기는 홈 앱에 따라 달라요.</string>
+    <string name="widget_overview_size_hint">홈 화면에서 4 × 1칸으로 시작해 보세요. 실제 크기는 홈 앱에 따라 달라요.</string>
+    <string name="widget_preview_recommended_size">미리보기 · 권장 크기</string>
+    <string name="widget_pin_action">홈 화면에 위젯 추가</string>
+    <string name="widget_pin_unsupported">현재 홈 앱에서는 바로 추가할 수 없어요. 홈 화면의 빈 곳을 길게 누르고 ‘위젯’에서 TimeLeft를 선택해 주세요.</string>
+    <string name="widget_pin_failed">위젯 미리보기를 열지 못했어요. 다시 시도해 주세요.</string>
 </resources>

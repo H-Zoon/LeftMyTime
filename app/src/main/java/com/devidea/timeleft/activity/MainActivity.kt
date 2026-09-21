@@ -18,6 +18,7 @@ import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
+import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.AndroidEntryPoint
 import javax.inject.Inject
 
@@ -97,6 +98,7 @@ class MainActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
         if (::prefs.isInitialized) refreshPreferences()
+        AppWidget.updateAllWidgets(this, android.appwidget.AppWidgetManager.getInstance(this))
     }
 
     private fun refreshPreferences() {

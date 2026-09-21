@@ -1,80 +1,97 @@
 package com.devidea.timeleft.widget
 
 import android.content.Context
-import android.graphics.Typeface
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
-import android.util.TypedValue
 import android.widget.RemoteViews
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.remainingTimeGroups
 import kotlin.math.ceil
+import kotlin.math.max
+import kotlin.math.roundToInt
 
-/** The measurements mirror the two overview XML layouts. Never drop an individual period to fit. */
+/** All three periods keep equal typography; measure actual spans before selecting a layout. */
 internal fun createOverviewViews(
     context: Context,
     dimensions: WidgetDimensions,
     periods: List<AdapterItem>,
-    background: Int,
-    foreground: Int,
-    muted: Int,
+    palette: WidgetPalette,
 ): RemoteViews {
-    val metrics = context.resources.displayMetrics
-    fun dp(value: Int) = value * metrics.density
+    if (!dimensions.meetsMinimumFor(WidgetSource.Overview) || periods.size < 3) return resizeWidgetViews(context, palette)
+    val measure = WidgetTextMeasure(context)
     val labels = listOf(R.string.period_today, R.string.period_month, R.string.period_year).map(context::getString)
-    val values = periods.take(3).map {
-        formatRemainingTime(context, it.remainingSeconds, it.remainingDays, it.leftString)
-            .replace(Regex("""(\d+)\s+(\p{L}+)""")) { match -> "${match.groupValues[1]}\u00a0${match.groupValues[2]}" }
+    val plainValues = periods.take(3).map { formatRemainingTime(context, it.remainingSeconds, it.remainingDays, it.leftString) }
+    val values = periods.take(3).mapIndexed { index, item ->
+        widgetValueText(context, remainingTimeGroups(context, item.remainingSeconds, item.remainingDays),
+            plainValues[index], R.dimen.widget_label_size, palette.muted)
     }
-    val title = context.getString(R.string.period_summary_title)
-    fun textPaint(sp: Float) = TextPaint().apply {
-        textSize = TypedValue.applyDimension(TypedValue.COMPLEX_UNIT_SP, sp, metrics)
-        typeface = Typeface.create("sans", Typeface.NORMAL)
-        fontFeatureSettings = "tnum"
+    val padding = measure.px(R.dimen.widget_padding)
+    val verticalPadding = measure.px(R.dimen.widget_compact_vertical_padding)
+    val gap = measure.px(R.dimen.widget_gap)
+    val smallGap = measure.px(R.dimen.widget_small_gap)
+    val touch = measure.px(R.dimen.widget_touch_target)
+    val width = measure.dp(dimensions.width.toFloat()) - padding * 2
+    // A short widget cannot reserve an extra title row. The period labels and accessibility
+    // descriptions retain the meaning; column widths follow the actual number/unit groups.
+    val availableColumnsWidth = (width - gap * 2).toInt()
+    val minimumWidths = labels.indices.map { index ->
+        ceil(maxOf(touch, measure.unbrokenWidth(labels[index], R.dimen.widget_label_size),
+            measure.unbrokenWidth(values[index], R.dimen.widget_summary_value_size)).toDouble()).toInt()
     }
-    fun textHeight(text: String, sp: Float, width: Float): Int {
-        return StaticLayout.Builder.obtain(text, 0, text.length, textPaint(sp), width.toInt().coerceAtLeast(1))
-            .setAlignment(Layout.Alignment.ALIGN_NORMAL).setIncludePad(true).build().height
+    val preferredWidths = labels.indices.map { index ->
+        ceil(maxOf(minimumWidths[index].toFloat(), measure.width(labels[index], R.dimen.widget_label_size),
+            measure.width(values[index], R.dimen.widget_summary_value_size)).toDouble()).toInt()
     }
-    val innerWidth = dp(dimensions.width - 32).coerceAtLeast(1f)
+    val columnWidths = if (minimumWidths.sum() <= availableColumnsWidth) {
+        val extra = availableColumnsWidth - minimumWidths.sum()
+        val wanted = preferredWidths.sum() - minimumWidths.sum()
+        val widths = if (extra >= wanted) {
+            // Preserve today's breathing room once every period fits on one line.
+            preferredWidths.mapIndexed { index, value -> value + ((extra - wanted) * (if (index == 0) 1.5f else 1f) / 3.5f).toInt() }
+        } else {
+            minimumWidths.mapIndexed { index, value -> value + (extra.toFloat() * (preferredWidths[index] - value) / wanted).toInt() }
+        }.toMutableList()
+        widths[0] += availableColumnsWidth - widths.sum()
+        widths
+    } else null
     fun fits(horizontal: Boolean): Boolean {
-        val columnWidth = if (horizontal) innerWidth / 3 - dp(8) else innerWidth
-        if (columnWidth < dp(64) || values.size != 3) return false
-        // Keep each number and its unit together instead of breaking them across narrow columns.
-        val valuePaint = textPaint(22f)
-        if (values.any { value -> value.split(' ').any { valuePaint.measureText(it) > columnWidth } }) return false
         val heights = labels.indices.map { index ->
-            textHeight(labels[index], 12f, columnWidth) + dp(4) + textHeight(values[index], 22f, columnWidth)
+            val valueWidth = if (horizontal) {
+                columnWidths?.get(index)?.toFloat() ?: return false
+            } else (width - gap) * 2 / 3
+            val labelWidth = if (horizontal) valueWidth else (width - gap) / 3
+            if (!measure.fitsUnbroken(values[index], R.dimen.widget_summary_value_size, valueWidth)) return false
+            val labelHeight = measure.height(labels[index], R.dimen.widget_label_size, labelWidth)
+            val valueHeight = measure.height(values[index], R.dimen.widget_summary_value_size, valueWidth)
+            max(touch, if (horizontal) labelHeight + smallGap + valueHeight else max(labelHeight, valueHeight).toFloat())
         }
-        val rowsHeight = if (horizontal) heights.maxOrNull() ?: 0f else heights.sum() + dp(24)
-        val required = dp(32 + 12 + 4) + textHeight(title, 14f, innerWidth) + rowsHeight
-        return ceil(required.toDouble()) <= dp(dimensions.height)
+        val required = verticalPadding * 2 +
+            (if (horizontal) heights.maxOrNull() ?: 0f else heights.sum() + gap * 2)
+        return ceil(required.toDouble()) <= measure.dp(dimensions.height.toFloat())
     }
-    val horizontal = fits(true)
     val layout = when {
-        horizontal -> R.layout.app_widget_overview_wide
+        fits(true) -> R.layout.app_widget_overview_wide
         fits(false) -> R.layout.app_widget_overview
-        else -> R.layout.app_widget_overview_resize
+        else -> return resizeWidgetViews(context, palette)
     }
     return RemoteViews(context.packageName, layout).apply {
-        setInt(R.id.widgetRoot, "setBackgroundResource", background)
-        setTextColor(R.id.summary, muted)
-        if (layout == R.layout.app_widget_overview_resize) {
-            setTextViewText(R.id.summary, context.getString(R.string.widget_overview_resize))
-            setContentDescription(R.id.widgetRoot, context.getString(R.string.widget_overview_size_hint))
-        } else {
-            setTextViewText(R.id.summary, title)
-            val labelIds = listOf(R.id.overviewTodayLabel, R.id.overviewMonthLabel, R.id.overviewYearLabel)
-            val valueIds = listOf(R.id.overviewTodayValue, R.id.overviewMonthValue, R.id.overviewYearValue)
-            labels.indices.forEach { index ->
-                setTextViewText(labelIds[index], labels[index])
-                setTextColor(labelIds[index], muted)
-                setTextViewText(valueIds[index], values[index])
-                setTextColor(valueIds[index], foreground)
-                setContentDescription(valueIds[index], context.getString(R.string.period_summary_description, labels[index], values[index]))
+        setInt(R.id.widgetRoot, "setBackgroundResource", palette.backgroundDrawableRes)
+        setViewPadding(R.id.widgetRoot, padding.roundToInt(), verticalPadding.roundToInt(), padding.roundToInt(), verticalPadding.roundToInt())
+        val rows = listOf(R.id.overviewToday, R.id.overviewMonth, R.id.overviewYear)
+        val labelIds = listOf(R.id.overviewTodayLabel, R.id.overviewMonthLabel, R.id.overviewYearLabel)
+        val valueIds = listOf(R.id.overviewTodayValue, R.id.overviewMonthValue, R.id.overviewYearValue)
+        labels.indices.forEach { index ->
+            if (layout == R.layout.app_widget_overview_wide) {
+                // TextView.setWidth works on pre-Android-12 RemoteViews as well.
+                val columnWidth = requireNotNull(columnWidths)[index]
+                setInt(labelIds[index], "setWidth", columnWidth)
+                setInt(valueIds[index], "setWidth", columnWidth)
             }
+            setTextViewText(labelIds[index], labels[index])
+            setTextColor(labelIds[index], palette.muted)
+            setTextViewText(valueIds[index], values[index])
+            setTextColor(valueIds[index], palette.onSurface)
+            setContentDescription(rows[index], context.getString(R.string.period_summary_description, labels[index], plainValues[index]))
         }
     }
 }

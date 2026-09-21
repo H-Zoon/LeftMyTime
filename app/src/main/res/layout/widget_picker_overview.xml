@@ -1,29 +1,18 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent"
-    android:background="@drawable/widget_picker_background" android:padding="16dp"
-    android:orientation="vertical" android:gravity="center_vertical">
-    <TextView android:id="@+id/summary" android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:fontFamily="sans" android:textSize="14sp" android:textColor="@color/widget_on_surface_variant" android:text="@string/period_summary_title" />
-    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content"
-        android:layout_marginTop="12dp" android:orientation="horizontal">
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:paddingHorizontal="4dp" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:id="@+id/overviewTodayLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no"  android:textColor="@color/widget_on_surface_variant" android:text="@string/period_today" />
-            <TextView android:id="@+id/overviewTodayValue" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp"  android:textColor="@color/widget_on_surface" android:text="@string/widget_preview_placeholder" />
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android" android:id="@+id/widgetRoot" android:layout_width="match_parent" android:layout_height="match_parent" android:background="@drawable/widget_picker_background" android:paddingStart="@dimen/widget_padding" android:paddingEnd="@dimen/widget_padding"
+    android:paddingTop="@dimen/widget_compact_vertical_padding" android:paddingBottom="@dimen/widget_compact_vertical_padding" android:orientation="vertical" android:gravity="center_vertical">
+    <LinearLayout android:layout_width="match_parent" android:layout_height="wrap_content" android:orientation="horizontal">
+        <LinearLayout android:id="@+id/overviewToday" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1.5" android:layout_marginStart="0dp" android:orientation="vertical" android:gravity="center_vertical" android:minHeight="@dimen/widget_touch_target" android:importantForAccessibility="yes" android:focusable="true">
+            <TextView android:id="@+id/overviewTodayLabel" style="@style/WidgetText.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:importantForAccessibility="no" android:text="@string/period_today" />
+            <TextView android:id="@+id/overviewTodayValue" style="@style/WidgetText.Summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/widget_small_gap" android:importantForAccessibility="no" android:text="@string/widget_preview_placeholder" />
         </LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:paddingHorizontal="4dp" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:id="@+id/overviewMonthLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no"  android:textColor="@color/widget_on_surface_variant" android:text="@string/period_month" />
-            <TextView android:id="@+id/overviewMonthValue" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp"  android:textColor="@color/widget_on_surface" android:text="@string/widget_preview_placeholder" />
+        <LinearLayout android:id="@+id/overviewMonth" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/widget_gap" android:orientation="vertical" android:gravity="center_vertical" android:minHeight="@dimen/widget_touch_target" android:importantForAccessibility="yes" android:focusable="true">
+            <TextView android:id="@+id/overviewMonthLabel" style="@style/WidgetText.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:importantForAccessibility="no" android:text="@string/period_month" />
+            <TextView android:id="@+id/overviewMonthValue" style="@style/WidgetText.Summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/widget_small_gap" android:importantForAccessibility="no" android:text="@string/widget_preview_placeholder" />
         </LinearLayout>
-        <LinearLayout android:layout_width="0dp" android:layout_weight="1" android:paddingHorizontal="4dp" android:layout_height="wrap_content" android:orientation="vertical">
-            <TextView android:id="@+id/overviewYearLabel" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:fontFamily="sans" android:textSize="12sp" android:importantForAccessibility="no"  android:textColor="@color/widget_on_surface_variant" android:text="@string/period_year" />
-            <TextView android:id="@+id/overviewYearValue" android:layout_width="match_parent" android:layout_height="wrap_content"
-                android:layout_marginTop="4dp" android:fontFamily="sans" android:fontFeatureSettings="tnum" android:textSize="22sp"  android:textColor="@color/widget_on_surface" android:text="@string/widget_preview_placeholder" />
+        <LinearLayout android:id="@+id/overviewYear" android:layout_width="0dp" android:layout_height="wrap_content" android:layout_weight="1" android:layout_marginStart="@dimen/widget_gap" android:orientation="vertical" android:gravity="center_vertical" android:minHeight="@dimen/widget_touch_target" android:importantForAccessibility="yes" android:focusable="true">
+            <TextView android:id="@+id/overviewYearLabel" style="@style/WidgetText.Label" android:layout_width="match_parent" android:layout_height="wrap_content" android:importantForAccessibility="no" android:text="@string/period_year" />
+            <TextView android:id="@+id/overviewYearValue" style="@style/WidgetText.Summary" android:layout_width="match_parent" android:layout_height="wrap_content" android:layout_marginTop="@dimen/widget_small_gap" android:importantForAccessibility="no" android:text="@string/widget_preview_placeholder" />
         </LinearLayout>
     </LinearLayout>
 </LinearLayout>

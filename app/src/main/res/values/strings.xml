@@ -4,9 +4,6 @@
     <string name="widget_medium_label">This month</string>
     <string name="widget_wide_label">This year</string>
     <string name="widget_large_label">Period overview</string>
-    <string name="widget_preview_title">Trip countdown</string>
-    <string name="widget_preview_value">D-12</string>
-    <string name="widget_preview_meta">Until Jun 30</string>
     <string name="widget_preview_today">Today · 7h 12m left</string>
     <string name="widget_preview_month">This month · 8 days left</string>
     <string name="widget_preview_year">This year · 192 days left</string>
@@ -265,7 +262,6 @@
     <string name="period_days_explanation">Remaining days exclude today.</string>
     <string name="widget_configure_overview">Period overview</string>
     <string name="widget_overview_resize">Enlarge this widget</string>
-    <string name="widget_overview_size_hint">All three periods do not fit at this size. After applying, touch and hold the widget on your home screen to resize it.</string>
     <string name="widget_legacy_summary_option">Include period summary on large widgets</string>
     <string name="widget_no_upcoming">No schedule to display</string>
     <string name="widget_item_unavailable">Select a schedule again</string>
@@ -302,4 +298,19 @@
     <string name="widget_schedule_time">Time range</string>
     <string name="widget_schedule_date">Date schedule</string>
     <string name="widget_preview_placeholder">—</string>
+    <!-- ^1 is the styled value; keep exactly one placeholder and localize word order. -->
+    <string name="widget_value_remaining">^1 left</string>
+    <string name="widget_value_until_start">^1 until start</string>
+    <string name="widget_range_start">Start %1$s</string>
+    <string name="widget_range_end">End %1$s</string>
+    <string name="widget_range_start_placeholder">Start —</string>
+    <string name="widget_range_end_placeholder">End —</string>
+    <string name="widget_resize_required">Enlarge this widget</string>
+    <string name="widget_size_hint">To show the time clearly, this widget needs more space. Touch and hold it on your home screen, then drag its edges to enlarge it. Larger text or long titles may need extra space.</string>
+    <string name="widget_minimum_size_hint">Start with 4 × 2 home screen cells. The exact size depends on your home app.</string>
+    <string name="widget_overview_size_hint">Start with 4 × 1 home screen cells. The exact size depends on your home app.</string>
+    <string name="widget_preview_recommended_size">Preview · suggested size</string>
+    <string name="widget_pin_action">Add to home screen</string>
+    <string name="widget_pin_unsupported">Your home app cannot add widgets from here. Touch and hold an empty area on your home screen, open Widgets, and choose TimeLeft.</string>
+    <string name="widget_pin_failed">Could not open the widget preview. Please try again.</string>
 </resources>

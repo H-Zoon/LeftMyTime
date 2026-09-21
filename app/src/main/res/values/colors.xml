@@ -12,4 +12,5 @@
     <color name="widget_on_surface">#FF242924</color>
     <color name="widget_on_surface_variant">#FF646B64</color>
 
+    <color name="widget_track">#D8DDD4</color>
 </resources>

@@ -18,6 +18,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.theme.Spacing
+import com.devidea.timeleft.ui.theme.TimeRulerTokens
 
 @Composable
 internal fun TimeRuler(
@@ -34,16 +35,16 @@ internal fun TimeRuler(
     val description = if (startLabel.isBlank() && endLabel.isBlank()) stringResource(R.string.time_ruler_remaining_description, remaining)
         else stringResource(R.string.time_ruler_description, startLabel, endLabel, remaining)
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        Canvas(Modifier.fillMaxWidth().height(28.dp).clearAndSetSemantics { contentDescription = description }) {
-            val count = (size.width / 5.dp.toPx()).toInt().coerceIn(20, 60)
+        Canvas(Modifier.fillMaxWidth().height(TimeRulerTokens.Height.dp).clearAndSetSemantics { contentDescription = description }) {
+            val count = TimeRulerTokens.tickCount(size.width / density)
             val step = size.width / count
             repeat(count) { index ->
                 val x = step * (index + .5f)
-                val height = if (index % 5 == 0) 24.dp.toPx() else 12.dp.toPx()
+                val height = if (index % 5 == 0) TimeRulerTokens.MajorHeight.dp.toPx() else TimeRulerTokens.MinorHeight.dp.toPx()
                 drawLine(
                     color = if ((index + .5f) / count < elapsed) track else accent,
                     start = Offset(x, size.height), end = Offset(x, size.height - height),
-                    strokeWidth = 2.dp.toPx(), cap = StrokeCap.Butt
+                    strokeWidth = TimeRulerTokens.StrokeWidth.dp.toPx(), cap = StrokeCap.Butt
                 )
             }
         }

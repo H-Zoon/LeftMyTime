@@ -29,6 +29,9 @@
             android:name=".activity.PrivacyPolicyActivity"
             android:exported="false" />
         <activity
+            android:name=".widget.WidgetDetailsActivity"
+            android:exported="false" />
+        <activity
             android:name=".activity.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
@@ -46,6 +49,10 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+                <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.DATE_CHANGED" />
             </intent-filter>
 
             <meta-data
@@ -103,6 +110,10 @@
                 android:name="android.appwidget.provider"
                 android:resource="@xml/app_widget_info_schedule" />
         </receiver>
+
+        <receiver
+            android:name=".widget.WidgetPinReceiver"
+            android:exported="false" />
 
         <receiver
             android:name=".notification.ReminderReceiver"

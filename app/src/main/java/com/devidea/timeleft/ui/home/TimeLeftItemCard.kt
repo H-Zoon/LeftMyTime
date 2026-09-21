@@ -30,6 +30,8 @@ import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
+import com.devidea.timeleft.widget.PinWidgetButton
+import com.devidea.timeleft.widget.WidgetSource
 
 private const val DetailExpandDurationMillis = 220
 private const val DetailCollapseDurationMillis = 180
@@ -107,6 +109,7 @@ internal fun TimeLeftItemCard(
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
                     TextButton(onClick = { onEditItem(item.id) }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
+                    PinWidgetButton(item, WidgetSource.Custom, enabled = expanded)
                     TextButton(onClick = { showDeleteDialog = true }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
