@@ -14,7 +14,7 @@ internal fun roundPercent(raw: Float): Float =
         raw
     }
 
-internal fun formatPercent(value: Float, locale: Locale = Locale.getDefault()): String {
+internal fun formatPercent(value: Float, locale: Locale = Locale.getDefault(), alwaysOneDecimal: Boolean = false): String {
     val roundedValue = roundPercent(value.coerceIn(0f, 100f))
     val formatterCache = percentFormatters.get()
         ?: mutableMapOf<Locale, NumberFormat>().also(percentFormatters::set)
@@ -24,6 +24,6 @@ internal fun formatPercent(value: Float, locale: Locale = Locale.getDefault()): 
             maximumFractionDigits = 1
         }
     }
-    formatter.minimumFractionDigits = if (roundedValue % 1f == 0f) 0 else 1
+    formatter.minimumFractionDigits = if (!alwaysOneDecimal && roundedValue % 1f == 0f) 0 else 1
     return formatter.format(roundedValue)
 }

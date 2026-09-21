@@ -11,6 +11,8 @@ import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.Duration
+import java.time.temporal.ChronoUnit
 import java.time.format.DateTimeFormatter
 import java.time.format.TextStyle
 import java.util.Locale
@@ -23,7 +25,8 @@ class ItemGenerate @Inject constructor(
 ) : InterfaceItem {
 
     override fun timeItem(): AdapterItem {
-        val progress = TimeProgressCalculator.dayProgress(LocalTime.now())
+        val now = LocalTime.now()
+        val progress = TimeProgressCalculator.dayProgress(now)
         val leftTime = LocalTime.ofSecondOfDay(progress.durationLeft.seconds.coerceIn(0, 86399))
         val leftText = context.getString(
             R.string.home_time_left,
@@ -36,6 +39,12 @@ class ItemGenerate @Inject constructor(
             startLabel = "00:00",
             endLabel = "23:59:59",
             percent = roundPercent(progress.percentElapsed),
+            detailFacts = TimeDetailFacts(
+                percentElapsed = progress.percentElapsed,
+                elapsed = now.toSecondOfDay().toLong(), total = SECONDS_PER_DAY,
+                phase = if (progress.durationLeft.isNegative || progress.durationLeft.isZero) TimeRangePhase.Finished else TimeRangePhase.Active,
+                secondsLeft = progress.durationLeft.secondsForDisplay(),
+            ),
             leftString = leftText,
             widgetString = context.getString(
                 R.string.home_time_left,
@@ -53,6 +62,8 @@ class ItemGenerate @Inject constructor(
             startLabel = today.withDayOfYear(1).toString(),
             endLabel = today.withDayOfYear(today.lengthOfYear()).toString(),
             percent = roundPercent(progress.percentElapsed),
+            detailFacts = TimeDetailFacts(progress.percentElapsed, today.dayOfYear.toLong(), today.lengthOfYear().toLong(),
+                TimeRangePhase.Active, inDays = true, includesToday = true),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
     }
@@ -67,6 +78,8 @@ class ItemGenerate @Inject constructor(
             startLabel = today.withDayOfMonth(1).toString(),
             endLabel = today.withDayOfMonth(today.lengthOfMonth()).toString(),
             percent = roundPercent(progress.percentElapsed),
+            detailFacts = TimeDetailFacts(progress.percentElapsed, today.dayOfMonth.toLong(), today.lengthOfMonth().toLong(),
+                TimeRangePhase.Active, inDays = true, includesToday = true),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
     }
@@ -85,6 +98,19 @@ class ItemGenerate @Inject constructor(
             startLabel = startTime.format(WIDGET_TIME_FORMATTER),
             endLabel = endTime.format(WIDGET_TIME_FORMATTER),
             currentLabel = now.format(WIDGET_TIME_FORMATTER),
+            detailFacts = TimeDetailFacts(
+                percentElapsed = snapshot.percentElapsed,
+                elapsed = Duration.between(startTime, now).seconds.coerceIn(0, Duration.between(startTime, endTime).seconds.coerceAtLeast(0)),
+                total = Duration.between(startTime, endTime).seconds.coerceAtLeast(0),
+                phase = snapshot.phase,
+                secondsLeft = if (snapshot.phase == TimeRangePhase.Active) Duration.between(now, endTime).secondsForDisplay() else null,
+                secondsUntilStart = when (snapshot.phase) {
+                    TimeRangePhase.Upcoming -> Duration.between(now, startTime).secondsForDisplay()
+                    TimeRangePhase.Finished -> Duration.between(now, startTime).plusDays(1).secondsForDisplay()
+                    TimeRangePhase.Active -> null
+                },
+                validRange = endTime.isAfter(startTime),
+            ),
             id = itemEntity.id,
             title = itemEntity.title,
             startString = context.getString(R.string.card_time_start, startTime.toString()),
@@ -162,6 +188,19 @@ class ItemGenerate @Inject constructor(
             endString = context.getString(R.string.card_date_end, endDate.toString()),
             leftString = context.getString(R.string.card_dday_value, countdownText),
             percent = displayPercent,
+            detailFacts = TimeDetailFacts(
+                // A same-day future range has zero duration in the legacy calculator;
+                // its detail still needs to communicate that it has not started.
+                percentElapsed = if (today.isBefore(startDate)) 0f else progress.percentElapsed,
+                elapsed = ChronoUnit.DAYS.between(startDate, today).coerceIn(0, progress.daysBetween.toLong().coerceAtLeast(0)),
+                total = progress.daysBetween.toLong().coerceAtLeast(0), inDays = true,
+                phase = when {
+                    today.isBefore(startDate) -> TimeRangePhase.Upcoming
+                    today.isAfter(endDate) -> TimeRangePhase.Finished
+                    else -> TimeRangePhase.Active
+                },
+                validRange = !endDate.isBefore(startDate),
+            ),
             updateInfo = updateInfo,
             countdownText = countdownText,
             dueText = context.getString(R.string.home_until_date, endDate.toString()),

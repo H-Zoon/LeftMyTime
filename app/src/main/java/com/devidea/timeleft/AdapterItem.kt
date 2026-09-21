@@ -29,4 +29,5 @@ data class AdapterItem(
     val startLabel: String = "",
     val endLabel: String = "",
     val currentLabel: String = "",
+    val detailFacts: TimeDetailFacts? = null,
 )

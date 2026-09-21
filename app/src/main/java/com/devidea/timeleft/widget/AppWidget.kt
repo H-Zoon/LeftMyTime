@@ -73,7 +73,7 @@ open class AppWidget : AppWidgetProvider() {
                     val generator = ep.itemGenerator()
                     val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
                     val manager = AppWidgetManager.getInstance(appContext)
-                    val signature = "v2-time-4:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
+                    val signature = "v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
                     val now = System.currentTimeMillis()
                     providerClasses.forEach { provider ->
                         val cacheKey = "widget_picker_${provider.simpleName}"

@@ -55,7 +55,8 @@ internal fun AdapterItem.toWidgetData(
         if (waiting) secondsUntilStart else remainingSeconds, remainingDays?.takeIf { it >= 0 })
     return WidgetDisplayData(
         title = title, value = value, meta = meta,
-        progress = percent.toInt().coerceIn(0, 100),
+        progress = (detailFacts?.percentElapsed ?: percent).takeIf { it.isFinite() }?.coerceIn(0f, 100f) ?: 0f,
+        glowEnabled = detailFacts?.glowActive == true,
         accessibilityText = listOf(title, spokenValue, meta).filter { it.isNotBlank() }.joinToString(", "),
         valueTemplateRes = valueTemplateRes,
         groups = groups, isTextValue = !useCountdown && groups.isEmpty(),
@@ -68,11 +69,12 @@ internal data class WidgetDisplayData(
     val title: String,
     val value: String,
     val meta: String,
-    val progress: Int,
+    val progress: Float,
     val accessibilityText: String,
     val groups: List<RemainingTimeGroup> = emptyList(),
     val startLabel: String = "",
     val endLabel: String = "",
     val isTextValue: Boolean = false,
     val valueTemplateRes: Int? = null,
+    val glowEnabled: Boolean = false,
 )

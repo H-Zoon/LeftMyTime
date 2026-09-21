@@ -20,14 +20,12 @@ import androidx.lifecycle.repeatOnLifecycle
 import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.ItemEditorActivity
-import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
-import com.devidea.timeleft.ui.components.RemainingTimeText
+import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
-import com.devidea.timeleft.ui.components.TimeRuler
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
@@ -110,22 +108,13 @@ class WidgetDetailsActivity : AppCompatActivity() {
                                 }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.widget_choose_schedule)) }
                             }
                         } else {
-                            val waiting = item.type == ItemType.Time && item.timePhase != TimeRangePhase.Active
-                            Text(if (waiting) stringResource(R.string.time_until_start) else item.dueText.ifBlank { stringResource(R.string.time_remaining) },
-                                style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                            if (item.type == ItemType.Date && item.isExpired) {
-                                Text(item.countdownText.ifBlank { item.leftString }, style = MaterialTheme.typography.displayMedium)
-                            } else RemainingTimeText(if (waiting) item.copy(remainingSeconds = item.secondsUntilStart) else item, hero = true)
-                            if (prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
-                                TimeRuler(item.percent, item.startLabel, item.endLabel)
-                            }
-                            if (item.remainingDays != null && !item.isExpired) Text(stringResource(R.string.period_days_explanation),
-                                style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            TimeDetailContent(item, prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL)
+                                ?: UserPreferences.PROGRESS_DISPLAY_FULL)
                             if (personal) TextButton(onClick = { startActivity(ItemEditorActivity.editIntent(this@WidgetDetailsActivity, item.id)) },
                                 modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
                                 Text(stringResource(R.string.card_action_edit))
                             }
-                            PinWidgetButton(item, source)
+                            PinWidgetButton(item, source, contentPadding = PaddingValues(vertical = Spacing.s))
                         }
                     }
                 }

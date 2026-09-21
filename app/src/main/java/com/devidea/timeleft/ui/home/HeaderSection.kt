@@ -21,9 +21,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.RemainingTimeText
-import com.devidea.timeleft.ui.components.TimeRuler
+import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -69,7 +68,8 @@ internal fun HeaderSection(
             @Composable fun Period(position: Int, modifier: Modifier) {
                 val item = topItems[position]
                 val label = if (position < labels.size) stringResource(labels[position]) else item.title
-                val remaining = remainingTimeLabel(item.remainingSeconds, item.remainingDays, item.leftString)
+                val remaining = remainingTimeLabel(item.detailFacts?.secondsLeft ?: item.remainingSeconds,
+                    item.remainingDays, item.leftString, showSeconds = position == 0)
                 val description = stringResource(R.string.period_summary_description, label, remaining)
                 val cellModifier = modifier.heightIn(min = LayoutTokens.MinTouchTarget)
                     .focusRequester(periodFocus[position])
@@ -77,15 +77,16 @@ internal fun HeaderSection(
                     .clearAndSetSemantics { contentDescription = description }
                     .padding(vertical = Spacing.xs)
                 if (stacked) {
-                    Row(cellModifier, verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
+                    Row(cellModifier, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                         Text(label, style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                        RemainingTimeText(item, hero = false, compact = true, modifier = Modifier.weight(2f))
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f).alignByBaseline())
+                        RemainingTimeText(item, hero = false, compact = true, showSeconds = position == 0,
+                            modifier = Modifier.weight(2f).alignByBaseline())
                     }
                 } else {
                     Column(cellModifier, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
                         Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                        RemainingTimeText(item, hero = false, compact = true)
+                        RemainingTimeText(item, hero = false, compact = true, showSeconds = position == 0)
                     }
                 }
             }
@@ -123,16 +124,9 @@ internal fun HeaderSection(
                             Icon(Icons.Default.Close, stringResource(R.string.period_close_details))
                         }
                     }
-                    RemainingTimeText(item, hero = true)
-                    if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
-                        TimeRuler(item.percent, item.startLabel, item.endLabel)
-                    }
-                    if (item.remainingDays != null) {
-                        Text(stringResource(R.string.period_days_explanation), style = MaterialTheme.typography.bodySmall,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
+                    TimeDetailContent(item, progressDisplayMode)
                     listOf(WidgetSource.Today, WidgetSource.Month, WidgetSource.Year).getOrNull(position)?.let { source ->
-                        PinWidgetButton(item, source)
+                        PinWidgetButton(item, source, contentPadding = PaddingValues(vertical = Spacing.s))
                     }
                 }
             }

@@ -9,8 +9,10 @@ import android.content.Intent
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -34,7 +36,12 @@ internal val LocalWidgetPinAllowed = staticCompositionLocalOf { true }
 
 /** Kept in expanded details so widget promotion does not compete with the remaining time. */
 @Composable
-internal fun PinWidgetButton(item: AdapterItem, source: WidgetSource, enabled: Boolean = true) {
+internal fun PinWidgetButton(
+    item: AdapterItem,
+    source: WidgetSource,
+    enabled: Boolean = true,
+    contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
+) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var requesting by remember { mutableStateOf(false) }
@@ -49,6 +56,7 @@ internal fun PinWidgetButton(item: AdapterItem, source: WidgetSource, enabled: B
         },
         enabled = enabled && LocalWidgetPinAllowed.current && !requesting,
         modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
+        contentPadding = contentPadding,
     ) { Text(stringResource(R.string.widget_pin_action)) }
     errorMessage?.let { message ->
         AlertDialog(

@@ -16,6 +16,8 @@ import androidx.core.view.WindowCompat
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.doOnLayout
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -35,6 +37,8 @@ import com.devidea.timeleft.widget.WidgetConfigureRoute
 import com.devidea.timeleft.widget.WidgetSaveResult
 import com.devidea.timeleft.widget.LocalWidgetPinAllowed
 import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.TimeDetailFacts
+import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.ItemVisuals
@@ -105,7 +109,27 @@ private val sampleItems = listOf(
         dueText = "2026-09-16까지", leftString = "3일 지남", isExpired = true,
         startLabel = "2026-09-01", endLabel = "2026-09-16",
     )
-)
+).map(::withDetailFixture)
+
+/** Original lengths for debug fixtures only; production facts come from ItemGenerate. */
+private fun withDetailFixture(item: AdapterItem): AdapterItem {
+    val inDays = item.remainingDays != null
+    val total = when {
+        inDays -> java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.parse(item.startLabel), java.time.LocalDate.parse(item.endLabel)) + if (item.type == null) 1 else 0
+        item.type == ItemType.Time -> java.time.Duration.between(java.time.LocalTime.parse(item.startLabel), java.time.LocalTime.parse(item.endLabel)).seconds
+        else -> 86_400L
+    }
+    val phase = item.timePhase ?: if (item.isExpired || item.remainingSeconds == 0L) TimeRangePhase.Finished else TimeRangePhase.Active
+    val elapsed = when (phase) {
+        TimeRangePhase.Upcoming -> 0L
+        TimeRangePhase.Finished -> total
+        TimeRangePhase.Active -> total - (if (inDays) item.remainingDays?.toLong() ?: 0 else item.remainingSeconds ?: 0)
+    }.coerceIn(0, total)
+    val percent = if (total > 0) elapsed.toFloat() / total * 100f else 100f
+    return item.copy(percent = percent, detailFacts = TimeDetailFacts(percent, elapsed, total, phase,
+        inDays = inDays, secondsLeft = item.remainingSeconds, secondsUntilStart = item.secondsUntilStart,
+        includesToday = inDays && item.type == null))
+}
 
 @Composable
 private fun GalleryScreen(
@@ -125,8 +149,33 @@ private fun GalleryScreen(
         AdapterItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
             leftString = "104일 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.27f; else -> 71.51f },
             startLabel = "2026-01-01", endLabel = "2026-12-31")
-    )
+    ).map(::withDetailFixture)
     when {
+        screen.startsWith("detail-") -> {
+            val item = when {
+                screen.contains("story-music") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 25))
+                screen.contains("story-literature") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 42, endLabel = "2026-11-01"))
+                screen.contains("story-seconds") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 12))
+                screen.contains("today") -> periodItems[0]
+                screen.contains("month") -> periodItems[1]
+                screen.contains("year") -> periodItems[2]
+                screen.contains("waiting") -> sampleItems.first { it.id == 4 }
+                screen.contains("expired") -> sampleItems.first { it.id == 3 }
+                screen.contains("last-second") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 1))
+                else -> sampleItems.first { it.id == 1 }
+            }.let { if (screen.contains("long")) it.copy(title = longTitle) else it }
+            Surface(color = MaterialTheme.colorScheme.background) {
+                Column(Modifier.fillMaxSize().safeDrawingPadding().verticalScroll(rememberScrollState()).padding(24.dp),
+                    verticalArrangement = Arrangement.spacedBy(24.dp)) {
+                    Text(item.title, style = MaterialTheme.typography.headlineSmall)
+                    TimeDetailContent(item, when {
+                        screen.contains("hidden") -> UserPreferences.PROGRESS_DISPLAY_HIDDEN
+                        screen.contains("bar-only") -> UserPreferences.PROGRESS_DISPLAY_BAR_ONLY
+                        else -> UserPreferences.PROGRESS_DISPLAY_FULL
+                    })
+                }
+            }
+        }
         screen == "picker-time" -> TimeLeftTimePicker(java.time.LocalTime.of(14, 0), "시작 시간", {}, {})
         screen == "picker-date" -> TimeLeftDatePicker(java.time.LocalDate.of(2026, 9, 18), {}, {})
         screen.startsWith("widget-configure") -> {
@@ -203,7 +252,7 @@ private fun GalleryScreen(
                 screen.contains("waiting") -> sampleItems.first { it.id == 4 }
                 screen.contains("expired") -> sampleItems.first { it.id == 3 }
                 screen.contains("date") -> sampleItems.first { it.id == 2 }
-                screen.contains("under-minute") -> sampleItems.first { it.id == 1 }.copy(remainingSeconds = 30)
+                screen.contains("under-minute") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 30))
                 source == WidgetSource.Today -> periodItems[0]
                 source == WidgetSource.Month -> periodItems[1]
                 source == WidgetSource.Year -> periodItems[2]
@@ -274,7 +323,7 @@ private fun GalleryScreen(
                 "empty" -> emptyList()
                 "idle" -> sampleItems.filter { it.timePhase != TimeRangePhase.Active }
                 "dates" -> sampleItems.filter { it.type == ItemType.Date }
-                "overlap" -> sampleItems + sampleItems.first { it.id == 1 }.copy(id = 6, title = "함께 진행하는 업무", remainingSeconds = 1200, percent = 66.67f, startLabel = "13:38", endLabel = "14:38")
+                "overlap" -> sampleItems + withDetailFixture(sampleItems.first { it.id == 1 }.copy(id = 6, title = "함께 진행하는 업무", remainingSeconds = 1200, percent = 66.67f, startLabel = "13:38", endLabel = "14:38"))
                 "long" -> sampleItems.map { if (it.id == 1) it.copy(title = longTitle) else it }
                 else -> sampleItems
             },
@@ -303,6 +352,11 @@ private fun GalleryPreview(screen: String, palette: ThemePalette) {
 @Composable
 private fun HomePreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("home", palette)
+
+@DesignPreviews
+@Composable
+private fun TimeDetailPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("detail-time", palette)
 
 @DesignPreviews
 @Composable

@@ -17,6 +17,7 @@ import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.theme.ThemePalette
 import com.devidea.timeleft.ui.theme.TimeRulerTokens
+import com.devidea.timeleft.ui.components.drawTimeRulerGlow
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -27,6 +28,7 @@ internal data class WidgetPalette(
     val onSurface: Int,
     val muted: Int,
     val track: Int,
+    val glowAlpha: Float,
 ) {
     companion object {
         fun fromPreferences(context: Context, prefs: SharedPreferences): WidgetPalette {
@@ -44,6 +46,7 @@ internal data class WidgetPalette(
             return WidgetPalette(
                 if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
                 colors.primary.toArgb(), colors.onBackground.toArgb(), colors.onSurfaceVariant.toArgb(), colors.outlineVariant.toArgb(),
+                if (dark) TimeRulerTokens.GlowDarkAlpha else TimeRulerTokens.GlowLightAlpha,
             )
         }
     }
@@ -69,7 +72,7 @@ internal fun createSingleWidgetViews(
     if (!dimensions.meetsMinimum) return resizeWidgetViews(context, palette)
     val data = item?.toWidgetData(context, configuration.showRemaining,
         configuration.source == WidgetSource.Today || item.type == ItemType.Time)
-        ?: WidgetDisplayData(context.getString(configuration.source.labelRes), context.getString(emptyMessage), "", 0,
+        ?: WidgetDisplayData(context.getString(configuration.source.labelRes), context.getString(emptyMessage), "", 0f,
             context.getString(configuration.source.labelRes) + ", " + context.getString(emptyMessage))
     val measure = WidgetTextMeasure(context)
     val padding = measure.px(R.dimen.widget_padding)
@@ -79,6 +82,16 @@ internal fun createSingleWidgetViews(
     val touch = measure.px(R.dimen.widget_touch_target)
     val width = measure.dp(dimensions.width.toFloat()) - padding * 2
     val titleWidth = width - touch - gap
+    // Time widgets currently show a snapshot. Keep its date as well as time visible across midnight.
+    val updatedAt = if (item != null && (item.remainingSeconds != null || item.type == ItemType.Time)) {
+        val locale = context.resources.configuration.locales[0]
+        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "MdHm")
+        java.text.SimpleDateFormat(pattern, locale).format(java.util.Date())
+    } else ""
+    val updatedLabel = updatedAt.takeIf { it.isNotBlank() }?.let { context.getString(R.string.widget_as_of, it) }.orEmpty()
+    val titleHeight = measure.height(data.title, R.dimen.widget_title_size, titleWidth) +
+        if (updatedLabel.isEmpty()) 0f else measure.px(R.dimen.widget_small_gap) +
+            measure.height(updatedLabel, R.dimen.widget_label_size, titleWidth)
     val valueSize = when {
         item == null -> R.dimen.widget_title_size
         data.isTextValue -> R.dimen.widget_message_value_size
@@ -96,7 +109,7 @@ internal fun createSingleWidgetViews(
             measure.height(data.endLabel, R.dimen.widget_label_size, width / 2)) else 0f
     val legacy = configuration.legacySummary && dimensions.sizeClass == WidgetSizeClass.Large
     val legacyValues = if (legacy) periods.map { it.title + " · " + it.toWidgetData(context, true, true).value } else emptyList()
-    val baseHeight = verticalPadding * 2 + max(touch, measure.height(data.title, R.dimen.widget_title_size, titleWidth).toFloat()) +
+    val baseHeight = verticalPadding * 2 + max(touch, titleHeight) +
         gap + measure.height(value, valueSize, width) +
         (if (meta.isBlank()) 0f else gap + measure.height(meta, R.dimen.widget_label_size, width)) +
         (if (rulerVisible) gap + measure.px(R.dimen.widget_ruler_height) else 0f) + rangeHeight +
@@ -109,16 +122,20 @@ internal fun createSingleWidgetViews(
         setViewPadding(R.id.widgetRoot, padding.roundToInt(), verticalPadding.roundToInt(), padding.roundToInt(), verticalPadding.roundToInt())
         setTextColor(R.id.summary, palette.onSurface)
         setTextViewText(R.id.summary, data.title)
+        setTextViewText(R.id.widgetUpdatedAt, updatedLabel)
+        setTextColor(R.id.widgetUpdatedAt, palette.muted)
+        setViewVisibility(R.id.widgetUpdatedAt, if (updatedLabel.isBlank()) View.GONE else View.VISIBLE)
+        if (updatedAt.isNotBlank()) setContentDescription(R.id.refresh, context.getString(R.string.widget_refresh_as_of, updatedAt))
         setTextColor(R.id.percent, palette.onSurface)
         setTextViewTextSize(R.id.percent, TypedValue.COMPLEX_UNIT_PX, measure.px(valueSize))
         setTextViewText(R.id.percent, value)
-        setContentDescription(R.id.percent, data.accessibilityText)
+        setContentDescription(R.id.percent, listOf(data.accessibilityText, updatedLabel).filter { it.isNotBlank() }.joinToString(", "))
         setInt(R.id.refresh, "setColorFilter", palette.muted)
         setTextColor(R.id.widgetMeta, palette.muted)
         setTextViewText(R.id.widgetMeta, meta)
         setViewVisibility(R.id.widgetMeta, if (meta.isBlank()) View.GONE else View.VISIBLE)
         setViewVisibility(R.id.widgetRuler, if (rulerVisible) View.VISIBLE else View.GONE)
-        if (rulerVisible) setImageViewBitmap(R.id.widgetRuler, widgetRulerBitmap(context, width, data.progress, palette))
+        if (rulerVisible) setImageViewBitmap(R.id.widgetRuler, widgetRulerBitmap(context, width, data.progress, palette, data.glowEnabled))
         setViewVisibility(R.id.widgetRange, if (rangeVisible) View.VISIBLE else View.GONE)
         setTextViewText(R.id.widgetStart, data.startLabel)
         setTextViewText(R.id.widgetEnd, data.endLabel)
@@ -134,11 +151,12 @@ internal fun createSingleWidgetViews(
     }
 }
 
-private fun widgetRulerBitmap(context: Context, widthPx: Float, elapsed: Int, palette: WidgetPalette): Bitmap {
+private fun widgetRulerBitmap(context: Context, widthPx: Float, elapsed: Float, palette: WidgetPalette, glowEnabled: Boolean): Bitmap {
     val density = context.resources.displayMetrics.density
     val bitmap = createBitmap(widthPx.roundToInt().coerceAtLeast(1),
         (TimeRulerTokens.Height * density).roundToInt().coerceAtLeast(1))
     val canvas = Canvas(bitmap)
+    if (glowEnabled) drawTimeRulerGlow(canvas, bitmap.width.toFloat(), bitmap.height.toFloat(), elapsed / 100f, palette.primary, palette.glowAlpha)
     val paint = Paint(Paint.ANTI_ALIAS_FLAG).apply { strokeWidth = TimeRulerTokens.StrokeWidth * density }
     val count = TimeRulerTokens.tickCount(widthPx / density)
     repeat(count) { index ->

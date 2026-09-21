@@ -29,9 +29,10 @@ internal fun NextCountdownHero(
             modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)
                 .clickable(role = Role.Button, onClickLabel = stringResource(R.string.card_action_edit)) { onEditItem(item.id) }
         )
-        RemainingTimeText(item, hero = true)
+        RemainingTimeText(item, hero = true, showSeconds = true)
         if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
-            TimeRuler(item.percent, item.startLabel, item.endLabel, currentLabel = item.currentLabel)
+            TimeRuler(item.detailFacts?.percentElapsed ?: item.percent, item.startLabel, item.endLabel,
+                currentLabel = item.currentLabel, glowEnabled = item.detailFacts?.glowActive == true)
         }
     }
 }
