@@ -3,7 +3,6 @@ package com.devidea.timeleft.activity
 import android.content.SharedPreferences
 import android.content.Intent
 import android.os.Bundle
-import android.view.animation.PathInterpolator
 import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -16,6 +15,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.home.HomeScreen
+import com.devidea.timeleft.ui.launch.SplashExitTransition
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.viewmodels.TimeLeftViewModel
 import com.devidea.timeleft.widget.AppWidget
@@ -40,15 +40,7 @@ class MainActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
 
         splashScreen.setOnExitAnimationListener { provider ->
-            provider.view.animate()
-                .alpha(0f)
-                .scaleX(1.04f)
-                .scaleY(1.04f)
-                .translationY(-provider.view.height * 0.025f)
-                .setDuration(230L)
-                .setInterpolator(PathInterpolator(0.2f, 0f, 0f, 1f))
-                .withEndAction(provider::remove)
-                .start()
+            SplashExitTransition(this, provider).start()
         }
 
         refreshPreferences()

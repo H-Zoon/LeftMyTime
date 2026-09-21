@@ -1,4 +1,5 @@
 <resources>
+    <string name="splash_enter_app">Open TimeLeft</string>
     <string name="app_name">TimeLeft</string>
     <string name="widget_small_label">Today</string>
     <string name="widget_medium_label">This month</string>

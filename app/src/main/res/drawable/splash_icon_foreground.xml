@@ -29,14 +29,14 @@
                         M93,106
                         H266
                         A150,150 0,1,1 106,256"
-                    android:strokeColor="#FFFFFF"
+                    android:strokeColor="@color/splash_foreground"
                     android:strokeLineCap="butt"
                     android:strokeLineJoin="round"
                     android:strokeWidth="26" />
 
                 <path
                     android:name="upper_bar"
-                    android:fillColor="#FFFFFF"
+                    android:fillColor="@color/splash_foreground"
                     android:pathData="
                         M93,154
                         H164
@@ -46,7 +46,7 @@
 
                 <path
                     android:name="middle_bar"
-                    android:fillColor="#FFFFFF"
+                    android:fillColor="@color/splash_foreground"
                     android:pathData="
                         M93,208
                         H126
@@ -61,7 +61,7 @@
                 android:pathData="
                     M256,345
                     A89,89 0,1,1 345,256"
-                android:strokeColor="#FFFFFF"
+                android:strokeColor="@color/splash_foreground"
                 android:strokeLineCap="round"
                 android:strokeLineJoin="round"
                 android:strokeWidth="25" />
@@ -74,7 +74,7 @@
                     android:name="center_mark"
                     android:fillColor="@android:color/transparent"
                     android:pathData="M232,252 L255,277 L279,252"
-                    android:strokeColor="#FFFFFF"
+                    android:strokeColor="@color/splash_foreground"
                     android:strokeLineCap="round"
                     android:strokeLineJoin="round"
                     android:strokeWidth="18" />

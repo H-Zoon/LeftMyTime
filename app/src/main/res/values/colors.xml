@@ -7,7 +7,8 @@
     <color name="black">#FF000000</color>
 
     <color name="activity_background">#FFF7F7F2</color>
-    <color name="splash_background">#FF4F46E5</color>
+    <color name="splash_background">@color/activity_background</color>
+    <color name="splash_foreground">@color/ic_launcher_background</color>
 
     <color name="widget_on_surface">#FF242924</color>
     <color name="widget_on_surface_variant">#FF646B64</color>

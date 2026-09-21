@@ -1,4 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#4F46E5</color>
+    <!-- Fixed brand color: TimeLeftTheme's Clay primary, independent of the selected app palette. -->
+    <color name="ic_launcher_background">#B5482D</color>
 </resources>

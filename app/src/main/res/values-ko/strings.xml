@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <string name="splash_enter_app">TimeLeft로 이동</string>
     <string name="app_name">TimeLeft</string>
     <string name="widget_small_label">오늘</string>
     <string name="widget_medium_label">이번 달</string>

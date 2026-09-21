@@ -5,5 +5,5 @@
         android:width="112dp"
         android:height="112dp"
         android:gravity="center"
-        android:drawable="@drawable/ic_launcher_playstore_foreground_vector" />
+        android:drawable="@drawable/splash_icon_foreground" />
 </layer-list>

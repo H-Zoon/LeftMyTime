@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="splash_background">#FF4F46E5</color>
+    <color name="splash_background">@color/activity_background</color>
+    <color name="splash_foreground">#FFEE9278</color>
     <color name="widget_on_surface">#FFEDF0E9</color>
     <color name="widget_on_surface_variant">#FFA7AFA5</color>
 
