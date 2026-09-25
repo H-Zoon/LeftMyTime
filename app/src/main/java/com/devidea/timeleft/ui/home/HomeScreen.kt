@@ -31,6 +31,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
@@ -60,7 +61,6 @@ fun HomeScreen(
     var selectedLayoutValue by rememberSaveable(initialLayoutValue) { mutableStateOf(initialLayoutValue) }
     var selectedActiveId by rememberSaveable { mutableStateOf<Int?>(null) }
     var showActiveMenu by remember { mutableStateOf(false) }
-    var showAddMenu by remember { mutableStateOf(false) }
     val selectedSort = runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     val isGrid = selectedLayoutValue == UserPreferences.HOME_LAYOUT_GRID
     // Keep the saved grid preference, but use one column when text cannot fit two.
@@ -68,9 +68,11 @@ fun HomeScreen(
     val columns = if (showAll && isGrid && LocalConfiguration.current.screenWidthDp >= 360 && LocalDensity.current.fontScale <= 1.15f) 2 else 1
     val displayedItems = customItems.filterNot { expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE && it.isExpired }
     val activeItems = activeTimeItems(displayedItems)
-    val hero = selectActiveTimeItem(displayedItems, selectedActiveId)
-    LaunchedEffect(hero?.id) { selectedActiveId = hero?.id }
+    val hero = selectHomeHero(displayedItems, selectedActiveId)
+    val activeHeroId = hero?.takeIf { it.type == ItemType.Time }?.id
+    LaunchedEffect(activeHeroId) { selectedActiveId = activeHeroId }
     val upcomingItems = upcomingTimeItems(displayedItems)
+    val dateItems = homeDateItems(displayedItems).filterNot { it.id == hero?.id }
     val visibleItems = displayedItems.filter {
         searchQuery.isBlank() || it.title.contains(searchQuery.trim(), true) || it.category.contains(searchQuery.trim(), true)
     }.let { items ->
@@ -110,12 +112,8 @@ fun HomeScreen(
                         if (compactToolbar) IconButton(onClick = { showAll = true }) {
                             Icon(Icons.AutoMirrored.Filled.ViewList, stringResource(R.string.home_all_items))
                         } else TextButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
-                    } else Box {
-                        IconButton(onClick = { showAddMenu = true }) { Icon(Icons.Default.Add, stringResource(R.string.home_add_item)) }
-                        DropdownMenu(showAddMenu, { showAddMenu = false }) {
-                            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_time_range)) }, onClick = { showAddMenu = false; onAddTime() })
-                            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_date)) }, onClick = { showAddMenu = false; onAddDate() })
-                        }
+                    } else {
+                        ScheduleAddButton(onAddTime, onAddDate, showText = false)
                     }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, stringResource(R.string.home_open_settings), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
@@ -142,23 +140,30 @@ fun HomeScreen(
                         }
                     }
                 }
-                item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
-                    Column {
-                        if (hero != null) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                        Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                            Text(stringResource(R.string.home_next_ranges), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.weight(1f))
-                            TextButton(onClick = onAddTime) { Icon(Icons.Default.Add, null, Modifier.size(18.dp)); Text(stringResource(R.string.home_add_range)) }
-                        }
-                    }
-                }
                 if (displayedItems.isEmpty()) {
                     item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
                 } else {
-                    if (upcomingItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
-                        Text(stringResource(R.string.home_no_next_range), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.l))
+                    item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
+                        Column {
+                            if (hero != null) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                            ScheduleListHeading(onAddTime, onAddDate)
+                        }
+                    }
+                    if (upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
+                        Text(stringResource(R.string.home_no_next_schedule), style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.l))
+                    }
+                    if (upcomingItems.isNotEmpty()) item(key = "time-heading", span = { GridItemSpan(maxLineSpan) }) {
+                        ScheduleGroupHeading(stringResource(R.string.home_time_ranges))
                     }
                     items(upcomingItems.take(3), key = { "next-${it.id}" }, span = { GridItemSpan(maxLineSpan) }) { item ->
-                        TimeLeftItemCard(item, onEditItem, onDeleteItem, upcoming = true)
+                        TimeLeftItemCard(item, onEditItem, onDeleteItem, upcoming = true, progressDisplayMode = progressDisplayMode)
+                    }
+                    if (dateItems.isNotEmpty()) item(key = "date-heading", span = { GridItemSpan(maxLineSpan) }) {
+                        ScheduleGroupHeading(stringResource(R.string.home_date_schedules))
+                    }
+                    items(dateItems.take(3), key = { "date-${it.id}" }, span = { GridItemSpan(maxLineSpan) }) { item ->
+                        TimeLeftItemCard(item, onEditItem, onDeleteItem, progressDisplayMode = progressDisplayMode)
                     }
                 }
             } else {
@@ -173,12 +178,52 @@ fun HomeScreen(
                 }
                 if (displayedItems.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
                 else if (visibleItems.isEmpty()) item(span = { GridItemSpan(maxLineSpan) }) { Text(stringResource(R.string.home_empty_search)) }
-                items(visibleItems, key = { it.id }) { item -> TimeLeftItemCard(item, onEditItem, onDeleteItem, grid = columns == 2) }
+                items(visibleItems, key = { it.id }) { item ->
+                    TimeLeftItemCard(item, onEditItem, onDeleteItem, grid = columns == 2, progressDisplayMode = progressDisplayMode)
+                }
             }
             item(key = "bottom-space", span = { GridItemSpan(maxLineSpan) }) { Spacer(Modifier.height(Spacing.xxl)) }
         }
     }
 }
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun ScheduleListHeading(onAddTime: () -> Unit, onAddDate: () -> Unit) {
+    FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        Text(stringResource(R.string.home_next_schedules), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.align(Alignment.CenterVertically).padding(end = Spacing.m))
+        ScheduleAddButton(onAddTime, onAddDate, showText = true)
+    }
+}
+
+@Composable
+private fun ScheduleGroupHeading(title: String) {
+    Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
+        modifier = Modifier.padding(top = Spacing.l, bottom = Spacing.s))
+}
+
+@Composable
+private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, showText: Boolean) {
+    var expanded by remember { mutableStateOf(false) }
+    Box {
+        if (showText) {
+            TextButton(onClick = { expanded = true }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+                Icon(Icons.Default.Add, null)
+                Spacer(Modifier.width(Spacing.xs))
+                Text(stringResource(R.string.home_add_schedule))
+            }
+        } else {
+            IconButton(onClick = { expanded = true }) { Icon(Icons.Default.Add, stringResource(R.string.home_add_item)) }
+        }
+        DropdownMenu(expanded, { expanded = false }) {
+            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_time_range)) }, onClick = { expanded = false; onAddTime() })
+            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_date)) }, onClick = { expanded = false; onAddDate() })
+        }
+    }
+}
+
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 private fun SectionHeader(

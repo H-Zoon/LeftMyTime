@@ -73,7 +73,8 @@ open class AppWidget : AppWidgetProvider() {
                     val generator = ep.itemGenerator()
                     val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
                     val manager = AppWidgetManager.getInstance(appContext)
-                    val signature = "v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
+                    val design = com.devidea.timeleft.ui.theme.TimeLeftThemes.TimeFocus
+                    val signature = "${design.id}:${design.version}:v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
                     val now = System.currentTimeMillis()
                     providerClasses.forEach { provider ->
                         val cacheKey = "widget_picker_${provider.simpleName}"
@@ -328,10 +329,11 @@ open class AppWidget : AppWidgetProvider() {
         palette: WidgetPalette,
         emptyMessage: Int,
         showProgress: Boolean = true,
+        snapshotTimeMillis: Long? = null,
     ): RemoteViews = if (configuration.source == WidgetSource.Overview) {
         createOverviewViews(context, dimensions, periods, palette)
     } else {
-        createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress)
+        createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis)
     }
 
     internal fun previewViews(
@@ -344,9 +346,10 @@ open class AppWidget : AppWidgetProvider() {
         dark: Boolean,
         emptyMessage: Int = R.string.widget_no_upcoming,
         showProgress: Boolean = true,
+        snapshotTimeMillis: Long? = null,
     ): RemoteViews = createViews(
         context, dimensions, configuration, item, periods,
-        WidgetPalette.create(paletteKey, dark), emptyMessage, showProgress,
+        WidgetPalette.create(paletteKey, dark), emptyMessage, showProgress, snapshotTimeMillis,
     )
 
 }

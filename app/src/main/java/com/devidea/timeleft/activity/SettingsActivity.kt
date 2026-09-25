@@ -7,6 +7,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.webkit.WebView
 import androidx.activity.compose.setContent
+import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -14,6 +15,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -31,6 +34,10 @@ import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.ui.settings.PrivacyPolicyScreen
 import com.devidea.timeleft.ui.settings.SettingsScreen
+import com.devidea.timeleft.ui.settings.ThemePreviewScreen
+import com.devidea.timeleft.ui.settings.ThemePreviewViewModel
+import com.devidea.timeleft.ui.theme.ThemeSelection
+import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.AndroidEntryPoint
@@ -48,6 +55,9 @@ class SettingsActivity : AppCompatActivity() {
     @Inject lateinit var prefs: SharedPreferences
     @Inject lateinit var repository: TimeLeftRepository
 
+    private val themePreviewModel: ThemePreviewViewModel by viewModels()
+    private var systemDark by mutableStateOf(false)
+
     private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
     private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_CLAY)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
@@ -64,8 +74,16 @@ class SettingsActivity : AppCompatActivity() {
         refreshSettingsState()
 
         setContent {
+            var showThemePreview by rememberSaveable { mutableStateOf(false) }
+            val previewState by themePreviewModel.state.collectAsStateWithLifecycle()
             TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey) {
-                SettingsScreen(
+                if (showThemePreview) ThemePreviewScreen(
+                    initialThemeMode = themeMode, initialPaletteKey = paletteKey, systemDark = systemDark,
+                    state = previewState, expiredItemsMode = expiredItemsMode, progressDisplayMode = progressDisplayMode,
+                    onBack = { showThemePreview = false },
+                    onApply = { selection -> showThemePreview = false; applyTheme(selection) },
+                    onRetry = { themePreviewModel.refresh() },
+                ) else SettingsScreen(
                     themeMode = themeMode,
                     paletteKey = paletteKey,
                     homeSort = homeSort,
@@ -77,8 +95,8 @@ class SettingsActivity : AppCompatActivity() {
                     remindersEnabled = remindersEnabled,
                     versionName = BuildConfig.VERSION_NAME,
                     onBack = { finish() },
-                    onThemeSelected = ::selectTheme,
-                    onPaletteSelected = ::selectPalette,
+                    onOpenThemePreview = { themePreviewModel.refresh(); showThemePreview = true },
+                    previewPeriods = previewState.snapshot?.periods.orEmpty(),
                     onSortSelected = ::selectSort,
                     onExpiredItemsModeSelected = ::selectExpiredItemsMode,
                     onProgressDisplayModeSelected = ::selectProgressDisplayMode,
@@ -110,6 +128,7 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun refreshSettingsState() {
+        systemDark = systemUsesDarkTheme(this)
         themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
             ?: UserPreferences.THEME_AUTO
         paletteKey = prefs.getString(
@@ -142,16 +161,15 @@ class SettingsActivity : AppCompatActivity() {
         applyNightMode(themeMode)
     }
 
-    private fun selectTheme(value: String) {
-        prefs.edit().putString(UserPreferences.KEY_THEME, value).apply()
-        themeMode = value
-        applyNightMode(value)
-        updateWidgets()
-    }
-
-    private fun selectPalette(value: String) {
-        prefs.edit().putString(UserPreferences.KEY_COLOR_THEME, value).apply()
-        paletteKey = value
+    private fun applyTheme(selection: ThemeSelection) {
+        val choice = selection.normalized()
+        if (themeMode == choice.mode && paletteKey == choice.paletteKey) return
+        // Publish one coherent selection before changing activities or refreshing installed widgets.
+        prefs.edit().putString(UserPreferences.KEY_THEME, choice.mode)
+            .putString(UserPreferences.KEY_COLOR_THEME, choice.paletteKey).apply()
+        themeMode = choice.mode
+        paletteKey = choice.paletteKey
+        applyNightMode(choice.mode)
         updateWidgets()
     }
 

@@ -2,7 +2,6 @@ package com.devidea.timeleft.widget
 
 import android.content.Context
 import android.content.SharedPreferences
-import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
@@ -15,7 +14,9 @@ import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.ui.theme.ThemePalette
+import com.devidea.timeleft.ui.theme.ThemeSelection
+import com.devidea.timeleft.ui.theme.resolveTheme
+import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
 import com.devidea.timeleft.ui.theme.TimeRulerTokens
 import com.devidea.timeleft.ui.components.drawTimeRulerGlow
 import kotlin.math.ceil
@@ -35,14 +36,14 @@ internal data class WidgetPalette(
             val dark = when (prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)) {
                 UserPreferences.THEME_DARK -> true
                 UserPreferences.THEME_LIGHT -> false
-                else -> context.resources.configuration.uiMode and Configuration.UI_MODE_NIGHT_MASK == Configuration.UI_MODE_NIGHT_YES
+                // AppCompat may still expose the previously forced app mode during an apply.
+                else -> systemUsesDarkTheme(context)
             }
             return create(prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY)
                 ?: UserPreferences.COLOR_THEME_CLAY, dark)
         }
         fun create(key: String, dark: Boolean): WidgetPalette {
-            val palette = ThemePalette.fromKey(key)
-            val colors = if (dark) palette.darkColors else palette.lightColors
+            val colors = resolveTheme(ThemeSelection(UserPreferences.THEME_AUTO, key), dark).colors
             return WidgetPalette(
                 if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
                 colors.primary.toArgb(), colors.onBackground.toArgb(), colors.onSurfaceVariant.toArgb(), colors.outlineVariant.toArgb(),
@@ -68,6 +69,7 @@ internal fun createSingleWidgetViews(
     palette: WidgetPalette,
     emptyMessage: Int,
     showProgress: Boolean,
+    snapshotTimeMillis: Long? = null,
 ): RemoteViews {
     if (!dimensions.meetsMinimum) return resizeWidgetViews(context, palette)
     val data = item?.toWidgetData(context, configuration.showRemaining,
@@ -86,7 +88,7 @@ internal fun createSingleWidgetViews(
     val updatedAt = if (item != null && (item.remainingSeconds != null || item.type == ItemType.Time)) {
         val locale = context.resources.configuration.locales[0]
         val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "MdHm")
-        java.text.SimpleDateFormat(pattern, locale).format(java.util.Date())
+        java.text.SimpleDateFormat(pattern, locale).format(java.util.Date(snapshotTimeMillis ?: System.currentTimeMillis()))
     } else ""
     val updatedLabel = updatedAt.takeIf { it.isNotBlank() }?.let { context.getString(R.string.widget_as_of, it) }.orEmpty()
     val titleHeight = measure.height(data.title, R.dimen.widget_title_size, titleWidth) +

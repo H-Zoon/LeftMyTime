@@ -28,6 +28,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -443,7 +444,7 @@ private fun WidgetOptionRow(label: String, checked: Boolean, enabled: Boolean, o
 }
 
 @Composable
-private fun WidgetPreviewBand(
+internal fun WidgetPreviewBand(
     dimensions: WidgetDimensions,
     configuration: WidgetConfiguration,
     item: AdapterItem?,
@@ -452,6 +453,8 @@ private fun WidgetPreviewBand(
     dark: Boolean,
     emptyMessage: Int,
     showProgress: Boolean,
+    previewDescription: String? = null,
+    snapshotTimeMillis: Long? = null,
 ) {
     val base = LocalContext.current
     val previewFontScale = LocalDensity.current.fontScale
@@ -462,9 +465,18 @@ private fun WidgetPreviewBand(
     }
     val meetsMinimum = dimensions.meetsMinimumFor(configuration.source)
     val previewDimensions = if (meetsMinimum) dimensions else WidgetDimensions.previewFor(configuration.source)
-    val views = AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress)
+    val views = remember(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress, snapshotTimeMillis) {
+        AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
+            snapshotTimeMillis = snapshotTimeMillis)
+    }
+    val spokenPreview = if (previewDescription != null && views.layoutId == R.layout.app_widget_resize)
+        stringResource(R.string.widget_size_hint) else previewDescription
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        WidgetSectionLabel(stringResource(if (meetsMinimum) R.string.widget_preview_current_size else R.string.widget_preview_recommended_size))
+        WidgetSectionLabel(stringResource(when {
+            previewDescription != null -> R.string.theme_widget_preview_size
+            meetsMinimum -> R.string.widget_preview_current_size
+            else -> R.string.widget_preview_recommended_size
+        }))
         Text(stringResource(if (configuration.source == WidgetSource.Overview) R.string.widget_overview_size_hint else R.string.widget_minimum_size_hint), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
         if (!meetsMinimum || views.layoutId == R.layout.app_widget_resize) {
@@ -480,15 +492,32 @@ private fun WidgetPreviewBand(
                 }
                 Row(Modifier.fillMaxWidth().horizontalScroll(rememberScrollState())) {
                     AndroidView(
-                        factory = { FrameLayout(context) },
+                        factory = { FrameLayout(context).apply {
+                            if (previewDescription != null) {
+                                importantForAccessibility = android.view.View.IMPORTANT_FOR_ACCESSIBILITY_NO_HIDE_DESCENDANTS
+                                descendantFocusability = android.view.ViewGroup.FOCUS_BLOCK_DESCENDANTS
+                            }
+                        } },
                         update = { parent ->
                             parent.removeAllViews()
-                            parent.addView(views.apply(context, parent))
+                            val content = views.apply(context, parent)
+                            if (previewDescription != null) content.removePreviewActions()
+                            parent.addView(content)
                         },
-                        modifier = Modifier.width(previewDimensions.width.dp).height(previewDimensions.height.dp),
+                        modifier = Modifier.width(previewDimensions.width.dp).height(previewDimensions.height.dp)
+                            .then(if (spokenPreview != null) Modifier.clearAndSetSemantics { contentDescription = spokenPreview } else Modifier),
                     )
                 }
             }
         }
     }
+}
+
+/** Preserve rendered appearance without advertising refresh/open actions inside a theme preview. */
+private fun android.view.View.removePreviewActions() {
+    setOnClickListener(null)
+    isClickable = false
+    isLongClickable = false
+    isFocusable = false
+    if (this is android.view.ViewGroup) (0 until childCount).forEach { getChildAt(it).removePreviewActions() }
 }

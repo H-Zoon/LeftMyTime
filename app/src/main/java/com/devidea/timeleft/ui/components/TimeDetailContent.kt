@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.key
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -24,6 +25,13 @@ import com.devidea.timeleft.ui.theme.Spacing
 /** Used inside both the period sheet and the activity opened from a widget. No independent ticker. */
 @Composable
 internal fun TimeDetailContent(item: AdapterItem, progressDisplayMode: String, modifier: Modifier = Modifier) {
+    // State survives ticks/rotation, and belongs to this item and actual period only.
+    val identity = "${item.type}/${item.id}/${item.detailFacts?.range ?: "${item.startLabel}/${item.endLabel}"}"
+    key(identity) { TimeDetailBody(item, progressDisplayMode, modifier) }
+}
+
+@Composable
+private fun TimeDetailBody(item: AdapterItem, progressDisplayMode: String, modifier: Modifier) {
     val facts = item.detailFacts
     if (facts?.validRange == false) {
         Text(stringResource(R.string.detail_invalid_range), modifier = modifier, style = MaterialTheme.typography.bodyLarge)
@@ -44,11 +52,16 @@ internal fun TimeDetailContent(item: AdapterItem, progressDisplayMode: String, m
         if (expiredDate) {
             Text(item.countdownText.ifBlank { item.leftString }, style = MaterialTheme.typography.displayMedium)
         } else {
-            RemainingTimeText(item, hero = true, showSeconds = true, untilStart = waiting, showRelation = !waiting)
+            InteractiveRemainingTime(item, waiting)
         }
         if (showRuler) {
-            TimeRuler(facts?.percentElapsed ?: item.percent, item.startLabel, item.endLabel,
-                glowEnabled = facts?.glowActive == true)
+            val range = facts?.range
+            if (facts != null && range != null && range.maximum > range.minimum && facts.phase == TimeRangePhase.Active && !waiting && !expiredDate) {
+                key(facts.phase) { InteractiveTimeRuler(item, range) }
+            } else {
+                TimeRuler(facts?.percentElapsed ?: item.percent, item.startLabel, item.endLabel,
+                    glowEnabled = facts?.glowActive == true)
+            }
         }
         if (facts != null) {
             if (progressDisplayMode == UserPreferences.PROGRESS_DISPLAY_FULL) {

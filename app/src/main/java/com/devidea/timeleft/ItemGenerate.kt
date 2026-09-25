@@ -11,6 +11,7 @@ import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.LocalTime
+import java.time.LocalDateTime
 import java.time.Duration
 import java.time.temporal.ChronoUnit
 import java.time.format.DateTimeFormatter
@@ -25,7 +26,8 @@ class ItemGenerate @Inject constructor(
 ) : InterfaceItem {
 
     override fun timeItem(): AdapterItem {
-        val now = LocalTime.now()
+        val snapshotTime = LocalDateTime.now()
+        val now = snapshotTime.toLocalTime()
         val progress = TimeProgressCalculator.dayProgress(now)
         val leftTime = LocalTime.ofSecondOfDay(progress.durationLeft.seconds.coerceIn(0, 86399))
         val leftText = context.getString(
@@ -44,6 +46,7 @@ class ItemGenerate @Inject constructor(
                 elapsed = now.toSecondOfDay().toLong(), total = SECONDS_PER_DAY,
                 phase = if (progress.durationLeft.isNegative || progress.durationLeft.isZero) TimeRangePhase.Finished else TimeRangePhase.Active,
                 secondsLeft = progress.durationLeft.secondsForDisplay(),
+                range = TimeDetailRange.Clock(LocalTime.MIDNIGHT, LocalTime.of(23, 59, 59), snapshotTime.toLocalDate()),
             ),
             leftString = leftText,
             widgetString = context.getString(
@@ -63,7 +66,8 @@ class ItemGenerate @Inject constructor(
             endLabel = today.withDayOfYear(today.lengthOfYear()).toString(),
             percent = roundPercent(progress.percentElapsed),
             detailFacts = TimeDetailFacts(progress.percentElapsed, today.dayOfYear.toLong(), today.lengthOfYear().toLong(),
-                TimeRangePhase.Active, inDays = true, includesToday = true),
+                TimeRangePhase.Active, inDays = true, includesToday = true,
+                range = TimeDetailRange.Calendar(today.withDayOfYear(1), today.withDayOfYear(today.lengthOfYear()), includesFirstDay = true)),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
     }
@@ -79,7 +83,8 @@ class ItemGenerate @Inject constructor(
             endLabel = today.withDayOfMonth(today.lengthOfMonth()).toString(),
             percent = roundPercent(progress.percentElapsed),
             detailFacts = TimeDetailFacts(progress.percentElapsed, today.dayOfMonth.toLong(), today.lengthOfMonth().toLong(),
-                TimeRangePhase.Active, inDays = true, includesToday = true),
+                TimeRangePhase.Active, inDays = true, includesToday = true,
+                range = TimeDetailRange.Calendar(today.withDayOfMonth(1), today.withDayOfMonth(today.lengthOfMonth()), includesFirstDay = true)),
             leftString = context.getString(R.string.home_days_left, progress.daysLeft),
         )
     }
@@ -88,7 +93,8 @@ class ItemGenerate @Inject constructor(
         val startTime = LocalTime.parse(itemEntity.startValue, STORAGE_TIME_FORMATTER)
         val endTime = LocalTime.parse(itemEntity.endValue, STORAGE_TIME_FORMATTER)
 
-        val now = LocalTime.now()
+        val snapshotTime = LocalDateTime.now()
+        val now = snapshotTime.toLocalTime()
         val snapshot = timeRangeSnapshot(startTime, endTime, now)
         val base = AdapterItem(
             type = ItemType.Time,
@@ -110,6 +116,7 @@ class ItemGenerate @Inject constructor(
                     TimeRangePhase.Active -> null
                 },
                 validRange = endTime.isAfter(startTime),
+                range = TimeDetailRange.Clock(startTime, endTime, snapshotTime.toLocalDate()),
             ),
             id = itemEntity.id,
             title = itemEntity.title,
@@ -200,6 +207,7 @@ class ItemGenerate @Inject constructor(
                     else -> TimeRangePhase.Active
                 },
                 validRange = !endDate.isBefore(startDate),
+                range = TimeDetailRange.Calendar(startDate, endDate),
             ),
             updateInfo = updateInfo,
             countdownText = countdownText,

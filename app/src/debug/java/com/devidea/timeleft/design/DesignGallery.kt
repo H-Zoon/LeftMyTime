@@ -24,6 +24,8 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -38,6 +40,7 @@ import com.devidea.timeleft.widget.WidgetSaveResult
 import com.devidea.timeleft.widget.LocalWidgetPinAllowed
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.TimeDetailFacts
+import com.devidea.timeleft.TimeDetailRange
 import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
@@ -49,8 +52,12 @@ import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.settings.SettingsScreen
+import com.devidea.timeleft.ui.settings.ThemePreviewScreen
+import com.devidea.timeleft.ui.settings.ThemePreviewSnapshot
+import com.devidea.timeleft.ui.settings.ThemePreviewState
 import com.devidea.timeleft.ui.theme.ThemePalette
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
+import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
 import java.util.Locale
 
 /** Opens real screen components with local fixtures; never writes user data. */
@@ -114,21 +121,42 @@ private val sampleItems = listOf(
 /** Original lengths for debug fixtures only; production facts come from ItemGenerate. */
 private fun withDetailFixture(item: AdapterItem): AdapterItem {
     val inDays = item.remainingDays != null
-    val total = when {
-        inDays -> java.time.temporal.ChronoUnit.DAYS.between(java.time.LocalDate.parse(item.startLabel), java.time.LocalDate.parse(item.endLabel)) + if (item.type == null) 1 else 0
-        item.type == ItemType.Time -> java.time.Duration.between(java.time.LocalTime.parse(item.startLabel), java.time.LocalTime.parse(item.endLabel)).seconds
-        else -> 86_400L
+    val range = if (inDays) TimeDetailRange.Calendar(java.time.LocalDate.parse(item.startLabel),
+        java.time.LocalDate.parse(item.endLabel), includesFirstDay = item.type == null)
+    else TimeDetailRange.Clock(java.time.LocalTime.parse(item.startLabel),
+        java.time.LocalTime.parse(item.endLabel), java.time.LocalDate.of(2026, 9, 23))
+    // Today keeps the production percentage denominator and 23:59:59 end separately.
+    val total = if (!inDays && item.type == null) 86_400L else range.maximum
+    val phase = item.timePhase ?: when {
+        item.isExpired || item.remainingSeconds == 0L -> TimeRangePhase.Finished
+        inDays && (item.remainingDays?.toLong() ?: 0) > range.maximum -> TimeRangePhase.Upcoming
+        else -> TimeRangePhase.Active
     }
-    val phase = item.timePhase ?: if (item.isExpired || item.remainingSeconds == 0L) TimeRangePhase.Finished else TimeRangePhase.Active
     val elapsed = when (phase) {
         TimeRangePhase.Upcoming -> 0L
-        TimeRangePhase.Finished -> total
-        TimeRangePhase.Active -> total - (if (inDays) item.remainingDays?.toLong() ?: 0 else item.remainingSeconds ?: 0)
+        TimeRangePhase.Finished -> range.maximum
+        TimeRangePhase.Active -> range.maximum - (if (inDays) item.remainingDays?.toLong() ?: 0 else item.remainingSeconds ?: 0)
     }.coerceIn(0, total)
-    val percent = if (total > 0) elapsed.toFloat() / total * 100f else 100f
+    val percent = if (phase == TimeRangePhase.Upcoming) 0f else if (total > 0) elapsed.toFloat() / total * 100f else 100f
     return item.copy(percent = percent, detailFacts = TimeDetailFacts(percent, elapsed, total, phase,
         inDays = inDays, secondsLeft = item.remainingSeconds, secondsUntilStart = item.secondsUntilStart,
-        includesToday = inDays && item.type == null))
+        includesToday = inDays && item.type == null, range = range,
+        validRange = when (range) {
+            is TimeDetailRange.Calendar -> !range.end.isBefore(range.start)
+            is TimeDetailRange.Clock -> range.end.isAfter(range.start)
+        }))
+}
+
+private fun homeDateFixtures(): List<AdapterItem> {
+    val base = sampleItems.first { it.id == 2 }
+    return listOf(
+        base.copy(id = 20, title = "오늘까지 제출하는 원고", remainingDays = 0, startLabel = "2026-09-01", endLabel = "2026-09-23"),
+        base.copy(id = 21, title = "다음 달에 시작하는 전시 준비", remainingDays = 17, startLabel = "2026-10-01", endLabel = "2026-10-10"),
+        base.copy(id = 22, title = "당일 일정", remainingDays = 0, startLabel = "2026-09-23", endLabel = "2026-09-23"),
+        base.copy(id = 23, title = "시작 전인 당일 일정", remainingDays = 10, startLabel = "2026-10-03", endLabel = "2026-10-03"),
+        base.copy(id = 24, title = "확인이 필요한 날짜", remainingDays = 8, startLabel = "2026-10-04", endLabel = "2026-10-01"),
+    ).map { withDetailFixture(it.copy(dueText = "", countdownText = "", leftString = "", category = "",
+        remainingSortKey = it.remainingDays!!.toLong() * 86_400)) }
 }
 
 @Composable
@@ -153,6 +181,31 @@ private fun GalleryScreen(
     when {
         screen.startsWith("detail-") -> {
             val item = when {
+                screen.contains("settle-month") -> withDetailFixture(periodItems[1].copy(remainingDays = 7))
+                screen.contains("settle-year") -> withDetailFixture(periodItems[2].copy(remainingDays = 99))
+                screen.contains("settle-today") -> withDetailFixture(periodItems[0].copy(remainingSeconds = 9 * 3_600L + 42 * 60 + 35))
+                screen.contains("settle-small-gap") -> withDetailFixture(periodItems[1].copy(remainingDays = 28))
+                screen.contains("borrow-hour") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 42 * 60L + 35))
+                screen.contains("borrow-minute") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(
+                    endLabel = "14:02", remainingSeconds = 89))
+                screen.contains("borrow-equal-minute") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(
+                    endLabel = "15:10:10", remainingSeconds = 10 * 60L + 35))
+                screen.contains("borrow-terminal") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(
+                    endLabel = "14:01", remainingSeconds = 59))
+                screen.contains("february") -> withDetailFixture(periodItems[1].copy(
+                    startLabel = "2027-02-01", endLabel = "2027-02-28", remainingDays = 5))
+                screen.contains("leap-month") -> withDetailFixture(periodItems[1].copy(
+                    startLabel = "2028-02-01", endLabel = "2028-02-29", remainingDays = 6))
+                screen.contains("leap-year") -> withDetailFixture(periodItems[2].copy(
+                    startLabel = "2028-01-01", endLabel = "2028-12-31", remainingDays = 99))
+                screen.contains("31-days") -> withDetailFixture(periodItems[1].copy(
+                    startLabel = "2026-10-01", endLabel = "2026-10-31", remainingDays = 12))
+                screen.contains("short-range") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(
+                    startLabel = "14:00", endLabel = "14:00:45", remainingSeconds = 25))
+                screen.contains("partial-minute") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(
+                    startLabel = "14:00", endLabel = "14:05:30", remainingSeconds = 150))
+                screen.contains("same-day") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(
+                    startLabel = "2026-09-23", endLabel = "2026-09-23", remainingDays = 0))
                 screen.contains("story-music") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 25))
                 screen.contains("story-literature") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 42, endLabel = "2026-11-01"))
                 screen.contains("story-seconds") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 12))
@@ -299,37 +352,90 @@ private fun GalleryScreen(
                 isLoading = false, isSaving = false, onBack = {}, onSave = {}
             )
         }
-        screen == "settings" -> SettingsScreen(
-            themeMode = themeMode,
-            paletteKey = paletteKey,
-            homeSort = UserPreferences.SORT_NEAREST,
-            expiredItemsMode = UserPreferences.EXPIRED_ITEMS_SHOW,
-            progressDisplayMode = UserPreferences.PROGRESS_DISPLAY_FULL,
-            defaultDateReminderOffset = ItemVisuals.REMINDER_DISABLED,
-            defaultTimeReminderOffset = ItemVisuals.REMINDER_DISABLED,
-            dateReminderTime = "09:00", remindersEnabled = true, versionName = "디자인 검수",
-            onBack = {}, onThemeSelected = {}, onPaletteSelected = {}, onSortSelected = {},
-            onExpiredItemsModeSelected = {}, onProgressDisplayModeSelected = {},
-            onDefaultDateReminderSelected = {}, onDefaultTimeReminderSelected = {},
-            onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {}
-        )
+        screen == "settings" || screen == "settings-selected" || screen == "settings-legacy" || screen.startsWith("theme-preview") ->
+            SettingsGallery(screen, themeMode, paletteKey, periodItems)
         else -> HomeScreen(
             initialSortValue = UserPreferences.SORT_NEAREST,
-            initialLayoutValue = if (screen == "grid") UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST,
-            expiredItemsMode = UserPreferences.EXPIRED_ITEMS_SHOW,
+            initialLayoutValue = if (screen == "grid" || screen == "date-grid") UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST,
+            expiredItemsMode = when (screen) {
+                "dates-hide-expired" -> UserPreferences.EXPIRED_ITEMS_HIDE
+                "date-items", "date-grid" -> UserPreferences.EXPIRED_ITEMS_BOTTOM
+                else -> UserPreferences.EXPIRED_ITEMS_SHOW
+            },
             progressDisplayMode = if (screen == "progress-hidden") UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
             topItems = periodItems,
             customItems = when (screen) {
                 "empty" -> emptyList()
                 "idle" -> sampleItems.filter { it.timePhase != TimeRangePhase.Active }
                 "dates" -> sampleItems.filter { it.type == ItemType.Date }
+                "dates-many" -> sampleItems + (10..15).map { id ->
+                    withDetailFixture(sampleItems.first { it.id == 4 }.copy(id = id, secondsUntilStart = id * 60L))
+                } + homeDateFixtures()
+                "date-items", "date-grid", "dates-hide-expired" -> sampleItems.filter { it.type == ItemType.Date } + homeDateFixtures()
+                "dates-today" -> homeDateFixtures().filter { it.id == 20 }
+                "dates-same-day" -> homeDateFixtures().filter { it.id == 22 }
+                "dates-future" -> homeDateFixtures().filter { it.id == 21 || it.id == 23 }
+                "dates-expired" -> sampleItems.filter { it.isExpired }
+                "dates-invalid" -> homeDateFixtures().filter { it.id == 24 }
                 "overlap" -> sampleItems + withDetailFixture(sampleItems.first { it.id == 1 }.copy(id = 6, title = "함께 진행하는 업무", remainingSeconds = 1200, percent = 66.67f, startLabel = "13:38", endLabel = "14:38"))
                 "long" -> sampleItems.map { if (it.id == 1) it.copy(title = longTitle) else it }
                 else -> sampleItems
             },
-            initialShowAll = screen == "grid" || screen == "items",
+            initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid",
             onOpenSettings = {}, onSortChange = {}, onLayoutChange = {},
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
+        )
+    }
+}
+
+/** Real settings controls with local state only; no saved preferences or reminders are changed. */
+@Composable
+private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<AdapterItem>) {
+    val selectedFixture = screen == "settings-selected"
+    var theme by rememberSaveable(screen, initialTheme) { mutableStateOf(initialTheme) }
+    var palette by rememberSaveable(screen, initialPalette) { mutableStateOf(initialPalette) }
+    var sort by rememberSaveable(screen) {
+        mutableStateOf(if (selectedFixture) UserPreferences.SORT_PROGRESS else UserPreferences.SORT_NEAREST)
+    }
+    var expired by rememberSaveable(screen) {
+        mutableStateOf(if (selectedFixture) UserPreferences.EXPIRED_ITEMS_BOTTOM else UserPreferences.EXPIRED_ITEMS_SHOW)
+    }
+    var progress by rememberSaveable(screen) {
+        mutableStateOf(when (screen) {
+            "settings-legacy" -> UserPreferences.PROGRESS_DISPLAY_BAR_ONLY
+            "settings-selected" -> UserPreferences.PROGRESS_DISPLAY_HIDDEN
+            else -> UserPreferences.PROGRESS_DISPLAY_FULL
+        })
+    }
+    var dateReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 7 else ItemVisuals.REMINDER_DISABLED) }
+    var timeReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 60 else ItemVisuals.REMINDER_DISABLED) }
+    var previewOpen by rememberSaveable(screen) { mutableStateOf(screen.startsWith("theme-preview")) }
+    var previewStatus by rememberSaveable(screen) { mutableStateOf(when (screen) {
+        "theme-preview-loading" -> "loading"
+        "theme-preview-error" -> "error"
+        else -> "ready"
+    }) }
+    val previewCapturedAt = remember(screen) { System.currentTimeMillis() }
+    val previewState = ThemePreviewState(
+        snapshot = if (previewStatus == "ready") ThemePreviewSnapshot(periods,
+            if (screen == "theme-preview-empty") emptyList() else sampleItems, previewCapturedAt) else null,
+        loading = previewStatus == "loading", failed = previewStatus == "error",
+    )
+    TimeLeftTheme(themeMode = theme, paletteKey = palette) {
+        if (previewOpen) ThemePreviewScreen(
+            initialThemeMode = theme, initialPaletteKey = palette,
+            systemDark = systemUsesDarkTheme(LocalContext.current),
+            state = previewState, expiredItemsMode = expired, progressDisplayMode = progress,
+            onBack = { previewOpen = false }, onRetry = { previewStatus = "ready" },
+            onApply = { choice -> previewOpen = false; theme = choice.mode; palette = choice.paletteKey },
+        ) else SettingsScreen(
+            themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
+            progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
+            dateReminderTime = "09:00", remindersEnabled = !selectedFixture, versionName = "디자인 검수",
+            onBack = {}, onOpenThemePreview = { previewOpen = true }, previewPeriods = periods, onSortSelected = { sort = it },
+            onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
+            onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
+            onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
         )
     }
 }
@@ -352,6 +458,11 @@ private fun GalleryPreview(screen: String, palette: ThemePalette) {
 @Composable
 private fun HomePreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("home", palette)
+
+@DesignPreviews
+@Composable
+private fun DatesHomePreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("dates", palette)
 
 @DesignPreviews
 @Composable
@@ -382,6 +493,11 @@ private fun TimeEditorPreview(@PreviewParameter(PalettePreviewProvider::class) p
 @Composable
 private fun SettingsPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("settings", palette)
+
+@DesignPreviews
+@Composable
+private fun ThemePickerPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("theme-preview", palette)
 
 class EnglishDesignGalleryActivity : DesignGalleryActivity() {
     override val galleryLocale: Locale get() = Locale.ENGLISH

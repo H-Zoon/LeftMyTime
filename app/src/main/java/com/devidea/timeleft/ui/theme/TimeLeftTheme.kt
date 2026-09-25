@@ -93,7 +93,7 @@ val TimeLeftTypography = Typography(
     labelSmall = textStyle(12, 18)
 )
 
-private val TimeLeftShapes = Shapes(
+internal val TimeLeftShapes = Shapes(
     extraSmall = RoundedCornerShape(4.dp), small = RoundedCornerShape(8.dp),
     medium = RoundedCornerShape(8.dp), large = RoundedCornerShape(16.dp),
     extraLarge = RoundedCornerShape(24.dp)
@@ -105,16 +105,11 @@ fun TimeLeftTheme(
     paletteKey: String = UserPreferences.COLOR_THEME_CLAY,
     content: @Composable () -> Unit
 ) {
-    val darkTheme = when (themeMode) {
-        UserPreferences.THEME_LIGHT -> false
-        UserPreferences.THEME_DARK -> true
-        else -> isSystemInDarkTheme()
-    }
-    val palette = ThemePalette.fromKey(paletteKey)
+    val theme = resolveTheme(ThemeSelection(themeMode, paletteKey), isSystemInDarkTheme())
     MaterialTheme(
-        colorScheme = if (darkTheme) palette.darkColors else palette.lightColors,
-        typography = TimeLeftTypography,
-        shapes = TimeLeftShapes,
+        colorScheme = theme.colors,
+        typography = theme.definition.typography,
+        shapes = theme.definition.shapes,
         content = content
     )
 }

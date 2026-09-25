@@ -10,11 +10,11 @@ import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-internal fun EmptyItemState(onAddTime: () -> Unit, onAddDate: () -> Unit, modifier: Modifier = Modifier) {
+internal fun EmptyItemState(onAddTime: () -> Unit, onAddDate: () -> Unit, modifier: Modifier = Modifier, interactive: Boolean = true) {
     Column(modifier.fillMaxWidth().padding(vertical = Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         Text(stringResource(R.string.home_empty_title), style = MaterialTheme.typography.titleMedium)
         Text(stringResource(R.string.home_empty_body), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        if (interactive) FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
             TextButton(onClick = onAddTime) { Text(stringResource(R.string.home_add_time_range)) }
             TextButton(onClick = onAddDate) { Text(stringResource(R.string.home_add_date)) }
         }

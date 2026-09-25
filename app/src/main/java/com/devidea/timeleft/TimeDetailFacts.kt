@@ -14,6 +14,7 @@ data class TimeDetailFacts(
     val secondsUntilStart: Long? = null,
     val validRange: Boolean = true,
     val includesToday: Boolean = false,
+    val range: TimeDetailRange? = null,
 ) {
     val glowActive: Boolean
         get() = validRange && phase == TimeRangePhase.Active && percentElapsed.isFinite() && percentElapsed < 100f

@@ -27,6 +27,8 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.ui.components.remainingTimeLabel
+import com.devidea.timeleft.ui.components.TimeDetailSheet
+import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -46,12 +48,16 @@ internal fun TimeLeftItemCard(
     modifier: Modifier = Modifier,
     grid: Boolean = false,
     upcoming: Boolean = false,
+    progressDisplayMode: String = UserPreferences.PROGRESS_DISPLAY_FULL,
+    interactive: Boolean = true,
 ) {
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
+    var showTimeDetails by rememberSaveable(item.id) { mutableStateOf(false) }
     val countdown = if (upcoming) remainingTimeLabel(item.secondsUntilStart, null) else when {
         item.timePhase == TimeRangePhase.Active -> remainingTimeLabel(item.remainingSeconds, null)
         item.type == ItemType.Time -> remainingTimeLabel(item.secondsUntilStart, null)
+        item.type == ItemType.Date -> dateScheduleCountdown(item)
         else -> item.countdownText.ifBlank { item.leftString }
     }
     val relation = stringResource(if (upcoming || (item.type == ItemType.Time && item.timePhase != TimeRangePhase.Active)) R.string.time_until_start else R.string.time_remaining)
@@ -59,8 +65,8 @@ internal fun TimeLeftItemCard(
     Column(modifier.fillMaxWidth()) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Column(
-            Modifier.fillMaxWidth().clickable(role = Role.Button) { expanded = !expanded }
-                .semantics { stateDescription = expandedLabel }
+            Modifier.fillMaxWidth().then(if (interactive) Modifier.clickable(role = Role.Button) { expanded = !expanded }
+                .semantics { stateDescription = expandedLabel } else Modifier)
                 .padding(vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
@@ -79,17 +85,18 @@ internal fun TimeLeftItemCard(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text(
-                    if (item.type == ItemType.Time) "${item.startLabel}–${item.endLabel}" else item.dueText,
+                    if (item.type == ItemType.Time) "${item.startLabel}–${item.endLabel}"
+                    else if (item.type == ItemType.Date) dateScheduleCaption(item) else item.dueText,
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                     modifier = Modifier.weight(1f)
                 )
-                Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, contentDescription = null)
+                if (interactive) Icon(if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown, contentDescription = null)
             }
             if (item.category.isNotBlank()) Text(item.category, style = MaterialTheme.typography.bodySmall, color = itemAccentColor(item.colorKey, MaterialTheme.colorScheme.primary))
         }
         AnimatedVisibility(
-            visible = expanded,
+            visible = interactive && expanded,
             enter = expandVertically(
                 animationSpec = tween(durationMillis = DetailExpandDurationMillis),
                 expandFrom = Alignment.Top,
@@ -101,21 +108,25 @@ internal fun TimeLeftItemCard(
         ) {
             Column(
                 // Closing content stays composed until the exit finishes; hide it from accessibility immediately.
-                modifier = if (expanded) Modifier else Modifier.clearAndSetSemantics {},
+                modifier = if (interactive && expanded) Modifier else Modifier.clearAndSetSemantics {},
                 verticalArrangement = Arrangement.spacedBy(Spacing.s),
             ) {
                 listOf(item.startString, item.endString, item.updateInfo, item.recurrenceText, item.reminderText).filter { it.isNotBlank() }.distinct().forEach {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    TextButton(onClick = { onEditItem(item.id) }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
-                    PinWidgetButton(item, WidgetSource.Custom, enabled = expanded)
-                    TextButton(onClick = { showDeleteDialog = true }, enabled = expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
+                    TextButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded,
+                        modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_time_details)) }
+                    TextButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
+                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded)
+                    TextButton(onClick = { showDeleteDialog = true }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }
     }
-    if (showDeleteDialog) AlertDialog(
+    if (interactive && showTimeDetails) TimeDetailSheet(item, item.title, progressDisplayMode, WidgetSource.Custom,
+        onDismiss = { showTimeDetails = false })
+    if (interactive && showDeleteDialog) AlertDialog(
         onDismissRequest = { showDeleteDialog = false },
         title = { Text(stringResource(R.string.card_delete_title)) },
         text = { Text(stringResource(R.string.card_delete_message, item.title)) },

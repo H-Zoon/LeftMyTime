@@ -16,3 +16,15 @@ internal fun selectActiveTimeItem(items: List<AdapterItem>, selectedId: Int?): A
 internal fun upcomingTimeItems(items: List<AdapterItem>): List<AdapterItem> = items
     .filter { it.type == ItemType.Time && it.timePhase != TimeRangePhase.Active && it.secondsUntilStart != null }
     .sortedWith(compareBy<AdapterItem> { it.secondsUntilStart }.thenBy { it.id })
+
+/** A date ending today is still available; expired or invalid periods stay in schedule management. */
+internal fun homeDateItems(items: List<AdapterItem>): List<AdapterItem> = items
+    .filter {
+        it.type == ItemType.Date && !it.isExpired && (it.remainingDays ?: -1) >= 0 &&
+            it.detailFacts?.validRange == true &&
+            it.detailFacts.phase in listOf(TimeRangePhase.Active, TimeRangePhase.Upcoming)
+    }
+    .sortedWith(compareBy<AdapterItem> { it.remainingDays }.thenBy { it.id })
+
+internal fun selectHomeHero(items: List<AdapterItem>, selectedActiveId: Int?): AdapterItem? =
+    selectActiveTimeItem(items, selectedActiveId) ?: homeDateItems(items).firstOrNull()
