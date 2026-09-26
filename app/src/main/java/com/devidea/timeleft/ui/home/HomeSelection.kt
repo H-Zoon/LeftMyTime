@@ -27,4 +27,6 @@ internal fun homeDateItems(items: List<AdapterItem>): List<AdapterItem> = items
     .sortedWith(compareBy<AdapterItem> { it.remainingDays }.thenBy { it.id })
 
 internal fun selectHomeHero(items: List<AdapterItem>, selectedActiveId: Int?): AdapterItem? =
-    selectActiveTimeItem(items, selectedActiveId) ?: homeDateItems(items).firstOrNull()
+    items.firstOrNull { it.isPinned && !it.isExpired && !it.dataError &&
+        (it in homeDateItems(items) || it.type == ItemType.Time && (it.timePhase == TimeRangePhase.Active || it.secondsUntilStart != null)) }
+        ?: selectActiveTimeItem(items, selectedActiveId) ?: homeDateItems(items).firstOrNull()

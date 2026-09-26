@@ -29,5 +29,13 @@ data class AdapterItem(
     val startLabel: String = "",
     val endLabel: String = "",
     val currentLabel: String = "",
+    val dataError: Boolean = false,
+    val isPinned: Boolean = false,
+    val manualOrder: Long = 0,
+    val isFocusSession: Boolean = false,
+    val isCalendarOccurrence: Boolean = false,
+    val focusState: String = "",
+    val startsAtMillis: Long? = null,
+    val endsAtMillis: Long? = null,
     val detailFacts: TimeDetailFacts? = null,
 )

@@ -8,14 +8,16 @@ import kotlin.math.roundToLong
 
 /** Original bounds for read-only exploration; never parsed from translated UI labels. */
 sealed interface TimeDetailRange {
-    data class Clock(val start: LocalTime, val end: LocalTime, val occurrence: LocalDate) : TimeDetailRange
+    data class Clock(val start: LocalTime, val end: LocalTime, val occurrence: LocalDate,
+        val durationSeconds: Long = Duration.between(start, end).seconds,
+        val startEpochSecond: Long? = null) : TimeDetailRange
     data class Calendar(val start: LocalDate, val end: LocalDate, val includesFirstDay: Boolean = false) : TimeDetailRange
 
     val minimum: Long
         get() = if (this is Calendar && includesFirstDay) 1L else 0L
     val maximum: Long
         get() = when (this) {
-            is Clock -> Duration.between(start, end).seconds.coerceAtLeast(0)
+            is Clock -> durationSeconds.coerceAtLeast(0)
             is Calendar -> (ChronoUnit.DAYS.between(start, end) + minimum).coerceAtLeast(0)
         }
     val step: Long

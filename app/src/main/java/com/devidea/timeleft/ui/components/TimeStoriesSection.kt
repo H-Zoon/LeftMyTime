@@ -1,5 +1,10 @@
 package com.devidea.timeleft.ui.components
 
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import com.devidea.timeleft.stories.rememberStoryLibrary
+import com.devidea.timeleft.stories.StoryLibraryActivity
+import kotlinx.coroutines.delay
 import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.net.Uri
@@ -58,9 +63,16 @@ internal fun TimeStoriesSection(identity: String, remaining: Long, inDays: Boole
     // Historical stories do not become impossible when the countdown passes their duration.
     val anchor by rememberSaveable(identity, inDays) { mutableLongStateOf(remaining) }
     var index by rememberSaveable(identity, inDays) { mutableIntStateOf(0) }
-    val candidates = remember(anchor, inDays) { timeStories(anchor, inDays) }
+    val (library, favorites) = rememberStoryLibrary()
+    val ids by rememberSaveable(identity, inDays) { mutableStateOf(library.order(timeStories(anchor, inDays)).map { it.id }.toTypedArray()) }
+    val candidates = remember(ids) { val all = allTimeStories().associateBy { it.id }; ids.mapNotNull { all[it] } }
     if (remaining <= 0 || candidates.isEmpty()) return
     val selected = candidates[index.coerceIn(candidates.indices)]
+    LaunchedEffect(identity, selected.id) {
+        // Fast swipes do not count as reading; the order stays frozen until the next detail visit.
+        delay(1500)
+        library.markSeen(selected.id)
+    }
     val context = LocalContext.current
     val haptics = rememberInteractionHaptics()
     var direction by remember(identity) { mutableIntStateOf(1) }
@@ -120,6 +132,16 @@ internal fun TimeStoriesSection(identity: String, remaining: Long, inDays: Boole
                     contentPadding = PaddingValues(horizontal = 0.dp, vertical = Spacing.s)) {
                     Text(stringResource(R.string.time_stories_another))
                 }
+            }
+            TextButton(onClick = { library.toggle(selected.id) },
+                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = Spacing.s)) {
+                Text(stringResource(if (selected.id in favorites) R.string.story_unsave else R.string.story_save))
+            }
+            TextButton(onClick = { context.startActivity(Intent(context, StoryLibraryActivity::class.java)) },
+                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
+                contentPadding = PaddingValues(horizontal = 0.dp, vertical = Spacing.s)) {
+                Text(stringResource(R.string.story_library))
             }
             TextButton(onClick = {
                 try {

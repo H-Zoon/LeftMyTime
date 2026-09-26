@@ -181,6 +181,68 @@ class AppDatabaseMigrationTest {
         }
     }
 
+    @Test
+    fun migrateVersion8_addsStableIdentitiesWithoutChangingWidgetIdsOrReminders() {
+        helper.createDatabase("stable-identity-v8", 8).use { database ->
+            for (id in listOf(7, 19)) database.execSQL(
+                "INSERT INTO ItemEntity (id, type, title, startValue, endValue, updateFlag, updateRate, category, colorKey, iconKey, reminderOffsetDays) " +
+                    "VALUES (?, 'Month', 'Preserved', '2026-09-01', '2026-10-01', 1, 3, 'work', 'auto', 'event', 7)", arrayOf(id))
+        }
+        helper.runMigrationsAndValidate("stable-identity-v8", 9, true, AppDatabase.MIGRATION_8_9).use { database ->
+            database.query("SELECT id, stableId, modifiedAt, deletedAt, reminderOffsetDays FROM ItemEntity ORDER BY id").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(7, cursor.getInt(0))
+                val firstIdentity = cursor.getString(1)
+                assertEquals(32, firstIdentity.length)
+                assertTrue(cursor.getLong(2) > 0)
+                assertTrue(cursor.isNull(3))
+                assertEquals(7, cursor.getInt(4))
+                assertTrue(cursor.moveToNext())
+                assertEquals(19, cursor.getInt(0))
+                assertTrue(firstIdentity != cursor.getString(1))
+            }
+        }
+    }
+
+    @Test
+    fun migrateVersion9_preservesExistingRangesAndAddsOnlyOptionalFeatureState() {
+        helper.createDatabase("feature-state-v9", 9).use { database ->
+            database.execSQL("INSERT INTO ItemEntity (id, type, title, startValue, endValue, updateFlag, updateRate, category, colorKey, iconKey, reminderOffsetDays, stableId, modifiedAt) " +
+                "VALUES (42, 'Time', 'Preserved', '9:0', '18:0', 3, 0, 'work', 'auto', 'event', 10, 'stable-test', 100)")
+        }
+        helper.runMigrationsAndValidate("feature-state-v9", 14, true,
+            AppDatabase.MIGRATION_9_10, AppDatabase.MIGRATION_10_11, AppDatabase.MIGRATION_11_12,
+            AppDatabase.MIGRATION_12_13, AppDatabase.MIGRATION_13_14).use { database ->
+            database.query("SELECT id, startValue, endValue, reminderOffsetDays, stableId, weekdays, endNextDay, focusState, isTemplate, isPinned, occurrenceStartMillis, occurrenceEndMillis, calendarSourceKey, focusResumedRealtime FROM ItemEntity").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(42, cursor.getInt(0))
+                assertEquals("9:0", cursor.getString(1)); assertEquals("18:0", cursor.getString(2))
+                assertEquals(10, cursor.getInt(3)); assertEquals("stable-test", cursor.getString(4))
+                assertEquals(127, cursor.getInt(5)); assertEquals(0, cursor.getInt(6))
+                assertEquals("", cursor.getString(7)); assertEquals(0, cursor.getInt(8)); assertEquals(0, cursor.getInt(9))
+                assertTrue(cursor.isNull(10)); assertTrue(cursor.isNull(11)); assertEquals("", cursor.getString(12)); assertTrue(cursor.isNull(13))
+            }
+        }
+    }
+
+    @Test
+    fun migrateVersion14_preservesItemsWithoutReplayingPastCompletions() {
+        helper.createDatabase("focus-outbox-v14", 14).use { database ->
+            database.execSQL("INSERT INTO ItemEntity (id, type, title, startValue, endValue, updateFlag, updateRate, category, colorKey, iconKey, reminderOffsetDays, stableId, modifiedAt, focusState, focusDurationMillis, focusElapsedMillis, focusStoppedAt) " +
+                "VALUES (42, 'Time', 'Completed', '9:0', '9:1', 0, 0, '', 'auto', 'event', 0, 'stable-completed', 100, 'completed', 60000, 60000, 100)")
+        }
+        helper.runMigrationsAndValidate("focus-outbox-v14", 15, true, AppDatabase.MIGRATION_14_15).use { database ->
+            database.query("SELECT id, stableId, focusState, focusElapsedMillis FROM ItemEntity").use { cursor ->
+                assertTrue(cursor.moveToFirst())
+                assertEquals(42, cursor.getInt(0)); assertEquals("stable-completed", cursor.getString(1))
+                assertEquals("completed", cursor.getString(2)); assertEquals(60000L, cursor.getLong(3))
+            }
+            database.query("SELECT COUNT(*) FROM FocusCompletionNotice").use { cursor ->
+                assertTrue(cursor.moveToFirst()); assertEquals(0, cursor.getInt(0))
+            }
+        }
+    }
+
     private fun assertMigratedDefaultRow(database: SupportSQLiteDatabase) {
         database.query(
             "SELECT title, category, colorKey, iconKey, reminderOffsetDays FROM `ItemEntity` WHERE id = 1"

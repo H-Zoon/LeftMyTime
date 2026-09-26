@@ -77,6 +77,7 @@ open class DesignGalleryActivity : ComponentActivity() {
         val screen = intent.getStringExtra("screen") ?: "home"
         val palette = intent.getStringExtra("palette") ?: UserPreferences.COLOR_THEME_CLAY
         val mode = intent.getStringExtra("theme") ?: UserPreferences.THEME_LIGHT
+        val design = intent.getStringExtra("design") ?: UserPreferences.DESIGN_TIME_FOCUS
         val fontScale = intent.getFloatExtra("fontScale", 1f).coerceIn(1f, 2f)
         WindowCompat.getInsetsController(window, window.decorView).apply {
             isAppearanceLightStatusBars = mode != UserPreferences.THEME_DARK
@@ -85,7 +86,7 @@ open class DesignGalleryActivity : ComponentActivity() {
         setContent {
             val density = LocalDensity.current
             CompositionLocalProvider(LocalDensity provides Density(density.density, fontScale), LocalWidgetPinAllowed provides false) {
-                TimeLeftTheme(themeMode = mode, paletteKey = palette) {
+                TimeLeftTheme(themeMode = mode, paletteKey = palette, designKey = design) {
                     GalleryScreen(screen, palette, mode, intent.getBooleanExtra("exportWidget", false))
                 }
             }
@@ -317,6 +318,7 @@ private fun GalleryScreen(
                 item?.let { if (screen.contains("long")) it.copy(title = longTitle) else it }, periodItems, paletteKey, themeMode == UserPreferences.THEME_DARK,
                 emptyMessage = R.string.widget_item_unavailable,
                 showProgress = !screen.contains("hidden"),
+                designKey = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key,
             )
             Surface(color = MaterialTheme.colorScheme.outlineVariant) {
                 Column(Modifier.fillMaxSize().safeDrawingPadding().padding(10.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -383,6 +385,7 @@ private fun GalleryScreen(
             },
             initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid",
             onOpenSettings = {}, onSortChange = {}, onLayoutChange = {},
+            onStartFocus = {}, onOpenFocus = {}, onMorePeriods = {},
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
         )
     }
@@ -391,6 +394,10 @@ private fun GalleryScreen(
 /** Real settings controls with local state only; no saved preferences or reminders are changed. */
 @Composable
 private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<AdapterItem>) {
+    val initialDesign = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key
+    var design by rememberSaveable(screen) { mutableStateOf(initialDesign) }
+    var usage by rememberSaveable(screen) { mutableStateOf(false) }
+    var diagnostics by rememberSaveable(screen) { mutableStateOf(false) }
     val selectedFixture = screen == "settings-selected"
     var theme by rememberSaveable(screen, initialTheme) { mutableStateOf(initialTheme) }
     var palette by rememberSaveable(screen, initialPalette) { mutableStateOf(initialPalette) }
@@ -421,13 +428,14 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
             if (screen == "theme-preview-empty") emptyList() else sampleItems, previewCapturedAt) else null,
         loading = previewStatus == "loading", failed = previewStatus == "error",
     )
-    TimeLeftTheme(themeMode = theme, paletteKey = palette) {
+    TimeLeftTheme(themeMode = theme, paletteKey = palette, designKey = design) {
         if (previewOpen) ThemePreviewScreen(
             initialThemeMode = theme, initialPaletteKey = palette,
+            initialDesignKey = design,
             systemDark = systemUsesDarkTheme(LocalContext.current),
             state = previewState, expiredItemsMode = expired, progressDisplayMode = progress,
             onBack = { previewOpen = false }, onRetry = { previewStatus = "ready" },
-            onApply = { choice -> previewOpen = false; theme = choice.mode; palette = choice.paletteKey },
+            onApply = { choice -> previewOpen = false; theme = choice.mode; palette = choice.paletteKey; design = choice.designKey },
         ) else SettingsScreen(
             themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
             progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
@@ -436,6 +444,8 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
             onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
             onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
             onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
+            usageEnabled = usage, diagnosticsEnabled = diagnostics,
+            onUsageChanged = { usage = it }, onDiagnosticsChanged = { diagnostics = it },
         )
     }
 }

@@ -38,7 +38,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 
-internal data class SettingsOption<T>(val value: T, @StringRes val labelRes: Int)
+internal data class SettingsOption<T>(val value: T, @param:StringRes val labelRes: Int = 0, val label: String? = null)
 
 /** Controlled selection: opening/dismissing a menu never writes a preference. */
 @Composable
@@ -48,9 +48,11 @@ internal fun <T> SettingsDropdownRow(
     options: List<SettingsOption<T>>,
     onSelected: (T) -> Unit,
     summary: String? = null,
+    enabled: Boolean = true,
 ) {
     var expanded by remember(title) { mutableStateOf(false) }
-    val currentLabel = stringResource(options.firstOrNull { it.value == selectedValue }?.labelRes
+    val currentOption = options.firstOrNull { it.value == selectedValue }
+    val currentLabel = currentOption?.label ?: stringResource(currentOption?.labelRes?.takeIf { it != 0 }
         ?: R.string.settings_choose_value)
     val expansionLabel = stringResource(if (expanded) R.string.settings_options_expanded else R.string.settings_options_collapsed)
     val chooseLabel = stringResource(R.string.settings_choose_option)
@@ -61,7 +63,7 @@ internal fun <T> SettingsDropdownRow(
         Row(
             modifier = Modifier.fillMaxWidth()
                 .heightIn(min = LayoutTokens.MinTouchTarget)
-                .clickable(enabled = options.isNotEmpty(), role = Role.Button, onClickLabel = chooseLabel) { expanded = true }
+                .clickable(enabled = enabled && options.isNotEmpty(), role = Role.Button, onClickLabel = chooseLabel) { expanded = true }
                 .semantics(mergeDescendants = true) { stateDescription = expansionLabel }
                 .padding(vertical = Spacing.m),
             verticalAlignment = Alignment.CenterVertically,
@@ -89,7 +91,8 @@ internal fun <T> SettingsDropdownRow(
             options.forEach { option ->
                 val chosen = option.value == selectedValue
                 DropdownMenuItem(
-                    text = { Text(stringResource(option.labelRes), style = MaterialTheme.typography.bodyLarge) },
+                    text = { Text(option.label ?: stringResource(option.labelRes), style = MaterialTheme.typography.bodyLarge) },
+                    enabled = enabled,
                     trailingIcon = {
                         if (chosen) Icon(Icons.Default.Check, contentDescription = null, tint = MaterialTheme.colorScheme.primary)
                     },

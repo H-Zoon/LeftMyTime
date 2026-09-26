@@ -8,9 +8,9 @@ import kotlin.math.ln
 internal data class TimeStory(
     val id: String,
     val durationSeconds: Double,
-    @StringRes val durationRes: Int,
-    @StringRes val textRes: Int,
-    @StringRes val sourceNameRes: Int,
+    @param:StringRes val durationRes: Int,
+    @param:StringRes val textRes: Int,
+    @param:StringRes val sourceNameRes: Int,
     val sourceUrl: String,
 )
 
@@ -83,3 +83,5 @@ internal fun timeStories(remaining: Long, inDays: Boolean): List<TimeStory> {
     return stories.filter { it.durationSeconds / referenceSeconds in (1.0 / MaxDurationRatio)..MaxDurationRatio }
         .sortedBy { abs(ln(it.durationSeconds / referenceSeconds)) }
 }
+
+internal fun allTimeStories(): List<TimeStory> = stories

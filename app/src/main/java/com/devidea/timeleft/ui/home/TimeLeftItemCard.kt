@@ -50,17 +50,25 @@ internal fun TimeLeftItemCard(
     upcoming: Boolean = false,
     progressDisplayMode: String = UserPreferences.PROGRESS_DISPLAY_FULL,
     interactive: Boolean = true,
+    onDuplicate: ((Int) -> Unit)? = null,
+    onSaveTemplate: ((Int) -> Unit)? = null,
+    onPin: ((AdapterItem) -> Unit)? = null,
+    onMove: ((Int, Int) -> Unit)? = null,
 ) {
+    val board = com.devidea.timeleft.ui.theme.LocalTimeLayout.current == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard
+    var moreActions by remember { mutableStateOf(false) }
     var expanded by rememberSaveable(item.id) { mutableStateOf(false) }
     var showDeleteDialog by rememberSaveable(item.id) { mutableStateOf(false) }
     var showTimeDetails by rememberSaveable(item.id) { mutableStateOf(false) }
     val countdown = if (upcoming) remainingTimeLabel(item.secondsUntilStart, null) else when {
+        item.isCalendarOccurrence && item.isExpired -> item.countdownText
+        item.isFocusSession -> if (item.isExpired) item.dueText else remainingTimeLabel(item.remainingSeconds, null)
         item.timePhase == TimeRangePhase.Active -> remainingTimeLabel(item.remainingSeconds, null)
         item.type == ItemType.Time -> remainingTimeLabel(item.secondsUntilStart, null)
         item.type == ItemType.Date -> dateScheduleCountdown(item)
         else -> item.countdownText.ifBlank { item.leftString }
     }
-    val relation = stringResource(if (upcoming || (item.type == ItemType.Time && item.timePhase != TimeRangePhase.Active)) R.string.time_until_start else R.string.time_remaining)
+    val relation = if ((item.isCalendarOccurrence || item.isFocusSession) && item.isExpired) "" else if (item.isFocusSession) item.dueText else stringResource(if (upcoming || (item.type == ItemType.Time && item.secondsUntilStart != null)) R.string.time_until_start else R.string.time_remaining)
     val expandedLabel = stringResource(if (expanded) R.string.card_details_expanded else R.string.card_details_collapsed)
     Column(modifier.fillMaxWidth()) {
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
@@ -70,16 +78,21 @@ internal fun TimeLeftItemCard(
                 .padding(vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.xs)
         ) {
-            if (grid || LocalDensity.current.fontScale > 1.2f) {
+            if (board) {
+                Text(countdown, style = MaterialTheme.typography.displaySmall)
+                Text(item.title, style = MaterialTheme.typography.titleMedium)
+                if (item.type == ItemType.Time && relation.isNotBlank()) Text(relation,
+                    style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            } else if (grid || LocalDensity.current.fontScale > 1.2f) {
                 Text(item.title, style = MaterialTheme.typography.titleMedium)
                 Text(countdown, style = MaterialTheme.typography.titleLarge)
-                if (item.type == ItemType.Time) Text(relation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (item.type == ItemType.Time && relation.isNotBlank()) Text(relation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
             } else {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.m), verticalAlignment = Alignment.Top) {
                     Text(item.title, style = MaterialTheme.typography.titleMedium, modifier = Modifier.weight(1f))
                     Column(horizontalAlignment = Alignment.End, modifier = Modifier.weight(1f)) {
                         Text(countdown, style = MaterialTheme.typography.titleMedium)
-                        if (item.type == ItemType.Time) Text(relation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                        if (item.type == ItemType.Time && relation.isNotBlank()) Text(relation, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
@@ -115,10 +128,27 @@ internal fun TimeLeftItemCard(
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    TextButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded,
+                    TextButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded && !item.dataError,
                         modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_time_details)) }
-                    TextButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_edit)) }
-                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded)
+                    TextButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit)) }
+                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded && !item.dataError)
+                    if (onDuplicate != null || onSaveTemplate != null || onPin != null || onMove != null) Box {
+                        TextButton(onClick = { moreActions = true }, enabled = interactive && expanded,
+                            modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.schedule_more_actions)) }
+                        DropdownMenu(moreActions, onDismissRequest = { moreActions = false }) {
+                            if (onDuplicate != null && !item.isFocusSession && !item.dataError) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.schedule_duplicate)) }, onClick = { moreActions = false; onDuplicate(item.id) })
+                            if (onSaveTemplate != null && !item.isFocusSession && !item.isCalendarOccurrence && !item.dataError) DropdownMenuItem(
+                                text = { Text(stringResource(R.string.schedule_save_template)) }, onClick = { moreActions = false; onSaveTemplate(item.id) })
+                            if (onPin != null && !item.dataError && !item.isExpired && (item.type == ItemType.Date || item.endsAtMillis != null)) DropdownMenuItem(
+                                text = { Text(stringResource(if (item.isPinned) R.string.schedule_unpin else R.string.schedule_pin)) },
+                                onClick = { moreActions = false; onPin(item) })
+                            if (onMove != null) {
+                                DropdownMenuItem(text = { Text(stringResource(R.string.schedule_move_up)) }, onClick = { moreActions = false; onMove(item.id, -1) })
+                                DropdownMenuItem(text = { Text(stringResource(R.string.schedule_move_down)) }, onClick = { moreActions = false; onMove(item.id, 1) })
+                            }
+                        }
+                    }
                     TextButton(onClick = { showDeleteDialog = true }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }

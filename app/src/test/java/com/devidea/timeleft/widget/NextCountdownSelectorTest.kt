@@ -14,6 +14,12 @@ class NextCountdownSelectorTest {
     private fun time(id: Int, start: String, end: String) = ItemEntity(id, ItemType.Time, "Work", start, end, RecurrenceMode.TimeRange, 0)
     private fun date(id: Int, end: String) = ItemEntity(id, ItemType.Date, "Date", "2026-09-01", end, RecurrenceMode.None, 0)
 
+    @Test fun `malformed or reversed range cannot hide the next valid schedule`() {
+        val malformed = date(1, "2026-09-18").copy(startValue = "broken")
+        val reversed = date(2, "2026-09-18").copy(startValue = "2026-10-01")
+        assertEquals(3, NextCountdownSelector.select(listOf(malformed, reversed, date(3, "2026-09-20")), LocalTime.NOON, today)?.id)
+    }
+
     @Test fun `auto widget uses the same active priority and stable tie break as home`() {
         val items = listOf(date(1, "2026-09-18"), time(9, "14:0", "15:0"), time(2, "14:0", "15:0"))
         assertEquals(2, NextCountdownSelector.select(items, LocalTime.of(14, 18), today)?.id)

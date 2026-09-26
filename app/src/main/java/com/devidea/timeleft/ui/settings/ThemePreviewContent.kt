@@ -39,16 +39,18 @@ internal fun ThemePreviewEntry(
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
             Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(stringResource(TimeLeftThemes.TimeFocus.nameRes), style = MaterialTheme.typography.bodyLarge)
+                Text(stringResource(LocalTimeLayout.current.labelRes), style = MaterialTheme.typography.bodyLarge)
                 Text(stringResource(R.string.theme_selection_summary, stringResource(ThemePalette.fromKey(paletteKey).labelRes), stringResource(modeRes)),
                     style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
             }
             Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         periods.firstOrNull()?.let { today ->
-            Text(stringResource(R.string.theme_preview_today), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            RemainingTimeText(today, hero = false, compact = true, showSeconds = true)
+            com.devidea.timeleft.ui.components.TimeHeadline(spacing = Spacing.s,
+                label = { Text(stringResource(R.string.theme_preview_today), style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant) },
+                value = { RemainingTimeText(today, hero = false, compact = true, showSeconds = true,
+                    centered = LocalTimeLayout.current == TimeLayout.TimeBoard) })
             if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
                 TimeRuler(today.detailFacts?.percentElapsed ?: today.percent, "", "", glowEnabled = today.detailFacts?.glowActive == true)
             }

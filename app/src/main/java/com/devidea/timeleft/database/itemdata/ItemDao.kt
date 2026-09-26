@@ -12,19 +12,25 @@ interface ItemDao {
     suspend fun updateItem(itemEntity: ItemEntity)
 
     // AppWidgetConfigure에서 사용
-    @get:Query("SELECT * FROM ItemEntity ORDER BY id ASC")
+    @get:Query("SELECT * FROM ItemEntity WHERE deletedAt IS NULL AND isTemplate = 0 ORDER BY id ASC")
     val item: List<ItemEntity>
 
-    @Query("SELECT * FROM ItemEntity ORDER BY id ASC")
+    @Query("SELECT * FROM ItemEntity WHERE deletedAt IS NULL AND isTemplate = 0 ORDER BY id ASC")
     fun observeItems(): Flow<List<ItemEntity>>
 
-    @Query("SELECT * FROM ItemEntity ORDER BY id ASC")
+    @Query("SELECT * FROM ItemEntity WHERE deletedAt IS NULL AND isTemplate = 0 ORDER BY id ASC")
     suspend fun getItems(): List<ItemEntity>
 
-    @Query("DELETE FROM ItemEntity WHERE id = :ID")
-    suspend fun deleteItem(ID: Int)
+    @Query("UPDATE ItemEntity SET deletedAt = :at, modifiedAt = :at WHERE id = :ID AND deletedAt IS NULL")
+    suspend fun deleteItem(ID: Int, at: Long)
 
-    @Query("SELECT * FROM ItemEntity WHERE id = :ID")
+    @Query("SELECT * FROM ItemEntity WHERE deletedAt IS NULL AND isTemplate = 1 ORDER BY manualOrder, id")
+    fun observeTemplates(): Flow<List<ItemEntity>>
+
+    @Query("SELECT * FROM ItemEntity ORDER BY id ASC")
+    suspend fun getAllRecords(): List<ItemEntity>
+
+    @Query("SELECT * FROM ItemEntity WHERE id = :ID AND deletedAt IS NULL")
     suspend fun getSelectItem(ID: Int): ItemEntity
 
     @Query("UPDATE ItemEntity SET startValue = :updateStart, endValue = :updateEnd WHERE id = :ID")

@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
+    <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
+    <uses-permission android:name="android.permission.READ_CALENDAR" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
+    <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" tools:node="remove" />
 
     <application
         android:name=".App"
@@ -19,6 +24,22 @@
         android:theme="@style/Theme.MyApplication"
         tools:targetApi="s">
 
+        <meta-data android:name="firebase_analytics_collection_enabled" android:value="false" />
+        <meta-data android:name="firebase_crashlytics_collection_enabled" android:value="false" />
+        <meta-data android:name="google_analytics_adid_collection_enabled" android:value="false" />
+        <meta-data android:name="google_analytics_automatic_screen_reporting_enabled" android:value="false" />
+        <meta-data android:name="google_analytics_default_allow_analytics_storage" android:value="false" />
+        <meta-data android:name="google_analytics_default_allow_ad_storage" android:value="false" />
+        <meta-data android:name="google_analytics_default_allow_ad_user_data" android:value="false" />
+        <meta-data android:name="google_analytics_default_allow_ad_personalization_signals" android:value="false" />
+
+        <activity android:name=".periods.PeriodsActivity" android:exported="false" />
+        <activity android:name=".calendar.CalendarImportActivity" android:exported="false" />
+        <activity android:name=".input.PhraseInputActivity" android:exported="false" />
+        <activity android:name=".templates.TemplatesActivity" android:exported="false" />
+        <activity android:name=".stories.StoryLibraryActivity" android:exported="false" />
+        <activity android:name=".focus.FocusActivity" android:exported="false" />
+        <receiver android:name=".focus.FocusReceiver" android:exported="false" />
         <activity
             android:name=".activity.ItemEditorActivity"
             android:exported="false" />
@@ -43,6 +64,10 @@
             </intent-filter>
         </activity>
 
+        <receiver android:name=".widget.PeriodAppWidget" android:label="@string/widget_periods_label" android:exported="true">
+            <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/app_widget_info_periods" />
+        </receiver>
         <receiver
             android:name=".widget.AppWidget"
             android:label="@string/widget_small_label"
@@ -124,6 +149,10 @@
             android:exported="false">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.TIME_SET" />
+                <action android:name="android.intent.action.TIMEZONE_CHANGED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
+                <action android:name="android.app.action.SCHEDULE_EXACT_ALARM_PERMISSION_STATE_CHANGED" />
             </intent-filter>
         </receiver>
 

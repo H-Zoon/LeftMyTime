@@ -17,6 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
+import com.devidea.timeleft.focus.FocusActivity
 import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.ItemEditorActivity
@@ -77,6 +78,8 @@ class WidgetDetailsActivity : AppCompatActivity() {
                     WidgetSource.Today -> generator.timeItem()
                     WidgetSource.Month -> generator.monthItem()
                     WidgetSource.Year -> generator.yearItem()
+                    WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(this@WidgetDetailsActivity, com.devidea.timeleft.periods.CalendarPeriod.Week)
+                    WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(this@WidgetDetailsActivity, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
                     else -> entities?.firstOrNull { it.id == itemId }?.forWidgetPreview()?.let {
                         if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
                     }
@@ -85,6 +88,7 @@ class WidgetDetailsActivity : AppCompatActivity() {
             val item = itemResult.getOrNull()
             val detailFailed = failed || itemResult.isFailure
             TimeLeftTheme(
+                designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS,
                 themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO) ?: UserPreferences.THEME_AUTO,
                 paletteKey = prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY) ?: UserPreferences.COLOR_THEME_CLAY,
             ) {
@@ -110,9 +114,9 @@ class WidgetDetailsActivity : AppCompatActivity() {
                         } else {
                             TimeDetailContent(item, prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL)
                                 ?: UserPreferences.PROGRESS_DISPLAY_FULL)
-                            if (personal) TextButton(onClick = { startActivity(ItemEditorActivity.editIntent(this@WidgetDetailsActivity, item.id)) },
+                            if (personal) TextButton(onClick = { startActivity(if (item.isFocusSession) FocusActivity.intent(this@WidgetDetailsActivity, item.id) else ItemEditorActivity.editIntent(this@WidgetDetailsActivity, item.id)) },
                                 modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
-                                Text(stringResource(R.string.card_action_edit))
+                                Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit))
                             }
                             PinWidgetButton(item, source, contentPadding = PaddingValues(vertical = Spacing.s))
                         }

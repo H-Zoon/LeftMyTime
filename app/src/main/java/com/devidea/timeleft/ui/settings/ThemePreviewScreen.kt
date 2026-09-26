@@ -3,6 +3,9 @@ package com.devidea.timeleft.ui.settings
 import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.ExperimentalFoundationApi
+import com.devidea.timeleft.ui.components.RemainingTimeText
+import com.devidea.timeleft.ui.components.TimeRuler
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -19,7 +22,7 @@ import com.devidea.timeleft.ui.theme.*
 import com.devidea.timeleft.widget.*
 
 @Composable
-@OptIn(ExperimentalLayoutApi::class)
+@OptIn(ExperimentalLayoutApi::class, ExperimentalFoundationApi::class)
 internal fun ThemePreviewScreen(
     initialThemeMode: String,
     initialPaletteKey: String,
@@ -30,13 +33,16 @@ internal fun ThemePreviewScreen(
     onBack: () -> Unit,
     onApply: (ThemeSelection) -> Unit,
     onRetry: () -> Unit,
+    initialDesignKey: String = UserPreferences.DESIGN_TIME_FOCUS,
 ) {
-    val initial = ThemeSelection(initialThemeMode, initialPaletteKey).normalized()
+    val initial = ThemeSelection(initialThemeMode, initialPaletteKey, initialDesignKey).normalized()
+    var designKey by rememberSaveable { mutableStateOf(initial.designKey) }
     var mode by rememberSaveable { mutableStateOf(initial.mode) }
     var paletteKey by rememberSaveable { mutableStateOf(initial.paletteKey) }
+    var showFullPreview by rememberSaveable { mutableStateOf(false) }
     var showWidgets by rememberSaveable { mutableStateOf(false) }
     var applying by remember { mutableStateOf(false) }
-    val selection = ThemeSelection(mode, paletteKey)
+    val selection = ThemeSelection(mode, paletteKey, designKey)
     val theme = resolveTheme(selection, systemDark)
     BackHandler(onBack = onBack)
     Scaffold(
@@ -59,9 +65,30 @@ internal fun ThemePreviewScreen(
         },
     ) { padding ->
         LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(vertical = Spacing.l)) {
+            stickyHeader(key = "live-sample") {
+                TimeLeftTheme(themeMode = if (theme.dark) UserPreferences.THEME_DARK else UserPreferences.THEME_LIGHT, paletteKey = paletteKey, designKey = designKey) {
+                    Surface(color = MaterialTheme.colorScheme.background) {
+                        Column(Modifier.fillMaxWidth().padding(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.m),
+                            verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                            val item = state.snapshot?.periods?.firstOrNull()
+                            if (item != null) {
+                                com.devidea.timeleft.ui.components.TimeHeadline(spacing = Spacing.s,
+                                    label = { Text(item.title, style = MaterialTheme.typography.titleMedium) },
+                                    value = { RemainingTimeText(item, hero = false, compact = true, showSeconds = true,
+                                        centered = theme.definition.layout == TimeLayout.TimeBoard) })
+                                if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN)
+                                    TimeRuler(item.detailFacts?.percentElapsed ?: item.percent, "", "", glowEnabled = item.detailFacts?.glowActive == true)
+                            } else if (state.loading) Text(stringResource(R.string.theme_preview_loading))
+                            else TextButton(onClick = onRetry) { Text(stringResource(R.string.theme_preview_retry)) }
+                            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+                        }
+                    }
+                }
+            }
             item(key = "choices") {
                 Column(Modifier.padding(horizontal = LayoutTokens.ScreenHorizontal), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    Text(stringResource(theme.definition.nameRes), style = MaterialTheme.typography.titleLarge)
+                    SettingsDropdownRow(title = stringResource(R.string.settings_layout_theme), selectedValue = designKey,
+                        options = TimeLayout.entries.map { SettingsOption(it.key, it.labelRes) }, onSelected = { designKey = it })
                     Text(stringResource(R.string.theme_preview_explanation), style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                     SettingsDropdownRow(
@@ -74,20 +101,16 @@ internal fun ThemePreviewScreen(
                         summary = if (mode == UserPreferences.THEME_AUTO)
                             stringResource(if (systemDark) R.string.theme_system_dark else R.string.theme_system_light) else null,
                     )
-                    Text(stringResource(R.string.settings_color_theme), style = MaterialTheme.typography.bodyLarge)
-                    FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                        theme.definition.palettes.forEach { palette ->
-                            FilterChip(
-                                selected = paletteKey == palette.key, onClick = { paletteKey = palette.key },
-                                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
-                                label = { Text(stringResource(palette.labelRes)) },
-                                leadingIcon = {
-                                    Surface(Modifier.size(9.dp), shape = CircleShape,
-                                        color = if (theme.dark) palette.darkAccent else palette.lightAccent) {}
-                                },
-                            )
-                        }
+                    SettingsDropdownRow(
+                        title = stringResource(R.string.settings_color_theme), selectedValue = paletteKey,
+                        options = theme.definition.palettes.map { SettingsOption(it.key, it.labelRes) },
+                        onSelected = { paletteKey = it },
+                    )
+                    TextButton(onClick = { showFullPreview = !showFullPreview },
+                        modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+                        Text(stringResource(if (showFullPreview) R.string.theme_hide_full_preview else R.string.theme_show_full_preview))
                     }
+                    if (showFullPreview) {
                     FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
                         FilterChip(selected = !showWidgets, onClick = { showWidgets = false },
                             modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
@@ -96,13 +119,14 @@ internal fun ThemePreviewScreen(
                             modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
                             label = { Text(stringResource(R.string.theme_preview_widgets)) })
                     }
+                    }
                     Text(stringResource(R.string.theme_preview_snapshot), style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = Spacing.m))
                 }
             }
-            item(key = "preview") {
+            if (showFullPreview) item(key = "preview") {
                 // Resolve system mode from the device, even when the parent app is forced light/dark.
-                TimeLeftTheme(themeMode = if (theme.dark) UserPreferences.THEME_DARK else UserPreferences.THEME_LIGHT, paletteKey = paletteKey) {
+                TimeLeftTheme(themeMode = if (theme.dark) UserPreferences.THEME_DARK else UserPreferences.THEME_LIGHT, paletteKey = paletteKey, designKey = designKey) {
                     Surface(Modifier.fillMaxWidth(), color = MaterialTheme.colorScheme.background) {
                         Column {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

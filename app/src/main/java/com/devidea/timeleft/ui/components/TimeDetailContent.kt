@@ -37,24 +37,36 @@ private fun TimeDetailBody(item: AdapterItem, progressDisplayMode: String, modif
         Text(stringResource(R.string.detail_invalid_range), modifier = modifier, style = MaterialTheme.typography.bodyLarge)
         return
     }
-    val waiting = item.type == ItemType.Time && item.timePhase != TimeRangePhase.Active
+    val waiting = !item.isFocusSession && item.type == ItemType.Time && item.secondsUntilStart != null
     val showRuler = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN
     val expiredDate = item.type == ItemType.Date && item.isExpired
     val context = LocalContext.current
     Column(modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
+        if (item.isCalendarOccurrence) Text(stringResource(R.string.calendar_copy_hint), style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (item.isFocusSession) {
+            Text(item.dueText, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+            Text(stringResource(R.string.focus_elapsed_basis), style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (waiting) {
             Text(stringResource(if (item.timePhase == TimeRangePhase.Finished) R.string.detail_next_start else R.string.time_until_start),
                 style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        } else if (facts?.phase == TimeRangePhase.Upcoming) {
+        } else if (!item.isFocusSession && facts?.phase == TimeRangePhase.Upcoming) {
             Text(stringResource(R.string.detail_not_started), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
-        if (expiredDate) {
+        if (item.isFocusSession && item.isExpired) {
+            Text(stringResource(R.string.focus_recorded_time), style = MaterialTheme.typography.bodyMedium)
+            val elapsed = facts?.elapsed ?: 0L
+            RemainingTimeText(item.copy(remainingSeconds = elapsed, detailFacts = facts?.copy(secondsLeft = elapsed)),
+                hero = true, showSeconds = true, showRelation = false)
+        } else if (expiredDate || item.isCalendarOccurrence && item.isExpired) {
             Text(item.countdownText.ifBlank { item.leftString }, style = MaterialTheme.typography.displayMedium)
         } else {
             InteractiveRemainingTime(item, waiting)
         }
-        if (showRuler) {
+        if (showRuler && !(item.isFocusSession && item.isExpired)) {
             val range = facts?.range
             if (facts != null && range != null && range.maximum > range.minimum && facts.phase == TimeRangePhase.Active && !waiting && !expiredDate) {
                 key(facts.phase) { InteractiveTimeRuler(item, range) }
@@ -68,7 +80,7 @@ private fun TimeDetailBody(item: AdapterItem, progressDisplayMode: String, modif
                 val raw = facts.percentElapsed.takeIf { it.isFinite() }?.coerceIn(0f, 100f) ?: 0f
                 // Avoid visually completing an active range before its real end.
                 val elapsed = roundPercent(raw).let { if (facts.glowActive) it.coerceAtMost(99.9f) else it }
-                Text(stringResource(R.string.detail_progress,
+                Text(stringResource(if (item.isFocusSession && item.isExpired) R.string.focus_recorded_progress else R.string.detail_progress,
                     formatPercent(elapsed, context.resources.configuration.locales[0], alwaysOneDecimal = true),
                     formatPercent(100f - elapsed, context.resources.configuration.locales[0], alwaysOneDecimal = true)),
                     style = MaterialTheme.typography.bodyLarge)

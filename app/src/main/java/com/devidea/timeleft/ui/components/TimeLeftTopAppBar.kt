@@ -2,42 +2,35 @@ package com.devidea.timeleft.ui.components
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.theme.LayoutTokens
+import com.devidea.timeleft.ui.theme.Spacing
 
 @Composable
-@OptIn(ExperimentalMaterial3Api::class)
 internal fun TimeLeftTopAppBar(title: String, onBack: () -> Unit) {
-    TopAppBar(
-        title = {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.titleLarge,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
-        },
-        navigationIcon = {
-            IconButton(onClick = onBack) {
-                Icon(
-                    Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = stringResource(R.string.action_back)
-                )
-            }
-        },
-        colors = TopAppBarDefaults.topAppBarColors(
-            containerColor = MaterialTheme.colorScheme.background,
-            titleContentColor = MaterialTheme.colorScheme.onBackground,
-            navigationIconContentColor = MaterialTheme.colorScheme.onBackground
-        )
-    )
+    // Material's fixed-height small bar ellipsizes long titles at large font scales.
+    // Preserve the type scale and allow the common bar to grow with its actual text.
+    Row(Modifier.fillMaxWidth().background(MaterialTheme.colorScheme.background)
+        .windowInsetsPadding(WindowInsets.statusBars.union(WindowInsets.displayCutout).only(WindowInsetsSides.Top + WindowInsetsSides.Horizontal))
+        .heightIn(min = LayoutTokens.TopAppBarMinHeight).padding(start = Spacing.xs, end = Spacing.s, top = Spacing.s, bottom = Spacing.s),
+        verticalAlignment = Alignment.CenterVertically) {
+        IconButton(onClick = onBack, modifier = Modifier.size(LayoutTokens.MinTouchTarget)) {
+            Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = stringResource(R.string.action_back),
+                tint = MaterialTheme.colorScheme.onBackground)
+        }
+        Text(title, style = MaterialTheme.typography.titleLarge, color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier.weight(1f).padding(start = Spacing.xs).semantics { heading() })
+    }
 }

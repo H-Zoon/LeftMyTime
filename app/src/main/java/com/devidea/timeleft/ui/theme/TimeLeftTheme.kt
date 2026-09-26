@@ -31,24 +31,30 @@ enum class ThemePalette(
     Emerald(UserPreferences.COLOR_THEME_EMERALD, R.string.settings_palette_emerald, Color(0xFF047857), Color(0xFF6EE7B7)),
     Rose(UserPreferences.COLOR_THEME_ROSE, R.string.settings_palette_rose, Color(0xFFC7254B), Color(0xFFFDA4AF)),
     Amber(UserPreferences.COLOR_THEME_AMBER, R.string.settings_palette_amber, Color(0xFF99520B), Color(0xFFFCD34D)),
-    Slate(UserPreferences.COLOR_THEME_SLATE, R.string.settings_palette_slate, Color(0xFF334155), Color(0xFFCBD5E1));
+    Slate(UserPreferences.COLOR_THEME_SLATE, R.string.settings_palette_slate, Color(0xFF334155), Color(0xFFCBD5E1)),
+    Autumn("autumn", R.string.settings_palette_autumn, Color(0xFF8B432D), Color(0xFFEFAC79));
 
-    val lightColors: ColorScheme get() = timeLeftColors(false, lightAccent)
-    val darkColors: ColorScheme get() = timeLeftColors(true, darkAccent)
+    val lightColors: ColorScheme get() = timeLeftColors(false, lightAccent, autumn = this == Autumn)
+    val darkColors: ColorScheme get() = timeLeftColors(true, darkAccent, autumn = this == Autumn)
 
     companion object {
         fun fromKey(key: String): ThemePalette = entries.firstOrNull { it.key == key } ?: Clay
     }
 }
 
-private fun timeLeftColors(dark: Boolean, accent: Color): ColorScheme {
-    val background = if (dark) Color(0xFF181B19) else Color(0xFFF7F7F2)
-    val ink = if (dark) Color(0xFFEDF0E9) else Color(0xFF242924)
-    val muted = if (dark) Color(0xFFA7AFA5) else Color(0xFF646B64)
-    val rule = if (dark) Color(0xFF3C443C) else Color(0xFFD8DDD4)
-    val surface = if (dark) Color(0xFF242A25) else Color.White
+private fun timeLeftColors(dark: Boolean, accent: Color, autumn: Boolean = false): ColorScheme {
+    val background = if (autumn) { if (dark) Color(0xFF241D17) else Color(0xFFFCF5E9) }
+        else if (dark) Color(0xFF181B19) else Color(0xFFF7F7F2)
+    val ink = if (autumn) { if (dark) Color(0xFFF8EAD5) else Color(0xFF332719) }
+        else if (dark) Color(0xFFEDF0E9) else Color(0xFF242924)
+    val muted = if (autumn) { if (dark) Color(0xFFB9AA93) else Color(0xFF716149) }
+        else if (dark) Color(0xFFA7AFA5) else Color(0xFF646B64)
+    val rule = if (autumn) { if (dark) Color(0xFF514536) else Color(0xFFDED0B8) }
+        else if (dark) Color(0xFF3C443C) else Color(0xFFD8DDD4)
+    val surface = if (autumn) { if (dark) Color(0xFF30261C) else Color(0xFFFFFAF1) }
+        else if (dark) Color(0xFF242A25) else Color.White
     val base = if (dark) darkColorScheme() else lightColorScheme()
-    return base.copy(
+    val palette = base.copy(
         primary = accent, onPrimary = if (dark) background else Color.White,
         primaryContainer = rule, onPrimaryContainer = ink,
         secondary = accent, onSecondary = if (dark) background else Color.White,
@@ -60,11 +66,19 @@ private fun timeLeftColors(dark: Boolean, accent: Color): ColorScheme {
         surfaceVariant = rule, onSurfaceVariant = muted,
         outline = muted, outlineVariant = rule, surfaceTint = Color.Transparent,
         inverseSurface = ink, inverseOnSurface = background,
-        inversePrimary = if (dark) Color(0xFFB5482D) else Color(0xFFEE9278),
+        inversePrimary = if (autumn) { if (dark) Color(0xFF8B432D) else Color(0xFFEFAC79) }
+            else if (dark) Color(0xFFB5482D) else Color(0xFFEE9278),
         error = if (dark) Color(0xFFFFB4AB) else Color(0xFFBA1A1A),
         onError = if (dark) Color(0xFF690005) else Color.White,
         errorContainer = if (dark) Color(0xFF93000A) else Color(0xFFFFDAD6),
         onErrorContainer = if (dark) Color(0xFFFFDAD6) else Color(0xFF410002)
+    )
+    // Material containers (menus/sheets/dialogs) belong to the seasonal set too.
+    // Existing palettes keep their established container roles.
+    return if (!autumn) palette else palette.copy(
+        surfaceBright = surface, surfaceDim = background,
+        surfaceContainerLowest = background, surfaceContainerLow = surface,
+        surfaceContainer = surface, surfaceContainerHigh = surface, surfaceContainerHighest = surface,
     )
 }
 
@@ -103,13 +117,16 @@ internal val TimeLeftShapes = Shapes(
 fun TimeLeftTheme(
     themeMode: String = UserPreferences.THEME_AUTO,
     paletteKey: String = UserPreferences.COLOR_THEME_CLAY,
+    designKey: String = UserPreferences.DESIGN_TIME_FOCUS,
     content: @Composable () -> Unit
 ) {
-    val theme = resolveTheme(ThemeSelection(themeMode, paletteKey), isSystemInDarkTheme())
-    MaterialTheme(
+    val theme = resolveTheme(ThemeSelection(themeMode, paletteKey, designKey), isSystemInDarkTheme())
+    androidx.compose.runtime.CompositionLocalProvider(LocalTimeLayout provides theme.definition.layout) {
+      MaterialTheme(
         colorScheme = theme.colors,
         typography = theme.definition.typography,
         shapes = theme.definition.shapes,
         content = content
     )
+    }
 }

@@ -1,5 +1,7 @@
 package com.devidea.timeleft.activity
 
+import com.devidea.timeleft.backup.BackupViewModel
+import com.devidea.timeleft.backup.BackupScreen
 import android.content.Intent
 import android.content.SharedPreferences
 import android.appwidget.AppWidgetManager
@@ -54,12 +56,15 @@ class SettingsActivity : AppCompatActivity() {
 
     @Inject lateinit var prefs: SharedPreferences
     @Inject lateinit var repository: TimeLeftRepository
+    @Inject lateinit var telemetry: com.devidea.timeleft.telemetry.AppTelemetry
 
+    private val backupModel: BackupViewModel by viewModels()
     private val themePreviewModel: ThemePreviewViewModel by viewModels()
     private var systemDark by mutableStateOf(false)
 
     private var themeMode by mutableStateOf(UserPreferences.THEME_AUTO)
     private var paletteKey by mutableStateOf(UserPreferences.COLOR_THEME_CLAY)
+    private var designKey by mutableStateOf(UserPreferences.DESIGN_TIME_FOCUS)
     private var homeSort by mutableStateOf(UserPreferences.SORT_NEAREST)
     private var expiredItemsMode by mutableStateOf(UserPreferences.EXPIRED_ITEMS_SHOW)
     private var progressDisplayMode by mutableStateOf(UserPreferences.PROGRESS_DISPLAY_FULL)
@@ -68,19 +73,30 @@ class SettingsActivity : AppCompatActivity() {
     private var dateReminderTime by mutableStateOf(UserPreferences.DEFAULT_DATE_REMINDER_TIME)
     private var showTimePicker by mutableStateOf(false)
     private var remindersEnabled by mutableStateOf(false)
+    private var usageEnabled by mutableStateOf(false)
+    private var diagnosticsEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         refreshSettingsState()
 
         setContent {
+            var showBackup by rememberSaveable { mutableStateOf(false) }
+            val backupState by backupModel.state.collectAsStateWithLifecycle()
             var showThemePreview by rememberSaveable { mutableStateOf(false) }
             val previewState by themePreviewModel.state.collectAsStateWithLifecycle()
-            TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey) {
-                if (showThemePreview) ThemePreviewScreen(
+            TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey, designKey = designKey) {
+                if (showBackup) BackupScreen(backupState, onBack = { showBackup = false },
+                    onExport = backupModel::export, onInspect = backupModel::inspect,
+                    onRestore = backupModel::restore, onCancelPreview = backupModel::cancelPreview)
+                else if (showThemePreview) ThemePreviewScreen(
                     initialThemeMode = themeMode, initialPaletteKey = paletteKey, systemDark = systemDark,
+                    initialDesignKey = designKey,
                     state = previewState, expiredItemsMode = expiredItemsMode, progressDisplayMode = progressDisplayMode,
-                    onBack = { showThemePreview = false },
+                    onBack = {
+                        telemetry.record(com.devidea.timeleft.telemetry.UsageEvent.ThemeCancelled)
+                        showThemePreview = false
+                    },
                     onApply = { selection -> showThemePreview = false; applyTheme(selection) },
                     onRetry = { themePreviewModel.refresh() },
                 ) else SettingsScreen(
@@ -95,6 +111,12 @@ class SettingsActivity : AppCompatActivity() {
                     remindersEnabled = remindersEnabled,
                     versionName = BuildConfig.VERSION_NAME,
                     onBack = { finish() },
+                    onOpenTemplates = { startActivity(Intent(this, com.devidea.timeleft.templates.TemplatesActivity::class.java)) },
+                    onOpenStoryLibrary = { startActivity(Intent(this, com.devidea.timeleft.stories.StoryLibraryActivity::class.java)) },
+                    onOpenBackup = { showBackup = true },
+                    usageEnabled = usageEnabled, diagnosticsEnabled = diagnosticsEnabled,
+                    onUsageChanged = { telemetry.setUsageEnabled(it); usageEnabled = it },
+                    onDiagnosticsChanged = { telemetry.setDiagnosticsEnabled(it); diagnosticsEnabled = it },
                     onOpenThemePreview = { themePreviewModel.refresh(); showThemePreview = true },
                     previewPeriods = previewState.snapshot?.periods.orEmpty(),
                     onSortSelected = ::selectSort,
@@ -129,6 +151,7 @@ class SettingsActivity : AppCompatActivity() {
 
     private fun refreshSettingsState() {
         systemDark = systemUsesDarkTheme(this)
+        designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS
         themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
             ?: UserPreferences.THEME_AUTO
         paletteKey = prefs.getString(
@@ -158,17 +181,22 @@ class SettingsActivity : AppCompatActivity() {
             UserPreferences.DEFAULT_DATE_REMINDER_TIME
         ) ?: UserPreferences.DEFAULT_DATE_REMINDER_TIME
         remindersEnabled = canPostReminderNotifications()
+        usageEnabled = telemetry.usageEnabled
+        diagnosticsEnabled = telemetry.diagnosticsEnabled
         applyNightMode(themeMode)
     }
 
     private fun applyTheme(selection: ThemeSelection) {
         val choice = selection.normalized()
-        if (themeMode == choice.mode && paletteKey == choice.paletteKey) return
+        if (themeMode == choice.mode && paletteKey == choice.paletteKey && designKey == choice.designKey) return
         // Publish one coherent selection before changing activities or refreshing installed widgets.
         prefs.edit().putString(UserPreferences.KEY_THEME, choice.mode)
+            .putString(UserPreferences.KEY_DESIGN, choice.designKey)
             .putString(UserPreferences.KEY_COLOR_THEME, choice.paletteKey).apply()
         themeMode = choice.mode
         paletteKey = choice.paletteKey
+        designKey = choice.designKey
+        telemetry.record(com.devidea.timeleft.telemetry.UsageEvent.ThemeApplied)
         applyNightMode(choice.mode)
         updateWidgets()
     }
@@ -244,6 +272,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContent {
             TimeLeftTheme(
+                designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS,
                 themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO)
                     ?: UserPreferences.THEME_AUTO,
                 paletteKey = prefs.getString(

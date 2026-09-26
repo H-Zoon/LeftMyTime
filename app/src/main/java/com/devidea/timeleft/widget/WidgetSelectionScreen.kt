@@ -1,7 +1,7 @@
 package com.devidea.timeleft.widget
 
 import android.content.Context
-import android.text.format.DateFormat
+import com.devidea.timeleft.formatClockTime
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -74,7 +74,7 @@ internal fun WidgetSelectionScreen(
             ) {
                 if (!pickingItems) {
                     item { WidgetSectionLabel(stringResource(R.string.widget_group_periods)) }
-                    items(listOf(WidgetSource.Today, WidgetSource.Month, WidgetSource.Year, WidgetSource.Overview)) { option ->
+                    items(listOf(WidgetSource.Today, WidgetSource.Month, WidgetSource.Year, WidgetSource.Week, WidgetSource.Quarter, WidgetSource.Overview)) { option ->
                         WidgetChoiceRow(stringResource(option.labelRes), option == source,
                             detail = if (option == WidgetSource.Overview) stringResource(R.string.widget_overview_description) else null,
                         ) { onSourceSelected(option) }
@@ -119,12 +119,14 @@ internal fun WidgetSelectionScreen(
 }
 
 internal fun widgetScheduleDescription(context: Context, item: ItemEntity): String {
+    if (item.occurrenceStartMillis != null && item.occurrenceEndMillis != null) return com.devidea.timeleft.calendar.occurrenceLabel(context, item.occurrenceStartMillis) + " – " +
+            com.devidea.timeleft.calendar.occurrenceLabel(context, item.occurrenceEndMillis)
     val locale = context.resources.configuration.locales[0]
     val range = runCatching {
         if (item.type == ItemType.Time) {
             val storage = DateTimeFormatter.ofPattern("H:m")
-            val display = DateTimeFormatter.ofPattern(if (DateFormat.is24HourFormat(context)) "HH:mm" else "a h:mm", locale)
-            "${LocalTime.parse(item.startValue, storage).format(display)} – ${LocalTime.parse(item.endValue, storage).format(display)}"
+            "${formatClockTime(context, LocalTime.parse(item.startValue, storage))} – ${formatClockTime(context, LocalTime.parse(item.endValue, storage))}" +
+                if (item.endNextDay) " · " + context.getString(R.string.editor_next_day) else ""
         } else {
             val storage = DateTimeFormatter.ofPattern("yyyy-M-d")
             val display = DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)

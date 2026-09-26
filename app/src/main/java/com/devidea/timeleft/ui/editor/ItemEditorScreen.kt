@@ -1,5 +1,9 @@
 package com.devidea.timeleft.ui.editor
 
+import androidx.activity.compose.BackHandler
+import com.devidea.timeleft.calendar.isTimedOccurrence
+import androidx.compose.material3.AlertDialog
+import com.devidea.timeleft.formatClockTime
 import android.Manifest
 import android.content.Intent
 import android.provider.Settings
@@ -102,7 +106,9 @@ data class ItemEditorDraft(
     val category: String,
     val colorKey: String,
     val iconKey: String,
-    val reminderOffsetDays: Int
+    val reminderOffsetDays: Int,
+    val weekdays: Int = 127,
+    val endNextDay: Boolean = false,
 )
 
 private val itemTypeSaver: Saver<ItemType, String> = Saver(
@@ -138,6 +144,8 @@ fun ItemEditorScreen(
     var startDateValue by rememberSaveable { mutableStateOf(LocalDate.now().toString()) }
     var endDateValue by rememberSaveable { mutableStateOf(LocalDate.now().plusDays(1).toString()) }
     var startTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now())) }
+    var weekdays by rememberSaveable { mutableStateOf(127) }
+    var endNextDay by rememberSaveable { mutableStateOf(LocalTime.now().hour >= 23) }
     var endTimeValue by rememberSaveable { mutableStateOf(formatStorageTime(LocalTime.now().plusHours(1))) }
     var repeatFlag by rememberSaveable(stateSaver = recurrenceModeSaver) {
         mutableStateOf(RecurrenceMode.None)
@@ -150,12 +158,31 @@ fun ItemEditorScreen(
     var showNotificationPermissionSettings by rememberSaveable { mutableStateOf(false) }
     var notificationPermissionUnavailable by rememberSaveable { mutableStateOf(false) }
 
+    var baseline by rememberSaveable { mutableStateOf<ArrayList<String>?>(null) }
+    var showDiscardDialog by rememberSaveable { mutableStateOf(false) }
+    fun draftFields() = arrayListOf(selectedType.name, title, category, colorKey, iconKey,
+        reminderOffsetDays.toString(), startDateValue, endDateValue, startTimeValue, endTimeValue,
+        repeatFlag.name, repeatRateText, weekdays.toString(), endNextDay.toString())
+    fun requestBack() {
+        if (isSaving) return
+        if (initialized && baseline != draftFields()) showDiscardDialog = true else onBack()
+    }
+    BackHandler { requestBack() }
+
     fun defaultReminderFor(type: ItemType): Int = when (type) {
         ItemType.Date -> defaultDateReminderOffset
         ItemType.Time -> defaultTimeReminderOffset
     }
 
     fun submit(reminderOffset: Int = reminderOffsetDays) {
+        if (initialItem?.isTimedOccurrence == true) {
+            if (title.isBlank()) { errorRes = R.string.editor_error_title_required; return }
+            onSave(ItemEditorDraft(type = ItemType.Time, title = title.trim(),
+                startValue = initialItem.startValue, endValue = initialItem.endValue,
+                updateFlag = RecurrenceMode.None, updateRate = 0,
+                category = category.trim(), colorKey = colorKey, iconKey = iconKey, reminderOffsetDays = reminderOffset))
+            return
+        }
         errorRes = validateAndSave(
             selectedType = selectedType,
             title = title,
@@ -169,17 +196,18 @@ fun ItemEditorScreen(
             colorKey = colorKey,
             iconKey = iconKey,
             reminderOffsetDays = reminderOffset,
+            weekdays = weekdays, endNextDay = endNextDay,
             onSave = onSave
         )
     }
 
-    fun cancelReminderAndContinue() {
+    fun keepReminderAndContinue() {
         val shouldSave = saveAfterNotificationPermission
-        reminderOffsetDays = ItemVisuals.REMINDER_DISABLED
+        pendingReminderOffsetDays?.let { reminderOffsetDays = it }
         pendingReminderOffsetDays = null
         saveAfterNotificationPermission = false
         notificationPermissionUnavailable = true
-        if (shouldSave) submit(ItemVisuals.REMINDER_DISABLED)
+        if (shouldSave) submit()
     }
 
     val notificationPermissionLauncher = rememberLauncherForActivityResult(
@@ -198,7 +226,7 @@ fun ItemEditorScreen(
             notificationPermissionUnavailable = true
             showNotificationPermissionSettings = true
         } else {
-            cancelReminderAndContinue()
+            keepReminderAndContinue()
         }
     }
     val notificationSettingsLauncher = rememberLauncherForActivityResult(
@@ -214,7 +242,7 @@ fun ItemEditorScreen(
             pendingReminderOffsetDays = null
             saveAfterNotificationPermission = false
         } else {
-            cancelReminderAndContinue()
+            keepReminderAndContinue()
         }
     }
 
@@ -229,11 +257,10 @@ fun ItemEditorScreen(
                 category = item.category
                 colorKey = item.colorKey
                 iconKey = item.iconKey
-                reminderOffsetDays = if (context.canPostReminderNotifications()) {
-                    item.reminderOffsetDays
-                } else {
-                    ItemVisuals.REMINDER_DISABLED
-                }
+                // Permission controls delivery, never the user's saved reminder choice.
+                reminderOffsetDays = item.reminderOffsetDays
+                weekdays = item.weekdays
+                endNextDay = item.endNextDay
                 if (item.type == ItemType.Time) {
                     startTimeValue = item.startValue
                     endTimeValue = item.endValue
@@ -244,6 +271,9 @@ fun ItemEditorScreen(
                     repeatRateText = if (item.updateRate > 0) item.updateRate.toString() else ""
                 }
             }
+            notificationPermissionUnavailable = !context.canPostReminderNotifications() &&
+                reminderOffsetDays != ItemVisuals.REMINDER_DISABLED
+            baseline = draftFields()
             initialized = true
         }
     }
@@ -253,9 +283,9 @@ fun ItemEditorScreen(
         topBar = {
             TimeLeftTopAppBar(
                 title = stringResource(
-                    if (initialItem == null) R.string.editor_add_title else R.string.editor_edit_title
+                    if (initialItem == null || initialItem.id == 0) R.string.editor_add_title else R.string.editor_edit_title
                 ),
-                onBack = onBack
+                onBack = ::requestBack
             )
         }
     ) { innerPadding ->
@@ -273,7 +303,7 @@ fun ItemEditorScreen(
             } else {
                 TypeSelector(
                     selectedType = selectedType,
-                    enabled = initialItem == null,
+                    enabled = initialItem?.isTimedOccurrence != true && (initialItem == null || initialItem.id == 0),
                     onTypeSelected = { type ->
                         if (selectedType != type) {
                             reminderOffsetDays = defaultReminderFor(type)
@@ -293,10 +323,16 @@ fun ItemEditorScreen(
                     modifier = Modifier.fillMaxWidth()
                 )
 
-                if (selectedType == ItemType.Time) {
+                if (initialItem?.isTimedOccurrence == true) {
+                    Text(com.devidea.timeleft.widget.widgetScheduleDescription(context, initialItem), style = MaterialTheme.typography.bodyLarge)
+                    Text(stringResource(R.string.calendar_edit_copy_hint), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                } else if (selectedType == ItemType.Time) {
                     TimeRangeFields(
                         startTimeValue = startTimeValue,
                         endTimeValue = endTimeValue,
+                        endNextDay = endNextDay,
+                        onNextDayChange = { endNextDay = it; errorRes = null },
                         onStartTimeChange = {
                             startTimeValue = it
                             errorRes = null
@@ -321,11 +357,19 @@ fun ItemEditorScreen(
                     )
                 }
 
+                if (reminderOffsetDays != ItemVisuals.REMINDER_DISABLED && !context.canPostReminderNotifications()) {
+                    Text(stringResource(R.string.editor_reminder_permission_required),
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+
                 TextButton(onClick = { moreOptions = !moreOptions }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.editor_more_options), modifier = Modifier.weight(1f))
                     Icon(if (moreOptions) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
                 }
                 if (moreOptions) {
+                    if (selectedType == ItemType.Time && initialItem?.isTimedOccurrence != true) {
+                        WeekdayFields(weekdays, onChange = { weekdays = it; errorRes = null })
+                    }
                     if (selectedType == ItemType.Date) {
                     RepeatFields(
                         repeatFlag = repeatFlag,
@@ -390,7 +434,7 @@ fun ItemEditorScreen(
 
                 Button(
                     onClick = {
-                        if (reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
+                        if (initialItem == null && reminderOffsetDays != ItemVisuals.REMINDER_DISABLED &&
                             !context.canPostReminderNotifications()
                         ) {
                             pendingReminderOffsetDays = reminderOffsetDays
@@ -415,6 +459,20 @@ fun ItemEditorScreen(
         }
     }
 
+    if (showDiscardDialog) {
+        AlertDialog(
+            onDismissRequest = { showDiscardDialog = false },
+            title = { Text(stringResource(R.string.editor_discard_title)) },
+            text = { Text(stringResource(R.string.editor_discard_message)) },
+            confirmButton = { TextButton(onClick = { if (!isSaving) { showDiscardDialog = false; onBack() } }) {
+                Text(stringResource(R.string.editor_discard_confirm))
+            } },
+            dismissButton = { TextButton(onClick = { showDiscardDialog = false }) {
+                Text(stringResource(R.string.editor_keep_editing))
+            } },
+        )
+    }
+
     if (showNotificationPermissionExplanation) {
         NotificationPermissionExplanationDialog(
             onAllow = {
@@ -428,7 +486,7 @@ fun ItemEditorScreen(
             },
             onDismiss = {
                 showNotificationPermissionExplanation = false
-                cancelReminderAndContinue()
+                keepReminderAndContinue()
             }
         )
     }
@@ -444,7 +502,7 @@ fun ItemEditorScreen(
             },
             onDismiss = {
                 showNotificationPermissionSettings = false
-                cancelReminderAndContinue()
+                keepReminderAndContinue()
             }
         )
     }
@@ -492,6 +550,8 @@ private fun TypeSelector(
 private fun TimeRangeFields(
     startTimeValue: String,
     endTimeValue: String,
+    endNextDay: Boolean,
+    onNextDayChange: (Boolean) -> Unit,
     onStartTimeChange: (String) -> Unit,
     onEndTimeChange: (String) -> Unit
 ) {
@@ -505,12 +565,40 @@ private fun TimeRangeFields(
             TimePickerField(stringResource(R.string.editor_start_time), startTimeValue, onStartTimeChange, Modifier.weight(1f).widthIn(min = width))
             TimePickerField(stringResource(R.string.editor_end_time), endTimeValue, onEndTimeChange, Modifier.weight(1f).widthIn(min = width))
         }
-        Text(rangeDurationText(startTime, endTime), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        TextButton(onClick = { showAdjustment = !showAdjustment }) { Text(stringResource(R.string.editor_adjust_range)) }
-        if (showAdjustment) TimeRangeDial(startTime, endTime, onRangeChange = { start, end ->
+        com.devidea.timeleft.ui.settings.SettingsDropdownRow(
+            title = stringResource(R.string.editor_end_day), selectedValue = endNextDay,
+            options = listOf(com.devidea.timeleft.ui.settings.SettingsOption(false, R.string.editor_same_day),
+                com.devidea.timeleft.ui.settings.SettingsOption(true, R.string.editor_next_day)),
+            onSelected = onNextDayChange,
+        )
+        Text(if (endNextDay) stringResource(R.string.editor_overnight_hint) else rangeDurationText(startTime, endTime), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (!endNextDay) TextButton(onClick = { showAdjustment = !showAdjustment }) { Text(stringResource(R.string.editor_adjust_range)) }
+        if (showAdjustment && !endNextDay) TimeRangeDial(startTime, endTime, onRangeChange = { start, end ->
             onStartTimeChange(formatStorageTime(start))
             onEndTimeChange(formatStorageTime(end))
         })
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun WeekdayFields(mask: Int, onChange: (Int) -> Unit) {
+    val locale = LocalContext.current.resources.configuration.locales[0]
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Text(stringResource(R.string.editor_weekdays), style = MaterialTheme.typography.titleMedium)
+        Text(stringResource(R.string.editor_weekday_basis), style = MaterialTheme.typography.bodySmall)
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            FilterChip(selected = mask == 127, onClick = { onChange(127) }, label = { Text(stringResource(R.string.editor_every_day)) }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget))
+            FilterChip(selected = mask == 31, onClick = { onChange(31) }, label = { Text(stringResource(R.string.editor_weekdays_only)) }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget))
+        }
+        FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            java.time.DayOfWeek.values().forEach { day ->
+                val bit = 1 shl (day.value - 1)
+                FilterChip(selected = mask and bit != 0, onClick = { onChange(mask xor bit) },
+                    label = { Text(day.getDisplayName(java.time.format.TextStyle.SHORT, locale)) },
+                    modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget))
+            }
+        }
     }
 }
 
@@ -592,9 +680,7 @@ private fun TimePickerField(
     var open by rememberSaveable { mutableStateOf(false) }
     val selectedTime = parseTime(value) ?: LocalTime.now()
     val context = LocalContext.current
-    val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) "H:mm" else stringResource(R.string.pattern_display_time)
-    val displayFormatter = DateTimeFormatter.ofPattern(pattern, context.resources.configuration.locales[0])
-    PickerCard(label, selectedTime.format(displayFormatter), modifier = modifier, onClick = { open = true })
+    PickerCard(label, formatClockTime(context, selectedTime), modifier = modifier, onClick = { open = true })
     if (open) TimeLeftTimePicker(selectedTime, label, onDismiss = { open = false }, onSelect = { onValueChange(formatStorageTime(it)) })
 }
 
@@ -918,6 +1004,8 @@ private fun validateAndSave(
     colorKey: String,
     iconKey: String,
     reminderOffsetDays: Int,
+    weekdays: Int,
+    endNextDay: Boolean,
     onSave: (ItemEditorDraft) -> Unit
 ): Int? {
     val cleanTitle = title.trim()
@@ -926,7 +1014,9 @@ private fun validateAndSave(
     if (selectedType == ItemType.Time) {
         val startTime = parseTime(startTimeValue) ?: return R.string.editor_error_invalid_start_time
         val endTime = parseTime(endTimeValue) ?: return R.string.editor_error_invalid_end_time
-        if (!endTime.isAfter(startTime)) return R.string.editor_error_end_before_start_time
+        if (weekdays !in 1..127) return R.string.editor_weekday_required
+        if ((!endNextDay && !endTime.isAfter(startTime)) || (endNextDay && endTime.isAfter(startTime)))
+            return R.string.editor_error_time_day_relation
 
         onSave(
             ItemEditorDraft(
@@ -939,7 +1029,8 @@ private fun validateAndSave(
                 category = category.trim(),
                 colorKey = colorKey,
                 iconKey = iconKey,
-                reminderOffsetDays = reminderOffsetDays
+                reminderOffsetDays = reminderOffsetDays,
+                weekdays = weekdays, endNextDay = endNextDay,
             )
         )
         return null

@@ -15,6 +15,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.theme.ThemeSelection
+import com.devidea.timeleft.ui.theme.TimeLayout
 import com.devidea.timeleft.ui.theme.resolveTheme
 import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
 import com.devidea.timeleft.ui.theme.TimeRulerTokens
@@ -30,6 +31,7 @@ internal data class WidgetPalette(
     val muted: Int,
     val track: Int,
     val glowAlpha: Float,
+    val layout: TimeLayout = TimeLayout.TimeFocus,
 ) {
     companion object {
         fun fromPreferences(context: Context, prefs: SharedPreferences): WidgetPalette {
@@ -40,14 +42,19 @@ internal data class WidgetPalette(
                 else -> systemUsesDarkTheme(context)
             }
             return create(prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY)
-                ?: UserPreferences.COLOR_THEME_CLAY, dark)
+                ?: UserPreferences.COLOR_THEME_CLAY, dark,
+                prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS)
         }
-        fun create(key: String, dark: Boolean): WidgetPalette {
-            val colors = resolveTheme(ThemeSelection(UserPreferences.THEME_AUTO, key), dark).colors
+        fun create(key: String, dark: Boolean, designKey: String = UserPreferences.DESIGN_TIME_FOCUS): WidgetPalette {
+            val resolved = resolveTheme(ThemeSelection(UserPreferences.THEME_AUTO, key, designKey), dark)
+            val colors = resolved.colors
             return WidgetPalette(
-                if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
+                if (key == com.devidea.timeleft.ui.theme.ThemePalette.Autumn.key) {
+                    if (dark) R.drawable.widget_background_autumn_dark else R.drawable.widget_background_autumn_light
+                } else if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
                 colors.primary.toArgb(), colors.onBackground.toArgb(), colors.onSurfaceVariant.toArgb(), colors.outlineVariant.toArgb(),
                 if (dark) TimeRulerTokens.GlowDarkAlpha else TimeRulerTokens.GlowLightAlpha,
+                resolved.definition.layout,
             )
         }
     }
@@ -87,7 +94,7 @@ internal fun createSingleWidgetViews(
     // Time widgets currently show a snapshot. Keep its date as well as time visible across midnight.
     val updatedAt = if (item != null && (item.remainingSeconds != null || item.type == ItemType.Time)) {
         val locale = context.resources.configuration.locales[0]
-        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, "MdHm")
+        val pattern = android.text.format.DateFormat.getBestDateTimePattern(locale, if (android.text.format.DateFormat.is24HourFormat(context)) "MdHm" else "Mdhm")
         java.text.SimpleDateFormat(pattern, locale).format(java.util.Date(snapshotTimeMillis ?: System.currentTimeMillis()))
     } else ""
     val updatedLabel = updatedAt.takeIf { it.isNotBlank() }?.let { context.getString(R.string.widget_as_of, it) }.orEmpty()
@@ -103,7 +110,7 @@ internal fun createSingleWidgetViews(
     val value = widgetValueWithStatus(context,
         widgetValueText(context, data.groups, data.value, R.dimen.widget_unit_size, palette.muted),
         data.valueTemplateRes, palette.muted)
-    val rulerVisible = item != null && showProgress
+    val rulerVisible = item != null && showProgress && !(item.isFocusSession && item.isExpired)
     val rangeVisible = rulerVisible && data.startLabel.isNotBlank() && data.endLabel.isNotBlank()
     val meta = data.meta.takeUnless { rangeVisible }.orEmpty()
     val rangeHeight = if (rangeVisible) measure.px(R.dimen.widget_small_gap) +
@@ -119,7 +126,8 @@ internal fun createSingleWidgetViews(
     if (!measure.fitsUnbroken(value, valueSize, width) ||
         ceil(baseHeight.toDouble()) > measure.dp(dimensions.height.toFloat())) return resizeWidgetViews(context, palette)
 
-    return RemoteViews(context.packageName, R.layout.app_widget_single).apply {
+    return RemoteViews(context.packageName,
+        if (palette.layout == TimeLayout.TimeBoard) R.layout.app_widget_board else R.layout.app_widget_single).apply {
         setInt(R.id.widgetRoot, "setBackgroundResource", palette.backgroundDrawableRes)
         setViewPadding(R.id.widgetRoot, padding.roundToInt(), verticalPadding.roundToInt(), padding.roundToInt(), verticalPadding.roundToInt())
         setTextColor(R.id.summary, palette.onSurface)

@@ -72,6 +72,7 @@ private fun WidgetSource.providerClass(): Class<out AppWidget> = when (this) {
     WidgetSource.Today -> AppWidget::class.java
     WidgetSource.Month -> MediumAppWidget::class.java
     WidgetSource.Year -> WideAppWidget::class.java
+    WidgetSource.Week, WidgetSource.Quarter -> PeriodAppWidget::class.java
     WidgetSource.Overview -> LargeAppWidget::class.java
     WidgetSource.Next, WidgetSource.Custom -> ScheduleAppWidget::class.java
 }
@@ -90,6 +91,8 @@ private suspend fun requestWidgetPin(context: Context, source: WidgetSource, ite
             WidgetSource.Today -> generator.timeItem()
             WidgetSource.Month -> generator.monthItem()
             WidgetSource.Year -> generator.yearItem()
+            WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
+            WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
             WidgetSource.Custom -> {
                 val entity = withContext(Dispatchers.IO) { ep.repository().allItems().firstOrNull { it.id == itemId } }
                     ?.forWidgetPreview() ?: return R.string.widget_selected_deleted
@@ -146,6 +149,8 @@ class WidgetPinReceiver : BroadcastReceiver() {
         val prefs = EntryPointAccessors.fromApplication(context.applicationContext, AppWidget.AppWidgetEntryPoint::class.java).prefs()
         if (WidgetConfiguration.hasSavedSettings(prefs, id)) return
         WidgetConfiguration(source, itemId).write(prefs, id)
+        EntryPointAccessors.fromApplication(context.applicationContext, AppWidget.AppWidgetEntryPoint::class.java)
+            .telemetry().record(com.devidea.timeleft.telemetry.UsageEvent.WidgetConfigured)
         val pending = goAsync()
         AppWidget().updateAppWidget(context, manager, id, onComplete = pending::finish)
     }

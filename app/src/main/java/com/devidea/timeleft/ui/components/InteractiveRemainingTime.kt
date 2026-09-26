@@ -55,7 +55,7 @@ internal fun InteractiveRemainingTime(item: AdapterItem, waiting: Boolean) {
         if (!eligible || totalSeconds) progress.snapTo(1f)
     }
     val running = entrance && eligible && progress.value < 1f && ValueAnimator.areAnimatorsEnabled()
-    val shown = if (running && actual != null) {
+    val shown = if (running) {
         // Keep the entry plan stable across ticks, but carry the live second forward.
         (entrancePlan.valueAt(progress.value) + actual - entrancePlan.target)
             .coerceIn(actual, maxOf(actual, entrancePlan.maximum))

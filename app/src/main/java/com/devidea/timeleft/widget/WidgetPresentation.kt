@@ -4,7 +4,7 @@ import android.content.Context
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.calc.TimeProgressCalculator
+import com.devidea.timeleft.calc.currentOccurrence
 import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.formatRemainingTime
@@ -13,36 +13,29 @@ import com.devidea.timeleft.RemainingTimeGroup
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 
-/** Match the next rendered recurrence without persisting anything when configuration is canceled. */
-internal fun ItemEntity.forWidgetPreview(today: LocalDate = LocalDate.now()): ItemEntity {
-    if (type == ItemType.Time) return this
-    val format = DateTimeFormatter.ofPattern("yyyy-M-d")
-    val shift = TimeProgressCalculator.catchUpRecurrence(
-        currentStart = LocalDate.parse(startValue, format),
-        currentEnd = LocalDate.parse(endValue, format),
-        today = today,
-        updateFlag = updateFlag,
-        updateRate = updateRate,
-    ) ?: return this
-    return copy(startValue = shift.newStart.toString(), endValue = shift.newEnd.toString())
-}
+/** Compatibility entry point shared by previews and installed widget details. */
+internal fun ItemEntity.forWidgetPreview(today: LocalDate = LocalDate.now()): ItemEntity = currentOccurrence(today)
 
 internal fun AdapterItem.toWidgetData(
     context: Context,
     showRemaining: Boolean,
     useWidgetString: Boolean,
 ): WidgetDisplayData {
-    val waiting = type == ItemType.Time && timePhase != TimeRangePhase.Active
+    val waiting = !isFocusSession && type == ItemType.Time && secondsUntilStart != null
     val remainingText = formatRemainingTime(
         context, if (waiting) secondsUntilStart else remainingSeconds,
         remainingDays?.takeIf { it >= 0 }, countdownText.ifBlank { leftString }
     )
     val useCountdown = !showRemaining && (type == ItemType.Date || (useWidgetString && !waiting)) && countdownText.isNotBlank()
+    val endedFocus = isFocusSession && isExpired
     val value = when {
+        isCalendarOccurrence && isExpired -> countdownText
+        endedFocus -> dueText
         useCountdown -> countdownText
         else -> remainingText
     }
     val valueTemplateRes = when {
+        endedFocus -> null
         waiting -> R.string.widget_value_until_start
         isExpired || (remainingDays ?: 0) < 0 -> null
         useCountdown && type == ItemType.Date -> null // D-day already expresses its own state.
@@ -51,7 +44,7 @@ internal fun AdapterItem.toWidgetData(
     // The renderer hides the repeated deadline when the range is visible, retaining it otherwise.
     val meta = dueText
     val spokenValue = valueTemplateRes?.let { context.getString(it).replace("^1", value) } ?: value
-    val groups = if (useCountdown) emptyList() else remainingTimeGroups(context,
+    val groups = if (useCountdown || endedFocus || isCalendarOccurrence && isExpired) emptyList() else remainingTimeGroups(context,
         if (waiting) secondsUntilStart else remainingSeconds, remainingDays?.takeIf { it >= 0 })
     return WidgetDisplayData(
         title = title, value = value, meta = meta,

@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.calc.currentOccurrence
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProvider
@@ -43,7 +44,8 @@ open class AppWidget : AppWidgetProvider() {
             MediumAppWidget::class.java,
             WideAppWidget::class.java,
             LargeAppWidget::class.java,
-            ScheduleAppWidget::class.java
+            ScheduleAppWidget::class.java,
+            PeriodAppWidget::class.java
         )
 
         fun updateAllWidgets(
@@ -85,6 +87,7 @@ open class AppWidget : AppWidgetProvider() {
                             WidgetSource.Today -> periods[0]
                             WidgetSource.Month -> periods[1]
                             WidgetSource.Year -> periods[2]
+                            WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(appContext, com.devidea.timeleft.periods.CalendarPeriod.Week)
                             else -> null
                         }
                         // Calendar values are real; the schedule preview never exposes personal titles.
@@ -106,6 +109,7 @@ open class AppWidget : AppWidgetProvider() {
     @InstallIn(SingletonComponent::class)
     interface AppWidgetEntryPoint {
         fun prefs(): SharedPreferences
+        fun telemetry(): com.devidea.timeleft.telemetry.AppTelemetry
         fun itemGenerator(): InterfaceItem
         fun repository(): TimeLeftRepository
     }
@@ -219,11 +223,13 @@ open class AppWidget : AppWidgetProvider() {
             WidgetSource.Today -> periods[0]
             WidgetSource.Month -> periods[1]
             WidgetSource.Year -> periods[2]
+            WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
+            WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
             WidgetSource.Overview -> null
             WidgetSource.Next -> {
                 try {
                     val selected = NextCountdownSelector.select(
-                        repository.advanceExpiredRecurrences(repository.allItems())
+                        repository.allItems().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
                     )
                     selected?.let {
                         when (it.type) {
@@ -242,7 +248,7 @@ open class AppWidget : AppWidgetProvider() {
                 emptyMessage = R.string.widget_selected_deleted
                 try {
                     val entity = repository.allItems().firstOrNull { it.id == configuration.itemId }
-                    entity?.let { repository.advanceExpiredRecurrence(it) }?.let { selected ->
+                    entity?.let { it.currentOccurrence() }?.let { selected ->
                         when (selected.type) {
                             ItemType.Time -> itemGenerator.customTimeItem(selected)
                             ItemType.Date -> itemGenerator.customMonthItem(selected)
@@ -282,6 +288,7 @@ open class AppWidget : AppWidgetProvider() {
         val updateIntent = Intent().apply {
             component = provider
             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
+            addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
         }
 
@@ -313,7 +320,7 @@ open class AppWidget : AppWidgetProvider() {
             listOf(R.id.overviewToday to WidgetSource.Today, R.id.overviewMonth to WidgetSource.Month, R.id.overviewYear to WidgetSource.Year)
                 .forEach { (viewId, period) -> views.setOnClickPendingIntent(viewId, details(period)) }
         } else views.setOnClickPendingIntent(R.id.widgetRoot, rootAction)
-        if (views.layoutId == R.layout.app_widget_single) {
+        if (views.layoutId == R.layout.app_widget_single || views.layoutId == R.layout.app_widget_board) {
             views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
             views.setOnClickPendingIntent(R.id.percent, rootAction)
         }
@@ -347,9 +354,10 @@ open class AppWidget : AppWidgetProvider() {
         emptyMessage: Int = R.string.widget_no_upcoming,
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
+        designKey: String = UserPreferences.DESIGN_TIME_FOCUS,
     ): RemoteViews = createViews(
         context, dimensions, configuration, item, periods,
-        WidgetPalette.create(paletteKey, dark), emptyMessage, showProgress, snapshotTimeMillis,
+        WidgetPalette.create(paletteKey, dark, designKey), emptyMessage, showProgress, snapshotTimeMillis,
     )
 
 }
@@ -358,3 +366,4 @@ class MediumAppWidget : AppWidget()
 class WideAppWidget : AppWidget()
 class LargeAppWidget : AppWidget()
 class ScheduleAppWidget : AppWidget()
+class PeriodAppWidget : AppWidget()

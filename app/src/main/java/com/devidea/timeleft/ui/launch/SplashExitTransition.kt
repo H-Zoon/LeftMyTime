@@ -5,6 +5,7 @@ import android.animation.AnimatorListenerAdapter
 import android.animation.AnimatorSet
 import android.animation.ObjectAnimator
 import android.animation.ValueAnimator
+import android.os.Build
 import android.view.View
 import android.view.animation.PathInterpolator
 import androidx.appcompat.app.AppCompatActivity
@@ -30,9 +31,17 @@ internal class SplashExitTransition(
             finish()
             return
         }
-        activity.lifecycle.addObserver(this)
-        val icon = provider.iconView
         val overlay = provider.view
+        // Platform getIconView() is nullable (for example after a permission-triggered
+        // process restart). core-splashscreen 1.0.1 asserts non-null in its wrapper.
+        val icon = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
+            (overlay as? android.window.SplashScreenView)?.iconView
+        } else provider.iconView
+        if (icon == null) {
+            finish()
+            return
+        }
+        activity.lifecycle.addObserver(this)
         // A tap finishes the ready-to-enter transition; no extra gesture or waiting screen.
         overlay.contentDescription = activity.getString(R.string.splash_enter_app)
         overlay.setOnClickListener { finish() }

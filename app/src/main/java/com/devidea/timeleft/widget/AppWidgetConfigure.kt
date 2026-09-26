@@ -55,6 +55,7 @@ class AppWidgetConfigure : AppCompatActivity() {
 
     @Inject lateinit var repository: TimeLeftRepository
     @Inject lateinit var prefs: SharedPreferences
+    @Inject lateinit var telemetry: com.devidea.timeleft.telemetry.AppTelemetry
 
     private var widgetId: Int = AppWidgetManager.INVALID_APPWIDGET_ID
 
@@ -81,7 +82,8 @@ class AppWidgetConfigure : AppCompatActivity() {
             defaultSource = WidgetSource.defaultForProvider(manager.getAppWidgetInfo(widgetId)?.provider?.className),
         )
         setContent {
-            TimeLeftTheme(themeMode = currentThemeMode(), paletteKey = currentPaletteKey()) {
+            TimeLeftTheme(themeMode = currentThemeMode(), paletteKey = currentPaletteKey(),
+                designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS) {
                 WidgetConfigureRoute(
                     initial = initial,
                     isEditing = isEditing,
@@ -115,6 +117,7 @@ class AppWidgetConfigure : AppCompatActivity() {
 
     private fun persistAndFinish(configuration: WidgetConfiguration, appWidgetManager: AppWidgetManager) {
         configuration.write(prefs, widgetId)
+        telemetry.record(com.devidea.timeleft.telemetry.UsageEvent.WidgetConfigured)
         setResult(RESULT_OK, Intent().putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, widgetId))
         AppWidget().updateAppWidget(this, appWidgetManager, widgetId)
         finish()
@@ -289,8 +292,10 @@ private fun WidgetConfigureScreen(
         WidgetSource.Today -> periods[0]
         WidgetSource.Month -> periods[1]
         WidgetSource.Year -> periods[2]
+        WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
+        WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
         WidgetSource.Overview -> null
-        WidgetSource.Next -> customItem(NextCountdownSelector.select(items))
+        WidgetSource.Next -> customItem(NextCountdownSelector.select(items, clock = com.devidea.timeleft.focus.readFocusClock(context)))
             ?: periods[1].takeIf { configuration.legacySummary }
         WidgetSource.Custom -> customItem(selectedItem)
             ?: periods[1].takeIf { configuration.legacySummary }
@@ -349,6 +354,10 @@ private fun WidgetConfigureScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 WidgetPreviewBand(dimensions, configuration, previewItem, periods, paletteKey, dark, emptyMessage, showProgress)
+                if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
+                    Text(stringResource(R.string.widget_snapshot_hint), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
                 if (showFormat) {
                     Column(Modifier.selectableGroup()) {
                         WidgetSectionLabel(stringResource(R.string.widget_display_format))
@@ -457,6 +466,7 @@ internal fun WidgetPreviewBand(
     snapshotTimeMillis: Long? = null,
 ) {
     val base = LocalContext.current
+    val designKey = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key
     val previewFontScale = LocalDensity.current.fontScale
     val context = remember(base, previewFontScale) {
         base.createConfigurationContext(android.content.res.Configuration(base.resources.configuration).apply {
@@ -465,9 +475,9 @@ internal fun WidgetPreviewBand(
     }
     val meetsMinimum = dimensions.meetsMinimumFor(configuration.source)
     val previewDimensions = if (meetsMinimum) dimensions else WidgetDimensions.previewFor(configuration.source)
-    val views = remember(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress, snapshotTimeMillis) {
+    val views = remember(context, previewDimensions, configuration, item, periods, paletteKey, dark, designKey, emptyMessage, showProgress, snapshotTimeMillis) {
         AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
-            snapshotTimeMillis = snapshotTimeMillis)
+            snapshotTimeMillis = snapshotTimeMillis, designKey = designKey)
     }
     val spokenPreview = if (previewDescription != null && views.layoutId == R.layout.app_widget_resize)
         stringResource(R.string.widget_size_hint) else previewDescription

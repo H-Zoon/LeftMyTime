@@ -12,5 +12,6 @@ object LayoutTokens {
     val SectionGap = Spacing.xxl
     val CardPadding = Spacing.l
     val MinTouchTarget = 48.dp
+    val TopAppBarMinHeight = 64.dp
     const val DetailSheetMaxHeightFraction = .8f
 }

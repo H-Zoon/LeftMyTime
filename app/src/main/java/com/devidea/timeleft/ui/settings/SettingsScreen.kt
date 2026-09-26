@@ -10,20 +10,17 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Switch
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.ItemVisuals
@@ -31,6 +28,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.TimeLeftSection
+import com.devidea.timeleft.ui.components.TimeLeftSwitchRow
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -58,7 +56,15 @@ fun SettingsScreen(
     onOpenNotificationSettings: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     previewPeriods: List<AdapterItem> = emptyList(),
+    onOpenBackup: () -> Unit = {},
+    onOpenStoryLibrary: () -> Unit = {},
+    onOpenTemplates: () -> Unit = {},
+    usageEnabled: Boolean = false,
+    diagnosticsEnabled: Boolean = false,
+    onUsageChanged: (Boolean) -> Unit = {},
+    onDiagnosticsChanged: (Boolean) -> Unit = {},
 ) {
+    val context = androidx.compose.ui.platform.LocalContext.current
     SettingsScaffold(
         title = stringResource(R.string.settings_title),
         onBack = onBack
@@ -73,6 +79,7 @@ fun SettingsScreen(
                 selectedValue = homeSort,
                 options = listOf(
                     SettingsOption(UserPreferences.SORT_NEAREST, R.string.home_sort_nearest),
+                    SettingsOption(UserPreferences.SORT_MANUAL, R.string.home_sort_manual),
                     SettingsOption(UserPreferences.SORT_CREATED, R.string.home_sort_created),
                     SettingsOption(UserPreferences.SORT_TITLE, R.string.home_sort_title),
                     SettingsOption(UserPreferences.SORT_PROGRESS, R.string.home_sort_progress),
@@ -89,7 +96,7 @@ fun SettingsScreen(
                 ),
                 onSelected = onExpiredItemsModeSelected,
             )
-            SettingsSwitchRow(
+            TimeLeftSwitchRow(
                 title = stringResource(R.string.settings_progress_display),
                 checked = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
                 onCheckedChange = { checked ->
@@ -109,7 +116,7 @@ fun SettingsScreen(
             )
             NavigationRow(
                 title = stringResource(R.string.settings_date_reminder_time),
-                summary = dateReminderTime,
+                summary = runCatching { com.devidea.timeleft.formatClockTime(context, java.time.LocalTime.parse(dateReminderTime)) }.getOrDefault(dateReminderTime),
                 onClick = onSelectDateReminderTime
             )
             ReminderDropdownRow(
@@ -126,11 +133,29 @@ fun SettingsScreen(
             )
         }
 
-        SettingsSection(title = stringResource(R.string.settings_about)) {
+        SettingsSection(title = stringResource(R.string.settings_data)) {
+            NavigationRow(title = stringResource(R.string.story_library), onClick = onOpenStoryLibrary)
+            NavigationRow(title = stringResource(R.string.templates_title), onClick = onOpenTemplates)
+            NavigationRow(title = stringResource(R.string.backup_title),
+                summary = stringResource(R.string.backup_entry_summary), onClick = onOpenBackup)
+        }
+
+        SettingsSection(title = stringResource(R.string.settings_privacy_choices)) {
+            Text(stringResource(R.string.settings_privacy_choices_summary),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+            TimeLeftSwitchRow(title = stringResource(R.string.settings_usage_opt_in),
+                checked = usageEnabled, onCheckedChange = onUsageChanged,
+                summary = stringResource(R.string.settings_usage_opt_in_summary))
+            TimeLeftSwitchRow(title = stringResource(R.string.settings_diagnostics_opt_in),
+                checked = diagnosticsEnabled, onCheckedChange = onDiagnosticsChanged,
+                summary = stringResource(R.string.settings_diagnostics_opt_in_summary))
             NavigationRow(
                 title = stringResource(R.string.settings_privacy_policy),
                 onClick = onOpenPrivacyPolicy
             )
+        }
+        SettingsSection(title = stringResource(R.string.settings_about)) {
             ValueRow(
                 title = stringResource(R.string.settings_version),
                 value = versionName
@@ -215,31 +240,6 @@ private fun SettingsSection(
         TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
             Column(content = content)
         }
-    }
-}
-
-@Composable
-private fun SettingsSwitchRow(
-    title: String,
-    checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit,
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .heightIn(min = LayoutTokens.MinTouchTarget)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
-            .padding(vertical = Spacing.m),
-        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge,
-            color = MaterialTheme.colorScheme.onSurface,
-            modifier = Modifier.weight(1f)
-        )
-        Switch(checked = checked, onCheckedChange = null)
     }
 }
 

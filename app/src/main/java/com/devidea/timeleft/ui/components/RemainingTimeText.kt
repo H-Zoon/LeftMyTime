@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -45,7 +46,9 @@ internal fun RemainingTimeText(
     reserveValue: Long? = null,
     unitReferenceSeconds: Long? = null,
     totalSeconds: Boolean = false,
+    centered: Boolean = false,
 ) {
+    val center = centered || (hero && com.devidea.timeleft.ui.theme.LocalTimeLayout.current == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard)
     val seconds = if (untilStart) {
         if (showSeconds) item.detailFacts?.secondsUntilStart ?: item.secondsUntilStart else item.secondsUntilStart
     } else if (showSeconds) item.detailFacts?.secondsLeft ?: item.remainingSeconds else item.remainingSeconds
@@ -56,7 +59,7 @@ internal fun RemainingTimeText(
         stringResource(R.string.detail_total_seconds_description, numberFormat.format(seconds.coerceAtLeast(0)))
     } else remainingTimeLabel(seconds, days, item.countdownText.ifBlank { item.leftString }, showSeconds)
     val relationRes = if (untilStart) R.string.time_until_start_description else R.string.time_remaining_description
-    val description = stringResource(relationRes, label)
+    val description = if (showRelation) stringResource(relationRes, label) else label
     fun displayGroups(value: Long?): List<RemainingTimeGroup> {
         val displayed = (value ?: days?.toLong() ?: seconds)?.coerceAtLeast(0)
             ?: return remainingTimeGroups(context, seconds, days, showSeconds)
@@ -85,8 +88,9 @@ internal fun RemainingTimeText(
     val reserved = reserveValue?.let(::displayGroups)
     val primaryCount = groups.count { !it.isSeconds }.coerceAtLeast(1)
     FlowRow(
-        modifier = modifier.clearAndSetSemantics { contentDescription = description },
-        horizontalArrangement = Arrangement.spacedBy(if (compact) Spacing.xs else Spacing.m),
+        modifier = modifier.then(if (center) Modifier.fillMaxWidth() else Modifier).clearAndSetSemantics { contentDescription = description },
+        horizontalArrangement = Arrangement.spacedBy(if (compact) Spacing.xs else Spacing.m,
+            if (center) Alignment.CenterHorizontally else Alignment.Start),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs)
     ) {
         if (groups.isEmpty()) {

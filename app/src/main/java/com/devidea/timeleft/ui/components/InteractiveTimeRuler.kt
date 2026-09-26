@@ -51,6 +51,7 @@ import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.TimeDetailRange
 import com.devidea.timeleft.calc.TimeRangePhase
+import com.devidea.timeleft.formatClockTime
 import com.devidea.timeleft.formatRemainingTime
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Motion
@@ -108,12 +109,15 @@ internal fun InteractiveTimeRuler(item: AdapterItem, range: TimeDetailRange) {
         is TimeDetailRange.Calendar -> range.start.plusDays(selected - range.minimum)
             .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale))
         is TimeDetailRange.Clock -> {
-            val time = range.start.plusSeconds(selected)
+            val time = range.startEpochSecond?.let { java.time.Instant.ofEpochSecond(it + selected)
+                .atZone(java.time.ZoneId.systemDefault()).toLocalTime() } ?: range.start.plusSeconds(selected)
             val seconds = range.maximum < 60 || time.second != 0
-            val pattern = if (android.text.format.DateFormat.is24HourFormat(context)) {
-                if (seconds) "H:mm:ss" else "H:mm"
-            } else if (seconds) "h:mm:ss a" else "h:mm a"
-            time.format(DateTimeFormatter.ofPattern(pattern, locale))
+            val clock = formatClockTime(context, time, seconds)
+            val base = range.startEpochSecond?.let { java.time.Instant.ofEpochSecond(it).atZone(java.time.ZoneId.systemDefault()) }
+            if (base != null && base.toLocalDate() != base.plusSeconds(range.durationSeconds).toLocalDate()) {
+                context.getString(R.string.time_date_clock, base.plusSeconds(selected).toLocalDate()
+                    .format(DateTimeFormatter.ofLocalizedDate(FormatStyle.MEDIUM).withLocale(locale)), clock)
+            } else clock
         }
     }
     val remaining = range.remaining(selected)

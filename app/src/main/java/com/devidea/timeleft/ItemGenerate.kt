@@ -1,6 +1,11 @@
 package com.devidea.timeleft
 
+import com.devidea.timeleft.focus.FocusSession
+import com.devidea.timeleft.focus.isFocusSession
+import com.devidea.timeleft.calendar.isTimedOccurrence
 import android.content.Context
+import com.devidea.timeleft.calc.scheduledTimeWindow
+import java.time.ZonedDateTime
 import com.devidea.timeleft.calc.CustomTimeProgress
 import com.devidea.timeleft.calc.TimeProgressCalculator
 import com.devidea.timeleft.calc.TimeRangePhase
@@ -38,8 +43,8 @@ class ItemGenerate @Inject constructor(
         return AdapterItem(
             title = context.getString(R.string.home_today_title),
             remainingSeconds = progress.durationLeft.seconds.coerceAtLeast(0),
-            startLabel = "00:00",
-            endLabel = "23:59:59",
+            startLabel = formatClockTime(context, LocalTime.MIDNIGHT),
+            endLabel = formatClockTime(context, LocalTime.of(23, 59, 59), seconds = true),
             percent = roundPercent(progress.percentElapsed),
             detailFacts = TimeDetailFacts(
                 percentElapsed = progress.percentElapsed,
@@ -90,72 +95,89 @@ class ItemGenerate @Inject constructor(
     }
 
     override fun customTimeItem(itemEntity: ItemEntity): AdapterItem {
-        val startTime = LocalTime.parse(itemEntity.startValue, STORAGE_TIME_FORMATTER)
-        val endTime = LocalTime.parse(itemEntity.endValue, STORAGE_TIME_FORMATTER)
-
-        val snapshotTime = LocalDateTime.now()
-        val now = snapshotTime.toLocalTime()
-        val snapshot = timeRangeSnapshot(startTime, endTime, now)
-        val base = AdapterItem(
-            type = ItemType.Time,
-            timePhase = snapshot.phase,
-            remainingSeconds = if (snapshot.phase == TimeRangePhase.Active) snapshot.secondsLeft else null,
-            secondsUntilStart = snapshot.secondsUntilStart,
-            startLabel = startTime.format(WIDGET_TIME_FORMATTER),
-            endLabel = endTime.format(WIDGET_TIME_FORMATTER),
-            currentLabel = now.format(WIDGET_TIME_FORMATTER),
-            detailFacts = TimeDetailFacts(
-                percentElapsed = snapshot.percentElapsed,
-                elapsed = Duration.between(startTime, now).seconds.coerceIn(0, Duration.between(startTime, endTime).seconds.coerceAtLeast(0)),
-                total = Duration.between(startTime, endTime).seconds.coerceAtLeast(0),
-                phase = snapshot.phase,
-                secondsLeft = if (snapshot.phase == TimeRangePhase.Active) Duration.between(now, endTime).secondsForDisplay() else null,
-                secondsUntilStart = when (snapshot.phase) {
-                    TimeRangePhase.Upcoming -> Duration.between(now, startTime).secondsForDisplay()
-                    TimeRangePhase.Finished -> Duration.between(now, startTime).plusDays(1).secondsForDisplay()
-                    TimeRangePhase.Active -> null
-                },
-                validRange = endTime.isAfter(startTime),
-                range = TimeDetailRange.Clock(startTime, endTime, snapshotTime.toLocalDate()),
-            ),
-            id = itemEntity.id,
-            title = itemEntity.title,
-            startString = context.getString(R.string.card_time_start, startTime.toString()),
-            endString = context.getString(R.string.card_time_end, endTime.toString()),
-            updateInfo = context.getString(R.string.card_time_auto_start_hint),
-            category = itemEntity.category,
-            colorKey = itemEntity.colorKey,
-            iconKey = itemEntity.iconKey,
-            reminderText = reminderText(ItemType.Time, itemEntity.reminderOffsetDays),
-        )
-
-        return when (val result = TimeProgressCalculator.customTimeProgress(startTime, endTime, now)) {
-            is CustomTimeProgress.Active -> {
-                val leftTime = LocalTime.ofSecondOfDay(result.durationLeft.seconds)
-                val leftText = context.getString(
-                    R.string.home_time_left,
-                    leftTime.format(HEADER_TIME_FORMATTER)
-                )
-                base.copy(
-                    percent = roundPercent(result.percentElapsed),
-                    leftString = leftText,
-                    widgetString = context.getString(
-                        R.string.home_time_left,
-                        leftTime.format(WIDGET_TIME_FORMATTER)
-                    ),
-                    countdownText = leftTime.format(HEADER_TIME_FORMATTER),
-                    dueText = context.getString(R.string.home_until_time, endTime.toString()),
-                    remainingSortKey = result.durationLeft.seconds,
-                )
-            }
-            CustomTimeProgress.Idle -> base.copy(
-                percent = snapshot.percentElapsed,
-                leftString = context.getString(R.string.card_time_idle_hint),
-                widgetString = context.getString(R.string.card_time_widget_idle),
-                countdownText = context.getString(R.string.home_waiting_countdown),
-                dueText = context.getString(R.string.home_until_time, endTime.toString()),
-            )
+        if (itemEntity.isFocusSession) return focusItem(itemEntity)
+        if (itemEntity.isTimedOccurrence) return com.devidea.timeleft.calendar.timedOccurrenceItem(context, itemEntity)
+        val now = ZonedDateTime.now()
+        val window = requireNotNull(scheduledTimeWindow(itemEntity, now))
+        val active = window.phase == TimeRangePhase.Active
+        val left = if (active) Duration.between(now, window.end).secondsForDisplay() else null
+        val untilStart = if (!active) Duration.between(now, window.start).secondsForDisplay() else null
+        val total = window.totalSeconds
+        val elapsed = if (active) Duration.between(window.start, now).seconds.coerceIn(0, total) else 0L
+        val percent = if (total > 0) elapsed.toFloat() / total * 100f else 0f
+        val includeDate = itemEntity.endNextDay || window.start.toLocalDate() != now.toLocalDate()
+        fun label(value: ZonedDateTime): String {
+            val clock = formatClockTime(context, value.toLocalTime())
+            if (!includeDate) return clock
+            val day = value.toLocalDate().format(DateTimeFormatter.ofPattern(
+                android.text.format.DateFormat.getBestDateTimePattern(context.resources.configuration.locales[0], "Md"),
+                context.resources.configuration.locales[0]))
+            return context.getString(R.string.time_date_clock, day, clock)
         }
+        val startLabel = label(window.start)
+        val endLabel = label(window.end)
+        val weekdays = java.time.DayOfWeek.values().filter { itemEntity.weekdays and (1 shl (it.value - 1)) != 0 }
+            .joinToString(" · ") { it.getDisplayName(TextStyle.SHORT, context.resources.configuration.locales[0]) }
+        val updateInfo = if (itemEntity.weekdays == 127) context.getString(R.string.card_time_auto_start_hint)
+            else context.getString(R.string.card_time_weekdays, weekdays)
+        val leftText = formatRemainingTime(context, seconds = left, days = null, showSeconds = true)
+        return AdapterItem(
+            type = ItemType.Time, timePhase = window.phase,
+            remainingSeconds = left, secondsUntilStart = untilStart,
+            startsAtMillis = window.start.toInstant().toEpochMilli(), endsAtMillis = window.end.toInstant().toEpochMilli(),
+            startLabel = startLabel, endLabel = endLabel, currentLabel = formatClockTime(context, now.toLocalTime()),
+            detailFacts = TimeDetailFacts(percent, elapsed, total, window.phase,
+                secondsLeft = left, secondsUntilStart = untilStart,
+                range = TimeDetailRange.Clock(window.start.toLocalTime(), window.end.toLocalTime(), window.start.toLocalDate(),
+                    durationSeconds = total, startEpochSecond = window.start.toEpochSecond())),
+            id = itemEntity.id, title = itemEntity.title, isPinned = isPinned(itemEntity), manualOrder = itemEntity.manualOrder,
+            startString = context.getString(R.string.card_time_start, startLabel),
+            endString = context.getString(R.string.card_time_end, endLabel),
+            updateInfo = updateInfo,
+            category = itemEntity.category, colorKey = itemEntity.colorKey, iconKey = itemEntity.iconKey,
+            reminderText = reminderText(ItemType.Time, itemEntity.reminderOffsetDays),
+            percent = percent,
+            leftString = if (active) leftText else context.getString(R.string.card_time_idle_hint),
+            widgetString = if (active) formatRemainingTime(context, seconds = left, days = null) else context.getString(R.string.card_time_widget_idle),
+            countdownText = if (active) leftText else context.getString(R.string.home_waiting_countdown),
+            dueText = context.getString(R.string.home_until_time, endLabel),
+            remainingSortKey = left ?: untilStart ?: Long.MAX_VALUE,
+        )
+    }
+
+    private fun focusItem(raw: ItemEntity): AdapterItem {
+        val now = System.currentTimeMillis()
+        val item = FocusSession.settle(FocusSession.withClock(raw, now, com.devidea.timeleft.focus.readFocusClock(context)), now)
+        val total = requireNotNull(item.focusDurationMillis) / 1000L
+        val remaining = (FocusSession.remaining(item, now) + 999L) / 1000L
+        val elapsed = FocusSession.elapsed(item, now) / 1000L
+        val running = item.focusState == FocusSession.RUNNING
+        val paused = item.focusState == FocusSession.PAUSED
+        val phase = if (running) TimeRangePhase.Active else if (paused) TimeRangePhase.Upcoming else TimeRangePhase.Finished
+        val status = context.getString(when (item.focusState) {
+            FocusSession.RUNNING -> R.string.focus_running
+            FocusSession.PAUSED -> R.string.focus_paused
+            FocusSession.COMPLETED -> R.string.focus_completed
+            else -> R.string.focus_stopped
+        })
+        val start = item.focusStartedAt?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()) }
+        val end = (item.focusStoppedAt ?: item.focusEndsAt)?.let { java.time.Instant.ofEpochMilli(it).atZone(java.time.ZoneId.systemDefault()) }
+        val startLabel = start?.let { formatClockTime(context, it.toLocalTime()) }.orEmpty()
+        val endLabel = end?.let { formatClockTime(context, it.toLocalTime()) } ?: context.getString(R.string.focus_paused)
+        val percent = if (total > 0) elapsed.toFloat() / total * 100 else 0f
+        return AdapterItem(id = item.id, title = item.title, type = ItemType.Time, isPinned = isPinned(item) && !(!running && !paused), manualOrder = item.manualOrder,
+            isFocusSession = true, focusState = item.focusState, timePhase = phase,
+            remainingSeconds = remaining, remainingSortKey = if (running) remaining else Long.MAX_VALUE,
+            startsAtMillis = item.focusStartedAt, endsAtMillis = item.focusEndsAt,
+            startLabel = context.getString(R.string.focus_ruler_start),
+            endLabel = formatRemainingTime(context, total, null),
+            startString = context.getString(R.string.card_time_start, startLabel),
+            endString = context.getString(R.string.card_time_end, endLabel), dueText = status, updateInfo = context.getString(R.string.focus_one_off),
+            leftString = formatRemainingTime(context, remaining, null, showSeconds = true),
+            countdownText = if (running || paused) formatRemainingTime(context, remaining, null, showSeconds = true) else status,
+            percent = percent, isExpired = !running && !paused,
+            detailFacts = TimeDetailFacts(percent, elapsed, total, phase, secondsLeft = remaining),
+        )
     }
 
     override fun customMonthItem(itemEntity: ItemEntity): AdapterItem {
@@ -190,6 +212,7 @@ class ItemGenerate @Inject constructor(
             startLabel = startDate.toString(),
             endLabel = endDate.toString(),
             id = itemEntity.id,
+            isPinned = isPinned(itemEntity), manualOrder = itemEntity.manualOrder,
             title = itemEntity.title,
             startString = context.getString(R.string.card_date_start, startDate.toString()),
             endString = context.getString(R.string.card_date_end, endDate.toString()),
@@ -221,6 +244,8 @@ class ItemGenerate @Inject constructor(
             isExpired = progress.daysLeft < 0,
         )
     }
+
+    private fun isPinned(item: ItemEntity): Boolean = item.isPinned && (item.pinnedUntilMillis ?: Long.MAX_VALUE) > System.currentTimeMillis()
 
     private fun reminderText(type: ItemType, offset: Int): String =
         if (offset == ItemVisuals.REMINDER_DISABLED) {

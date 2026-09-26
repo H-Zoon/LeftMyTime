@@ -6,191 +6,102 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
-import android.os.Build
 import androidx.preference.PreferenceManager
-import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
-import java.time.LocalDate
-import java.time.LocalDateTime
+import java.security.MessageDigest
+import java.time.Instant
 import java.time.LocalTime
 import java.time.ZoneId
-import java.time.format.DateTimeFormatter
 
 object ReminderScheduler {
     const val CHANNEL_ID = "countdown_reminders"
     const val EXTRA_ITEM_ID = "com.devidea.timeleft.extra.REMINDER_ITEM_ID"
-    const val EXTRA_TITLE = "com.devidea.timeleft.extra.REMINDER_TITLE"
-    const val EXTRA_END_VALUE = "com.devidea.timeleft.extra.REMINDER_END_VALUE"
-    const val EXTRA_OFFSET_DAYS = "com.devidea.timeleft.extra.REMINDER_OFFSET_DAYS"
-    const val EXTRA_ITEM_TYPE = "com.devidea.timeleft.extra.REMINDER_ITEM_TYPE"
-
+    internal const val EXTRA_TRIGGER = "reminder_trigger"
+    internal const val EXTRA_SIGNATURE = "reminder_signature"
     private const val ACTION_REMINDER = "com.devidea.timeleft.action.REMINDER"
     private const val REQUEST_CODE_BASE = 20_000
+    private const val LEDGER = "reminder_delivery"
 
     fun createChannel(context: Context) {
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.O) return
-
-        val manager = context.getSystemService(NotificationManager::class.java)
-        val channel = NotificationChannel(
-            CHANNEL_ID,
-            context.getString(R.string.notification_channel_reminders),
-            NotificationManager.IMPORTANCE_DEFAULT
+        context.getSystemService(NotificationManager::class.java).createNotificationChannel(
+            NotificationChannel(CHANNEL_ID, context.getString(R.string.notification_channel_reminders), NotificationManager.IMPORTANCE_DEFAULT)
         )
-        manager.createNotificationChannel(channel)
     }
 
-    fun schedule(context: Context, item: ItemEntity) {
+    /** Repeated app resumes keep an already queued occurrence, including a late inexact alarm. */
+    @Synchronized
+    fun schedule(context: Context, item: ItemEntity, force: Boolean = false) {
+        if (item.reminderOffsetDays < 0 || !context.canPostReminderNotifications()) {
+            cancel(context, item.id)
+            return
+        }
+        val ledger = context.getSharedPreferences(LEDGER, Context.MODE_PRIVATE)
+        val signature = signature(context, item)
+        val queued = ledger.getLong("trigger_${item.id}", 0)
+        if (!force && queued > 0 && ledger.getString("signature_${item.id}", null) == signature &&
+            existingIntent(context, item.id) != null) return
+        val plan = ReminderPlanner.next(item, Instant.now(), ZoneId.systemDefault(), dateReminderTime(context))
         cancel(context, item.id)
-        if (item.reminderOffsetDays == ItemVisuals.REMINDER_DISABLED) return
-        if (!context.canPostReminderNotifications()) return
-
-        val triggerMillis = reminderTimeMillis(context, item) ?: return
-        if (triggerMillis <= System.currentTimeMillis()) return
-
+        if (plan == null) return
         createChannel(context)
-        setReminderAlarm(context, item.id, reminderIntent(context, item), triggerMillis)
+        val intent = baseIntent(context).putExtra(EXTRA_ITEM_ID, item.id)
+            .putExtra(EXTRA_TRIGGER, plan.triggerMillis).putExtra(EXTRA_SIGNATURE, signature)
+        val pending = PendingIntent.getBroadcast(context, REQUEST_CODE_BASE + item.id, intent,
+            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        // This channel promises a reminder, not a precise alarm. Exact focus-end delivery is separate.
+        context.getSystemService(AlarmManager::class.java).setAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, plan.triggerMillis, pending)
+        ledger.edit().putLong("trigger_${item.id}", plan.triggerMillis)
+            .putString("signature_${item.id}", signature).commit()
     }
 
-    fun scheduleNextTimeReminder(
-        context: Context,
-        itemId: Int,
-        title: String,
-        endValue: String,
-        offsetMinutes: Int,
-    ) {
-        if (offsetMinutes == ItemVisuals.REMINDER_DISABLED) return
-        if (!context.canPostReminderNotifications()) return
-
-        val triggerMillis = timeReminderTimeMillis(endValue, offsetMinutes) ?: return
-        setReminderAlarm(
-            context,
-            itemId,
-            reminderIntent(context, itemId, title, ItemType.Time, endValue, offsetMinutes),
-            triggerMillis
-        )
+    /** Reject stale edited/deleted/duplicate alarms before posting any notification. */
+    @Synchronized
+    fun claim(context: Context, item: ItemEntity, intent: Intent): Boolean {
+        val trigger = intent.getLongExtra(EXTRA_TRIGGER, 0)
+        val expected = intent.getStringExtra(EXTRA_SIGNATURE)
+        val ledger = context.getSharedPreferences(LEDGER, Context.MODE_PRIVATE)
+        if (trigger <= 0 || trigger > System.currentTimeMillis() || expected != signature(context, item) ||
+            ledger.getLong("trigger_${item.id}", 0) != trigger ||
+            ledger.getString("signature_${item.id}", null) != expected) return false
+        // Persist the claim before delivery; duplicate broadcasts cannot notify twice.
+        ledger.edit().remove("trigger_${item.id}").remove("signature_${item.id}").commit()
+        return true
     }
 
-    private fun setReminderAlarm(
-        context: Context,
-        itemId: Int,
-        intent: Intent,
-        triggerMillis: Long,
-    ) {
-        val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            requestCode(itemId),
-            intent,
-            PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M) {
-            alarmManager.setAndAllowWhileIdle(
-                AlarmManager.RTC_WAKEUP,
-                triggerMillis,
-                pendingIntent
-            )
-        } else {
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                triggerMillis,
-                pendingIntent
-            )
-        }
+    @Synchronized
+    fun rescheduleAll(context: Context, items: List<ItemEntity>, force: Boolean = false) {
+        val ledger = context.getSharedPreferences(LEDGER, Context.MODE_PRIVATE)
+        val ids = items.mapTo(mutableSetOf()) { it.id }
+        ledger.all.keys.filter { it.startsWith("trigger_") }.mapNotNull { it.removePrefix("trigger_").toIntOrNull() }
+            .filterNot { it in ids }.forEach { cancel(context, it) }
+        items.forEach { schedule(context, it, force) }
     }
 
-    fun rescheduleAll(context: Context, items: List<ItemEntity>) {
-        createChannel(context)
-        items.forEach { schedule(context, it) }
-    }
-
+    @Synchronized
     fun cancel(context: Context, itemId: Int) {
-        val alarmManager = context.getSystemService(AlarmManager::class.java)
-        val pendingIntent = PendingIntent.getBroadcast(
-            context,
-            requestCode(itemId),
-            Intent(context, ReminderReceiver::class.java).setAction(ACTION_REMINDER),
-            PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE
-        )
-        if (pendingIntent != null) {
-            alarmManager.cancel(pendingIntent)
-            pendingIntent.cancel()
+        existingIntent(context, itemId)?.let {
+            context.getSystemService(AlarmManager::class.java).cancel(it)
+            it.cancel()
         }
+        context.getSharedPreferences(LEDGER, Context.MODE_PRIVATE).edit()
+            .remove("trigger_$itemId").remove("signature_$itemId").commit()
     }
 
-    private fun reminderTimeMillis(context: Context, item: ItemEntity): Long? = when (item.type) {
-        ItemType.Date -> dateReminderTimeMillis(context, item)
-        ItemType.Time -> timeReminderTimeMillis(item.endValue, item.reminderOffsetDays)
+    private fun existingIntent(context: Context, id: Int): PendingIntent? = PendingIntent.getBroadcast(
+        context, REQUEST_CODE_BASE + id, baseIntent(context), PendingIntent.FLAG_NO_CREATE or PendingIntent.FLAG_IMMUTABLE)
+    private fun baseIntent(context: Context) = Intent(context, ReminderReceiver::class.java).setAction(ACTION_REMINDER)
+
+    private fun dateReminderTime(context: Context): LocalTime = runCatching {
+        LocalTime.parse(PreferenceManager.getDefaultSharedPreferences(context).getString(
+            UserPreferences.KEY_DATE_REMINDER_TIME, UserPreferences.DEFAULT_DATE_REMINDER_TIME))
+    }.getOrDefault(LocalTime.of(9, 0))
+
+    private fun signature(context: Context, item: ItemEntity): String {
+        val value = listOf(item.id, item.type, item.title, item.startValue, item.endValue,
+            item.updateFlag, item.updateRate, item.occurrenceStartMillis, item.occurrenceEndMillis, item.reminderOffsetDays, item.weekdays, item.endNextDay, dateReminderTime(context), ZoneId.systemDefault())
+            .joinToString("\u0000")
+        return MessageDigest.getInstance("SHA-256").digest(value.toByteArray()).joinToString("") { "%02x".format(it) }
     }
-
-    private fun dateReminderTimeMillis(context: Context, item: ItemEntity): Long? {
-        val endDate = runCatching {
-            LocalDate.parse(item.endValue, STORAGE_DATE_FORMATTER)
-        }.getOrNull() ?: return null
-        val reminderTime = PreferenceManager.getDefaultSharedPreferences(context)
-            .getString(
-                UserPreferences.KEY_DATE_REMINDER_TIME,
-                UserPreferences.DEFAULT_DATE_REMINDER_TIME
-            )
-            ?.let { value ->
-                runCatching { LocalTime.parse(value, SETTINGS_TIME_FORMATTER) }.getOrNull()
-            }
-            ?: LocalTime.of(9, 0)
-        val triggerDate = endDate.minusDays(item.reminderOffsetDays.toLong())
-        return LocalDateTime.of(triggerDate, reminderTime)
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-    }
-
-    private fun timeReminderTimeMillis(endValue: String, offsetMinutes: Int): Long? {
-        val endTime = runCatching {
-            LocalTime.parse(endValue, STORAGE_TIME_FORMATTER)
-        }.getOrNull() ?: return null
-        val now = LocalDateTime.now()
-        var triggerDateTime = LocalDateTime.of(now.toLocalDate(), endTime)
-            .minusMinutes(offsetMinutes.toLong())
-        if (!triggerDateTime.isAfter(now)) {
-            triggerDateTime = triggerDateTime.plusDays(1)
-        }
-        return triggerDateTime
-            .atZone(ZoneId.systemDefault())
-            .toInstant()
-            .toEpochMilli()
-    }
-
-    private val STORAGE_DATE_FORMATTER = DateTimeFormatter.ofPattern("yyyy-M-d")
-    private val STORAGE_TIME_FORMATTER = DateTimeFormatter.ofPattern("H:m")
-    private val SETTINGS_TIME_FORMATTER = DateTimeFormatter.ofPattern("HH:mm")
-
-    private fun reminderIntent(context: Context, item: ItemEntity): Intent =
-        reminderIntent(
-            context,
-            item.id,
-            item.title,
-            item.type,
-            item.endValue,
-            item.reminderOffsetDays
-        )
-
-    private fun reminderIntent(
-        context: Context,
-        itemId: Int,
-        title: String,
-        type: ItemType,
-        endValue: String,
-        offset: Int,
-    ): Intent =
-        Intent(context, ReminderReceiver::class.java).apply {
-            action = ACTION_REMINDER
-            putExtra(EXTRA_ITEM_ID, itemId)
-            putExtra(EXTRA_TITLE, title)
-            putExtra(EXTRA_ITEM_TYPE, type.name)
-            putExtra(EXTRA_END_VALUE, endValue)
-            putExtra(EXTRA_OFFSET_DAYS, offset)
-        }
-
-    private fun requestCode(itemId: Int): Int = REQUEST_CODE_BASE + itemId
 }

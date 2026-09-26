@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Neutral placeholder for pre-Android 12 launchers; not a running countdown or a QA capture. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android" android:width="320dp" android:height="200dp" android:viewportWidth="320" android:viewportHeight="200">
+    <path android:fillColor="@color/activity_background" android:pathData="M24,0 H296 Q320,0 320,24 V176 Q320,200 296,200 H24 Q0,200 0,176 V24 Q0,0 24,0" />
+    <path android:strokeColor="@color/widget_on_surface_variant" android:strokeWidth="3" android:pathData="M16,42 H76 M16,174 H44 M276,174 H304" />
+    <path android:strokeColor="@color/widget_on_surface" android:strokeWidth="5" android:pathData="M16,93 H48" />
+    <path android:strokeColor="@color/widget_track" android:strokeWidth="2" android:pathData="M18,154 L18,130 M25,154 L25,142 M32,154 L32,142 M39,154 L39,142 M46,154 L46,142 M53,154 L53,130 M60,154 L60,142 M67,154 L67,142 M74,154 L74,142 M81,154 L81,142 M88,154 L88,130 M95,154 L95,142 M102,154 L102,142 M109,154 L109,142 M116,154 L116,142 M123,154 L123,130 M130,154 L130,142 M137,154 L137,142 M144,154 L144,142 M151,154 L151,142 M158,154 L158,130 M165,154 L165,142 M172,154 L172,142 M179,154 L179,142 M186,154 L186,142 M193,154 L193,130 M200,154 L200,142 M207,154 L207,142 M214,154 L214,142 M221,154 L221,142 M228,154 L228,130 M235,154 L235,142 M242,154 L242,142 M249,154 L249,142 M256,154 L256,142 M263,154 L263,130 M270,154 L270,142 M277,154 L277,142 M284,154 L284,142 M291,154 L291,142 M298,154 L298,130" />
+</vector>

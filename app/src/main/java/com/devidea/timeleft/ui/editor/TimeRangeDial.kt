@@ -11,7 +11,8 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.theme.Spacing
 import java.time.Duration
 import java.time.LocalTime
-import java.time.format.DateTimeFormatter
+import com.devidea.timeleft.formatClockTime
+import androidx.compose.ui.platform.LocalContext
 import kotlin.math.roundToInt
 
 /** Optional direct manipulation; primary input uses the start/end picker fields. */
@@ -23,8 +24,8 @@ internal fun TimeRangeDial(
     onRangeChange: (LocalTime, LocalTime) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val formatter = DateTimeFormatter.ofPattern(stringResource(R.string.pattern_display_time))
-    val description = stringResource(R.string.editor_time_range_accessibility, startTime.format(formatter), endTime.format(formatter), rangeDurationText(startTime, endTime))
+    val context = LocalContext.current
+    val description = stringResource(R.string.editor_time_range_accessibility, formatClockTime(context, startTime), formatClockTime(context, endTime), rangeDurationText(startTime, endTime))
     val start = startTime.toSecondOfDay() / 60f
     val end = endTime.toSecondOfDay() / 60f
     Column(modifier, verticalArrangement = Arrangement.spacedBy(Spacing.s)) {

@@ -7,17 +7,33 @@ import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
 import com.devidea.timeleft.database.itemdata.ItemDao
 import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.focus.FocusCompletionDao
+import com.devidea.timeleft.focus.FocusCompletionNotice
 
 @Database(
-    entities = [ItemEntity::class],
-    version = 8,
+    entities = [ItemEntity::class, FocusCompletionNotice::class],
+    version = 15,
     exportSchema = true
 )
 @TypeConverters(Converters::class)
 abstract class AppDatabase : RoomDatabase() {
     abstract fun itemDao(): ItemDao
+    abstract fun focusCompletionDao(): FocusCompletionDao
 
     companion object {
+        internal val MIGRATION_14_15 = object : Migration(14, 15) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Existing completed sessions must not produce historical notifications.
+                db.execSQL("CREATE TABLE IF NOT EXISTS FocusCompletionNotice (itemId INTEGER NOT NULL PRIMARY KEY, completedAt INTEGER NOT NULL, attempts INTEGER NOT NULL, nextAttemptAt INTEGER NOT NULL)")
+            }
+        }
+        internal val MIGRATION_13_14 = object : Migration(13, 14) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN occurrenceStartMillis INTEGER")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN occurrenceEndMillis INTEGER")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN calendarSourceKey TEXT NOT NULL DEFAULT ''")
+            }
+        }
         const val DATABASE_NAME = "app_database"
 
         private fun createV7ItemTable(db: SupportSQLiteDatabase) {
@@ -151,6 +167,51 @@ abstract class AppDatabase : RoomDatabase() {
                     )
                 }
                 finishItemTableReplacement(db)
+            }
+        }
+
+        // Stable cross-device identity is separate from the local IDs used by installed widgets.
+        internal val MIGRATION_8_9 = object : Migration(8, 9) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN stableId TEXT NOT NULL DEFAULT ''")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN modifiedAt INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN deletedAt INTEGER")
+                db.execSQL("UPDATE ItemEntity SET stableId = lower(hex(randomblob(16))), modifiedAt = ?", arrayOf(System.currentTimeMillis()))
+                db.execSQL("CREATE UNIQUE INDEX index_ItemEntity_stableId ON ItemEntity(stableId)")
+            }
+        }
+
+        internal val MIGRATION_9_10 = object : Migration(9, 10) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                // Old daily ranges stay daily; old invalid ranges do not silently become overnight.
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN weekdays INTEGER NOT NULL DEFAULT 127")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN endNextDay INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        internal val MIGRATION_10_11 = object : Migration(10, 11) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN focusState TEXT NOT NULL DEFAULT ''")
+                for (column in listOf("focusDurationMillis", "focusStartedAt", "focusResumedAt", "focusEndsAt", "focusRemainingMillis", "focusStoppedAt"))
+                    db.execSQL("ALTER TABLE ItemEntity ADD COLUMN $column INTEGER")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN focusElapsedMillis INTEGER NOT NULL DEFAULT 0")
+            }
+        }
+
+        internal val MIGRATION_11_12 = object : Migration(11, 12) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN isTemplate INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN isPinned INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN pinnedUntilMillis INTEGER")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN manualOrder INTEGER NOT NULL DEFAULT 0")
+                db.execSQL("UPDATE ItemEntity SET manualOrder = id")
+            }
+        }
+
+        internal val MIGRATION_12_13 = object : Migration(12, 13) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN focusResumedRealtime INTEGER")
+                db.execSQL("ALTER TABLE ItemEntity ADD COLUMN focusBootCount INTEGER")
             }
         }
 

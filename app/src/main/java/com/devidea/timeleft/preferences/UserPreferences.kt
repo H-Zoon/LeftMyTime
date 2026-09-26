@@ -3,6 +3,9 @@ package com.devidea.timeleft.preferences
 object UserPreferences {
     const val KEY_THEME = "theme"
     const val KEY_COLOR_THEME = "color_theme"
+    const val KEY_DESIGN = "design_theme"
+    const val DESIGN_TIME_FOCUS = "time-focus"
+    const val DESIGN_TIME_BOARD = "time-board"
     const val KEY_HOME_SORT = "home_sort"
     const val KEY_HOME_LAYOUT = "home_layout"
     // Legacy key: calendar details now open only from the period the user taps.
@@ -25,6 +28,7 @@ object UserPreferences {
     const val COLOR_THEME_AMBER = "amber"
     const val COLOR_THEME_SLATE = "slate"
 
+    const val SORT_MANUAL = "Manual"
     const val SORT_NEAREST = "Nearest"
     const val SORT_CREATED = "Created"
     const val SORT_TITLE = "Title"

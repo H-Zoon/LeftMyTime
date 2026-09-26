@@ -13,6 +13,8 @@ internal enum class WidgetSource(val prefValue: String, val labelRes: Int) {
     Today("embedTime", R.string.widget_configure_today),
     Month("embedMonth", R.string.widget_configure_month),
     Year("embedYear", R.string.widget_configure_year),
+    Week("embedWeek", R.string.period_week),
+    Quarter("embedQuarter", R.string.period_quarter),
     Overview("calendarOverview", R.string.widget_configure_overview),
     Next("nextCustom", R.string.widget_configure_next),
     Custom("custom", R.string.widget_configure_custom);
@@ -27,6 +29,7 @@ internal enum class WidgetSource(val prefValue: String, val labelRes: Int) {
             WideAppWidget::class.java.name -> Year
             LargeAppWidget::class.java.name -> Overview
             ScheduleAppWidget::class.java.name -> Next
+            PeriodAppWidget::class.java.name -> Week
             else -> Today
         }
     }

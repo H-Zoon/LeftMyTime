@@ -31,6 +31,7 @@ internal fun HeaderSection(
     topItems: List<AdapterItem>,
     progressDisplayMode: String,
     interactive: Boolean = true,
+    onMorePeriods: (() -> Unit)? = null,
 ) {
     if (topItems.isEmpty()) return
     val labels = listOf(R.string.period_today, R.string.period_month, R.string.period_year)
@@ -59,7 +60,8 @@ internal fun HeaderSection(
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         BoxWithConstraints(Modifier.fillMaxWidth().padding(bottom = Spacing.l)) {
-            val stacked = maxWidth < 300.dp || LocalDensity.current.fontScale > 1.2f
+            val board = com.devidea.timeleft.ui.theme.LocalTimeLayout.current == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard
+            val stacked = board || maxWidth < 300.dp || LocalDensity.current.fontScale > 1.2f
             @Composable fun Period(position: Int, modifier: Modifier) {
                 val item = topItems[position]
                 val label = if (position < labels.size) stringResource(labels[position]) else item.title
@@ -87,12 +89,18 @@ internal fun HeaderSection(
                 }
             }
             if (stacked) {
-                Column { topItems.indices.forEach { Period(it, Modifier.fillMaxWidth()) } }
+                Column(verticalArrangement = Arrangement.spacedBy(if (board) Spacing.s else 0.dp)) {
+                    topItems.indices.forEach { Period(it, Modifier.fillMaxWidth()) }
+                }
             } else {
                 Row(horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
                     topItems.indices.forEach { Period(it, Modifier.weight(if (it == 0) 1.5f else 1f)) }
                 }
             }
+        }
+        if (interactive && onMorePeriods != null) TextButton(onClick = onMorePeriods,
+            modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget), contentPadding = PaddingValues(vertical = Spacing.s)) {
+            Text(stringResource(R.string.period_more))
         }
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(Spacing.m))

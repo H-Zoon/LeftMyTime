@@ -70,6 +70,8 @@ internal fun createOverviewViews(
         return ceil(required.toDouble()) <= measure.dp(dimensions.height.toFloat())
     }
     val layout = when {
+        palette.layout == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard && fits(false) -> R.layout.app_widget_overview
+        palette.layout == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard && fits(true) -> R.layout.app_widget_overview_board
         fits(true) -> R.layout.app_widget_overview_wide
         fits(false) -> R.layout.app_widget_overview
         else -> return resizeWidgetViews(context, palette)
@@ -81,7 +83,7 @@ internal fun createOverviewViews(
         val labelIds = listOf(R.id.overviewTodayLabel, R.id.overviewMonthLabel, R.id.overviewYearLabel)
         val valueIds = listOf(R.id.overviewTodayValue, R.id.overviewMonthValue, R.id.overviewYearValue)
         labels.indices.forEach { index ->
-            if (layout == R.layout.app_widget_overview_wide) {
+            if (layout == R.layout.app_widget_overview_wide || layout == R.layout.app_widget_overview_board) {
                 // TextView.setWidth works on pre-Android-12 RemoteViews as well.
                 val columnWidth = requireNotNull(columnWidths)[index]
                 setInt(labelIds[index], "setWidth", columnWidth)
