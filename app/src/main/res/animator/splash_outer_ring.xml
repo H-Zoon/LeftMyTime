@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="utf-8"?>
 <objectAnimator xmlns:android="http://schemas.android.com/apk/res/android"
-    android:duration="200"
+    android:duration="@integer/splash_icon_motion_duration"
     android:interpolator="@interpolator/ease_out_cubic"
-    android:propertyName="strokeAlpha"
+    android:propertyName="trimPathEnd"
     android:startOffset="0"
-    android:valueFrom="0.45"
+    android:valueFrom="0"
     android:valueTo="1"
     android:valueType="floatType" />

@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <bool name="splash_light_system_bars">true</bool>
+    <!-- Total icon motion only; never a minimum time to keep the splash on screen. -->
+    <integer name="splash_icon_motion_duration">560</integer>
 </resources>

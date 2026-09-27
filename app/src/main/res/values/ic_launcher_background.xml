@@ -2,4 +2,7 @@
 <resources>
     <!-- Fixed brand color: TimeLeftTheme's Clay primary, independent of the selected app palette. -->
     <color name="ic_launcher_background">#B5482D</color>
+    <!-- Icon-only lighting: keep the midpoint equal to the fixed Clay brand color. -->
+    <color name="ic_launcher_background_light">#C45B40</color>
+    <color name="ic_launcher_background_deep">#9E3926</color>
 </resources>

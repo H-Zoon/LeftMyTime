@@ -8,11 +8,11 @@
         android:name="outer_ring"
         android:animation="@animator/splash_outer_ring" />
     <target
-        android:name="outer_ring_rotation"
-        android:animation="@animator/splash_outer_rotation" />
-    <target
         android:name="inner_ring"
         android:animation="@animator/splash_inner_ring" />
+    <target
+        android:name="inner_ring_rotation"
+        android:animation="@animator/splash_inner_rotation" />
     <target
         android:name="center_mark"
         android:animation="@animator/splash_center_mark" />
@@ -20,9 +20,9 @@
         android:name="center_mark_scale"
         android:animation="@animator/splash_center_pop" />
     <target
-        android:name="upper_bar"
-        android:animation="@animator/splash_bar_fade" />
+        android:name="upper_bar_reveal"
+        android:animation="@animator/splash_bar_reveal" />
     <target
-        android:name="middle_bar"
-        android:animation="@animator/splash_middle_bar_fade" />
+        android:name="middle_bar_reveal"
+        android:animation="@animator/splash_middle_bar_reveal" />
 </animated-vector>

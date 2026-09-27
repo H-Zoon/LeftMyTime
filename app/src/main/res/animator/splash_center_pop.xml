@@ -1,19 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <set xmlns:android="http://schemas.android.com/apk/res/android">
     <objectAnimator
-        android:duration="200"
-        android:startOffset="80"
+        android:duration="400"
+        android:startOffset="0"
         android:interpolator="@interpolator/ease_out_cubic"
         android:propertyName="scaleX"
-        android:valueFrom="0.94"
+        android:valueFrom="0.8"
         android:valueTo="1"
         android:valueType="floatType" />
     <objectAnimator
-        android:duration="200"
-        android:startOffset="80"
+        android:duration="400"
+        android:startOffset="0"
         android:interpolator="@interpolator/ease_out_cubic"
         android:propertyName="scaleY"
-        android:valueFrom="0.94"
+        android:valueFrom="0.8"
         android:valueTo="1"
         android:valueType="floatType" />
 </set>
