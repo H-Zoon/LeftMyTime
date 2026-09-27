@@ -24,6 +24,8 @@ class BootReceiver : BroadcastReceiver() {
             try {
                 focus.refresh()
                 reminders.refresh(force = true)
+                com.devidea.timeleft.widget.AppWidget.updateAllWidgetsAndAwait(context,
+                    android.appwidget.AppWidgetManager.getInstance(context))
             } catch (exception: Exception) {
                 Log.e("ReminderRefresh", "System refresh failed: ${exception.javaClass.simpleName}")
             } finally {

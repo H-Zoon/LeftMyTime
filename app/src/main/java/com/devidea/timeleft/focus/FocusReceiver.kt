@@ -18,7 +18,7 @@ class FocusReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         val pending = goAsync()
         CoroutineScope(Dispatchers.IO).launch {
-            try { focus.refresh(); AppWidget.updateAllWidgets(context, AppWidgetManager.getInstance(context)) }
+            try { focus.refresh(); AppWidget.updateAllWidgetsAndAwait(context, AppWidgetManager.getInstance(context)) }
             catch (error: Exception) { Log.e("FocusReceiver", "Focus refresh failed: ${error.javaClass.simpleName}") }
             finally { pending.finish() }
         }

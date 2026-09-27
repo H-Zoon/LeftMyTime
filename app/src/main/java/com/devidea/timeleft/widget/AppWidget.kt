@@ -52,14 +52,21 @@ open class AppWidget : AppWidgetProvider() {
             context: Context,
             appWidgetManager: AppWidgetManager,
         ) {
+            val appContext = context.applicationContext
+            widgetScope.launch { updateAllWidgetsAndAwait(appContext, appWidgetManager) }
+            updatePickerPreviews(appContext)
+        }
+
+        /** Receivers keep goAsync alive until all installed widget updates are actually submitted. */
+        suspend fun updateAllWidgetsAndAwait(context: Context, appWidgetManager: AppWidgetManager) {
             val provider = AppWidget()
             providerClasses.forEach { providerClass ->
                 val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, providerClass))
                 ids.forEach { appWidgetId ->
-                    provider.updateAppWidget(context, appWidgetManager, appWidgetId)
+                    provider.renderWidget(context, appWidgetManager, appWidgetId)
                 }
             }
-            updatePickerPreviews(context)
+            WidgetBoundarySchedule.reschedule(context)
         }
 
         fun updatePickerPreviews(context: Context) {
@@ -179,7 +186,9 @@ open class AppWidget : AppWidgetProvider() {
                 remove(id.toString())
                 remove("${id}option")
                 remove(WidgetConfiguration.displayKey(id))
+                remove(WidgetConfiguration.secondsKey(id))
             }
+            WidgetBoundarySchedule.record(context, id, null)
         }
     }
 
@@ -215,6 +224,8 @@ open class AppWidget : AppWidgetProvider() {
         val prefs = ep.prefs()
         val itemGenerator = ep.itemGenerator()
         val repository = ep.repository()
+        var loadedEntities: List<com.devidea.timeleft.database.itemdata.ItemEntity>? = null
+        suspend fun entities() = loadedEntities ?: repository.allItems().also { loadedEntities = it }
 
         val configuration = WidgetConfiguration.read(prefs, appWidgetId)
         val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
@@ -229,7 +240,7 @@ open class AppWidget : AppWidgetProvider() {
             WidgetSource.Next -> {
                 try {
                     val selected = NextCountdownSelector.select(
-                        repository.allItems().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
+                        entities().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
                     )
                     selected?.let {
                         when (it.type) {
@@ -247,7 +258,7 @@ open class AppWidget : AppWidgetProvider() {
             WidgetSource.Custom -> {
                 emptyMessage = R.string.widget_selected_deleted
                 try {
-                    val entity = repository.allItems().firstOrNull { it.id == configuration.itemId }
+                    val entity = entities().firstOrNull { it.id == configuration.itemId }
                     entity?.let { it.currentOccurrence() }?.let { selected ->
                         when (selected.type) {
                             ItemType.Time -> itemGenerator.customTimeItem(selected)
@@ -264,14 +275,39 @@ open class AppWidget : AppWidgetProvider() {
         }
         val palette = WidgetPalette.fromPreferences(context, prefs)
         val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-        val views = widgetViewsForSizes(appWidgetManager.getAppWidgetOptions(appWidgetId), configuration.source) { size ->
-            createViews(context, size, configuration, item, periods, palette, emptyMessage, showProgress).also {
+        val secondsPlan = if (configuration.showSeconds && WidgetSecondsSupport.available())
+            WidgetSecondsPlan.create(configuration, item, System.currentTimeMillis()) else null
+        fun render(seconds: Boolean) = widgetViewsForSizes(appWidgetManager.getAppWidgetOptions(appWidgetId), configuration.source) { size ->
+            // One immutable plan for the entire responsive map, even at a validity boundary.
+            val views = if (seconds && secondsPlan != null && item != null && Build.VERSION.SDK_INT >= 35)
+                WidgetSecondsRenderer.create(context, size, item, secondsPlan, palette, showProgress)
+            else createViews(context, size, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress)
+            views.also {
                 val shownSource = if (configuration.source in listOf(WidgetSource.Custom, WidgetSource.Next) && item?.id == 0)
                     WidgetSource.Month else configuration.source
                 bindWidgetActions(context, appWidgetManager, it, appWidgetId, shownSource, item, emptyMessage)
             }
         }
-        appWidgetManager.updateAppWidget(appWidgetId, views)
+        var secondsRendered = secondsPlan != null
+        try {
+            appWidgetManager.updateAppWidget(appWidgetId, render(secondsRendered))
+        } catch (error: RuntimeException) {
+            if (!secondsRendered) throw error
+            android.util.Log.e("WidgetSeconds", "Seconds rendering failed: ${error.javaClass.simpleName}")
+            secondsRendered = false
+            // Rebuild every responsive size with the same XML payload type, including posting errors.
+            appWidgetManager.updateAppWidget(appWidgetId, render(false))
+        }
+        var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(System.currentTimeMillis()) else null
+        if (configuration.showSeconds && WidgetSecondsSupport.available() && configuration.source == WidgetSource.Next) {
+            // Also watch future timed candidates while the automatic widget currently shows a date.
+            // A failed repository read must not discard an already rendered, self-clamping timer.
+            try {
+                boundary = listOfNotNull(boundary, nextWidgetSelectionBoundary(entities(), java.time.ZonedDateTime.now())).minOrNull()
+            } catch (error: CancellationException) { throw error }
+            catch (error: Exception) { android.util.Log.e("WidgetSeconds", "Boundary selection failed: ${error.javaClass.simpleName}") }
+        }
+        WidgetBoundarySchedule.record(context, appWidgetId, boundary)
     }
 
     private fun bindWidgetActions(
@@ -300,8 +336,10 @@ open class AppWidget : AppWidgetProvider() {
                 PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE
             )
 
-        fun details(period: WidgetSource, id: Int? = null): PendingIntent = PendingIntent.getActivity(
-            context, appWidgetId, WidgetDetailsActivity.createIntent(context, appWidgetId, period, id),
+        fun details(period: WidgetSource, id: Int? = null, validUntil: Long? = null): PendingIntent = PendingIntent.getActivity(
+            context, appWidgetId, WidgetDetailsActivity.createIntent(context, appWidgetId, period, id).apply {
+                validUntil?.let { putExtra(WidgetDetailsActivity.SECONDS_VALID_UNTIL, it) }
+            },
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val configureIntent = Intent(context, AppWidgetConfigure::class.java).apply {
@@ -310,6 +348,14 @@ open class AppWidget : AppWidgetProvider() {
         }
         val configureAction = PendingIntent.getActivity(context, appWidgetId, configureIntent,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
+        if (views.layoutId == 0) {
+            // A stale document cannot open a later recurrence under the old countdown.
+            val end = if (source == WidgetSource.Today) null else item?.endsAtMillis?.let { (it + 999) / 1000 * 1000 }
+            views.setOnClickPendingIntent(R.id.widgetRoot, details(source, item?.id?.takeIf { it > 0 }, end))
+            views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
+            views.setOnClickPendingIntent(R.id.widgetSecondsConfigure, configureAction)
+            return
+        }
         val rootAction = when {
             views.layoutId == R.layout.app_widget_resize -> configureAction
             item == null && emptyMessage == R.string.widget_load_failed -> updatePendingIntent
@@ -337,10 +383,13 @@ open class AppWidget : AppWidgetProvider() {
         emptyMessage: Int,
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
-    ): RemoteViews = if (configuration.source == WidgetSource.Overview) {
-        createOverviewViews(context, dimensions, periods, palette)
-    } else {
-        createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis)
+    ): RemoteViews {
+        if (configuration.showSeconds && WidgetSecondsSupport.available() && Build.VERSION.SDK_INT >= 35) {
+            val plan = WidgetSecondsPlan.create(configuration, item, snapshotTimeMillis ?: System.currentTimeMillis())
+            if (plan != null && item != null) return WidgetSecondsRenderer.create(context, dimensions, item, plan, palette, showProgress, snapshotTimeMillis)
+        }
+        return if (configuration.source == WidgetSource.Overview) createOverviewViews(context, dimensions, periods, palette)
+        else createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis)
     }
 
     internal fun previewViews(
@@ -355,10 +404,17 @@ open class AppWidget : AppWidgetProvider() {
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
         designKey: String = UserPreferences.DESIGN_TIME_FOCUS,
-    ): RemoteViews = createViews(
-        context, dimensions, configuration, item, periods,
-        WidgetPalette.create(paletteKey, dark, designKey), emptyMessage, showProgress, snapshotTimeMillis,
-    )
+    ): RemoteViews {
+        val palette = WidgetPalette.create(paletteKey, dark, designKey)
+        val snapshot = snapshotTimeMillis ?: System.currentTimeMillis()
+        return try {
+            createViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshot)
+        } catch (error: RuntimeException) {
+            if (!configuration.showSeconds) throw error
+            android.util.Log.e("WidgetSeconds", "Seconds preview failed: ${error.javaClass.simpleName}")
+            createViews(context, dimensions, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress, snapshot)
+        }
+    }
 
 }
 

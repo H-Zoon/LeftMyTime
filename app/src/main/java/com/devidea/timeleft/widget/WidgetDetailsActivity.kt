@@ -46,6 +46,7 @@ class WidgetDetailsActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        if (refreshExpiredSeconds(intent)) return
         targetIntent = intent
         setContent {
             val target = targetIntent ?: return@setContent
@@ -129,12 +130,24 @@ class WidgetDetailsActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
+        if (refreshExpiredSeconds(intent)) return
         targetIntent = intent
+    }
+
+    private fun refreshExpiredSeconds(target: Intent): Boolean {
+        val validUntil = target.getLongExtra(SECONDS_VALID_UNTIL, Long.MAX_VALUE)
+        if (System.currentTimeMillis() < validUntil) return false
+        val widgetId = target.getIntExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, AppWidgetManager.INVALID_APPWIDGET_ID)
+        AppWidget().updateAppWidget(this, AppWidgetManager.getInstance(this), widgetId) {
+            runOnUiThread { finish() }
+        }
+        return true
     }
 
     companion object {
         private const val SOURCE = "widget_source"
         private const val ITEM = "widget_item_id"
+        internal const val SECONDS_VALID_UNTIL = "widget_seconds_valid_until"
         internal fun createIntent(context: Context, widgetId: Int, source: WidgetSource, itemId: Int?): Intent =
             Intent(context, WidgetDetailsActivity::class.java).apply {
                 data = Uri.Builder().scheme("timeleft").authority("widget").appendPath(widgetId.toString())

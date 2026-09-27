@@ -31,8 +31,11 @@ def mark():
     return ''.join(paths)
 
 
-def render(background, size):
-    svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">{background}{mark()}</svg>'
+def render(background, size, transform=None):
+    symbol = mark()
+    if transform:
+        symbol = f'<g transform="{transform}">{symbol}</g>'
+    svg = f'<svg xmlns="http://www.w3.org/2000/svg" width="512" height="512" viewBox="0 0 512 512">{background}{symbol}</svg>'
     return svg_to_bytes(svg_string=svg, width=size, height=size)
 
 
@@ -49,6 +52,11 @@ def generate():
             ('ic_launcher_round', f'<circle cx="256" cy="256" r="256" fill="{color}"/>'),
         ]:
             Image.open(BytesIO(render(background, size))).save(folder / f'{name}.webp', lossless=True)
+        # Keep the older raster foreground consistent with the adaptive XML's safe area.
+        foreground_size = size * 108 // 48
+        (folder / 'ic_launcher_foreground.png').write_bytes(
+            render('', foreground_size, 'translate(94.72 94.72) scale(0.63)')
+        )
 
 
 if __name__ == '__main__':

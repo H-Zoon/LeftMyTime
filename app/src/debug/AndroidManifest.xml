@@ -6,5 +6,12 @@
             android:name="com.devidea.timeleft.design.DesignGalleryActivity"
             android:exported="true" />
         <activity android:name="com.devidea.timeleft.design.EnglishDesignGalleryActivity" android:exported="true" />
+        <activity android:name="com.devidea.timeleft.design.WidgetSecondsProbeActivity" android:exported="true" />
+        <receiver android:name="com.devidea.timeleft.design.WidgetSecondsProbeProvider" android:exported="false">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
+            </intent-filter>
+            <meta-data android:name="android.appwidget.provider" android:resource="@xml/widget_seconds_probe_info" />
+        </receiver>
     </application>
 </manifest>

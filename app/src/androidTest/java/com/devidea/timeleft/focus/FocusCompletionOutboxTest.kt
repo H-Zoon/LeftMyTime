@@ -17,11 +17,11 @@ class FocusCompletionOutboxTest {
     @Test fun reopeningAfterCompletionCommitKeepsOnePendingNotice() = runBlocking {
         val name = "focus-outbox-${UUID.randomUUID()}"
         try {
-            Room.databaseBuilder(context, AppDatabase::class.java, name).build().use { database ->
+            Room.databaseBuilder(context, AppDatabase::class.java, name).build().useDatabase { database ->
                 database.itemDao().saveItem(FocusSession.create("Focus", 1, 1_000_000, ZoneOffset.UTC, FocusClockReading(0, 1)))
                 FocusCompletionOutbox(database).settle(1_060_000, FocusClockReading(60_000, 1))
             }
-            Room.databaseBuilder(context, AppDatabase::class.java, name).build().use { database ->
+            Room.databaseBuilder(context, AppDatabase::class.java, name).build().useDatabase { database ->
                 val item = database.itemDao().getItems().single()
                 assertEquals(FocusSession.COMPLETED, item.focusState)
                 assertEquals(60_000L, item.focusElapsedMillis)
@@ -35,7 +35,7 @@ class FocusCompletionOutboxTest {
     }
 
     @Test fun rolledBackCompletionNeverLeavesASeparateDeliveryIntent() = runBlocking {
-        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build().use { database ->
+        Room.inMemoryDatabaseBuilder(context, AppDatabase::class.java).build().useDatabase { database ->
             database.itemDao().saveItem(FocusSession.create("Focus", 1, 1_000_000, ZoneOffset.UTC, FocusClockReading(0, 1)))
             try {
                 database.withTransaction {
@@ -46,5 +46,10 @@ class FocusCompletionOutboxTest {
             assertEquals(FocusSession.RUNNING, database.itemDao().getItems().single().focusState)
             assertTrue(database.focusCompletionDao().pending().isEmpty())
         }
+    }
+
+    // RoomDatabase exposes close(), but is not java.io.Closeable in the current Room version.
+    private suspend fun AppDatabase.useDatabase(block: suspend (AppDatabase) -> Unit) {
+        try { block(this) } finally { close() }
     }
 }

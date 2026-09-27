@@ -140,6 +140,10 @@ dependencies {
     debugImplementation("androidx.compose.ui:ui-test-manifest")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
+    // Pinned experimental widget authoring; isolated in WidgetSecondsRenderer.
+    // The launcher uses its system player, not an embedded app player.
+    implementation("androidx.compose.remote:remote-creation-android:1.0.0-alpha20")
+
     // ViewModel / Lifecycle
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:$lifecycleVersion")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:$lifecycleVersion")

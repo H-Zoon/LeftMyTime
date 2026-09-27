@@ -67,6 +67,7 @@ internal data class WidgetConfiguration(
     val itemId: Int? = null,
     val showRemaining: Boolean = true,
     val legacySummary: Boolean = false,
+    val showSeconds: Boolean = false,
 ) {
     fun write(prefs: SharedPreferences, id: Int) {
         val value = if (source == WidgetSource.Custom) requireNotNull(itemId).toString() else source.prefValue
@@ -74,11 +75,13 @@ internal data class WidgetConfiguration(
             putString(id.toString(), value)
             putBoolean("${id}option", showRemaining)
             putString(displayKey(id), if (legacySummary) "legacy" else "focused")
+            putBoolean(secondsKey(id), showSeconds)
         }
     }
 
     companion object {
         fun displayKey(id: Int) = "${id}displayMode"
+        fun secondsKey(id: Int) = "${id}seconds"
 
         fun hasSavedSettings(prefs: SharedPreferences, id: Int): Boolean =
             prefs.contains(id.toString()) || prefs.contains("${id}option") || prefs.contains(displayKey(id))
@@ -97,6 +100,7 @@ internal data class WidgetConfiguration(
                 itemId = value.toIntOrNull(),
                 showRemaining = prefs.getBoolean("${id}option", false),
                 legacySummary = prefs.getString(displayKey(id), "legacy") == "legacy",
+                showSeconds = prefs.getBoolean(secondsKey(id), false),
             )
         }
     }

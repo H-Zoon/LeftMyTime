@@ -165,6 +165,13 @@
     <string name="widget_configure_select_required">Pick one to continue</string>
     <string name="widget_loading">Just a moment…</string>
     <string name="widget_refresh">Refresh widget</string>
+    <string name="widget_seconds_option">Show seconds · experimental</string>
+    <string name="widget_seconds_size_hint">Enlarge this widget to show the time.</string>
+    <string name="widget_seconds_hint">The time and ruler update together. Your home app must support this feature. The preview shows a fixed moment.</string>
+    <string name="widget_seconds_unavailable">Seconds are unavailable for this selection. The widget shows its last update time.</string>
+    <string name="widget_seconds_left">left</string>
+    <string name="widget_seconds_until_start">until start</string>
+    <string name="widget_seconds_finished">Finished · refresh</string>
     <string name="widget_configure_title">Widget settings</string>
     <string name="widget_configure_source_title">Content</string>
     <string name="widget_configure_today">Today</string>

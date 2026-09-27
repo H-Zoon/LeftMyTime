@@ -156,6 +156,7 @@ internal fun WidgetConfigureRoute(
     var selectedItemId by rememberSaveable { mutableStateOf(initial.itemId) }
     var showRemaining by rememberSaveable { mutableStateOf(initial.showRemaining) }
     var legacySummary by rememberSaveable { mutableStateOf(initial.legacySummary) }
+    var showSeconds by rememberSaveable { mutableStateOf(initial.showSeconds) }
     var selectionPage by rememberSaveable { mutableStateOf<String?>(null) }
     var returnToSources by rememberSaveable { mutableStateOf(false) }
     var returnFocusTo by rememberSaveable { mutableStateOf<String?>(null) }
@@ -216,7 +217,7 @@ internal fun WidgetConfigureRoute(
         return
     }
     val configuration = WidgetConfiguration(source, selectedItemId, showRemaining,
-        legacySummary && source != WidgetSource.Overview)
+        legacySummary && source != WidgetSource.Overview, showSeconds)
     WidgetConfigureScreen(
         configuration = configuration, dimensions = dimensions, paletteKey = paletteKey, showProgress = showProgress,
         dark = when (themeMode) {
@@ -233,6 +234,7 @@ internal fun WidgetConfigureRoute(
         onRetry = { reload++ },
         onShowRemainingChanged = { showRemaining = it },
         onLegacySummaryChanged = { legacySummary = it },
+        onShowSecondsChanged = { showSeconds = it },
         onSave = {
             if (!saving) {
                 saving = true
@@ -275,6 +277,7 @@ private fun WidgetConfigureScreen(
     onRetry: () -> Unit,
     onShowRemainingChanged: (Boolean) -> Unit,
     onLegacySummaryChanged: (Boolean) -> Unit,
+    onShowSecondsChanged: (Boolean) -> Unit,
     onSave: () -> Unit,
 ) {
     val context = LocalContext.current
@@ -311,6 +314,9 @@ private fun WidgetConfigureScreen(
     val remainingValue = previewItem?.let { it.toWidgetData(context, true, it.type == ItemType.Time).value }
     val countdownValue = previewItem?.let { it.toWidgetData(context, false, it.type == ItemType.Time).value }
     val showFormat = personal && !unavailable && !customMissing && remainingValue != countdownValue
+    val canShowSeconds = WidgetSecondsSupport.available() && !unavailable &&
+        WidgetSecondsPlan.create(configuration, previewItem, System.currentTimeMillis()) != null
+    val secondsEnabled = canShowSeconds && configuration.showSeconds
     Scaffold(
         topBar = { TimeLeftTopAppBar(stringResource(R.string.widget_configure_title), onBack) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -354,11 +360,17 @@ private fun WidgetConfigureScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 WidgetPreviewBand(dimensions, configuration, previewItem, periods, paletteKey, dark, emptyMessage, showProgress)
-                if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
-                    Text(stringResource(R.string.widget_snapshot_hint), style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                if (canShowSeconds) {
+                    com.devidea.timeleft.ui.components.TimeLeftSwitchRow(
+                        title = stringResource(R.string.widget_seconds_option), checked = configuration.showSeconds,
+                        onCheckedChange = onShowSecondsChanged, enabled = !saving,
+                        summary = stringResource(R.string.widget_seconds_hint))
                 }
-                if (showFormat) {
+                if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
+                    if (!secondsEnabled) Text(stringResource(if (configuration.showSeconds) R.string.widget_seconds_unavailable else R.string.widget_snapshot_hint),
+                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
+                if (showFormat && !secondsEnabled) {
                     Column(Modifier.selectableGroup()) {
                         WidgetSectionLabel(stringResource(R.string.widget_display_format))
                         WidgetChoiceRow(stringResource(R.string.widget_format_units), configuration.showRemaining,

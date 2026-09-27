@@ -1,0 +1,7 @@
+<resources>
+    <string name="widget_seconds_probe_name">Widget seconds • capability probe</string>
+    <string name="widget_seconds_probe_remaining">seconds remaining</string>
+    <string name="widget_seconds_probe_finished">Finished</string>
+    <string name="widget_seconds_probe_version">Host version: %1$d · mode: %2$s</string>
+    <string name="widget_seconds_probe_unsupported">This host cannot play the probe document.</string>
+</resources>

@@ -165,6 +165,13 @@
     <string name="widget_configure_select_required">하나를 정해주세요</string>
     <string name="widget_loading">잠시만요…</string>
     <string name="widget_refresh">위젯 새로고침</string>
+    <string name="widget_seconds_option">초 단위 표시 · 실험 기능</string>
+    <string name="widget_seconds_size_hint">위젯을 늘리면 시간을 표시할 수 있어요.</string>
+    <string name="widget_seconds_hint">숫자와 눈금이 함께 갱신됩니다. 이 기능을 지원하는 홈 앱에서 사용할 수 있어요. 미리보기는 한 시점의 모습입니다.</string>
+    <string name="widget_seconds_unavailable">선택한 항목에서는 초 단위 표시를 사용할 수 없어 마지막 갱신 시각을 함께 보여줍니다.</string>
+    <string name="widget_seconds_left">남음</string>
+    <string name="widget_seconds_until_start">시작까지</string>
+    <string name="widget_seconds_finished">종료 · 새로 고침</string>
     <string name="widget_configure_title">위젯 설정</string>
     <string name="widget_configure_source_title">표시할 내용</string>
     <string name="widget_configure_today">오늘</string>

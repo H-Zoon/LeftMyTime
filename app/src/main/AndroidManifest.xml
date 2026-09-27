@@ -40,6 +40,7 @@
         <activity android:name=".stories.StoryLibraryActivity" android:exported="false" />
         <activity android:name=".focus.FocusActivity" android:exported="false" />
         <receiver android:name=".focus.FocusReceiver" android:exported="false" />
+        <receiver android:name=".widget.WidgetBoundaryReceiver" android:exported="false" />
         <activity
             android:name=".activity.ItemEditorActivity"
             android:exported="false" />

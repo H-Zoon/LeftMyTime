@@ -24,10 +24,11 @@ fun TimeLeftSwitchRow(
     checked: Boolean,
     onCheckedChange: (Boolean) -> Unit,
     summary: String? = null,
+    enabled: Boolean = true,
 ) {
     Column(
         modifier = Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
-            .toggleable(value = checked, role = Role.Switch, onValueChange = onCheckedChange)
+            .toggleable(value = checked, enabled = enabled, role = Role.Switch, onValueChange = onCheckedChange)
             .padding(vertical = Spacing.m),
         verticalArrangement = Arrangement.spacedBy(Spacing.xs),
     ) {
@@ -35,7 +36,7 @@ fun TimeLeftSwitchRow(
             verticalAlignment = Alignment.CenterVertically) {
             Text(title, Modifier.weight(1f), style = MaterialTheme.typography.bodyLarge,
                 color = MaterialTheme.colorScheme.onSurface)
-            Switch(checked = checked, onCheckedChange = null)
+            Switch(checked = checked, onCheckedChange = null, enabled = enabled)
         }
         summary?.let { Text(it, style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant) }

@@ -32,6 +32,7 @@ internal data class WidgetPalette(
     val track: Int,
     val glowAlpha: Float,
     val layout: TimeLayout = TimeLayout.TimeFocus,
+    val background: Int = 0xFFF7F7F2.toInt(),
 ) {
     companion object {
         fun fromPreferences(context: Context, prefs: SharedPreferences): WidgetPalette {
@@ -54,7 +55,7 @@ internal data class WidgetPalette(
                 } else if (dark) R.drawable.widget_background_dark else R.drawable.widget_background_light,
                 colors.primary.toArgb(), colors.onBackground.toArgb(), colors.onSurfaceVariant.toArgb(), colors.outlineVariant.toArgb(),
                 if (dark) TimeRulerTokens.GlowDarkAlpha else TimeRulerTokens.GlowLightAlpha,
-                resolved.definition.layout,
+                resolved.definition.layout, colors.background.toArgb(),
             )
         }
     }
