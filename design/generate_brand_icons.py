@@ -18,18 +18,22 @@ ANDROID = '{http://schemas.android.com/apk/res/android}'
 
 def mark():
     root = ET.parse(RES / 'drawable/ic_launcher_playstore_foreground_vector.xml').getroot()
+    alignment = root.find("group[@android:name='optical_alignment']", {'android': ANDROID[1:-1]})
+    if alignment is None:
+        raise ValueError('The shared mark must define its optical_alignment group.')
     attributes = {'pathData': 'd', 'fillColor': 'fill', 'strokeColor': 'stroke',
                   'strokeWidth': 'stroke-width', 'strokeLineCap': 'stroke-linecap',
                   'strokeLineJoin': 'stroke-linejoin'}
     paths = []
-    for path in root.findall('path'):
+    for path in alignment.findall('path'):
         values = {}
         for source, target in attributes.items():
             value = path.get(ANDROID + source)
             if value is not None:
                 values[target] = 'none' if value == '@android:color/transparent' else value
         paths.append(ET.tostring(ET.Element('path', values), encoding='unicode'))
-    return ''.join(paths)
+    x, y = (alignment.get(ANDROID + name, '0') for name in ('translateX', 'translateY'))
+    return f'<g transform="translate({x} {y})">' + ''.join(paths) + '</g>'
 
 
 def background_gradient():

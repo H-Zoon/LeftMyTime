@@ -618,12 +618,8 @@
     <string name="calendar_import_policy">반복 일정도 선택한 회차만 가져옵니다. 종일 일정은 날짜를 유지하고, 시각은 기기 시간대로 표시합니다. 알림은 꺼진 상태로 시작하며 원본 캘린더는 변경하지 않습니다. 이 앱에서 가져온 복사본의 중복을 확인합니다. 다른 기기나 캘린더 재설치 후에는 직접 중복을 확인해야 할 수 있습니다.</string>
     <string name="calendar_policy_show">가져오기 기준 보기</string>
     <string name="calendar_policy_hide">가져오기 기준 접기</string>
-    <string name="settings_privacy_choices_summary">선택 공유는 기본으로 꺼져 있습니다. 동의하지 않아도 모든 기능을 사용할 수 있습니다. Google의 처리·보관 범위는 개인정보 처리방침에서 확인하세요.</string>
-    <string name="settings_usage_opt_in">이용 통계 공유</string>
-    <string name="settings_usage_opt_in_summary">기능 사용 여부, 앱 인스턴스 식별자와 기기 정보를 Google Firebase에 보냅니다. 일정 제목·날짜는 추가하지 않습니다. 끄면 수집을 중단하고 기기의 분석 데이터를 초기화합니다.</string>
-    <string name="settings_diagnostics_opt_in">오류 보고서 공유</string>
-    <string name="settings_diagnostics_opt_in_summary">다음 앱 실행 시 대기 중인 충돌·ANR 보고서, 스택과 설치·기기 정보를 Google Firebase에 보냅니다. 끄면 대기 보고서를 삭제하며 이미 보낸 보고서는 회수되지 않습니다.</string>
-    <string name="settings_privacy_choices">개인정보</string>
+    <string name="settings_data_collection_summary">이용 통계와 오류 보고서를 Google Firebase로 자동 전송합니다. 수집 항목·목적·보관 기간은 개인정보 처리방침에서 확인할 수 있습니다.</string>
+    <string name="settings_privacy">개인정보</string>
     <string name="theme_time_board">시간 보드</string>
     <string name="settings_layout_theme">화면 구성</string>
     <string name="widget_snapshot_hint">위젯 숫자와 눈금은 마지막 갱신 시점의 값이에요. 기간이나 일정을 누르면 초마다 변하는 시간을 볼 수 있어요. 단일 위젯의 새로고침 버튼으로 현재 값을 다시 확인할 수 있어요.</string>

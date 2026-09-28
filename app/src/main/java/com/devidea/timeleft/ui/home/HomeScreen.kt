@@ -37,6 +37,7 @@ import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
+import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 
@@ -147,8 +148,8 @@ fun HomeScreen(
                             actionFailed -> R.string.home_action_failed
                             else -> R.string.home_invalid_items
                         }), style = MaterialTheme.typography.bodyMedium)
-                        if (loadFailed || actionFailed) TextButton(onClick = onRetry) { Text(stringResource(R.string.widget_retry)) }
-                        if (invalidCount > 0 && !showAll) TextButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
+                        if (loadFailed || actionFailed) TimeLeftInlineButton(onClick = onRetry) { Text(stringResource(R.string.widget_retry)) }
+                        if (invalidCount > 0 && !showAll) TimeLeftInlineButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
                     }
                 }
             }
@@ -160,7 +161,7 @@ fun HomeScreen(
                     item(key = "hero", span = { GridItemSpan(maxLineSpan) }) {
                         Column {
                             if (activeItems.size > 1 && !hero.isPinned) Box {
-                                TextButton(onClick = { showActiveMenu = true }) {
+                                TimeLeftInlineButton(onClick = { showActiveMenu = true }) {
                                     Text(pluralStringResource(R.plurals.home_active_count, activeItems.size, activeItems.size))
                                     Icon(Icons.Default.KeyboardArrowDown, null)
                                 }
@@ -253,7 +254,7 @@ private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, show
     var expanded by remember { mutableStateOf(false) }
     Box {
         if (showText) {
-            TextButton(onClick = { expanded = true }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+            TimeLeftInlineButton(onClick = { expanded = true }) {
                 Icon(Icons.Default.Add, null)
                 Spacer(Modifier.width(Spacing.xs))
                 Text(stringResource(R.string.home_add_schedule))
@@ -369,7 +370,7 @@ private fun SearchAndSortSection(
         TimeLeftUnderlineTextField(
             value = query,
             onValueChange = onQueryChange,
-            leadingIcon = {
+            trailingIcon = {
                 Icon(
                     imageVector = Icons.Filled.Search,
                     contentDescription = null

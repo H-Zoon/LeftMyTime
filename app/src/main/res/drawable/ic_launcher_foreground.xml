@@ -9,47 +9,50 @@
       android:translateX="94.72"
       android:translateY="94.72">
 
-      <!-- Outer interrupted ring -->
-      <path
-          android:name="outer_ring"
-          android:fillColor="@android:color/transparent"
-          android:strokeColor="#FFFFFF"
-          android:strokeWidth="24"
-          android:strokeLineCap="butt"
-          android:strokeLineJoin="round"
-          android:pathData="M94,106 H256 A150,150 0,1,1 106,256" />
+    <group android:name="optical_alignment" android:translateX="8" android:translateY="6">
 
-      <!-- Upper left cut bar -->
-      <path
-          android:name="upper_bar"
-          android:fillColor="#FFFFFF"
-          android:pathData="M94,150 H167.637 A138,138 0,0,0 145.005,174 H94 Z" />
+        <!-- Outer interrupted ring -->
+        <path
+            android:name="outer_ring"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="24"
+            android:strokeLineCap="butt"
+            android:strokeLineJoin="round"
+            android:pathData="M94,106 H256 A150,150 0,1,1 106,256" />
 
-      <!-- Middle left cut bar -->
-      <path
-          android:name="middle_bar"
-          android:fillColor="#FFFFFF"
-          android:pathData="M94,206 H127.376 A138,138 0,0,0 120.471,230 H94 Z" />
+        <!-- Upper left cut bar -->
+        <path
+            android:name="upper_bar"
+            android:fillColor="#FFFFFF"
+            android:pathData="M94,150 H167.637 A138,138 0,0,0 145.005,174 H94 Z" />
 
-      <!-- Inner interrupted ring -->
-      <path
-          android:name="inner_ring"
-          android:fillColor="@android:color/transparent"
-          android:strokeColor="#FFFFFF"
-          android:strokeWidth="24"
-          android:strokeLineCap="round"
-          android:strokeLineJoin="round"
-          android:pathData="M256,348 A92,92 0,1,1 348,256" />
+        <!-- Middle left cut bar -->
+        <path
+            android:name="middle_bar"
+            android:fillColor="#FFFFFF"
+            android:pathData="M94,206 H127.376 A138,138 0,0,0 120.471,230 H94 Z" />
 
-      <!-- Center check / V mark -->
-      <path
-          android:name="center_mark"
-          android:fillColor="@android:color/transparent"
-          android:strokeColor="#FFFFFF"
-          android:strokeWidth="20"
-          android:strokeLineCap="round"
-          android:strokeLineJoin="round"
-          android:pathData="M232,248 L256,272 L280,248" />
+        <!-- Inner interrupted ring -->
+        <path
+            android:name="inner_ring"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="24"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M256,348 A92,92 0,1,1 348,256" />
 
+        <!-- Center check / V mark -->
+        <path
+            android:name="center_mark"
+            android:fillColor="@android:color/transparent"
+            android:strokeColor="#FFFFFF"
+            android:strokeWidth="20"
+            android:strokeLineCap="round"
+            android:strokeLineJoin="round"
+            android:pathData="M232,248 L256,272 L280,248" />
+
+    </group>
   </group>
 </vector>

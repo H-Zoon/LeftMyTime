@@ -84,6 +84,7 @@ import com.devidea.timeleft.ui.components.TimeLeftDatePicker
 import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
+import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.itemIconVector
 import com.devidea.timeleft.ui.permission.NotificationPermissionExplanationDialog
 import com.devidea.timeleft.ui.permission.NotificationPermissionSettingsDialog
@@ -362,7 +363,7 @@ fun ItemEditorScreen(
                         style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
 
-                TextButton(onClick = { moreOptions = !moreOptions }, modifier = Modifier.fillMaxWidth()) {
+                TimeLeftInlineButton(onClick = { moreOptions = !moreOptions }, modifier = Modifier.fillMaxWidth()) {
                     Text(stringResource(R.string.editor_more_options), modifier = Modifier.weight(1f))
                     Icon(if (moreOptions) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown, contentDescription = null)
                 }
@@ -572,7 +573,7 @@ private fun TimeRangeFields(
             onSelected = onNextDayChange,
         )
         Text(if (endNextDay) stringResource(R.string.editor_overnight_hint) else rangeDurationText(startTime, endTime), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (!endNextDay) TextButton(onClick = { showAdjustment = !showAdjustment }) { Text(stringResource(R.string.editor_adjust_range)) }
+        if (!endNextDay) TimeLeftInlineButton(onClick = { showAdjustment = !showAdjustment }) { Text(stringResource(R.string.editor_adjust_range)) }
         if (showAdjustment && !endNextDay) TimeRangeDial(startTime, endTime, onRangeChange = { start, end ->
             onStartTimeChange(formatStorageTime(start))
             onEndTimeChange(formatStorageTime(end))

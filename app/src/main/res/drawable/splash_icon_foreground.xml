@@ -11,71 +11,73 @@
         android:pivotY="256"
         android:scaleX="0.6"
         android:scaleY="0.6">
-        <group
-            android:name="root_scale"
-            android:pivotX="256"
-            android:pivotY="256"
-            android:scaleX="1"
-            android:scaleY="1">
-
-            <!-- Follow the original contour from its left tip; never rotate this outline. -->
-            <path
-                android:name="outer_ring"
-                android:fillColor="@android:color/transparent"
-                android:pathData="M94,106 H256 A150,150 0,1,1 106,256"
-                android:strokeColor="@color/splash_foreground"
-                android:strokeLineCap="butt"
-                android:strokeLineJoin="round"
-                android:strokeWidth="24"
-                android:trimPathEnd="1" />
-
-            <!-- Grow horizontally from the shared left edge without changing line height. -->
+        <group android:name="optical_alignment" android:translateX="8" android:translateY="6">
             <group
-                android:name="upper_bar_reveal"
-                android:pivotX="94"
-                android:pivotY="162">
-                <path
-                    android:name="upper_bar"
-                    android:fillColor="@color/splash_foreground"
-                    android:pathData="M94,150 H167.637 A138,138 0,0,0 145.005,174 H94 Z" />
-            </group>
-
-            <group
-                android:name="middle_bar_reveal"
-                android:pivotX="94"
-                android:pivotY="218">
-                <path
-                    android:name="middle_bar"
-                    android:fillColor="@color/splash_foreground"
-                    android:pathData="M94,206 H127.376 A138,138 0,0,0 120.471,230 H94 Z" />
-            </group>
-
-            <group
-                android:name="inner_ring_rotation"
+                android:name="root_scale"
                 android:pivotX="256"
-                android:pivotY="256">
-                <path
-                    android:name="inner_ring"
-                    android:fillColor="@android:color/transparent"
-                    android:pathData="M256,348 A92,92 0,1,1 348,256"
-                    android:strokeColor="@color/splash_foreground"
-                    android:strokeLineCap="round"
-                    android:strokeLineJoin="round"
-                    android:strokeWidth="24" />
-            </group>
+                android:pivotY="256"
+                android:scaleX="1"
+                android:scaleY="1">
 
-            <group
-                android:name="center_mark_scale"
-                android:pivotX="256"
-                android:pivotY="260">
+                <!-- Follow the original contour from its left tip; never rotate this outline. -->
                 <path
-                    android:name="center_mark"
+                    android:name="outer_ring"
                     android:fillColor="@android:color/transparent"
-                    android:pathData="M232,248 L256,272 L280,248"
+                    android:pathData="M94,106 H256 A150,150 0,1,1 106,256"
                     android:strokeColor="@color/splash_foreground"
-                    android:strokeLineCap="round"
+                    android:strokeLineCap="butt"
                     android:strokeLineJoin="round"
-                    android:strokeWidth="20" />
+                    android:strokeWidth="24"
+                    android:trimPathEnd="1" />
+
+                <!-- Grow horizontally from the shared left edge without changing line height. -->
+                <group
+                    android:name="upper_bar_reveal"
+                    android:pivotX="94"
+                    android:pivotY="162">
+                    <path
+                        android:name="upper_bar"
+                        android:fillColor="@color/splash_foreground"
+                        android:pathData="M94,150 H167.637 A138,138 0,0,0 145.005,174 H94 Z" />
+                </group>
+
+                <group
+                    android:name="middle_bar_reveal"
+                    android:pivotX="94"
+                    android:pivotY="218">
+                    <path
+                        android:name="middle_bar"
+                        android:fillColor="@color/splash_foreground"
+                        android:pathData="M94,206 H127.376 A138,138 0,0,0 120.471,230 H94 Z" />
+                </group>
+
+                <group
+                    android:name="inner_ring_rotation"
+                    android:pivotX="256"
+                    android:pivotY="256">
+                    <path
+                        android:name="inner_ring"
+                        android:fillColor="@android:color/transparent"
+                        android:pathData="M256,348 A92,92 0,1,1 348,256"
+                        android:strokeColor="@color/splash_foreground"
+                        android:strokeLineCap="round"
+                        android:strokeLineJoin="round"
+                        android:strokeWidth="24" />
+                </group>
+
+                <group
+                    android:name="center_mark_scale"
+                    android:pivotX="256"
+                    android:pivotY="260">
+                    <path
+                        android:name="center_mark"
+                        android:fillColor="@android:color/transparent"
+                        android:pathData="M232,248 L256,272 L280,248"
+                        android:strokeColor="@color/splash_foreground"
+                        android:strokeLineCap="round"
+                        android:strokeLineJoin="round"
+                        android:strokeWidth="20" />
+                </group>
             </group>
         </group>
     </group>

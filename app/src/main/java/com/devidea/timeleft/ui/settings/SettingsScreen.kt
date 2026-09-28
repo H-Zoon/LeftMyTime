@@ -59,10 +59,6 @@ fun SettingsScreen(
     onOpenBackup: () -> Unit = {},
     onOpenStoryLibrary: () -> Unit = {},
     onOpenTemplates: () -> Unit = {},
-    usageEnabled: Boolean = false,
-    diagnosticsEnabled: Boolean = false,
-    onUsageChanged: (Boolean) -> Unit = {},
-    onDiagnosticsChanged: (Boolean) -> Unit = {},
 ) {
     val context = androidx.compose.ui.platform.LocalContext.current
     SettingsScaffold(
@@ -140,16 +136,10 @@ fun SettingsScreen(
                 summary = stringResource(R.string.backup_entry_summary), onClick = onOpenBackup)
         }
 
-        SettingsSection(title = stringResource(R.string.settings_privacy_choices)) {
-            Text(stringResource(R.string.settings_privacy_choices_summary),
+        SettingsSection(title = stringResource(R.string.settings_privacy)) {
+            Text(stringResource(R.string.settings_data_collection_summary),
                 style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            TimeLeftSwitchRow(title = stringResource(R.string.settings_usage_opt_in),
-                checked = usageEnabled, onCheckedChange = onUsageChanged,
-                summary = stringResource(R.string.settings_usage_opt_in_summary))
-            TimeLeftSwitchRow(title = stringResource(R.string.settings_diagnostics_opt_in),
-                checked = diagnosticsEnabled, onCheckedChange = onDiagnosticsChanged,
-                summary = stringResource(R.string.settings_diagnostics_opt_in_summary))
             NavigationRow(
                 title = stringResource(R.string.settings_privacy_policy),
                 onClick = onOpenPrivacyPolicy

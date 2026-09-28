@@ -28,6 +28,7 @@ import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.components.TimeDetailSheet
+import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
 import com.devidea.timeleft.ui.theme.LayoutTokens
@@ -127,13 +128,14 @@ internal fun TimeLeftItemCard(
                 listOf(item.startString, item.endString, item.updateInfo, item.recurrenceText, item.reminderText).filter { it.isNotBlank() }.distinct().forEach {
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
-                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s)) {
-                    TextButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded && !item.dataError,
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
+                    TimeLeftInlineButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded && !item.dataError,
                         modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_time_details)) }
-                    TextButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit)) }
-                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded && !item.dataError)
+                    TimeLeftInlineButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit)) }
+                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded && !item.dataError,
+                        contentPadding = PaddingValues(vertical = Spacing.s))
                     if (onDuplicate != null || onSaveTemplate != null || onPin != null || onMove != null) Box {
-                        TextButton(onClick = { moreActions = true }, enabled = interactive && expanded,
+                        TimeLeftInlineButton(onClick = { moreActions = true }, enabled = interactive && expanded,
                             modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.schedule_more_actions)) }
                         DropdownMenu(moreActions, onDismissRequest = { moreActions = false }) {
                             if (onDuplicate != null && !item.isFocusSession && !item.dataError) DropdownMenuItem(
@@ -149,7 +151,7 @@ internal fun TimeLeftItemCard(
                             }
                         }
                     }
-                    TextButton(onClick = { showDeleteDialog = true }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
+                    TimeLeftInlineButton(onClick = { showDeleteDialog = true }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }

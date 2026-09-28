@@ -73,8 +73,6 @@ class SettingsActivity : AppCompatActivity() {
     private var dateReminderTime by mutableStateOf(UserPreferences.DEFAULT_DATE_REMINDER_TIME)
     private var showTimePicker by mutableStateOf(false)
     private var remindersEnabled by mutableStateOf(false)
-    private var usageEnabled by mutableStateOf(false)
-    private var diagnosticsEnabled by mutableStateOf(false)
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,9 +112,6 @@ class SettingsActivity : AppCompatActivity() {
                     onOpenTemplates = { startActivity(Intent(this, com.devidea.timeleft.templates.TemplatesActivity::class.java)) },
                     onOpenStoryLibrary = { startActivity(Intent(this, com.devidea.timeleft.stories.StoryLibraryActivity::class.java)) },
                     onOpenBackup = { showBackup = true },
-                    usageEnabled = usageEnabled, diagnosticsEnabled = diagnosticsEnabled,
-                    onUsageChanged = { telemetry.setUsageEnabled(it); usageEnabled = it },
-                    onDiagnosticsChanged = { telemetry.setDiagnosticsEnabled(it); diagnosticsEnabled = it },
                     onOpenThemePreview = { themePreviewModel.refresh(); showThemePreview = true },
                     previewPeriods = previewState.snapshot?.periods.orEmpty(),
                     onSortSelected = ::selectSort,
@@ -181,8 +176,6 @@ class SettingsActivity : AppCompatActivity() {
             UserPreferences.DEFAULT_DATE_REMINDER_TIME
         ) ?: UserPreferences.DEFAULT_DATE_REMINDER_TIME
         remindersEnabled = canPostReminderNotifications()
-        usageEnabled = telemetry.usageEnabled
-        diagnosticsEnabled = telemetry.diagnosticsEnabled
         applyNightMode(themeMode)
     }
 

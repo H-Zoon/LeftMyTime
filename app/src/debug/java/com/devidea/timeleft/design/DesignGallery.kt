@@ -396,8 +396,6 @@ private fun GalleryScreen(
 private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<AdapterItem>) {
     val initialDesign = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key
     var design by rememberSaveable(screen) { mutableStateOf(initialDesign) }
-    var usage by rememberSaveable(screen) { mutableStateOf(false) }
-    var diagnostics by rememberSaveable(screen) { mutableStateOf(false) }
     val selectedFixture = screen == "settings-selected"
     var theme by rememberSaveable(screen, initialTheme) { mutableStateOf(initialTheme) }
     var palette by rememberSaveable(screen, initialPalette) { mutableStateOf(initialPalette) }
@@ -444,8 +442,6 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
             onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
             onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
             onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
-            usageEnabled = usage, diagnosticsEnabled = diagnostics,
-            onUsageChanged = { usage = it }, onDiagnosticsChanged = { diagnostics = it },
         )
     }
 }

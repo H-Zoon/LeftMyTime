@@ -11,6 +11,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
+import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 
@@ -32,14 +33,14 @@ fun QuickFocusSection(current: AdapterItem?, busy: Boolean, error: Int?, onStart
                         Text(stringResource(R.string.focus_minutes, value))
                     }
                 }
-                TextButton(onClick = { custom = true }, enabled = !busy, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+                TimeLeftInlineButton(onClick = { custom = true }, enabled = !busy) {
                     Text(stringResource(R.string.focus_custom))
                 }
             }
-        } else TextButton(onClick = { onOpen(current.id) }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+        } else TimeLeftInlineButton(onClick = { onOpen(current.id) }) {
             Text(stringResource(R.string.focus_open_named, current.title))
         }
-        TextButton(onClick = { onOpen(-1) }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+        TimeLeftInlineButton(onClick = { onOpen(-1) }) {
             Text(stringResource(R.string.focus_history))
         }
         error?.let { Text(stringResource(it), color = MaterialTheme.colorScheme.error) }

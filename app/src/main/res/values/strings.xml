@@ -622,12 +622,8 @@
     <string name="calendar_import_policy">Repeating events are imported one occurrence at a time. All-day events keep their calendar dates; other times follow your device time zone. Reminders start off. Original calendars are unchanged. Duplicate checks apply to copies imported by this installation; another device or a reinstalled calendar may need manual review.</string>
     <string name="calendar_policy_show">How importing works</string>
     <string name="calendar_policy_hide">Hide import details</string>
-    <string name="settings_privacy_choices_summary">Optional sharing is off by default. You can use every feature without it. See the privacy policy for Google processing and retention details.</string>
-    <string name="settings_usage_opt_in">Share usage statistics</string>
-    <string name="settings_usage_opt_in_summary">Send feature-use events, app instance identifiers, and device information to Google Firebase. Schedule titles and dates are not added. Turn off to stop collection and reset local analytics data.</string>
-    <string name="settings_diagnostics_opt_in">Share crash reports</string>
-    <string name="settings_diagnostics_opt_in_summary">Send pending crash and ANR reports, stack traces, and installation/device information to Google Firebase at the next app launch. Turning off deletes pending reports; reports already sent are not recalled.</string>
-    <string name="settings_privacy_choices">Privacy</string>
+    <string name="settings_data_collection_summary">Usage statistics and crash reports are automatically sent to Google Firebase. See the privacy policy for the data collected, its purposes, and retention periods.</string>
+    <string name="settings_privacy">Privacy</string>
     <string name="theme_time_board">Time board</string>
     <string name="settings_layout_theme">Layout</string>
     <string name="widget_snapshot_hint">Widget numbers and the ruler show the last update. Tap a period or schedule to see the time change every second. Use the refresh button on a single widget to update its snapshot.</string>
