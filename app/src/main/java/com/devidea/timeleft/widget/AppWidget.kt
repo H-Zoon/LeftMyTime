@@ -62,9 +62,7 @@ open class AppWidget : AppWidgetProvider() {
             val provider = AppWidget()
             providerClasses.forEach { providerClass ->
                 val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, providerClass))
-                ids.forEach { appWidgetId ->
-                    provider.renderWidget(context, appWidgetManager, appWidgetId)
-                }
+                provider.renderWidgets(context, appWidgetManager, ids)
             }
             WidgetBoundarySchedule.reschedule(context)
         }
@@ -135,7 +133,7 @@ open class AppWidget : AppWidgetProvider() {
                 try {
                     val manager = AppWidgetManager.getInstance(appContext)
                     providerClasses.forEach { provider ->
-                        manager.getAppWidgetIds(ComponentName(appContext, provider)).forEach { renderWidget(appContext, manager, it) }
+                        renderWidgets(appContext, manager, manager.getAppWidgetIds(ComponentName(appContext, provider)))
                     }
                 } finally { pendingResult.finish() }
             }
@@ -152,7 +150,7 @@ open class AppWidget : AppWidgetProvider() {
         val appContext = context.applicationContext
         widgetScope.launch {
             try {
-                appWidgetIds.forEach { renderWidget(appContext, appWidgetManager, it) }
+                renderWidgets(appContext, appWidgetManager, appWidgetIds)
             } finally {
                 pendingResult.finish()
             }
@@ -212,6 +210,20 @@ open class AppWidget : AppWidgetProvider() {
     ) = renderMutex.withLock {
         // Serialize slow repository reads so an older render cannot replace a new selection.
         renderWidgetContent(context, appWidgetManager, appWidgetId)
+    }
+
+    private suspend fun renderWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
+        ids.forEach { id ->
+            try {
+                renderWidget(context, manager, id)
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                // One failed widget must not prevent the remaining widgets from refreshing.
+                android.util.Log.e("WidgetRefresh", "Widget refresh failed: ${error.javaClass.simpleName}")
+            }
+        }
+        WidgetBoundarySchedule.reschedule(context)
     }
 
     private suspend fun renderWidgetContent(
@@ -298,7 +310,9 @@ open class AppWidget : AppWidgetProvider() {
             // Rebuild every responsive size with the same XML payload type, including posting errors.
             appWidgetManager.updateAppWidget(appWidgetId, render(false))
         }
-        var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(System.currentTimeMillis()) else null
+        val refreshTime = System.currentTimeMillis()
+        var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(refreshTime)
+            else nextSnapshotRefreshMillis(configuration, item, refreshTime)
         if (configuration.showSeconds && WidgetSecondsSupport.available() && configuration.source == WidgetSource.Next) {
             // Also watch future timed candidates while the automatic widget currently shows a date.
             // A failed repository read must not discard an already rendered, self-clamping timer.

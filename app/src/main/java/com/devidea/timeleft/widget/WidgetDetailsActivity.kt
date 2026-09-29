@@ -134,6 +134,14 @@ class WidgetDetailsActivity : AppCompatActivity() {
         targetIntent = intent
     }
 
+    override fun onResume() {
+        super.onResume()
+        // Opening the detail previously updated only this screen, leaving its widget stale.
+        // Do not post on each one-second Compose tick or repeat the expired-link refresh.
+        if (isFinishing || targetIntent == null) return
+        AppWidget.updateAllWidgets(this, AppWidgetManager.getInstance(this))
+    }
+
     private fun refreshExpiredSeconds(target: Intent): Boolean {
         val validUntil = target.getLongExtra(SECONDS_VALID_UNTIL, Long.MAX_VALUE)
         if (System.currentTimeMillis() < validUntil) return false
