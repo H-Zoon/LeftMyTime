@@ -29,8 +29,8 @@ android {
         applicationId = "com.devidea.timeleft"
         minSdk = 26
         targetSdk = 36
-        versionCode = 22
-        versionName = "6.5"
+        versionCode = 23
+        versionName = "6.6"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
