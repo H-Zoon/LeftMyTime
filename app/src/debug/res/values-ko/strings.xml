@@ -1,0 +1,12 @@
+<resources>
+    <string name="widget_seconds_probe_name">위젯 초 표시 • 기능 검증</string>
+    <string name="widget_seconds_probe_remaining">초 남음</string>
+    <string name="widget_seconds_probe_finished">종료</string>
+    <string name="widget_seconds_probe_version">호스트 문서: %1$d · 모드: %2$s · 내용: %3$s · 생성 형식: %4$s\n제품 지원: %5$s</string>
+    <string name="widget_seconds_probe_unsupported">이 호스트는 검증 문서를 재생할 수 없습니다.</string>
+    <string name="widget_seconds_probe_released">활성화</string>
+    <string name="widget_seconds_probe_not_released">비활성화; 후보 지원은 검증 필요</string>
+    <string name="widget_seconds_probe_action">검증 동작: %1$s</string>
+    <string name="widget_seconds_probe_title">초 표시 검수</string>
+    <string name="widget_seconds_probe_long_title">큰 글자와 위젯 크기를 확인하기 위한 아주 긴 일정 제목</string>
+</resources>

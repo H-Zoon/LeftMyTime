@@ -1,0 +1,12 @@
+<resources>
+    <string name="widget_seconds_probe_name">Widget seconds • capability probe</string>
+    <string name="widget_seconds_probe_remaining">seconds remaining</string>
+    <string name="widget_seconds_probe_finished">Finished</string>
+    <string name="widget_seconds_probe_version">Host document: %1$d · mode: %2$s · source: %3$s · encoding: %4$s\nRelease support: %5$s</string>
+    <string name="widget_seconds_probe_unsupported">This host cannot play the probe document.</string>
+    <string name="widget_seconds_probe_released">Enabled</string>
+    <string name="widget_seconds_probe_not_released">Disabled; candidate support needs validation</string>
+    <string name="widget_seconds_probe_action">Probe action: %1$s</string>
+    <string name="widget_seconds_probe_title">Seconds QA</string>
+    <string name="widget_seconds_probe_long_title">A long schedule title to check large text and widget sizing</string>
+</resources>

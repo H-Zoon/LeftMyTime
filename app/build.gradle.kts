@@ -124,6 +124,9 @@ dependencies {
     // Coroutines
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.7.3")
 
+    // Persistent widget recovery, independent of the launcher's update broadcast.
+    implementation("androidx.work:work-runtime:2.11.2")
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:2.2.21")
 
     implementation("androidx.activity:activity-ktx:1.9.3")

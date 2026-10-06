@@ -1,7 +1,0 @@
-<resources>
-    <string name="widget_seconds_probe_name">위젯 초 표시 • 기능 검증</string>
-    <string name="widget_seconds_probe_remaining">초 남음</string>
-    <string name="widget_seconds_probe_finished">종료</string>
-    <string name="widget_seconds_probe_version">호스트 버전: %1$d · 모드: %2$s</string>
-    <string name="widget_seconds_probe_unsupported">이 호스트는 검증 문서를 재생할 수 없습니다.</string>
-</resources>

@@ -9,6 +9,7 @@ import android.content.Intent
 import android.util.Log
 import androidx.core.content.edit
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
@@ -16,14 +17,22 @@ import kotlinx.coroutines.launch
 class WidgetBoundaryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
         if (intent.action != WidgetBoundarySchedule.ACTION) return
+        WidgetBoundarySchedule.invalidateAlarm()
+        Log.i("WidgetRefresh", "Boundary refresh received")
         val pending = goAsync()
         val appContext = context.applicationContext
         CoroutineScope(Dispatchers.IO).launch {
             try {
                 AppWidget.updateAllWidgetsAndAwait(appContext, AppWidgetManager.getInstance(appContext))
+            } catch (error: CancellationException) {
+                throw error
             } catch (error: Exception) {
                 Log.e("WidgetBoundary", "Boundary refresh failed: ${error.javaClass.simpleName}")
-            } finally { pending.finish() }
+            } finally {
+                // Even failure before the first render must re-arm the consumed one-shot alarm.
+                try { WidgetBoundarySchedule.rescheduleSafely(appContext) }
+                finally { pending.finish() }
+            }
         }
     }
 }
@@ -31,6 +40,20 @@ class WidgetBoundaryReceiver : BroadcastReceiver() {
 internal object WidgetBoundarySchedule {
     const val ACTION = "com.devidea.timeleft.widget.REFRESH_BOUNDARY"
     private const val PREFS = "widget_boundaries"
+    private const val WINDOW_MILLIS = 10 * 60_000L
+    private var scheduledAtMillis: Long? = null
+
+    /** Called after delivery and on wall-clock/boot changes; never infer delivery from the time. */
+    @Synchronized
+    fun invalidateAlarm() { scheduledAtMillis = null }
+
+    fun rescheduleSafely(context: Context): Boolean = try {
+        reschedule(context)
+        true
+    } catch (error: Exception) {
+        Log.e("WidgetBoundary", "Boundary scheduling failed: ${error.javaClass.simpleName}")
+        false
+    }
 
     @Synchronized
     fun record(context: Context, id: Int, boundaryMillis: Long?) {
@@ -54,6 +77,14 @@ internal object WidgetBoundarySchedule {
         val action = PendingIntent.getBroadcast(context, 0, Intent(context, WidgetBoundaryReceiver::class.java).setAction(ACTION),
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
         val next = nextWidgetRefreshAlarmMillis(retained.values.filterIsInstance<Long>(), now)
-        if (next == null) alarm.cancel(action) else alarm.set(AlarmManager.RTC, next, action)
+        if (next == null) {
+            alarm.cancel(action)
+            scheduledAtMillis = null
+        } else if (!keepWidgetRefreshAlarm(scheduledAtMillis, next)) {
+            // set() can be batched much later even with battery saver off. Bound the requested
+            // window while awake; RTC still does not wake the device or bypass Doze.
+            alarm.setWindow(AlarmManager.RTC, next, WINDOW_MILLIS, action)
+            scheduledAtMillis = next
+        }
     }
 }

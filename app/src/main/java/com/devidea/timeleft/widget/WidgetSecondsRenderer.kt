@@ -17,6 +17,7 @@ import androidx.compose.remote.creation.CreationDisplayInfo
 import androidx.compose.remote.creation.Rc
 import androidx.compose.remote.creation.RemoteComposeWriterAndroid
 import androidx.compose.remote.creation.profile.RcPlatformProfiles
+import androidx.compose.remote.creation.profile.WidgetsProfileWriterV6
 import androidx.compose.remote.creation.actions.HostAction
 import androidx.compose.remote.creation.modifiers.RecordingModifier
 import androidx.core.graphics.createBitmap
@@ -37,7 +38,15 @@ import kotlin.math.roundToInt
 @RequiresApi(35)
 internal object WidgetSecondsRenderer {
     fun create(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
-        palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long? = null): RemoteViews {
+        palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long? = null,
+        profile: WidgetSecondsProfile = requireNotNull(WidgetSecondsSupport.capability().productionProfile)): RemoteViews =
+        RemoteViews(RemoteViews.DrawInstructions.Builder(listOf(
+            createDocument(context, size, item, plan, palette, showProgress, snapshotMillis, profile)
+        )).build())
+
+    /** Shared by the published widget and platform tests; explicit profiles enable debug candidates. */
+    fun createDocument(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
+        palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long?, profile: WidgetSecondsProfile): ByteArray {
         val density = context.resources.displayMetrics.density
         val width = size.width * density
         val height = size.height * density
@@ -73,9 +82,9 @@ internal object WidgetSecondsRenderer {
         val headingHeight = max(touch, title.height.toFloat())
         val required = topPadding * 2 + headingHeight + gap + valueHeight + gap +
             (if (showProgress) rulerHeight + smallGap else 0f) + rangeHeight
-        val writer = RemoteComposeWriterAndroid(
+        val writer = createWidgetSecondsWriter(
             CreationDisplayInfo(width.roundToInt(), height.roundToInt(), context.resources.displayMetrics.densityDpi),
-            item.title, RcPlatformProfiles.WIDGETS_V7)
+            item.title, profile)
         // Render in actual host pixels. RootContentBehavior was removed from the widget profile;
         // scaling the whole document would also incorrectly shrink large accessibility text.
         writer.startRoot()
@@ -94,7 +103,7 @@ internal object WidgetSecondsRenderer {
             writer.endCanvas()
             button(writer, R.id.widgetSecondsConfigure, writer.addText(context.getString(R.string.widget_seconds_size_hint)), width, height)
             writer.endBox(); writer.endRoot()
-            return views(writer)
+            return writer.buffer().copyOf(writer.bufferSize())
         }
         val board = palette.layout == TimeLayout.TimeBoard
         val valueTop = if (board) topPadding else topPadding + headingHeight + gap
@@ -206,7 +215,7 @@ internal object WidgetSecondsRenderer {
         button(writer, R.id.refresh, writer.addText(context.getString(R.string.widget_refresh)), touch, touch)
         writer.endColumn(); writer.endRow()
         writer.endBox(); writer.endRoot()
-        return views(writer)
+        return writer.buffer().copyOf(writer.bufferSize())
     }
 
     private fun button(writer: RemoteComposeWriterAndroid, action: Int, description: Int,
@@ -231,6 +240,11 @@ internal object WidgetSecondsRenderer {
             writer.drawTextRun(text, 0, text.length, 0, text.length, x + layout.getLineLeft(line), y + layout.getLineBaseline(line), false)
         }
     }
-    private fun views(writer: RemoteComposeWriterAndroid) = RemoteViews(
-        RemoteViews.DrawInstructions.Builder(listOf(writer.buffer().copyOf(writer.bufferSize()))).build())
+}
+
+/** Use V6's validation as well as its legacy header, without its scaling convenience wrapper. */
+internal fun createWidgetSecondsWriter(info: CreationDisplayInfo, description: String,
+    profile: WidgetSecondsProfile): RemoteComposeWriterAndroid = when (profile) {
+    WidgetSecondsProfile.V6 -> WidgetsProfileWriterV6(info, description, RcPlatformProfiles.WIDGETS_V6)
+    WidgetSecondsProfile.V7 -> RemoteComposeWriterAndroid(info, description, RcPlatformProfiles.WIDGETS_V7)
 }

@@ -34,4 +34,17 @@ class WidgetSnapshotRefreshTest {
         assertEquals(now + 2_000L, nextWidgetRefreshAlarmMillis(listOf(now + 2_000L), now))
         assertNull(nextWidgetRefreshAlarmMillis(emptyList(), now))
     }
+
+    @Test fun `overdue retry cannot hide a nearer future boundary in a different widget`() {
+        assertEquals(now + 2_000L,
+            nextWidgetRefreshAlarmMillis(listOf(now - 10_800_000L, now + 2_000L), now))
+    }
+
+    @Test fun `renders keep a pending alarm even after its requested time`() {
+        assertTrue(keepWidgetRefreshAlarm(now + 900_000L, now + 960_000L))
+        assertTrue(keepWidgetRefreshAlarm(now - 1_000L, now + 60_000L))
+        assertTrue(keepWidgetRefreshAlarm(now + 2_000L, now + 2_000L))
+        assertFalse(keepWidgetRefreshAlarm(now + 900_000L, now + 2_000L))
+        assertFalse(keepWidgetRefreshAlarm(null, now + 60_000L))
+    }
 }

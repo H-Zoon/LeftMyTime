@@ -35,6 +35,7 @@ import kotlinx.coroutines.sync.withLock
 open class AppWidget : AppWidgetProvider() {
 
     companion object {
+        private const val EXTRA_USER_REFRESH = "com.devidea.timeleft.widget.USER_REFRESH"
         private val widgetScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
         private val pickerMutex = Mutex()
         private val renderMutex = Mutex()
@@ -58,14 +59,11 @@ open class AppWidget : AppWidgetProvider() {
         }
 
         /** Receivers keep goAsync alive until all installed widget updates are actually submitted. */
-        suspend fun updateAllWidgetsAndAwait(context: Context, appWidgetManager: AppWidgetManager) {
-            val provider = AppWidget()
-            providerClasses.forEach { providerClass ->
-                val ids = appWidgetManager.getAppWidgetIds(ComponentName(context, providerClass))
-                provider.renderWidgets(context, appWidgetManager, ids)
-            }
-            WidgetBoundarySchedule.reschedule(context)
-        }
+        suspend fun updateAllWidgetsAndAwait(context: Context, appWidgetManager: AppWidgetManager): Boolean =
+            AppWidget().renderWidgets(context, appWidgetManager, installedWidgetIds(context, appWidgetManager))
+
+        internal fun installedWidgetIds(context: Context, manager: AppWidgetManager): IntArray =
+            providerClasses.flatMap { manager.getAppWidgetIds(ComponentName(context, it)).asIterable() }.toIntArray()
 
         fun updatePickerPreviews(context: Context) {
             if (Build.VERSION.SDK_INT < 35) return
@@ -126,18 +124,22 @@ open class AppWidget : AppWidgetProvider() {
         )
 
     override fun onReceive(context: Context, intent: Intent) {
-        if (intent.action in setOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_DATE_CHANGED)) {
+        if (intent.action in setOf(Intent.ACTION_BOOT_COMPLETED, Intent.ACTION_TIME_CHANGED, Intent.ACTION_TIMEZONE_CHANGED, Intent.ACTION_DATE_CHANGED, Intent.ACTION_MY_PACKAGE_REPLACED)) {
+            WidgetBoundarySchedule.invalidateAlarm()
             val pendingResult = goAsync()
             val appContext = context.applicationContext
             widgetScope.launch {
                 try {
                     val manager = AppWidgetManager.getInstance(appContext)
-                    providerClasses.forEach { provider ->
-                        renderWidgets(appContext, manager, manager.getAppWidgetIds(ComponentName(appContext, provider)))
-                    }
+                    updateAllWidgetsAndAwait(appContext, manager)
                 } finally { pendingResult.finish() }
             }
-        } else super.onReceive(context, intent)
+        } else {
+            if (intent.action == AppWidgetManager.ACTION_APPWIDGET_UPDATE) {
+                android.util.Log.i("WidgetRefresh", "Provider refresh received: manual=${intent.getBooleanExtra(EXTRA_USER_REFRESH, false)}")
+            }
+            super.onReceive(context, intent)
+        }
     }
 
     override fun onUpdate(
@@ -168,10 +170,30 @@ open class AppWidget : AppWidgetProvider() {
         val appContext = context.applicationContext
         widgetScope.launch {
             try {
-                renderWidget(appContext, appWidgetManager, appWidgetId)
+                renderWidgets(appContext, appWidgetManager, intArrayOf(appWidgetId))
             } finally {
                 pendingResult.finish()
             }
+        }
+    }
+
+    override fun onEnabled(context: Context) {
+        super.onEnabled(context)
+        reconcileRefreshWork(context)
+    }
+
+    override fun onDisabled(context: Context) {
+        super.onDisabled(context)
+        // Other provider classes may still have widgets installed.
+        reconcileRefreshWork(context)
+    }
+
+    private fun reconcileRefreshWork(context: Context) {
+        val pending = goAsync()
+        val appContext = context.applicationContext
+        widgetScope.launch {
+            try { WidgetRefreshSchedule.reconcileSafely(appContext) }
+            finally { pending.finish() }
         }
     }
 
@@ -188,6 +210,7 @@ open class AppWidget : AppWidgetProvider() {
             }
             WidgetBoundarySchedule.record(context, id, null)
         }
+        reconcileRefreshWork(context)
     }
 
     fun updateAppWidget(
@@ -198,7 +221,7 @@ open class AppWidget : AppWidgetProvider() {
     ) {
         val appContext = context.applicationContext
         widgetScope.launch {
-            try { renderWidget(appContext, appWidgetManager, appWidgetId) }
+            try { renderWidgets(appContext, appWidgetManager, intArrayOf(appWidgetId)) }
             finally { onComplete() }
         }
     }
@@ -212,26 +235,25 @@ open class AppWidget : AppWidgetProvider() {
         renderWidgetContent(context, appWidgetManager, appWidgetId)
     }
 
-    private suspend fun renderWidgets(context: Context, manager: AppWidgetManager, ids: IntArray) {
-        ids.forEach { id ->
-            try {
-                renderWidget(context, manager, id)
-            } catch (error: CancellationException) {
-                throw error
-            } catch (error: Exception) {
-                // One failed widget must not prevent the remaining widgets from refreshing.
-                android.util.Log.e("WidgetRefresh", "Widget refresh failed: ${error.javaClass.simpleName}")
-            }
+    private suspend fun renderWidgets(context: Context, manager: AppWidgetManager, ids: IntArray): Boolean {
+        WidgetRefreshSchedule.reconcileSafely(context)
+        var complete = false
+        try {
+            complete = refreshWidgetBatch(ids, render = { renderWidget(context, manager, it) }, onFailure = { id, error ->
+                android.util.Log.e("WidgetRefresh", "Widget refresh failed: widget=$id type=${error.javaClass.simpleName}")
+            })
+        } finally {
+            if (!WidgetBoundarySchedule.rescheduleSafely(context)) complete = false
         }
-        WidgetBoundarySchedule.reschedule(context)
+        return complete
     }
 
     private suspend fun renderWidgetContent(
         context: Context,
         appWidgetManager: AppWidgetManager,
         appWidgetId: Int,
-    ) {
-        if (appWidgetManager.getAppWidgetInfo(appWidgetId) == null) return
+    ): Boolean {
+        if (appWidgetManager.getAppWidgetInfo(appWidgetId) == null) return true
         val ep = entryPoint(context)
         val prefs = ep.prefs()
         val itemGenerator = ep.itemGenerator()
@@ -242,6 +264,7 @@ open class AppWidget : AppWidgetProvider() {
         val configuration = WidgetConfiguration.read(prefs, appWidgetId)
         val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
         var emptyMessage = R.string.widget_no_upcoming
+        var dataLoaded = true
         val item = when (configuration.source) {
             WidgetSource.Today -> periods[0]
             WidgetSource.Month -> periods[1]
@@ -263,6 +286,7 @@ open class AppWidget : AppWidgetProvider() {
                 } catch (exception: CancellationException) {
                     throw exception
                 } catch (_: Exception) {
+                    dataLoaded = false
                     emptyMessage = R.string.widget_load_failed
                     periods[1].takeIf { configuration.legacySummary }
                 }
@@ -280,6 +304,7 @@ open class AppWidget : AppWidgetProvider() {
                 } catch (exception: CancellationException) {
                     throw exception
                 } catch (_: Exception) {
+                    dataLoaded = false
                     emptyMessage = R.string.widget_load_failed
                     periods[1].takeIf { configuration.legacySummary } // Preserve all saved selections on failure.
                 }
@@ -310,18 +335,25 @@ open class AppWidget : AppWidgetProvider() {
             // Rebuild every responsive size with the same XML payload type, including posting errors.
             appWidgetManager.updateAppWidget(appWidgetId, render(false))
         }
+        // Submission is observable here; it does not prove that the launcher drew the new views.
+        android.util.Log.i("WidgetRefresh", "Widget submitted: widget=$appWidgetId dataLoaded=$dataLoaded seconds=$secondsRendered")
         val refreshTime = System.currentTimeMillis()
         var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(refreshTime)
             else nextSnapshotRefreshMillis(configuration, item, refreshTime)
-        if (configuration.showSeconds && WidgetSecondsSupport.available() && configuration.source == WidgetSource.Next) {
+        if (configuration.source == WidgetSource.Next) {
             // Also watch future timed candidates while the automatic widget currently shows a date.
             // A failed repository read must not discard an already rendered, self-clamping timer.
             try {
                 boundary = listOfNotNull(boundary, nextWidgetSelectionBoundary(entities(), java.time.ZonedDateTime.now())).minOrNull()
             } catch (error: CancellationException) { throw error }
-            catch (error: Exception) { android.util.Log.e("WidgetSeconds", "Boundary selection failed: ${error.javaClass.simpleName}") }
+            catch (error: Exception) {
+                dataLoaded = false
+                android.util.Log.e("WidgetRefresh", "Boundary selection failed: ${error.javaClass.simpleName}")
+            }
         }
+        if (!dataLoaded) boundary = listOfNotNull(boundary, refreshTime + 60_000L).minOrNull()
         WidgetBoundarySchedule.record(context, appWidgetId, boundary)
+        return dataLoaded
     }
 
     private fun bindWidgetActions(
@@ -340,6 +372,7 @@ open class AppWidget : AppWidgetProvider() {
             action = AppWidgetManager.ACTION_APPWIDGET_UPDATE
             addFlags(Intent.FLAG_RECEIVER_FOREGROUND)
             putExtra(AppWidgetManager.EXTRA_APPWIDGET_IDS, intArrayOf(appWidgetId))
+            putExtra(EXTRA_USER_REFRESH, true)
         }
 
         val updatePendingIntent =

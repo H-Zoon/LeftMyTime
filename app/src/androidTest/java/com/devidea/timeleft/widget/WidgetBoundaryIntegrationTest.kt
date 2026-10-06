@@ -11,15 +11,53 @@ import androidx.test.core.app.ActivityScenario
 import androidx.lifecycle.Lifecycle
 import androidx.test.filters.SdkSuppress
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.work.WorkManager
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
+import java.util.concurrent.TimeUnit
 
 @RunWith(AndroidJUnit4::class)
 @SdkSuppress(minSdkVersion = 29)
 class WidgetBoundaryIntegrationTest {
+    @Test fun periodicRecoveryExistsBeforeRenderingAndKeepsItsIdentityAcrossProviders() {
+        val instrumentation = InstrumentationRegistry.getInstrumentation()
+        val context = instrumentation.targetContext
+        val host = AppWidgetHost(context, 0x524546)
+        val manager = AppWidgetManager.getInstance(context)
+        val work = WorkManager.getInstance(context)
+        fun pendingWork() = work.getWorkInfosForUniqueWork(WidgetRefreshSchedule.WORK_NAME)
+            .get(5, TimeUnit.SECONDS).filterNot { it.state.isFinished }
+        val first = host.allocateAppWidgetId()
+        val second = host.allocateAppWidgetId()
+        try {
+            instrumentation.uiAutomation.adoptShellPermissionIdentity("android.permission.BIND_APPWIDGET")
+            try {
+                assertTrue(manager.bindAppWidgetIdIfAllowed(first, ComponentName(context, AppWidget::class.java)))
+                assertTrue(manager.bindAppWidgetIdIfAllowed(second, ComponentName(context, LargeAppWidget::class.java)))
+            } finally { instrumentation.uiAutomation.dropShellPermissionIdentity() }
+
+            // Reconciliation itself does not call the renderer or require a boundary record.
+            runBlocking { WidgetRefreshSchedule.reconcile(context) }
+            val original = pendingWork().single().id
+            repeat(3) { runBlocking { WidgetRefreshSchedule.reconcile(context) } }
+            assertEquals(original, pendingWork().single().id)
+
+            host.deleteAppWidgetId(first)
+            runBlocking { WidgetRefreshSchedule.reconcile(context) }
+            assertEquals("A different provider still owns a widget", original, pendingWork().single().id)
+        } finally {
+            host.deleteHost()
+            WidgetBoundarySchedule.record(context, first, null)
+            WidgetBoundarySchedule.record(context, second, null)
+            runBlocking { WidgetRefreshSchedule.reconcile(context) }
+        }
+        // Preserve unrelated widgets if this is run on a device that already has them.
+        assertEquals(AppWidget.installedWidgetIds(context, manager).isNotEmpty(), pendingWork().isNotEmpty())
+    }
+
     @Test fun delayedAndDuplicateBroadcastsReadTheNewSelectionAndCancelTheOldBoundary() {
         val instrumentation = InstrumentationRegistry.getInstrumentation()
         val context = instrumentation.targetContext
@@ -62,6 +100,7 @@ class WidgetBoundaryIntegrationTest {
         } finally {
             host.deleteAppWidgetId(id)
             WidgetBoundarySchedule.record(context, id, null)
+            runBlocking { WidgetRefreshSchedule.reconcile(context) }
             prefs.edit().remove(id.toString()).remove("${id}option").remove(WidgetConfiguration.displayKey(id))
                 .remove(WidgetConfiguration.secondsKey(id)).commit()
         }

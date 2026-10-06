@@ -30,7 +30,11 @@ internal fun nextSnapshotRefreshMillis(
 
 /** Keep overdue requests until their widget has actually been rendered or deleted. */
 internal fun nextWidgetRefreshAlarmMillis(boundaries: Collection<Long>, nowMillis: Long): Long? =
-    boundaries.minOrNull()?.let { if (it <= nowMillis) nowMillis + 60_000L else it }
+    boundaries.minOfOrNull { if (it <= nowMillis) nowMillis + 60_000L else it }
+
+/** An overdue inexact alarm may still be queued by Android. Do not keep postponing it. */
+internal fun keepWidgetRefreshAlarm(scheduledMillis: Long?, nextMillis: Long): Boolean =
+    scheduledMillis != null && scheduledMillis <= nextMillis
 
 /** Recomputed from current data, never from an old alarm's item/occurrence payload. */
 internal fun nextWidgetSelectionBoundary(items: List<ItemEntity>, now: ZonedDateTime): Long? {

@@ -31,6 +31,8 @@ class App : Application() {
         super.onCreate()
         telemetry.initialize()
         ReminderScheduler.createChannel(this)
+        // Repair missing work on any process start, independently of reminder/database reads.
+        applicationScope.launch { com.devidea.timeleft.widget.WidgetRefreshSchedule.reconcileSafely(this@App) }
         applicationScope.launch {
             repository.items.retryWhen { cause, attempt ->
                 if (cause is CancellationException) throw cause
