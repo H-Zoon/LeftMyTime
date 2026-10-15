@@ -79,7 +79,8 @@ object PushMessaging {
                 error = it.error?.takeUnless { error -> error.startsWith("$REGISTRATION_ERROR:") },
             )
         }
-        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "Registered FID: $installationId")
+        RewardMessaging.onRegistered(installationId)
+        if (BuildConfig.DEBUG) Log.d(LOG_TAG, "FCM registration completed")
     }
 
     internal fun messageReceived(message: RemoteMessage) {

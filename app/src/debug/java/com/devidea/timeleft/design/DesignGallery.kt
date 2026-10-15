@@ -49,6 +49,7 @@ import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.messaging.RewardTopicSyncStatus
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.settings.SettingsScreen
@@ -354,7 +355,7 @@ private fun GalleryScreen(
                 isLoading = false, isSaving = false, onBack = {}, onSave = {}
             )
         }
-        screen == "settings" || screen == "settings-selected" || screen == "settings-legacy" || screen.startsWith("theme-preview") ->
+        screen.startsWith("settings") || screen.startsWith("theme-preview") ->
             SettingsGallery(screen, themeMode, paletteKey, periodItems)
         else -> HomeScreen(
             initialSortValue = UserPreferences.SORT_NEAREST,
@@ -414,6 +415,13 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
     }
     var dateReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 7 else ItemVisuals.REMINDER_DISABLED) }
     var timeReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 60 else ItemVisuals.REMINDER_DISABLED) }
+    var rewardConsent by rememberSaveable(screen) { mutableStateOf(screen.startsWith("settings-rewards-")) }
+    var rewardNotificationsAllowed by rememberSaveable(screen) { mutableStateOf(screen != "settings-rewards-blocked") }
+    var rewardTopicSync by rememberSaveable(screen) { mutableStateOf(when (screen) {
+        "settings-rewards-syncing" -> RewardTopicSyncStatus.Syncing
+        "settings-rewards-failed" -> RewardTopicSyncStatus.Failed
+        else -> RewardTopicSyncStatus.Synced
+    }) }
     var previewOpen by rememberSaveable(screen) { mutableStateOf(screen.startsWith("theme-preview")) }
     var previewStatus by rememberSaveable(screen) { mutableStateOf(when (screen) {
         "theme-preview-loading" -> "loading"
@@ -437,11 +445,16 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
         ) else SettingsScreen(
             themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
             progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
-            dateReminderTime = "09:00", remindersEnabled = !selectedFixture, versionName = "디자인 검수",
+            dateReminderTime = "09:00", remindersEnabled = !selectedFixture,
+            rewardConsentGranted = rewardConsent, rewardNotificationsAllowed = rewardNotificationsAllowed,
+            rewardTopicSync = rewardTopicSync, versionName = "디자인 검수",
             onBack = {}, onOpenThemePreview = { previewOpen = true }, previewPeriods = periods, onSortSelected = { sort = it },
             onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
             onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
             onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
+            onRewardConsentChanged = { rewardConsent = it; rewardTopicSync = RewardTopicSyncStatus.Synced },
+            onOpenRewardNotificationSettings = { rewardNotificationsAllowed = true },
+            onRetryRewardTopicSync = { rewardTopicSync = RewardTopicSyncStatus.Synced },
         )
     }
 }
@@ -499,6 +512,21 @@ private fun TimeEditorPreview(@PreviewParameter(PalettePreviewProvider::class) p
 @Composable
 private fun SettingsPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("settings", palette)
+
+@DesignPreviews
+@Composable
+private fun RewardSettingsOnPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("settings-rewards-on", palette)
+
+@DesignPreviews
+@Composable
+private fun RewardSettingsBlockedPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("settings-rewards-blocked", palette)
+
+@DesignPreviews
+@Composable
+private fun RewardSettingsUnconfirmedPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("settings-rewards-failed", palette)
 
 @DesignPreviews
 @Composable

@@ -630,4 +630,21 @@
     <string name="notification_channel_push">Messages</string>
     <string name="push_notification_default_title">TimeLeft message</string>
     <string name="push_notification_default_body">A new message has arrived.</string>
+    <string name="notification_channel_rewards">Rewards and benefits</string>
+    <string name="notification_channel_rewards_description">Optional reward and benefit announcements, separate from schedule and focus reminders.</string>
+    <string name="settings_reward_notifications">Receive reward and benefit notifications</string>
+    <string name="settings_reward_notifications_summary">Optional reward and benefit announcements. This choice is separate from schedule and focus reminders.</string>
+    <string name="settings_reward_syncing">Applying your reward notification choice…</string>
+    <string name="settings_reward_unsubscribing">Applying your choice to turn off reward notifications…</string>
+    <string name="settings_reward_sync_unconfirmed">The reward notification update is not confirmed yet. Please check again.</string>
+    <string name="settings_reward_unsubscribe_unconfirmed">Turning off reward notifications is not confirmed yet. Please check again.</string>
+    <string name="settings_reward_off">Reward notifications are turned off.</string>
+    <string name="settings_reward_blocked">Your reward choice is kept. Allow notifications in system settings to display them.</string>
+    <string name="settings_reward_ready">Reward notification setup is complete.</string>
+    <string name="settings_reward_retry">Check reward notification setup again</string>
+    <string name="settings_reward_system_settings">Reward notification display settings</string>
+    <string name="settings_reward_display_allowed">System display is allowed. Manage the reward channel in system settings.</string>
+    <string name="settings_reward_display_blocked">System display is blocked. Your reward choice is kept; allow notifications in system settings.</string>
+    <string name="settings_reward_permission_title">Allow notifications for rewards?</string>
+    <string name="settings_reward_permission_message">Your reward choice is kept. Allow system notifications to display reward and benefit announcements. This permission also applies to other app notifications, including schedule and focus reminders.</string>
 </resources>

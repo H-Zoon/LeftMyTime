@@ -32,6 +32,7 @@ class App : Application() {
         telemetry.initialize()
         com.devidea.timeleft.telemetry.AppPerformance.initialize()
         com.devidea.timeleft.config.AppRemoteConfig.initialize(this)
+        com.devidea.timeleft.messaging.RewardMessaging.initialize(this)
         com.devidea.timeleft.messaging.PushMessaging.initialize(this)
         ReminderScheduler.createChannel(this)
         // Repair missing work on any process start, independently of reminder/database reads.
@@ -45,7 +46,10 @@ class App : Application() {
         }
         registerActivityLifecycleCallbacks(object : ActivityLifecycleCallbacks {
             // Includes returning from system notification settings or a detail/editor screen.
-            override fun onActivityResumed(activity: Activity) { applicationScope.launch { refreshReminders() } }
+            override fun onActivityResumed(activity: Activity) {
+                com.devidea.timeleft.messaging.RewardMessaging.refresh()
+                applicationScope.launch { refreshReminders() }
+            }
             override fun onActivityCreated(activity: Activity, state: Bundle?) = Unit
             override fun onActivityStarted(activity: Activity) = Unit
             override fun onActivityPaused(activity: Activity) = Unit

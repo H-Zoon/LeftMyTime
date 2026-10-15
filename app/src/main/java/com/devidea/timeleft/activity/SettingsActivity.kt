@@ -2,6 +2,8 @@ package com.devidea.timeleft.activity
 
 import com.devidea.timeleft.backup.BackupViewModel
 import com.devidea.timeleft.backup.BackupScreen
+import android.Manifest
+import android.app.NotificationManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.appwidget.AppWidgetManager
@@ -9,6 +11,7 @@ import android.os.Bundle
 import android.provider.Settings
 import android.webkit.WebView
 import androidx.activity.compose.setContent
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
@@ -19,7 +22,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
@@ -31,6 +37,11 @@ import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.BuildConfig
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.notification.canPostReminderNotifications
+import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
+import com.devidea.timeleft.messaging.RewardMessaging
+import com.devidea.timeleft.messaging.PushNotifications
+import com.devidea.timeleft.ui.permission.hasRequestedNotificationPermission
+import com.devidea.timeleft.ui.permission.markNotificationPermissionRequested
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
@@ -73,6 +84,14 @@ class SettingsActivity : AppCompatActivity() {
     private var dateReminderTime by mutableStateOf(UserPreferences.DEFAULT_DATE_REMINDER_TIME)
     private var showTimePicker by mutableStateOf(false)
     private var remindersEnabled by mutableStateOf(false)
+    private var showRewardPermissionExplanation by mutableStateOf(false)
+    private val rewardPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) {
+        // The system permission never changes the separately saved reward choice.
+        RewardMessaging.refresh()
+        remindersEnabled = canPostReminderNotifications()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -81,6 +100,7 @@ class SettingsActivity : AppCompatActivity() {
         setContent {
             var showBackup by rememberSaveable { mutableStateOf(false) }
             val backupState by backupModel.state.collectAsStateWithLifecycle()
+            val rewardState by RewardMessaging.state.collectAsStateWithLifecycle()
             var showThemePreview by rememberSaveable { mutableStateOf(false) }
             val previewState by themePreviewModel.state.collectAsStateWithLifecycle()
             TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey, designKey = designKey) {
@@ -107,6 +127,9 @@ class SettingsActivity : AppCompatActivity() {
                     defaultTimeReminderOffset = defaultTimeReminderOffset,
                     dateReminderTime = dateReminderTime,
                     remindersEnabled = remindersEnabled,
+                    rewardConsentGranted = rewardState.consentGranted,
+                    rewardNotificationsAllowed = rewardState.notificationsAllowed,
+                    rewardTopicSync = rewardState.topicSync,
                     versionName = BuildConfig.VERSION_NAME,
                     onBack = { finish() },
                     onOpenTemplates = { startActivity(Intent(this, com.devidea.timeleft.templates.TemplatesActivity::class.java)) },
@@ -121,9 +144,29 @@ class SettingsActivity : AppCompatActivity() {
                     onDefaultTimeReminderSelected = ::selectDefaultTimeReminder,
                     onSelectDateReminderTime = ::selectDateReminderTime,
                     onOpenNotificationSettings = ::openNotificationSettings,
+                    onRewardConsentChanged = ::selectRewardConsent,
+                    onOpenRewardNotificationSettings = ::openRewardNotificationSettings,
+                    onRetryRewardTopicSync = RewardMessaging::refresh,
                     onOpenPrivacyPolicy = {
                         startActivity(Intent(this, PrivacyPolicyActivity::class.java))
                     }
+                )
+                if (showRewardPermissionExplanation) AlertDialog(
+                    onDismissRequest = { showRewardPermissionExplanation = false },
+                    title = { Text(stringResource(R.string.settings_reward_permission_title)) },
+                    text = { Text(stringResource(R.string.settings_reward_permission_message)) },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showRewardPermissionExplanation = false
+                            markNotificationPermissionRequested()
+                            rewardPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                        }) { Text(stringResource(R.string.notification_permission_allow)) }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = { showRewardPermissionExplanation = false }) {
+                            Text(stringResource(R.string.notification_permission_not_now))
+                        }
+                    },
                 )
                 if (showTimePicker) TimeLeftTimePicker(
                     runCatching { LocalTime.parse(dateReminderTime, SETTINGS_TIME_FORMATTER) }.getOrDefault(LocalTime.of(9, 0)),
@@ -226,6 +269,31 @@ class SettingsActivity : AppCompatActivity() {
     }
 
     private fun selectDateReminderTime() { showTimePicker = true }
+
+    private fun selectRewardConsent(granted: Boolean) {
+        RewardMessaging.setConsent(granted)
+        if (!granted || !isNotificationRuntimePermissionDenied()) return
+        if (hasRequestedNotificationPermission() &&
+            !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
+        ) {
+            openRewardNotificationSettings()
+        } else {
+            showRewardPermissionExplanation = true
+        }
+    }
+
+    private fun openRewardNotificationSettings() {
+        val manager = getSystemService(NotificationManager::class.java)
+        if (isNotificationRuntimePermissionDenied() || !manager.areNotificationsEnabled()) {
+            openNotificationSettings()
+            return
+        }
+        startActivity(
+            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
+                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
+                .putExtra(Settings.EXTRA_CHANNEL_ID, PushNotifications.REWARD_CHANNEL_ID)
+        )
+    }
 
     private fun rescheduleReminders() {
         lifecycleScope.launch {

@@ -23,11 +23,14 @@ fun Context.markNotificationPermissionRequested() {
         .apply()
 }
 
+fun Context.hasRequestedNotificationPermission(): Boolean =
+    PreferenceManager.getDefaultSharedPreferences(this)
+        .getBoolean(NOTIFICATION_PERMISSION_REQUESTED, false)
+
 fun Context.shouldOpenNotificationSettings(): Boolean =
     !canPostReminderNotifications() &&
         (!isNotificationRuntimePermissionDenied() ||
-            PreferenceManager.getDefaultSharedPreferences(this)
-                .getBoolean(NOTIFICATION_PERMISSION_REQUESTED, false) &&
+            hasRequestedNotificationPermission() &&
             findActivity()?.shouldShowRequestPermissionRationale(
                 Manifest.permission.POST_NOTIFICATIONS
             ) == false)

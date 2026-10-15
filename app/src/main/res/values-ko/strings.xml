@@ -626,4 +626,21 @@
     <string name="notification_channel_push">메시지</string>
     <string name="push_notification_default_title">TimeLeft 메시지</string>
     <string name="push_notification_default_body">새 메시지가 도착했습니다.</string>
+    <string name="notification_channel_rewards">리워드·혜택</string>
+    <string name="notification_channel_rewards_description">일정·집중 알림과 별도로 선택하는 리워드와 혜택 안내입니다.</string>
+    <string name="settings_reward_notifications">리워드·혜택 알림 받기</string>
+    <string name="settings_reward_notifications_summary">리워드와 혜택 안내를 선택해서 받아요. 일정·집중 알림과 별도로 관리해요.</string>
+    <string name="settings_reward_syncing">선택한 리워드 알림 설정을 반영하고 있어요.</string>
+    <string name="settings_reward_unsubscribing">리워드 알림 수신 해제를 반영하고 있어요.</string>
+    <string name="settings_reward_sync_unconfirmed">리워드 알림 설정 반영을 아직 확인하지 못했어요. 다시 확인해 주세요.</string>
+    <string name="settings_reward_unsubscribe_unconfirmed">리워드 알림 수신 해제 반영을 아직 확인하지 못했어요. 다시 확인해 주세요.</string>
+    <string name="settings_reward_off">리워드 알림 수신을 껐어요.</string>
+    <string name="settings_reward_blocked">수신 선택은 유지돼요. 알림을 표시하려면 시스템 설정에서 허용해 주세요.</string>
+    <string name="settings_reward_ready">리워드 알림 수신 설정을 마쳤어요.</string>
+    <string name="settings_reward_retry">리워드 알림 설정 다시 확인</string>
+    <string name="settings_reward_system_settings">리워드 알림 표시 설정</string>
+    <string name="settings_reward_display_allowed">시스템에서 표시를 허용했어요. 리워드 채널은 시스템 설정에서 관리해요.</string>
+    <string name="settings_reward_display_blocked">시스템에서 표시를 차단했어요. 수신 선택은 유지되며, 알림은 시스템 설정에서 허용할 수 있어요.</string>
+    <string name="settings_reward_permission_title">리워드 알림 표시를 허용할까요?</string>
+    <string name="settings_reward_permission_message">리워드 수신 선택은 유지돼요. 리워드와 혜택 안내를 표시하려면 시스템 알림 권한이 필요해요. 이 권한은 일정·집중 등 앱의 다른 알림에도 적용돼요.</string>
 </resources>

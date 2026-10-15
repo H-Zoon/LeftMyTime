@@ -12,9 +12,12 @@ import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
 import com.google.firebase.messaging.RemoteMessage
 import java.util.concurrent.atomic.AtomicInteger
 
+internal enum class PushNotificationResult { Posted, Blocked, RewardOptedOut }
+
 /** Remote messages use a channel and notification tag independent of local schedule reminders. */
 object PushNotifications {
     const val CHANNEL_ID = "remote_messages"
+    const val REWARD_CHANNEL_ID = "reward_notifications"
     private const val NOTIFICATION_TAG = "remote_messages"
     private const val OPEN_ACTION = "com.devidea.timeleft.action.OPEN_PUSH"
     private const val OPEN_REQUEST_CODE = 70_001
@@ -28,20 +31,64 @@ object PushNotifications {
                 NotificationManager.IMPORTANCE_DEFAULT,
             ),
         )
+        createRewardChannel(context)
+    }
+
+    internal fun createRewardChannel(context: Context) {
+        context.getSystemService(NotificationManager::class.java).createNotificationChannel(
+            NotificationChannel(
+                REWARD_CHANNEL_ID,
+                context.getString(R.string.notification_channel_rewards),
+                NotificationManager.IMPORTANCE_DEFAULT,
+            ).apply { description = context.getString(R.string.notification_channel_rewards_description) },
+        )
     }
 
     fun canPostNotifications(context: Context): Boolean {
+        return canPostToChannel(context, CHANNEL_ID)
+    }
+
+    internal fun canPostRewardNotifications(context: Context): Boolean =
+        canPostToChannel(context, REWARD_CHANNEL_ID)
+
+    private fun canPostToChannel(context: Context, channelId: String): Boolean {
         if (context.isNotificationRuntimePermissionDenied()) return false
         val manager = context.getSystemService(NotificationManager::class.java)
         return manager.areNotificationsEnabled() &&
-            manager.getNotificationChannel(CHANNEL_ID)?.importance != NotificationManager.IMPORTANCE_NONE
+            manager.getNotificationChannel(channelId)?.importance != NotificationManager.IMPORTANCE_NONE
+    }
+
+    /** Includes SDK-posted background rewards; unrelated schedule/focus/general channels are kept. */
+    internal fun cancelRewardNotifications(context: Context) {
+        val manager = context.getSystemService(NotificationManager::class.java)
+        for (posted in manager.activeNotifications) {
+            if (posted.notification.channelId == REWARD_CHANNEL_ID) {
+                manager.cancel(posted.tag, posted.id)
+            }
+        }
     }
 
     /** Called only for messages delivered to the service; the SDK displays background notifications. */
-    internal fun show(context: Context, message: RemoteMessage): Boolean {
+    internal fun show(context: Context, message: RemoteMessage): PushNotificationResult {
         createChannel(context)
-        if (!canPostNotifications(context)) return false
+        val reward = isRewardMessage(message.data["message_type"], message.from, message.notification?.channelId)
+        val channelId = if (reward) REWARD_CHANNEL_ID else CHANNEL_ID
+        if (reward) {
+            return RewardMessaging.postWithConsent {
+                if (!canPostRewardNotifications(context)) PushNotificationResult.Blocked
+                else post(context, message, channelId, REWARD_CHANNEL_ID)
+            }
+        }
+        if (!canPostNotifications(context)) return PushNotificationResult.Blocked
+        return post(context, message, channelId, NOTIFICATION_TAG)
+    }
 
+    private fun post(
+        context: Context,
+        message: RemoteMessage,
+        channelId: String,
+        tag: String,
+    ): PushNotificationResult {
         val title = message.notification?.title?.takeIf { it.isNotBlank() }
             ?: message.data["title"]?.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.push_notification_default_title)
@@ -57,7 +104,7 @@ object PushNotifications {
             target,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = Notification.Builder(context, CHANNEL_ID)
+        val notification = Notification.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_baseline_refresh_24)
             .setContentTitle(title)
             .setContentText(body)
@@ -67,7 +114,7 @@ object PushNotifications {
             .build()
         val notificationId = message.messageId?.hashCode() ?: nextNotificationId.incrementAndGet()
         context.getSystemService(NotificationManager::class.java)
-            .notify(NOTIFICATION_TAG, notificationId, notification)
-        return true
+            .notify(tag, notificationId, notification)
+        return PushNotificationResult.Posted
     }
 }

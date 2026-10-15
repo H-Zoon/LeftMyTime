@@ -10,7 +10,7 @@
 - SDK 기본 자동 초기화와 재등록 동작을 사용하며, 앱 프로세스 시작 및 디버그 화면의 ‘다시 등록’에서도 수동 등록을 요청한다. 실패는 앱을 종료시키지 않고 진단 상태와 `TimeLeftFCM` Logcat에 남긴다.
 - 포그라운드의 notification 메시지와 서비스에 전달되는 data 메시지는 전용 `remote_messages` 채널에 표시한다. notification 제목/본문 → data의 `title`/`body` → 한/영 기본 문구 순서로 표시한다. 일정·집중 알림과 채널·알림 태그를 분리하며, 알림을 누르면 기존 홈을 연다.
 - 백그라운드의 notification 메시지는 SDK가 표시한다. 이 경우 `onMessageReceived()`가 실행되지 않아 진단 화면의 서비스 수신 시각은 갱신되지 않을 수 있다. data 메시지의 배송 시점은 Android·FCM의 백그라운드 정책을 따른다.
-- FID는 debug 빌드에서만 로그로 출력한다. 메시지 본문·data 값/키·sender를 로그나 Analytics에 추가하지 않는다. 진단 화면의 FID·수신 메타데이터는 프로세스 메모리에서만 유지하며 Firebase SDK 자체 등록 저장소는 SDK가 관리한다. 별도 앱 서버 저장이나 토픽 구독은 추가하지 않았다.
+- FID는 debug 진단 화면에서 확인·복사하며 로그에 출력하지 않는다. 메시지 본문·data 값/키·sender도 로그나 Analytics에 추가하지 않는다. 진단 화면의 FID·수신 메타데이터는 프로세스 메모리에서만 유지하며 Firebase SDK 자체 등록 저장소는 SDK가 관리한다. 별도 앱 서버 저장은 없고, 선택형 리워드 안내의 토픽 구독은 아래 별도 안내를 따른다.
 - 앱에 포함되는 `docs/privacy.html`에 FCM 설치·등록 정보 처리 및 메시지 전달 목적을 반영했다. 공개 웹사이트나 스토어 설정을 게시/수정한 것은 아니다.
 
 ## 테스트 화면 열기
@@ -91,7 +91,7 @@ HTTP 성공 응답은 발송 접수 결과다. 실제 수신은 기기 알림과
 - Android 13 이상 알림 권한 거절/허용, 전체 알림/메시지 채널 차단 및 설정 복귀. 차단 중 등록/수신과 표시 결과 구분.
 - 기존 일정·집중 알림 채널과 알림 탭 동선 유지.
 - 디버그 화면의 한/영, 밝게/어둡게, 320dp, 큰 글자, 긴 FID/오류 줄바꿈·복사·스크롤·48dp 터치 영역.
-- release에서 디버그 Activity/문구 및 FID 로그 제외. BoM 변경에 따른 기존 Analytics·Crashlytics 초기화.
+- release에서 디버그 Activity/문구 제외, 모든 빌드에서 FID 로그 없음. BoM 변경에 따른 기존 Analytics·Crashlytics 초기화.
 
 ## 공식 근거
 
@@ -100,3 +100,7 @@ HTTP 성공 응답은 발송 접수 결과다. 실제 수신은 기기 알림과
 - [FirebaseMessaging.register](https://firebase.google.com/docs/reference/android/com/google/firebase/messaging/FirebaseMessaging#register())
 - [Android 메시지 수신 동작](https://firebase.google.com/docs/cloud-messaging/android/receive-messages)
 - [HTTP v1 Message: fid](https://firebase.google.com/docs/reference/fcm/rest/v1/projects.messages)
+
+## 리워드 메시지 테스트
+
+일반 FID 수신 테스트와 별도로, 선택형 리워드 알림은 [리워드 수신 설정·토픽 발송 안내](REWARD_NOTIFICATIONS.md)를 따른다. 토픽은 `reward_notifications`, Android 채널 ID도 `reward_notifications`, 사용자 정의 데이터는 `message_type=reward`다. FID를 직접 지정하는 테스트는 캠페인의 토픽 대상 선별을 검증하지 않는다.

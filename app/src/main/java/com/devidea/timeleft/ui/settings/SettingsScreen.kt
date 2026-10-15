@@ -26,6 +26,7 @@ import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.messaging.RewardTopicSyncStatus
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.ui.components.TimeLeftSection
 import com.devidea.timeleft.ui.components.TimeLeftSwitchRow
@@ -44,6 +45,9 @@ fun SettingsScreen(
     defaultTimeReminderOffset: Int,
     dateReminderTime: String,
     remindersEnabled: Boolean,
+    rewardConsentGranted: Boolean,
+    rewardNotificationsAllowed: Boolean,
+    rewardTopicSync: RewardTopicSyncStatus,
     versionName: String,
     onBack: () -> Unit,
     onOpenThemePreview: () -> Unit,
@@ -54,6 +58,9 @@ fun SettingsScreen(
     onDefaultTimeReminderSelected: (Int) -> Unit,
     onSelectDateReminderTime: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
+    onRewardConsentChanged: (Boolean) -> Unit,
+    onOpenRewardNotificationSettings: () -> Unit,
+    onRetryRewardTopicSync: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
     previewPeriods: List<AdapterItem> = emptyList(),
     onOpenBackup: () -> Unit = {},
@@ -126,6 +133,42 @@ fun SettingsScreen(
                 type = ItemType.Time,
                 selectedOffset = defaultTimeReminderOffset,
                 onSelected = onDefaultTimeReminderSelected
+            )
+            TimeLeftSwitchRow(
+                title = stringResource(R.string.settings_reward_notifications),
+                summary = stringResource(R.string.settings_reward_notifications_summary),
+                checked = rewardConsentGranted,
+                onCheckedChange = onRewardConsentChanged,
+            )
+            Text(
+                text = stringResource(when {
+                    rewardTopicSync == RewardTopicSyncStatus.Syncing ->
+                        if (rewardConsentGranted) R.string.settings_reward_syncing
+                        else R.string.settings_reward_unsubscribing
+                    rewardTopicSync == RewardTopicSyncStatus.Failed ->
+                        if (rewardConsentGranted) R.string.settings_reward_sync_unconfirmed
+                        else R.string.settings_reward_unsubscribe_unconfirmed
+                    !rewardConsentGranted -> R.string.settings_reward_off
+                    !rewardNotificationsAllowed -> R.string.settings_reward_blocked
+                    else -> R.string.settings_reward_ready
+                }),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = Spacing.s),
+            )
+            if (rewardTopicSync == RewardTopicSyncStatus.Failed) {
+                NavigationRow(
+                    title = stringResource(R.string.settings_reward_retry),
+                    onClick = onRetryRewardTopicSync,
+                )
+            }
+            NavigationRow(
+                title = stringResource(R.string.settings_reward_system_settings),
+                summary = stringResource(
+                    if (rewardNotificationsAllowed) R.string.settings_reward_display_allowed
+                    else R.string.settings_reward_display_blocked
+                ),
+                onClick = onOpenRewardNotificationSettings,
             )
         }
 
