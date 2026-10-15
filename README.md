@@ -19,6 +19,7 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 ## 디자인과 장기 운영
 
 * [다른 PC에서 이어서 작업하기 — 현재 상태와 남은 검증](design/WORK_HANDOFF.md)
+* [Firebase 원격 설정·성능 측정·테스터 배포 안내](design/FIREBASE_OPERATIONS.md)
 * [디자인 기준 v2 — 확정된 A안 ‘시간 중심’](design/DESIGN_SYSTEM.md) (홈·입력·설정·위젯 적용)
 * [A안 구현 검수 기록](design/QA_V2_2026-09-18.md)
 * [A/B/C 비교와 선택 기록](design/REDESIGN_PROPOSAL.md)

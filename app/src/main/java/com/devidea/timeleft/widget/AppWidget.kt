@@ -20,6 +20,7 @@ import com.devidea.timeleft.R
 import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.telemetry.AppPerformance
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
 import dagger.hilt.android.EntryPointAccessors
@@ -254,106 +255,120 @@ open class AppWidget : AppWidgetProvider() {
         appWidgetId: Int,
     ): Boolean {
         if (appWidgetManager.getAppWidgetInfo(appWidgetId) == null) return true
-        val ep = entryPoint(context)
-        val prefs = ep.prefs()
-        val itemGenerator = ep.itemGenerator()
-        val repository = ep.repository()
-        var loadedEntities: List<com.devidea.timeleft.database.itemdata.ItemEntity>? = null
-        suspend fun entities() = loadedEntities ?: repository.allItems().also { loadedEntities = it }
-
-        val configuration = WidgetConfiguration.read(prefs, appWidgetId)
-        val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
-        var emptyMessage = R.string.widget_no_upcoming
-        var dataLoaded = true
-        val item = when (configuration.source) {
-            WidgetSource.Today -> periods[0]
-            WidgetSource.Month -> periods[1]
-            WidgetSource.Year -> periods[2]
-            WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
-            WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
-            WidgetSource.Overview -> null
-            WidgetSource.Next -> {
-                try {
-                    val selected = NextCountdownSelector.select(
-                        entities().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
-                    )
-                    selected?.let {
-                        when (it.type) {
-                            ItemType.Time -> itemGenerator.customTimeItem(it)
-                            ItemType.Date -> itemGenerator.customMonthItem(it)
-                        }
-                    } ?: periods[1].takeIf { configuration.legacySummary }
-                } catch (exception: CancellationException) {
-                    throw exception
-                } catch (_: Exception) {
-                    dataLoaded = false
-                    emptyMessage = R.string.widget_load_failed
-                    periods[1].takeIf { configuration.legacySummary }
-                }
-            }
-            WidgetSource.Custom -> {
-                emptyMessage = R.string.widget_selected_deleted
-                try {
-                    val entity = entities().firstOrNull { it.id == configuration.itemId }
-                    entity?.let { it.currentOccurrence() }?.let { selected ->
-                        when (selected.type) {
-                            ItemType.Time -> itemGenerator.customTimeItem(selected)
-                            ItemType.Date -> itemGenerator.customMonthItem(selected)
-                        }
-                    } ?: periods[1].takeIf { configuration.legacySummary }
-                } catch (exception: CancellationException) {
-                    throw exception
-                } catch (_: Exception) {
-                    dataLoaded = false
-                    emptyMessage = R.string.widget_load_failed
-                    periods[1].takeIf { configuration.legacySummary } // Preserve all saved selections on failure.
-                }
-            }
-        }
-        val palette = WidgetPalette.fromPreferences(context, prefs)
-        val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-        val secondsPlan = if (configuration.showSeconds && WidgetSecondsSupport.available())
-            WidgetSecondsPlan.create(configuration, item, System.currentTimeMillis()) else null
-        fun render(seconds: Boolean) = widgetViewsForSizes(appWidgetManager.getAppWidgetOptions(appWidgetId), configuration.source) { size ->
-            // One immutable plan for the entire responsive map, even at a validity boundary.
-            val views = if (seconds && secondsPlan != null && item != null && Build.VERSION.SDK_INT >= 35)
-                WidgetSecondsRenderer.create(context, size, item, secondsPlan, palette, showProgress)
-            else createViews(context, size, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress)
-            views.also {
-                val shownSource = if (configuration.source in listOf(WidgetSource.Custom, WidgetSource.Next) && item?.id == 0)
-                    WidgetSource.Month else configuration.source
-                bindWidgetActions(context, appWidgetManager, it, appWidgetId, shownSource, item, emptyMessage)
-            }
-        }
-        var secondsRendered = secondsPlan != null
+        val trace = AppPerformance.startWidgetUpdate()
+        var unfinishedOutcome = AppPerformance.Outcome.Error
         try {
-            appWidgetManager.updateAppWidget(appWidgetId, render(secondsRendered))
-        } catch (error: RuntimeException) {
-            if (!secondsRendered) throw error
-            android.util.Log.e("WidgetSeconds", "Seconds rendering failed: ${error.javaClass.simpleName}")
-            secondsRendered = false
-            // Rebuild every responsive size with the same XML payload type, including posting errors.
-            appWidgetManager.updateAppWidget(appWidgetId, render(false))
-        }
-        // Submission is observable here; it does not prove that the launcher drew the new views.
-        android.util.Log.i("WidgetRefresh", "Widget submitted: widget=$appWidgetId dataLoaded=$dataLoaded seconds=$secondsRendered")
-        val refreshTime = System.currentTimeMillis()
-        var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(refreshTime)
-            else nextSnapshotRefreshMillis(configuration, item, refreshTime)
-        if (configuration.source == WidgetSource.Next) {
-            // Also watch future timed candidates while the automatic widget currently shows a date.
-            // A failed repository read must not discard an already rendered, self-clamping timer.
-            try {
-                boundary = listOfNotNull(boundary, nextWidgetSelectionBoundary(entities(), java.time.ZonedDateTime.now())).minOrNull()
-            } catch (error: CancellationException) { throw error }
-            catch (error: Exception) {
-                dataLoaded = false
-                android.util.Log.e("WidgetRefresh", "Boundary selection failed: ${error.javaClass.simpleName}")
+            val ep = entryPoint(context)
+            val prefs = ep.prefs()
+            val itemGenerator = ep.itemGenerator()
+            val repository = ep.repository()
+            var loadedEntities: List<com.devidea.timeleft.database.itemdata.ItemEntity>? = null
+            suspend fun entities() = loadedEntities ?: repository.allItems().also { loadedEntities = it }
+
+            val configuration = WidgetConfiguration.read(prefs, appWidgetId)
+            val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
+            var emptyMessage = R.string.widget_no_upcoming
+            var dataLoaded = true
+            val item = when (configuration.source) {
+                WidgetSource.Today -> periods[0]
+                WidgetSource.Month -> periods[1]
+                WidgetSource.Year -> periods[2]
+                WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
+                WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
+                WidgetSource.Overview -> null
+                WidgetSource.Next -> {
+                    try {
+                        val selected = NextCountdownSelector.select(
+                            entities().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
+                        )
+                        selected?.let {
+                            when (it.type) {
+                                ItemType.Time -> itemGenerator.customTimeItem(it)
+                                ItemType.Date -> itemGenerator.customMonthItem(it)
+                            }
+                        } ?: periods[1].takeIf { configuration.legacySummary }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        dataLoaded = false
+                        emptyMessage = R.string.widget_load_failed
+                        periods[1].takeIf { configuration.legacySummary }
+                    }
+                }
+                WidgetSource.Custom -> {
+                    emptyMessage = R.string.widget_selected_deleted
+                    try {
+                        val entity = entities().firstOrNull { it.id == configuration.itemId }
+                        entity?.let { it.currentOccurrence() }?.let { selected ->
+                            when (selected.type) {
+                                ItemType.Time -> itemGenerator.customTimeItem(selected)
+                                ItemType.Date -> itemGenerator.customMonthItem(selected)
+                            }
+                        } ?: periods[1].takeIf { configuration.legacySummary }
+                    } catch (exception: CancellationException) {
+                        throw exception
+                    } catch (_: Exception) {
+                        dataLoaded = false
+                        emptyMessage = R.string.widget_load_failed
+                        periods[1].takeIf { configuration.legacySummary } // Preserve all saved selections on failure.
+                    }
+                }
             }
+            val palette = WidgetPalette.fromPreferences(context, prefs)
+            val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
+            val secondsPlan = if (configuration.showSeconds && WidgetSecondsSupport.available())
+                WidgetSecondsPlan.create(configuration, item, System.currentTimeMillis()) else null
+            fun render(seconds: Boolean) = widgetViewsForSizes(appWidgetManager.getAppWidgetOptions(appWidgetId), configuration.source) { size ->
+                // One immutable plan for the entire responsive map, even at a validity boundary.
+                val views = if (seconds && secondsPlan != null && item != null && Build.VERSION.SDK_INT >= 35)
+                    WidgetSecondsRenderer.create(context, size, item, secondsPlan, palette, showProgress)
+                else createViews(context, size, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress)
+                views.also {
+                    val shownSource = if (configuration.source in listOf(WidgetSource.Custom, WidgetSource.Next) && item?.id == 0)
+                        WidgetSource.Month else configuration.source
+                    bindWidgetActions(context, appWidgetManager, it, appWidgetId, shownSource, item, emptyMessage)
+                }
+            }
+            var secondsRendered = secondsPlan != null
+            try {
+                appWidgetManager.updateAppWidget(appWidgetId, render(secondsRendered))
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: RuntimeException) {
+                if (!secondsRendered) throw error
+                android.util.Log.e("WidgetSeconds", "Seconds rendering failed: ${error.javaClass.simpleName}")
+                secondsRendered = false
+                // Rebuild every responsive size with the same XML payload type, including posting errors.
+                appWidgetManager.updateAppWidget(appWidgetId, render(false))
+            }
+            trace.finish(if (!dataLoaded || (secondsPlan != null && !secondsRendered))
+                AppPerformance.Outcome.Fallback else AppPerformance.Outcome.Success)
+            // Submission is observable here; it does not prove that the launcher drew the new views.
+            android.util.Log.i("WidgetRefresh", "Widget submitted: widget=$appWidgetId dataLoaded=$dataLoaded seconds=$secondsRendered")
+            val refreshTime = System.currentTimeMillis()
+            var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(refreshTime)
+                else nextSnapshotRefreshMillis(configuration, item, refreshTime)
+            if (configuration.source == WidgetSource.Next) {
+                // Also watch future timed candidates while the automatic widget currently shows a date.
+                // A failed repository read must not discard an already rendered, self-clamping timer.
+                try {
+                    boundary = listOfNotNull(boundary, nextWidgetSelectionBoundary(entities(), java.time.ZonedDateTime.now())).minOrNull()
+                } catch (error: CancellationException) { throw error }
+                catch (error: Exception) {
+                    dataLoaded = false
+                    android.util.Log.e("WidgetRefresh", "Boundary selection failed: ${error.javaClass.simpleName}")
+                }
+            }
+            if (!dataLoaded) boundary = listOfNotNull(boundary, refreshTime + 60_000L).minOrNull()
+            WidgetBoundarySchedule.record(context, appWidgetId, boundary)
+            return dataLoaded
+        } catch (error: CancellationException) {
+            unfinishedOutcome = AppPerformance.Outcome.Cancelled
+            throw error
+        } finally {
+            // Submission already closes a successful trace; exceptions keep their original behavior.
+            trace.finish(unfinishedOutcome)
         }
-        if (!dataLoaded) boundary = listOfNotNull(boundary, refreshTime + 60_000L).minOrNull()
-        WidgetBoundarySchedule.record(context, appWidgetId, boundary)
-        return dataLoaded
     }
 
     private fun bindWidgetActions(

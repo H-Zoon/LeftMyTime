@@ -14,6 +14,7 @@ import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.calc.currentOccurrence
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.telemetry.AppPerformance
 import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
@@ -31,6 +32,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.emitAll
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.flow.map
@@ -89,32 +91,56 @@ class TimeLeftViewModel @Inject constructor(
             initialValue = buildTopItems(calendarItems.value)
         )
 
-    private data class RepositoryState(val items: List<ItemEntity> = emptyList(), val loading: Boolean = true, val failed: Boolean = false)
+    private data class RepositoryState(
+        val items: List<ItemEntity> = emptyList(),
+        val loading: Boolean = true,
+        val failed: Boolean = false,
+    )
     private val retry = MutableStateFlow(0)
     private val actionFailed = MutableStateFlow(false)
-    private val source = retry.flatMapLatest {
-        repository.items.map { RepositoryState(items = it, loading = false) }
-            .onStart { emit(RepositoryState()) }
-            .catch { error ->
-                if (error is CancellationException) throw error
-                emit(RepositoryState(loading = false, failed = true))
-            }
-    }
+    private val source = repository.items.map { RepositoryState(items = it, loading = false) }
+        .onStart { emit(RepositoryState()) }
+        .catch { error ->
+            if (error is CancellationException) throw error
+            emit(RepositoryState(loading = false, failed = true))
+        }
     // One bad record remains editable in All schedules; it cannot terminate the rest of the flow.
     private val dateCache = mutableMapOf<Int, Pair<Pair<ItemEntity, java.time.LocalDate>, AdapterItem>>()
-    val homeState: StateFlow<HomeLoadState> = combine(source, secondTicker, actionFailed) { state, _, failedAction ->
-        val today = java.time.LocalDate.now()
-        dateCache.keys.retainAll(state.items.map { it.id }.toSet())
-        val items = state.items.map { raw ->
-            val entity = raw.currentOccurrence(today)
-            if (entity.type == ItemType.Date) {
-                val key = entity to today
-                dateCache[entity.id]?.takeIf { it.first == key }?.second ?: buildItem(entity).also {
-                    dateCache[entity.id] = key to it
-                }
-            } else buildItem(entity)
+    val homeState: StateFlow<HomeLoadState> = retry.flatMapLatest {
+        flow {
+            val trace = AppPerformance.startHomeDataLoad()
+            var unfinishedOutcome = AppPerformance.Outcome.Cancelled
+            try {
+                emitAll(combine(source, secondTicker, actionFailed) { state, _, failedAction ->
+                    val today = java.time.LocalDate.now()
+                    dateCache.keys.retainAll(state.items.map { it.id }.toSet())
+                    val items = state.items.map { raw ->
+                        val entity = raw.currentOccurrence(today)
+                        if (entity.type == ItemType.Date) {
+                            val key = entity to today
+                            dateCache[entity.id]?.takeIf { it.first == key }?.second ?: buildItem(entity).also {
+                                dateCache[entity.id] = key to it
+                            }
+                        } else buildItem(entity)
+                    }
+                    HomeLoadState(items, state.loading, state.failed, items.count { it.dataError }, failedAction).also { ready ->
+                        if (!ready.loading) trace.finish(when {
+                            ready.failed -> AppPerformance.Outcome.Error
+                            ready.invalidCount > 0 -> AppPerformance.Outcome.Fallback
+                            else -> AppPerformance.Outcome.Success
+                        })
+                    }
+                })
+            } catch (error: CancellationException) {
+                throw error
+            } catch (error: Exception) {
+                unfinishedOutcome = AppPerformance.Outcome.Error
+                throw error
+            } finally {
+                // Closing again is a no-op once the first non-loading state has been prepared.
+                trace.finish(unfinishedOutcome)
+            }
         }
-        HomeLoadState(items, state.loading, state.failed, items.count { it.dataError }, failedAction)
     }.flowOn(Dispatchers.Default).stateIn(viewModelScope, SharingStarted.WhileSubscribed(STOP_TIMEOUT_MS), HomeLoadState())
 
     val customItems: StateFlow<List<AdapterItem>> = homeState.map { it.items }

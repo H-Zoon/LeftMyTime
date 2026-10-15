@@ -622,9 +622,12 @@
     <string name="calendar_import_policy">Repeating events are imported one occurrence at a time. All-day events keep their calendar dates; other times follow your device time zone. Reminders start off. Original calendars are unchanged. Duplicate checks apply to copies imported by this installation; another device or a reinstalled calendar may need manual review.</string>
     <string name="calendar_policy_show">How importing works</string>
     <string name="calendar_policy_hide">Hide import details</string>
-    <string name="settings_data_collection_summary">Usage statistics and crash reports are automatically sent to Google Firebase. See the privacy policy for the data collected, its purposes, and retention periods.</string>
+    <string name="settings_data_collection_summary">Usage statistics, crash reports, and performance data are automatically sent to Google Firebase. Installation information is also used for messages and remote configuration. See the privacy policy for details and retention periods.</string>
     <string name="settings_privacy">Privacy</string>
     <string name="theme_time_board">Time board</string>
     <string name="settings_layout_theme">Layout</string>
     <string name="widget_snapshot_hint">Widget numbers and the ruler show the last update. Tap a period or schedule to see the time change every second. Use the refresh button on a single widget to update its snapshot.</string>
+    <string name="notification_channel_push">Messages</string>
+    <string name="push_notification_default_title">TimeLeft message</string>
+    <string name="push_notification_default_body">A new message has arrived.</string>
 </resources>

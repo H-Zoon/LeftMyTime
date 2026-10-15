@@ -1,4 +1,5 @@
 import java.util.Properties
+import com.google.firebase.appdistribution.gradle.firebaseAppDistribution
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
@@ -9,7 +10,17 @@ plugins {
     id("com.google.dagger.hilt.android")
     id("com.google.gms.google-services")
     id("com.google.firebase.crashlytics")
+    id("com.google.firebase.firebase-perf")
+    id("com.google.firebase.appdistribution")
 }
+
+// Recipients and release notes belong to the local/CI environment, never to app resources.
+val distributionGroups = providers.gradleProperty("firebaseDistributionGroups")
+    .orElse(providers.environmentVariable("FIREBASE_APP_DISTRIBUTION_GROUPS"))
+val distributionTesters = providers.gradleProperty("firebaseDistributionTesters")
+    .orElse(providers.environmentVariable("FIREBASE_APP_DISTRIBUTION_TESTERS"))
+val distributionReleaseNotesFile = providers.gradleProperty("firebaseDistributionReleaseNotesFile")
+    .orElse(providers.environmentVariable("FIREBASE_APP_DISTRIBUTION_RELEASE_NOTES_FILE"))
 
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
@@ -67,6 +78,16 @@ android {
     }
 
     buildTypes {
+        configureEach {
+            firebaseAppDistribution {
+                artifactType = "APK"
+                distributionGroups.orNull?.takeIf { it.isNotBlank() }?.let { groups = it }
+                distributionTesters.orNull?.takeIf { it.isNotBlank() }?.let { testers = it }
+                distributionReleaseNotesFile.orNull?.takeIf { it.isNotBlank() }?.let {
+                    releaseNotesFile = rootProject.file(it).absolutePath
+                }
+            }
+        }
         release {
             if (hasReleaseSigningProperties) {
                 signingConfig = signingConfigs.getByName("release")
@@ -160,7 +181,11 @@ dependencies {
     ksp("com.google.dagger:hilt-android-compiler:$hiltVersion")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
-    implementation(platform("com.google.firebase:firebase-bom:34.13.0"))
+    // 34.16.0 includes Messaging 25.1.1: FID registration plus FID rotation fixes.
+    implementation(platform("com.google.firebase:firebase-bom:34.16.0"))
     implementation("com.google.firebase:firebase-analytics")
     implementation("com.google.firebase:firebase-crashlytics")
+    implementation("com.google.firebase:firebase-messaging")
+    implementation("com.google.firebase:firebase-config")
+    implementation("com.google.firebase:firebase-perf")
 }

@@ -2,6 +2,7 @@ package com.devidea.timeleft.widget
 
 import android.os.Build
 import android.widget.RemoteViews
+import com.devidea.timeleft.config.AppRemoteConfig
 
 internal object WidgetSecondsSupport {
     /** API level alone does not describe the host's document operations and clock variables. */
@@ -14,7 +15,12 @@ internal object WidgetSecondsSupport {
             null
         }
         return WidgetSecondsCapability.forHost(Build.VERSION.SDK_INT, version)
+            .withRemoteSecondsEnabled(AppRemoteConfig.widgetSecondsEnabled)
     }
 
     fun available(): Boolean = capability().productionProfile != null
 }
+
+/** Remote configuration can disable an existing production path, never enable an unsupported host. */
+internal fun WidgetSecondsCapability.withRemoteSecondsEnabled(enabled: Boolean): WidgetSecondsCapability =
+    if (enabled) this else copy(productionProfile = null)
