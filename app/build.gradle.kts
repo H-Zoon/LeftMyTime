@@ -22,6 +22,27 @@ val distributionTesters = providers.gradleProperty("firebaseDistributionTesters"
 val distributionReleaseNotesFile = providers.gradleProperty("firebaseDistributionReleaseNotesFile")
     .orElse(providers.environmentVariable("FIREBASE_APP_DISTRIBUTION_RELEASE_NOTES_FILE"))
 
+// This project-local credentials file is excluded from Git.
+val pointHomePropertiesFile = rootProject.file("pointhome.properties")
+val pointHomeProperties = Properties().apply {
+    if (pointHomePropertiesFile.exists()) {
+        pointHomePropertiesFile.inputStream().use { load(it) }
+    }
+}
+val pointHomeServiceId = providers.gradleProperty("pointHomeServiceId")
+    .orElse(providers.environmentVariable("POINTHOME_SERVICE_ID"))
+    .orElse(providers.provider { pointHomeProperties.getProperty("pointHomeServiceId", "") })
+val pointHomeSecret = providers.gradleProperty("pointHomeSecret")
+    .orElse(providers.environmentVariable("POINTHOME_SECRET"))
+    .orElse(providers.provider { pointHomeProperties.getProperty("pointHomeSecret", "") })
+
+fun buildConfigString(value: String): String = "\"" + value
+    .replace("\\", "\\\\")
+    .replace("\"", "\\\"")
+    .replace("\n", "\\n")
+    .replace("\r", "\\r")
+    .replace("\t", "\\t") + "\""
+
 val keystorePropertiesFile = rootProject.file("keystore.properties")
 val keystoreProperties = Properties().apply {
     if (keystorePropertiesFile.exists()) {
@@ -42,6 +63,9 @@ android {
         targetSdk = 36
         versionCode = 23
         versionName = "6.6"
+
+        buildConfigField("String", "POINTHOME_SERVICE_ID", buildConfigString(pointHomeServiceId.get()))
+        buildConfigField("String", "POINTHOME_SECRET", buildConfigString(pointHomeSecret.get()))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -188,4 +212,25 @@ dependencies {
     implementation("com.google.firebase:firebase-messaging")
     implementation("com.google.firebase:firebase-config")
     implementation("com.google.firebase:firebase-perf")
+
+    // PointHome (AdPopcorn and Mezzo are included by product).
+    implementation("com.avatye.pointhome:product:3.6.0")
+
+    // PointHome mediation networks: versions follow the integration guide.
+    // AdFit
+    implementation("com.kakao.adfit:ads-base:3.22.2")
+    // AppLovin / AppLovinMax
+    implementation("com.applovin:applovin-sdk:13.6.3")
+    // UnityAds
+    implementation("com.unity3d.ads:unity-ads:4.18.1")
+    // Vungle
+    implementation("com.vungle:vungle-ads:7.7.5")
+    // Facebook Audience Network
+    implementation("com.facebook.android:audience-network-sdk:6.21.0")
+    // Fyber
+    implementation("com.fyber:marketplace-sdk:8.4.6")
+    // Cauly
+    implementation("com.fsn.cauly:cauly-sdk:3.5.41")
+    // Pangle
+    implementation("com.pangle.global:pag-sdk:8.1.0.3")
 }

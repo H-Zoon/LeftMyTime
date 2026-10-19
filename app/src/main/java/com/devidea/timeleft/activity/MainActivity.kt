@@ -127,6 +127,12 @@ class MainActivity : AppCompatActivity() {
                 )
             }
         }
+
+        lifecycleScope.launch {
+            if (com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()) {
+                com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(this@MainActivity)
+            }
+        }
     }
 
     private fun changeSchedule(success: Int? = null, after: () -> Unit = {}, action: suspend () -> Unit) {

@@ -4,4 +4,8 @@
         <key>widget_seconds_enabled</key>
         <value>true</value>
     </entry>
+    <entry>
+        <key>pointhome_entry_enabled</key>
+        <value>true</value>
+    </entry>
 </defaultsMap>

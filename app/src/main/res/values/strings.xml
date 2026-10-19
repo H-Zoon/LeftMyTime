@@ -647,4 +647,5 @@
     <string name="settings_reward_display_blocked">System display is blocked. Your reward choice is kept; allow notifications in system settings.</string>
     <string name="settings_reward_permission_title">Allow notifications for rewards?</string>
     <string name="settings_reward_permission_message">Your reward choice is kept. Allow system notifications to display reward and benefit announcements. This permission also applies to other app notifications, including schedule and focus reminders.</string>
+    <string name="pointhome_floating_message">Get benefits</string>
 </resources>

@@ -33,3 +33,6 @@ __pycache__/
 *.jks
 *.keystore
 /keystore.properties
+
+# Project-local PointHome credentials.
+/pointhome.properties
