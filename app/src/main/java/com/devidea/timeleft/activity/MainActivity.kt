@@ -10,8 +10,18 @@ import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
 import androidx.lifecycle.withResumed
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import com.avatye.pointhome.builder.PointHomeActivityBuilder
 import com.devidea.timeleft.messaging.PointHomePushOpen
+import com.devidea.timeleft.messaging.RewardMessaging
+import com.devidea.timeleft.pointhome.PointHomeIntroInputs
+import com.devidea.timeleft.pointhome.PointHomeIntroMode
+import com.devidea.timeleft.pointhome.PointHomeIntroStore
+import com.devidea.timeleft.pointhome.isFreshInstall
+import com.devidea.timeleft.pointhome.pointHomeIntroMode
+import com.devidea.timeleft.pointhome.shouldShowPointHomeIntro
+import com.devidea.timeleft.telemetry.AppTelemetry
+import com.devidea.timeleft.ui.pointhome.PointHomeIntroFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -23,8 +33,10 @@ import androidx.activity.compose.setContent
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.app.AppCompatDelegate
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -43,14 +55,22 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val STATE_POINT_HOME_OPEN_PENDING = "point_home_open_pending"
+        const val STATE_POINT_HOME_NOTIFICATION_SESSION = "point_home_notification_session"
+        // Lets the splash exit and first list load settle before a sheet covers the home.
+        const val POINT_HOME_INTRO_DELAY_MILLIS = 1_000L
     }
 
     private var pointHomeOpenPending = false
     private var pointHomeOpenJob: Job? = null
     private var pointHomeNotificationBuilder: PointHomeActivityBuilder? = null
+    private var pointHomeButtonReady by mutableStateOf(false)
+    private var pointHomeNotificationSession = false
+    private var pointHomeIntroLaunches = 0
+    private val freshInstall by lazy { isFreshInstall(this) }
 
     @Inject lateinit var repository: TimeLeftRepository
     @Inject lateinit var prefs: SharedPreferences
+    @Inject lateinit var telemetry: AppTelemetry
 
     private val focusModel: FocusViewModel by viewModels()
     private val viewModel: TimeLeftViewModel by viewModels()
@@ -69,6 +89,9 @@ class MainActivity : AppCompatActivity() {
         val notificationOpen = PointHomePushOpen.consume(intent)
         pointHomeOpenPending = if (savedInstanceState == null) notificationOpen
         else savedInstanceState.getBoolean(STATE_POINT_HOME_OPEN_PENDING, false)
+        pointHomeNotificationSession = notificationOpen ||
+            savedInstanceState?.getBoolean(STATE_POINT_HOME_NOTIFICATION_SESSION, false) == true
+        pointHomeIntroLaunches = PointHomeIntroStore.recordHomeLaunch(prefs, countThisLaunch = savedInstanceState == null)
 
         splashScreen.setOnExitAnimationListener { provider ->
             SplashExitTransition(this, provider).start()
@@ -141,12 +164,16 @@ class MainActivity : AppCompatActivity() {
                     },
                     onDeleteItem = viewModel::deleteItem
                 )
+                PointHomeIntroHost(homeLoading = homeState.loading)
             }
         }
 
         lifecycleScope.launch {
             if (com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()) {
-                com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(this@MainActivity)
+                com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(this@MainActivity) { created ->
+                    // The intro may only describe a button that the SDK actually created.
+                    runOnUiThread { pointHomeButtonReady = created }
+                }
             }
         }
         openPointHomeFromNotificationIfPending()
@@ -156,14 +183,48 @@ class MainActivity : AppCompatActivity() {
         super.onNewIntent(intent)
         setIntent(intent)
         pointHomeOpenPending = PointHomePushOpen.consume(intent)
+        if (pointHomeOpenPending) pointHomeNotificationSession = true
         pointHomeOpenJob?.cancel()
         openPointHomeFromNotificationIfPending()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(STATE_POINT_HOME_OPEN_PENDING, pointHomeOpenPending)
+        outState.putBoolean(STATE_POINT_HOME_NOTIFICATION_SESSION, pointHomeNotificationSession)
         super.onSaveInstanceState(outState)
     }
+
+    /** Hosts the one-time PointHome introduction above the home once its start conditions hold. */
+    @androidx.compose.runtime.Composable
+    private fun PointHomeIntroHost(homeLoading: Boolean) {
+        var introMode by rememberSaveable { mutableStateOf(PointHomeIntroMode.Hidden) }
+        LaunchedEffect(pointHomeButtonReady, homeLoading) {
+            if (introMode != PointHomeIntroMode.Hidden || homeLoading || !shouldStartPointHomeIntro()) return@LaunchedEffect
+            delay(POINT_HOME_INTRO_DELAY_MILLIS)
+            this@MainActivity.lifecycle.withResumed {
+                // Re-check after the wait; the user may have left, rotated or opened a reward notification.
+                if (introMode == PointHomeIntroMode.Hidden && shouldStartPointHomeIntro()) {
+                    introMode = pointHomeIntroMode(RewardMessaging.state.value.consentGranted)
+                }
+            }
+        }
+        if (introMode != PointHomeIntroMode.Hidden) PointHomeIntroFlow(
+            mode = introMode,
+            onCompleted = { PointHomeIntroStore.markCompleted(prefs) },
+            onUsage = telemetry::record,
+            onFinished = { introMode = PointHomeIntroMode.Hidden },
+        )
+    }
+
+    private fun shouldStartPointHomeIntro(): Boolean = shouldShowPointHomeIntro(
+        PointHomeIntroInputs(
+            buttonReady = pointHomeButtonReady,
+            completedVersion = PointHomeIntroStore.completedVersion(prefs),
+            freshInstall = freshInstall,
+            homeLaunches = pointHomeIntroLaunches,
+            openedFromNotification = pointHomeNotificationSession,
+        ),
+    )
 
     private fun openPointHomeFromNotificationIfPending() {
         if (!pointHomeOpenPending || pointHomeOpenJob?.isActive == true) return

@@ -649,4 +649,22 @@
     <string name="settings_reward_permission_message">Your reward choice is kept. Allow system notifications to display reward and benefit announcements. This permission also applies to other app notifications, including schedule and focus reminders.</string>
     <string name="pointhome_floating_message">Get benefits</string>
     <string name="pointhome_unavailable">Rewards are currently unavailable.</string>
+    <string name="pointhome_intro_step">%1$d/%2$d</string>
+    <string name="pointhome_intro_step_description">Step %1$d of %2$d</string>
+    <string name="pointhome_intro_title">Rewards are now available</string>
+    <string name="pointhome_intro_body">Tap the floating “%1$s” button on your screen to see rewards and benefits. It does not change how you read your remaining time.</string>
+    <string name="pointhome_intro_next">Next</string>
+    <string name="pointhome_intro_later">Not now</string>
+    <string name="pointhome_intro_confirm">OK</string>
+    <string name="pointhome_intro_choice_title">Get reward news as notifications?</string>
+    <string name="pointhome_intro_choice_body">We will let you know when new rewards and benefits are available. They are managed separately from schedule and focus notifications, and you can turn them off anytime in Settings under “%1$s”. The notification permission also applies to the app\'s other notifications.</string>
+    <!-- Reserved for the advertising-information consent wording (sender, content, how to opt out); the sheet hides a blank value. -->
+    <string name="pointhome_intro_consent_notice"></string>
+    <string name="pointhome_intro_accept">Get notifications</string>
+    <string name="pointhome_intro_decline">No thanks</string>
+    <string name="pointhome_intro_accepted">You chose to receive reward notifications.</string>
+    <string name="pointhome_intro_declined">You will not receive reward notifications. You can turn them on anytime in Settings.</string>
+    <string name="pointhome_intro_closed">You can turn on reward notifications anytime in Settings.</string>
+    <string name="pointhome_intro_settings_title">Allow notifications in system settings</string>
+    <string name="pointhome_intro_settings_message">Allow notifications to receive reward news. Your choice to receive reward notifications stays as it is.</string>
 </resources>

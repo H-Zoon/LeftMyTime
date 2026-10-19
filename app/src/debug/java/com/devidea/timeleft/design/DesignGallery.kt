@@ -50,6 +50,7 @@ import com.devidea.timeleft.database.itemdata.ItemType
 import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.messaging.RewardTopicSyncStatus
+import com.devidea.timeleft.ui.pointhome.PointHomeIntroSheet
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.settings.SettingsScreen
@@ -357,7 +358,8 @@ private fun GalleryScreen(
         }
         screen.startsWith("settings") || screen.startsWith("theme-preview") ->
             SettingsGallery(screen, themeMode, paletteKey, periodItems)
-        else -> HomeScreen(
+        else -> {
+        HomeScreen(
             initialSortValue = UserPreferences.SORT_NEAREST,
             initialLayoutValue = if (screen == "grid" || screen == "date-grid") UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST,
             expiredItemsMode = when (screen) {
@@ -389,7 +391,23 @@ private fun GalleryScreen(
             onStartFocus = {}, onOpenFocus = {}, onMorePeriods = {},
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
         )
+        if (screen.startsWith("pointhome-intro")) PointHomeIntroGallery(screen)
+        }
     }
+}
+
+/** The real intro sheet over the real home. Choices only close it; no consent, SDK or settings change. */
+@Composable
+private fun PointHomeIntroGallery(screen: String) {
+    var open by rememberSaveable(screen) { mutableStateOf(true) }
+    var step by rememberSaveable(screen) { androidx.compose.runtime.mutableIntStateOf(if (screen == "pointhome-intro-choice" || screen == "pointhome-intro-notice") 2 else 1) }
+    if (open) PointHomeIntroSheet(
+        step = step,
+        totalSteps = if (screen == "pointhome-intro-info") 1 else 2,
+        // The notice slot is blank in production until the wording is confirmed; this checks its layout only.
+        consentNotice = if (screen == "pointhome-intro-notice") "광고성 정보 수신 동의 문구가 들어갈 자리입니다. (검수용 임시 문구)" else "",
+        onNext = { step = 2 }, onAccept = { open = false }, onDecline = { open = false }, onClose = { open = false },
+    )
 }
 
 /** Real settings controls with local state only; no saved preferences or reminders are changed. */

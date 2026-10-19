@@ -3,7 +3,6 @@ package com.devidea.timeleft.activity
 import com.devidea.timeleft.backup.BackupViewModel
 import com.devidea.timeleft.backup.BackupScreen
 import android.Manifest
-import android.app.NotificationManager
 import android.content.Intent
 import android.content.SharedPreferences
 import android.appwidget.AppWidgetManager
@@ -39,7 +38,9 @@ import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.notification.canPostReminderNotifications
 import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
 import com.devidea.timeleft.messaging.RewardMessaging
-import com.devidea.timeleft.messaging.PushNotifications
+import com.devidea.timeleft.messaging.RewardPermissionAction
+import com.devidea.timeleft.messaging.rewardNotificationSettingsIntent
+import com.devidea.timeleft.messaging.rewardPermissionAction
 import com.devidea.timeleft.ui.permission.hasRequestedNotificationPermission
 import com.devidea.timeleft.ui.permission.markNotificationPermissionRequested
 import com.devidea.timeleft.notification.ReminderScheduler
@@ -273,26 +274,20 @@ class SettingsActivity : AppCompatActivity() {
     private fun selectRewardConsent(granted: Boolean) {
         RewardMessaging.setConsent(granted)
         if (!granted || !isNotificationRuntimePermissionDenied()) return
-        if (hasRequestedNotificationPermission() &&
-            !shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS)
-        ) {
-            openRewardNotificationSettings()
-        } else {
-            showRewardPermissionExplanation = true
+        // Same decision as the PointHome intro; the toggle already explains itself, so only ask here.
+        when (rewardPermissionAction(
+            canPostRewards = false,
+            runtimePermissionDenied = true,
+            requestedBefore = hasRequestedNotificationPermission(),
+            rationaleAvailable = shouldShowRequestPermissionRationale(Manifest.permission.POST_NOTIFICATIONS),
+        )) {
+            RewardPermissionAction.OpenSettings -> openRewardNotificationSettings()
+            else -> showRewardPermissionExplanation = true
         }
     }
 
     private fun openRewardNotificationSettings() {
-        val manager = getSystemService(NotificationManager::class.java)
-        if (isNotificationRuntimePermissionDenied() || !manager.areNotificationsEnabled()) {
-            openNotificationSettings()
-            return
-        }
-        startActivity(
-            Intent(Settings.ACTION_CHANNEL_NOTIFICATION_SETTINGS)
-                .putExtra(Settings.EXTRA_APP_PACKAGE, packageName)
-                .putExtra(Settings.EXTRA_CHANNEL_ID, PushNotifications.REWARD_CHANNEL_ID)
-        )
+        startActivity(rewardNotificationSettingsIntent())
     }
 
     private fun rescheduleReminders() {

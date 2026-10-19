@@ -16,6 +16,9 @@ object UserPreferences {
     const val KEY_DEFAULT_DATE_REMINDER = "default_date_reminder"
     const val KEY_DEFAULT_TIME_REMINDER = "default_time_reminder"
     const val KEY_DATE_REMINDER_TIME = "date_reminder_time"
+    // PointHome intro: last completed intro version and cold starts counted while it is pending.
+    const val KEY_POINTHOME_INTRO_VERSION = "pointhome_intro_version"
+    const val KEY_POINTHOME_INTRO_HOME_LAUNCHES = "pointhome_intro_home_launches"
 
     const val THEME_AUTO = "auto"
     const val THEME_LIGHT = "light"

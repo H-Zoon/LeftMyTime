@@ -21,7 +21,7 @@ Remote Config, Performance Monitoring, App Distribution의 앱·Gradle 연결을
 
 ### PointHome 진입 UI (2026-10-19)
 
-Firebase Console의 **Remote Config → 매개변수**에 `pointhome_entry_enabled`를 **Boolean**으로 추가한다. `true`이면 기존 조건(자격값·SDK 초기화 성공)을 만족할 때 기본 플로팅 버튼 ‘해택 받기’를 생성하고, `false`이면 플로팅 생성과 리워드 알림의 PointHome 직접 진입 UI 호출을 생략한다. `notification_kind=reward`·`open_target=pointhome` 알림을 눌렀을 때도 이 설정을 확인하며, 꺼져 있으면 홈에서 이용 불가 안내만 표시한다. 누락·빈값·잘못된 값·설정 초기화 오류는 기본값 `true`로 처리해 기존 표시 동작을 유지한다.
+Firebase Console의 **Remote Config → 매개변수**에 `pointhome_entry_enabled`를 **Boolean**으로 추가한다. `true`이면 기존 조건(자격값·SDK 초기화 성공)을 만족할 때 기본 플로팅 버튼 ‘혜택 받기’를 생성하고, `false`이면 플로팅 생성·PointHome 소개 시트와 리워드 알림의 PointHome 직접 진입 UI 호출을 생략한다. `notification_kind=reward`·`open_target=pointhome` 알림을 눌렀을 때도 이 설정을 확인하며, 꺼져 있으면 홈에서 이용 불가 안내만 표시한다. 누락·빈값·잘못된 값·설정 초기화 오류는 기본값 `true`로 처리해 기존 표시 동작을 유지한다.
 
 앱은 시작 시 저장된 값의 활성화가 끝날 때까지 버튼 호출만 비동기로 기다린다. 홈 화면과 SDK 초기화는 그대로 진행하며, 설정 준비 전 기본값으로 버튼을 먼저 표시하지 않는다. 확정한 진입 설정은 같은 프로세스 동안 고정하고 Activity 재생성에도 같은 값을 사용한다. Activity가 파괴되면 대기 중인 UI 호출도 취소한다.
 

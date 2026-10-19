@@ -16,6 +16,11 @@ enum class UsageEvent(val eventName: String) {
     ThemeApplied("theme_applied"),
     ThemeCancelled("theme_cancelled"),
     FocusStarted("focus_started"),
+    // PointHome intro funnel: only whether it was shown and how it ended, never consent state or IDs.
+    PointHomeIntroShown("pointhome_intro_shown"),
+    PointHomeIntroAccepted("pointhome_intro_accepted"),
+    PointHomeIntroDeclined("pointhome_intro_declined"),
+    PointHomeIntroClosed("pointhome_intro_closed"),
 }
 
 @Singleton

@@ -38,13 +38,15 @@ object PointHomeIntegration {
         }
     }
 
-    fun attachFloatingButton(activity: AppCompatActivity) {
+    /** [onResult] reports the SDK's creation result, on whichever thread the SDK uses. */
+    fun attachFloatingButton(activity: AppCompatActivity, onResult: (created: Boolean) -> Unit = {}) {
         if (!canUse(activity)) return
         try {
             // Keep the default position, SEEOTTER character and enabled animation.
             createBuilder(activity)
                 .showAsFloatingButton(message = activity.getString(R.string.pointhome_floating_message)) { created ->
                     if (!created) Log.w(TAG, "Floating button creation failed.")
+                    onResult(created)
                 }
         } catch (exception: Exception) {
             Log.w(TAG, "Floating button setup failed: ${exception.javaClass.simpleName}")

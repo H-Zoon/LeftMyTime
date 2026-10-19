@@ -643,6 +643,24 @@
     <string name="settings_reward_display_blocked">시스템에서 표시를 차단했어요. 수신 선택은 유지되며, 알림은 시스템 설정에서 허용할 수 있어요.</string>
     <string name="settings_reward_permission_title">리워드 알림 표시를 허용할까요?</string>
     <string name="settings_reward_permission_message">리워드 수신 선택은 유지돼요. 리워드와 혜택 안내를 표시하려면 시스템 알림 권한이 필요해요. 이 권한은 일정·집중 등 앱의 다른 알림에도 적용돼요.</string>
-    <string name="pointhome_floating_message">해택 받기</string>
+    <string name="pointhome_floating_message">혜택 받기</string>
     <string name="pointhome_unavailable">현재 리워드 서비스를 이용할 수 없어요.</string>
+    <string name="pointhome_intro_step">%1$d/%2$d</string>
+    <string name="pointhome_intro_step_description">%2$d단계 중 %1$d단계</string>
+    <string name="pointhome_intro_title">리워드 서비스가 새로 열렸어요</string>
+    <string name="pointhome_intro_body">화면에 떠 있는 ‘%1$s’ 버튼을 누르면 리워드와 혜택을 볼 수 있어요. 남은 시간을 보는 일에는 영향을 주지 않아요.</string>
+    <string name="pointhome_intro_next">다음</string>
+    <string name="pointhome_intro_later">나중에</string>
+    <string name="pointhome_intro_confirm">확인</string>
+    <string name="pointhome_intro_choice_title">리워드 소식을 알림으로 받을까요?</string>
+    <string name="pointhome_intro_choice_body">새 리워드와 혜택이 생기면 알려드려요. 일정·집중 알림과는 따로 관리하고, 설정의 ‘%1$s’에서 언제든 끌 수 있어요. 알림 권한은 앱의 다른 알림에도 적용돼요.</string>
+    <!-- Reserved for the advertising-information consent wording (sender, content, how to opt out); the sheet hides a blank value. -->
+    <string name="pointhome_intro_consent_notice"></string>
+    <string name="pointhome_intro_accept">알림 받기</string>
+    <string name="pointhome_intro_decline">받지 않기</string>
+    <string name="pointhome_intro_accepted">리워드 알림을 받도록 선택했어요.</string>
+    <string name="pointhome_intro_declined">리워드 알림을 받지 않아요. 설정에서 언제든 켤 수 있어요.</string>
+    <string name="pointhome_intro_closed">리워드 알림은 설정에서 언제든 켤 수 있어요.</string>
+    <string name="pointhome_intro_settings_title">시스템 설정에서 알림을 허용해 주세요</string>
+    <string name="pointhome_intro_settings_message">알림을 허용하면 리워드 소식을 받을 수 있어요. 리워드 알림을 받겠다는 선택은 그대로 유지돼요.</string>
 </resources>
