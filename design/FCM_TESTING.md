@@ -103,4 +103,4 @@ HTTP 성공 응답은 발송 접수 결과다. 실제 수신은 기기 알림과
 
 ## 리워드 메시지 테스트
 
-일반 FID 수신 테스트와 별도로, 선택형 리워드 알림은 [리워드 수신 설정·토픽 발송 안내](REWARD_NOTIFICATIONS.md)를 따른다. 토픽은 `reward_notifications`, Android 채널 ID도 `reward_notifications`, 사용자 정의 데이터는 `message_type=reward`다. FID를 직접 지정하는 테스트는 캠페인의 토픽 대상 선별을 검증하지 않는다.
+일반 FID 수신 테스트와 별도로, 선택형 리워드 알림은 [리워드 수신 설정·토픽 발송 안내](REWARD_NOTIFICATIONS.md)를 따른다. 토픽은 `reward_notifications`, Android 채널 ID도 `reward_notifications`, 사용자 정의 데이터는 `notification_kind=reward`다. FID를 직접 지정하는 테스트는 캠페인의 토픽 대상 선별을 검증하지 않는다.

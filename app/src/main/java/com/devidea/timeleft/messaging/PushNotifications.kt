@@ -71,7 +71,7 @@ object PushNotifications {
     /** Called only for messages delivered to the service; the SDK displays background notifications. */
     internal fun show(context: Context, message: RemoteMessage): PushNotificationResult {
         createChannel(context)
-        val reward = isRewardMessage(message.data["message_type"], message.from, message.notification?.channelId)
+        val reward = isRewardMessage(message.data["notification_kind"], message.from, message.notification?.channelId)
         val channelId = if (reward) REWARD_CHANNEL_ID else CHANNEL_ID
         if (reward) {
             return RewardMessaging.postWithConsent {

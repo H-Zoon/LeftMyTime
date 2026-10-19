@@ -1,5 +1,7 @@
 # 다른 PC에서 이어서 작업하기
 
+2026-10-15 리워드 사용자 정의 키 보정: 재사용 가이드 검토에서 `message_type`이 FCM 예약어이며 Messaging 25.1.1의 개발자 data 추출에서 제외됨을 확인했다. 수신 코드·콘솔/HTTP 예시를 `notification_kind=reward`로 통일했다. 토픽·채널과 동의 정책은 유지한다. 소스·공식 규칙·키 일관성·공백만 정적으로 검토했으며 빌드·테스트·보정 후 설치/발송은 미실행이다. 기존 payload를 사용하는 발송 환경도 새 키로 맞춰야 한다. [리워드 발송 안내](REWARD_NOTIFICATIONS.md)를 따른다.
+
 2026-10-15 리워드 알림 선택 추가: 기존 Firebase 작업을 `develop`의 `4418c7a`에 커밋한 뒤 `feature/reward-notifications`에서 리워드 수신 선택(기본 꺼짐)·`reward_notifications` 토픽/채널·권한과 구독 반영 상태·재시도를 추가했다. 동의 선택은 기기에 보관하고 시스템 알림 차단과 분리한다. 앱 시작·복귀·FID 변경에 저장한 선택으로 동기화하며 빠른 선택 변경의 오래된 완료를 분리한다. 앱이 처리하는 수신에서는 동의를 확인하고 철회 시 리워드 채널의 게시 알림만 정리한다. 공통 스위치/행/테마와 실제 설정의 debug 갤러리를 재사용했다. **notification의 백그라운드 SDK 자동 표시는 로컬 동의 검사로 차단되지 않으므로 철회 직후 모든 표시 차단을 보장하지 않는다.** 빌드·Lint·테스트·설치·실제 구독/발송·시각 검수는 미실행이며 Console/공개 정책/출시 버전은 변경하지 않았다. [발송 토픽·채널·payload·검증 대기](REWARD_NOTIFICATIONS.md)를 따른다.
 
 2026-10-15 Firebase 운영 기능 추가: Remote Config `widget_seconds_enabled`(기본 true)로 기존 호스트 지원·사용자 선택을 보존하면서 제품 초 표시를 원격으로 끌 수 있다. 12시간 최소 fetch, 이전 fetch를 다음 프로세스 시작에 활성화하며 실시간 변경은 사용하지 않는다. Performance SDK·Gradle 플러그인과 `home_data_load`/`widget_update_submit`을 연결하고 고정 `outcome`만 기록한다. App Distribution Gradle 플러그인의 debug/release APK task와 외부 그룹·테스터·노트 설정을 준비했다. 일반 assemble는 업로드하지 않는다. 앱 개인정보 안내·한/영 설정 문구와 bundled 방침을 갱신했다. **정적 소스·공식 API·XML·공백 검토만 수행했으며 빌드·Lint·테스트·설치·Console 게시·성능 서버 수신·테스터 초대/업로드는 미실행**이다. 기존 FCM 작업과 버전 6.6(23)을 보존한다. [설정·수신 대상·배포 명령·최종 검증 범위](FIREBASE_OPERATIONS.md)를 따른다.

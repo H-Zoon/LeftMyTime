@@ -19,7 +19,7 @@
 | --- | --- |
 | FCM 토픽 | `reward_notifications` |
 | Android 채널 ID | `reward_notifications` |
-| 사용자 정의 데이터 | `message_type` = `reward` |
+| 사용자 정의 데이터 | `notification_kind` = `reward` |
 
 `RewardMessaging`이 기기에 저장한 동의(`reward_notifications_consent`, 기본 false)에 따라 토픽을 구독·해제한다. 앱 시작, FCM 등록 ID 변경, 앱 복귀에서 저장한 선택과 동기화 상태를 재확인한다. 시스템 알림 권한은 동의와 별개이며 토픽 구독 기준은 동의값이다. 빠른 켜기/끄기에서는 최신 선택이 마지막 요청으로 남도록 처리하고 오래된 완료 콜백이 최신 상태를 덮어쓰지 않게 한다. 동의 변경 시각·FID를 별도 앱 설정에 저장하지 않는다.
 
@@ -27,7 +27,7 @@
 
 앱이 직접 처리하는 메시지는 아래 중 하나면 리워드로 분류한다.
 
-1. `data.message_type`이 `reward`.
+1. `data.notification_kind`가 `reward`.
 2. 발신 대상이 `/topics/reward_notifications`.
 3. notification의 Android 채널 ID가 `reward_notifications`.
 
@@ -37,7 +37,7 @@
 
 1. 변경된 앱을 테스트 설치하고 사용자가 리워드 수신을 켠 뒤, 토픽 반영 완료를 확인한다.
 2. 메시지 작성의 대상에서 **주제(토픽) → `reward_notifications`**를 선택한다. 앱 전체·모든 사용자 대상으로 발송하지 않는다.
-3. 추가 옵션의 사용자 정의 데이터에 `message_type: reward`를 설정한다.
+3. 추가 옵션의 사용자 정의 데이터에 `notification_kind: reward`를 설정한다.
 4. Android 알림 채널 ID를 **`reward_notifications`**로 지정한다. 앱이 미리 만든 전용 채널이 있어야 한다. 백그라운드 자동 표시에서도 이 채널을 쓰도록 하는 설정이다.
 5. 승인한 테스트 대상·발송 내용·시간을 확인한 뒤 발송한다. 이번 구현에서는 해당 작업을 수행하지 않았다.
 
@@ -54,7 +54,7 @@ HTTP v1로 같은 메시지를 보낼 때의 payload 예시(발송은 신뢰할 
       "body": "리워드 내용을 확인해 보세요."
     },
     "data": {
-      "message_type": "reward"
+      "notification_kind": "reward"
     },
     "android": {
       "priority": "NORMAL",
@@ -69,7 +69,7 @@ HTTP v1로 같은 메시지를 보낼 때의 payload 예시(발송은 신뢰할 
 
 ## 철회와 백그라운드 표시의 범위
 
-토픽 해제는 네트워크를 사용하는 비동기 요청이다. 해제 전 발송·대기 중인 메시지와 오프라인 상태를 즉시 회수하지 못한다. 특히 `notification`을 포함한 콘솔 메시지는 앱이 백그라운드일 때 FCM SDK가 직접 표시하므로, 앱의 `onMessageReceived` 동의 검사로 가로막을 수 없다. `message_type` 데이터만 추가해도 이 동작은 바뀌지 않는다.
+토픽 해제는 네트워크를 사용하는 비동기 요청이다. 해제 전 발송·대기 중인 메시지와 오프라인 상태를 즉시 회수하지 못한다. 특히 `notification`을 포함한 콘솔 메시지는 앱이 백그라운드일 때 FCM SDK가 직접 표시하므로, 앱의 `onMessageReceived` 동의 검사로 가로막을 수 없다. `notification_kind` 데이터만 추가해도 이 동작은 바뀌지 않는다.
 
 이번 구현은 **동의자 토픽 선별 + 전용 시스템 채널 + 앱에서 처리하는 수신 시 동의 확인**을 제공한다. 모든 상황에서 철회 직후 notification 표시가 0건임을 보장하지 않는다. 수신 시점의 동의를 매번 확인해야 한다면 서버에서 `notification` 없는 data 메시지를 보내고 앱이 표시 여부를 결정하는 별도 발송 구성이 필요하다. 현재 콘솔 운영을 해당 구성으로 바꾸지는 않았다.
 
