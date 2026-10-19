@@ -53,9 +53,10 @@ class WidgetSecondsProbeActivity : Activity() {
             putBoolean("long_title", intent.getBooleanExtra("long_title", false))
             putFloat("font_scale", intent.getFloatExtra("font_scale", 1f))
             putString("locale", intent.getStringExtra("locale") ?: java.util.Locale.getDefault().toLanguageTag())
+            putBoolean("force", intent.getBooleanExtra("force", false))
         }
         val capability = WidgetSecondsSupport.capability()
-        val profile = probeProfile(mode, capability)
+        val profile = probeProfile(this, mode, capability, intent.getBooleanExtra("force", false))
         val message = getString(R.string.widget_seconds_probe_version,
             capability.hostVersion ?: -1, mode, source, profile?.name ?: "—",
             getString(if (capability.productionProfile != null) R.string.widget_seconds_probe_released
@@ -75,7 +76,7 @@ class WidgetSecondsProbeProvider : AppWidgetProvider() {
         val prefs = context.getSharedPreferences(PROBE_PREFS, Context.MODE_PRIVATE)
         val mode = prefs.getString("mode", "remote_epoch") ?: "remote_epoch"
         val capability = WidgetSecondsSupport.capability()
-        val profile = probeProfile(mode, capability)
+        val profile = probeProfile(context, mode, capability, prefs.getBoolean("force", false))
         ids.forEach { id ->
             val view = try {
                 if (mode in listOf("production", "candidate") && Build.VERSION.SDK_INT >= 35 && profile != null) {
@@ -135,10 +136,20 @@ class WidgetSecondsProbeProvider : AppWidgetProvider() {
 }
 
 // This selection never modifies user settings or the release gate in WidgetSecondsSupport.
-private fun probeProfile(mode: String, capability: WidgetSecondsCapability): WidgetSecondsProfile? = when (mode) {
-    "production" -> capability.productionProfile
-    "candidate", "remote", "remote_epoch" -> capability.validationProfile
-    else -> null
+// An unverified launcher can die on draw instructions (One UI Home, 2026-10-19), so the probe
+// stays static there unless the experiment is explicitly forced with `--ez force true`.
+private fun probeProfile(context: Context, mode: String, capability: WidgetSecondsCapability, force: Boolean): WidgetSecondsProfile? {
+    val profile = when (mode) {
+        "production" -> capability.productionProfile
+        "candidate", "remote", "remote_epoch" -> capability.validationProfile
+        else -> null
+    }
+    val launcher = WidgetSecondsLauncher.homePackage(context)
+    if (profile != null && !force && !WidgetSecondsLauncher.isVerified(launcher)) {
+        Log.w(PROBE_TAG, "Probe stays static: launcher=$launcher is not verified (add --ez force true to test it)")
+        return null
+    }
+    return profile
 }
 
 // These restricted authoring calls are isolated to the capability experiment, not a release API.

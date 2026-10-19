@@ -62,7 +62,7 @@ class WidgetSecondsPlatformTest {
     }
 
     @Test fun releasedTodayPreviewUsesTheProductionSecondsPath() {
-        assumeTrue(Build.VERSION.SDK_INT >= 35 && WidgetSecondsSupport.available())
+        assumeTrue(Build.VERSION.SDK_INT >= 35 && WidgetSecondsSupport.delivery(context) == WidgetSecondsDelivery.DrawInstructions)
         instrumentation.runOnMainSync {
             val item = com.devidea.timeleft.ItemGenerate(context).timeItem()
             val size = WidgetDimensions(400, 320)

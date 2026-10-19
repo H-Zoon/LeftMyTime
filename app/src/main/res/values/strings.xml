@@ -169,6 +169,9 @@
     <string name="widget_seconds_size_hint">Enlarge this widget to show the time.</string>
     <string name="widget_seconds_hint">The time and ruler update together. Your home app must support this feature. The preview shows a fixed moment.</string>
     <string name="widget_seconds_unavailable">Seconds are unavailable for this selection. The widget shows its last update time.</string>
+    <string name="widget_seconds_hint_number_only">Only the time counts down each second. The ruler and update time refresh periodically, and the widget switches at the end time. The preview shows a fixed moment.</string>
+    <string name="widget_seconds_exact_alarm_needed">To show seconds in this home app, allow Alarms &amp; reminders so the widget can switch exactly when time ends.</string>
+    <string name="widget_seconds_exact_alarm_action">Allow exact alarms</string>
     <string name="widget_seconds_left">left</string>
     <string name="widget_seconds_until_start">until start</string>
     <string name="widget_seconds_finished">Finished · refresh</string>

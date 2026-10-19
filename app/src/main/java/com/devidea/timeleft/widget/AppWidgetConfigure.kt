@@ -3,7 +3,9 @@ package com.devidea.timeleft.widget
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
+import android.os.Build
 import android.os.Bundle
+import android.provider.Settings
 import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -32,6 +34,10 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.net.toUri
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.ItemGenerate
 import com.devidea.timeleft.R
@@ -314,9 +320,19 @@ private fun WidgetConfigureScreen(
     val remainingValue = previewItem?.let { it.toWidgetData(context, true, it.type == ItemType.Time).value }
     val countdownValue = previewItem?.let { it.toWidgetData(context, false, it.type == ItemType.Time).value }
     val showFormat = personal && !unavailable && !customMissing && remainingValue != countdownValue
-    val canShowSeconds = WidgetSecondsSupport.available() && !unavailable &&
+    // Exact-alarm access is granted in system settings, so look again whenever this screen resumes.
+    var accessVersion by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) accessVersion++ }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val secondsDelivery = remember(context, accessVersion) { WidgetSecondsSupport.delivery(context) }
+    val canShowSeconds = secondsDelivery != WidgetSecondsDelivery.Unavailable && !unavailable &&
         WidgetSecondsPlan.create(configuration, previewItem, System.currentTimeMillis()) != null
-    val secondsEnabled = canShowSeconds && configuration.showSeconds
+    val secondsEnabled = canShowSeconds && configuration.showSeconds && secondsDelivery.showsSeconds
+    val needsExactAlarm = canShowSeconds && configuration.showSeconds && secondsDelivery == WidgetSecondsDelivery.NeedsExactAlarm
     Scaffold(
         topBar = { TimeLeftTopAppBar(stringResource(R.string.widget_configure_title), onBack) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -364,11 +380,21 @@ private fun WidgetConfigureScreen(
                     com.devidea.timeleft.ui.components.TimeLeftSwitchRow(
                         title = stringResource(R.string.widget_seconds_option), checked = configuration.showSeconds,
                         onCheckedChange = onShowSecondsChanged, enabled = !saving,
-                        summary = stringResource(R.string.widget_seconds_hint))
+                        summary = stringResource(if (secondsDelivery == WidgetSecondsDelivery.DrawInstructions)
+                            R.string.widget_seconds_hint else R.string.widget_seconds_hint_number_only))
                 }
                 if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
-                    if (!secondsEnabled) Text(stringResource(if (configuration.showSeconds) R.string.widget_seconds_unavailable else R.string.widget_snapshot_hint),
-                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (!secondsEnabled) Text(stringResource(when {
+                        !configuration.showSeconds -> R.string.widget_snapshot_hint
+                        needsExactAlarm -> R.string.widget_seconds_exact_alarm_needed
+                        else -> R.string.widget_seconds_unavailable
+                    }), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (needsExactAlarm) TextButton(enabled = !saving, onClick = {
+                        // Some devices omit this screen; the widget then simply stays static.
+                        if (Build.VERSION.SDK_INT >= 31) runCatching {
+                            context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:${context.packageName}".toUri()))
+                        }
+                    }) { Text(stringResource(R.string.widget_seconds_exact_alarm_action)) }
                 }
                 if (showFormat && !secondsEnabled) {
                     Column(Modifier.selectableGroup()) {

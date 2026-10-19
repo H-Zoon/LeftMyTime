@@ -22,7 +22,7 @@ internal fun nextSnapshotRefreshMillis(
         item?.type == ItemType.Time
     if (!showsTime) return null
     return listOfNotNull(
-        nowMillis + 15 * 60_000L,
+        nowMillis + WIDGET_SNAPSHOT_REFRESH_MILLIS,
         item?.startsAtMillis?.takeIf { it > nowMillis },
         item?.endsAtMillis?.takeIf { it > nowMillis },
     ).minOrNull()

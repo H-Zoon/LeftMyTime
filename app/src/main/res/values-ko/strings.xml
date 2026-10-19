@@ -169,6 +169,9 @@
     <string name="widget_seconds_size_hint">위젯을 늘리면 시간을 표시할 수 있어요.</string>
     <string name="widget_seconds_hint">숫자와 눈금이 함께 갱신됩니다. 이 기능을 지원하는 홈 앱에서 사용할 수 있어요. 미리보기는 한 시점의 모습입니다.</string>
     <string name="widget_seconds_unavailable">선택한 항목에서는 초 단위 표시를 사용할 수 없어 마지막 갱신 시각을 함께 보여줍니다.</string>
+    <string name="widget_seconds_hint_number_only">숫자만 1초 단위로 줄어듭니다. 눈금과 갱신 시각은 주기적으로 갱신되고, 종료 시점에는 위젯이 바뀝니다. 미리보기는 한 시점의 모습입니다.</string>
+    <string name="widget_seconds_exact_alarm_needed">이 홈 앱에서 초를 표시하려면 ‘알람 및 리마인더’를 허용해야 종료 시점에 위젯을 정확히 바꿀 수 있어요.</string>
+    <string name="widget_seconds_exact_alarm_action">정확한 알람 허용</string>
     <string name="widget_seconds_left">남음</string>
     <string name="widget_seconds_until_start">시작까지</string>
     <string name="widget_seconds_finished">종료 · 새로 고침</string>
