@@ -8,6 +8,10 @@ import com.devidea.timeleft.repository.TimeLeftRepository
 import com.devidea.timeleft.templates.TemplatesActivity
 import android.widget.Toast
 import androidx.lifecycle.lifecycleScope
+import androidx.lifecycle.withResumed
+import kotlinx.coroutines.Job
+import com.avatye.pointhome.builder.PointHomeActivityBuilder
+import com.devidea.timeleft.messaging.PointHomePushOpen
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
@@ -37,6 +41,14 @@ import javax.inject.Inject
 @AndroidEntryPoint
 class MainActivity : AppCompatActivity() {
 
+    private companion object {
+        const val STATE_POINT_HOME_OPEN_PENDING = "point_home_open_pending"
+    }
+
+    private var pointHomeOpenPending = false
+    private var pointHomeOpenJob: Job? = null
+    private var pointHomeNotificationBuilder: PointHomeActivityBuilder? = null
+
     @Inject lateinit var repository: TimeLeftRepository
     @Inject lateinit var prefs: SharedPreferences
 
@@ -53,6 +65,10 @@ class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
+
+        val notificationOpen = PointHomePushOpen.consume(intent)
+        pointHomeOpenPending = if (savedInstanceState == null) notificationOpen
+        else savedInstanceState.getBoolean(STATE_POINT_HOME_OPEN_PENDING, false)
 
         splashScreen.setOnExitAnimationListener { provider ->
             SplashExitTransition(this, provider).start()
@@ -131,6 +147,49 @@ class MainActivity : AppCompatActivity() {
         lifecycleScope.launch {
             if (com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()) {
                 com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(this@MainActivity)
+            }
+        }
+        openPointHomeFromNotificationIfPending()
+    }
+
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        setIntent(intent)
+        pointHomeOpenPending = PointHomePushOpen.consume(intent)
+        pointHomeOpenJob?.cancel()
+        openPointHomeFromNotificationIfPending()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        outState.putBoolean(STATE_POINT_HOME_OPEN_PENDING, pointHomeOpenPending)
+        super.onSaveInstanceState(outState)
+    }
+
+    private fun openPointHomeFromNotificationIfPending() {
+        if (!pointHomeOpenPending || pointHomeOpenJob?.isActive == true) return
+        pointHomeOpenJob = lifecycleScope.launch {
+            val entryEnabled = com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()
+            lifecycle.withResumed {
+                if (pointHomeOpenPending) {
+                    // Consume before launching so return/resume/restoration cannot launch it again.
+                    pointHomeOpenPending = false
+                    if (entryEnabled) {
+                        pointHomeNotificationBuilder = com.devidea.timeleft.pointhome.PointHomeIntegration.open(
+                            this@MainActivity,
+                            onFailure = ::showPointHomeUnavailable,
+                        )
+                    } else {
+                        showPointHomeUnavailable()
+                    }
+                }
+            }
+        }
+    }
+
+    private fun showPointHomeUnavailable() {
+        runOnUiThread {
+            if (!isFinishing && !isDestroyed) {
+                Toast.makeText(this, R.string.pointhome_unavailable, Toast.LENGTH_SHORT).show()
             }
         }
     }

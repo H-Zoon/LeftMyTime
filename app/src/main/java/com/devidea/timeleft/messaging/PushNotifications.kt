@@ -6,6 +6,7 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import com.devidea.timeleft.R
 import com.devidea.timeleft.activity.MainActivity
 import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
@@ -20,7 +21,6 @@ object PushNotifications {
     const val REWARD_CHANNEL_ID = "reward_notifications"
     private const val NOTIFICATION_TAG = "remote_messages"
     private const val OPEN_ACTION = "com.devidea.timeleft.action.OPEN_PUSH"
-    private const val OPEN_REQUEST_CODE = 70_001
     private val nextNotificationId = AtomicInteger((System.currentTimeMillis() % Int.MAX_VALUE).toInt())
 
     fun createChannel(context: Context) {
@@ -95,12 +95,19 @@ object PushNotifications {
         val body = message.notification?.body?.takeIf { it.isNotBlank() }
             ?: message.data["body"]?.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.push_notification_default_body)
+        val notificationId = message.messageId?.hashCode() ?: nextNotificationId.incrementAndGet()
         val target = Intent(context, MainActivity::class.java)
             .setAction(OPEN_ACTION)
+            .setData(Uri.Builder().scheme("timeleft").authority("push")
+                .appendPath(tag).appendPath(notificationId.toString()).build())
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (PointHomePushOpen.isRequested(message.data[PointHomePushOpen.KIND_KEY], message.data[PointHomePushOpen.TARGET_KEY])) {
+            target.putExtra(PointHomePushOpen.KIND_KEY, PointHomePushOpen.REWARD_KIND)
+                .putExtra(PointHomePushOpen.TARGET_KEY, PointHomePushOpen.POINT_HOME_TARGET)
+        }
         val click = PendingIntent.getActivity(
             context,
-            OPEN_REQUEST_CODE,
+            notificationId,
             target,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
@@ -112,7 +119,6 @@ object PushNotifications {
             .setContentIntent(click)
             .setAutoCancel(true)
             .build()
-        val notificationId = message.messageId?.hashCode() ?: nextNotificationId.incrementAndGet()
         context.getSystemService(NotificationManager::class.java)
             .notify(tag, notificationId, notification)
         return PushNotificationResult.Posted

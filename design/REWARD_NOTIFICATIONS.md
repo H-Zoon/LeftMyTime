@@ -20,6 +20,7 @@
 | FCM 토픽 | `reward_notifications` |
 | Android 채널 ID | `reward_notifications` |
 | 사용자 정의 데이터 | `notification_kind` = `reward` |
+| PointHome 터치 진입(선택) | `open_target` = `pointhome`을 함께 지정 |
 
 `RewardMessaging`이 기기에 저장한 동의(`reward_notifications_consent`, 기본 false)에 따라 토픽을 구독·해제한다. 앱 시작, FCM 등록 ID 변경, 앱 복귀에서 저장한 선택과 동기화 상태를 재확인한다. 시스템 알림 권한은 동의와 별개이며 토픽 구독 기준은 동의값이다. 빠른 켜기/끄기에서는 최신 선택이 마지막 요청으로 남도록 처리하고 오래된 완료 콜백이 최신 상태를 덮어쓰지 않게 한다. 동의 변경 시각·FID를 별도 앱 설정에 저장하지 않는다.
 
@@ -37,7 +38,7 @@
 
 1. 변경된 앱을 테스트 설치하고 사용자가 리워드 수신을 켠 뒤, 토픽 반영 완료를 확인한다.
 2. 메시지 작성의 대상에서 **주제(토픽) → `reward_notifications`**를 선택한다. 앱 전체·모든 사용자 대상으로 발송하지 않는다.
-3. 추가 옵션의 사용자 정의 데이터에 `notification_kind: reward`를 설정한다.
+3. 추가 옵션의 사용자 정의 데이터에 `notification_kind: reward`를 설정한다. 터치 시 PointHome을 열려면 `open_target: pointhome`도 추가한다.
 4. Android 알림 채널 ID를 **`reward_notifications`**로 지정한다. 앱이 미리 만든 전용 채널이 있어야 한다. 백그라운드 자동 표시에서도 이 채널을 쓰도록 하는 설정이다.
 5. 승인한 테스트 대상·발송 내용·시간을 확인한 뒤 발송한다. 이번 구현에서는 해당 작업을 수행하지 않았다.
 
@@ -54,7 +55,8 @@ HTTP v1로 같은 메시지를 보낼 때의 payload 예시(발송은 신뢰할 
       "body": "리워드 내용을 확인해 보세요."
     },
     "data": {
-      "notification_kind": "reward"
+      "notification_kind": "reward",
+      "open_target": "pointhome"
     },
     "android": {
       "priority": "NORMAL",
@@ -66,6 +68,20 @@ HTTP v1로 같은 메시지를 보낼 때의 payload 예시(발송은 신뢰할 
   }
 }
 ```
+
+## 알림 터치로 PointHome 열기 (2026-10-19)
+
+**사용자 정의 데이터 두 값 `notification_kind=reward`, `open_target=pointhome`이 함께 있을 때만** 알림 터치가 PointHome 직접 실행으로 연결된다. 목적지가 없거나 다른 값이면 기존처럼 앱 홈을 연다. 단순 수신만으로 서비스 화면을 열지는 않는다.
+
+- 포그라운드 및 앱이 직접 처리하는 data 메시지: 게시 알림의 immutable PendingIntent에 지원하는 두 값만 전달한다. 알림별 태그/ID로 Intent 식별값을 나눠 뒤에 온 일반 알림이 앞선 리워드 알림의 목적지를 덮어쓰지 않게 한다.
+- 백그라운드 notification+data: FCM SDK가 알림을 표시하고 터치하면 기본 런처 MainActivity의 extras로 data를 전달한다. **별도 click_action·링크를 지정하지 않고 기본 앱 실행을 사용**한다. Manifest에 임의 SDK Activity를 외부 진입점으로 등록하지 않는다.
+- MainActivity의 최초 생성과 singleTop `onNewIntent`를 모두 처리한다. 설정 준비와 RESUMED를 기다린 뒤 요청을 한 번 소비하고 SDK `start()`를 호출한다. 대기 중 회전은 pending 상태를 복원하고, SDK 복귀·회전·기존 task 복원에서 소비한 알림을 자동 재실행하지 않는다. 일반 알림이 나중에 들어오면 대기하던 PointHome 진입을 취소하고 홈을 유지한다.
+- `pointhome_entry_enabled=false`이면 플로팅 버튼뿐 아니라 이 알림 진입 UI도 호출하지 않는다. 홈을 유지하며 이용 불가 안내를 표시한다. 자격값 누락·SDK 초기화/열기 실패도 홈에서 안내하고, 자격값·메시지 본문·SDK 오류 원문을 로그에 남기지 않는다.
+- 알림 터치가 리워드 수신 동의를 변경하거나 보상을 지급하지 않는다. 토픽 대상 선별과 기존 수신 동의 정책을 유지하며, 실제 보상은 SDK 서비스의 절차를 따른다.
+
+SDK의 `start()` 반환은 화면 열림 성공을 뜻하지 않는다. listener는 SDK가 약한 참조로 보관하므로 직접 실행 builder를 MainActivity 멤버로 유지한다. 기존 플로팅 기본 설정·서비스 자격값·회원 식별 방식은 재사용한다.
+
+검증 대기: 앱 포그라운드/백그라운드/프로세스 미실행 각각의 실제 FCM 터치, 기존 MainActivity와 편집/SDK 화면 위에서의 터치, 여러 일반·리워드 알림의 개별 목적지, 대기 중 회전·task 복원·서비스 복귀 중복 방지, 빠른 연속 터치, 원격 false·자격값 누락·SDK 실패 및 기존 일정 알림 회귀. 빌드·Lint·테스트·설치·실제 발송/터치는 아직 실행하지 않았다.
 
 ## 철회와 백그라운드 표시의 범위
 

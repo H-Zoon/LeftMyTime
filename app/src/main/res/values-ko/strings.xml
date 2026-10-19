@@ -644,4 +644,5 @@
     <string name="settings_reward_permission_title">리워드 알림 표시를 허용할까요?</string>
     <string name="settings_reward_permission_message">리워드 수신 선택은 유지돼요. 리워드와 혜택 안내를 표시하려면 시스템 알림 권한이 필요해요. 이 권한은 일정·집중 등 앱의 다른 알림에도 적용돼요.</string>
     <string name="pointhome_floating_message">해택 받기</string>
+    <string name="pointhome_unavailable">현재 리워드 서비스를 이용할 수 없어요.</string>
 </resources>
