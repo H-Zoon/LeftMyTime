@@ -53,11 +53,6 @@ class ItemEditorActivity : AppCompatActivity() {
             ?.let { runCatching { ItemType.valueOf(it) }.getOrNull() }
             ?: ItemType.Time
 
-        if (loadId == 0 && intent.hasExtra(EXTRA_DRAFT_PHRASE)) {
-            initialItem = (com.devidea.timeleft.input.SchedulePhraseParser.parse(intent.getStringExtra(EXTRA_DRAFT_PHRASE).orEmpty())
-                as? com.devidea.timeleft.input.SchedulePhrase.Draft)?.item
-        }
-
         if (loadId != 0) {
             isLoading = true
             lifecycleScope.launch {
@@ -170,7 +165,6 @@ class ItemEditorActivity : AppCompatActivity() {
         )
 
     companion object {
-        private const val EXTRA_DRAFT_PHRASE = "draft_phrase"
         private const val EXTRA_DUPLICATE_ID = "duplicate_item_id"
         private const val EXTRA_FROM_TEMPLATE = "from_template"
         private const val EXTRA_ITEM_ID = "com.devidea.timeleft.extra.ITEM_ID"
@@ -182,9 +176,6 @@ class ItemEditorActivity : AppCompatActivity() {
 
         fun duplicateIntent(context: Context, itemId: Int, fromTemplate: Boolean = false): Intent =
             Intent(context, ItemEditorActivity::class.java).putExtra(EXTRA_DUPLICATE_ID, itemId).putExtra(EXTRA_FROM_TEMPLATE, fromTemplate)
-
-        fun draftIntent(context: Context, phrase: String): Intent =
-            Intent(context, ItemEditorActivity::class.java).putExtra(EXTRA_DRAFT_PHRASE, phrase)
 
         fun editIntent(context: Context, itemId: Int): Intent =
             Intent(context, ItemEditorActivity::class.java)

@@ -60,7 +60,7 @@ import kotlin.math.abs
 @Composable
 internal fun TimeStoriesSection(identity: String, remaining: Long, inDays: Boolean) {
     // Freeze the shortlist while reading, including rotation. A new item/phase opens a new set.
-    // Historical stories do not become impossible when the countdown passes their duration.
+    // Story and routine durations are comparisons, not deadlines for the reader.
     val anchor by rememberSaveable(identity, inDays) { mutableLongStateOf(remaining) }
     var index by rememberSaveable(identity, inDays) { mutableIntStateOf(0) }
     val (library, favorites) = rememberStoryLibrary()

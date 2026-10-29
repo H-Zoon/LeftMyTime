@@ -3,12 +3,17 @@ package com.devidea.timeleft.activity
 import com.devidea.timeleft.backup.BackupViewModel
 import com.devidea.timeleft.backup.BackupScreen
 import android.Manifest
+import android.content.ActivityNotFoundException
 import android.content.Intent
 import android.content.SharedPreferences
 import android.appwidget.AppWidgetManager
+import android.net.Uri
 import android.os.Bundle
 import android.provider.Settings
 import android.webkit.WebView
+import android.webkit.WebResourceRequest
+import android.webkit.WebViewClient
+import android.widget.Toast
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
@@ -17,7 +22,6 @@ import androidx.appcompat.app.AppCompatDelegate
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -26,9 +30,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import com.devidea.timeleft.R
 import androidx.compose.ui.res.stringResource
@@ -326,6 +328,8 @@ class PrivacyPolicyActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        val policyUrl = getString(R.string.privacy_policy_url)
+        val policyHost = Uri.parse(policyUrl).host
         setContent {
             TimeLeftTheme(
                 designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS,
@@ -336,18 +340,7 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                     UserPreferences.COLOR_THEME_CLAY
                 ) ?: UserPreferences.COLOR_THEME_CLAY
             ) {
-                val context = LocalContext.current
                 val colors = MaterialTheme.colorScheme
-                val html = remember(colors.background, colors.onBackground, colors.primary) {
-                    context.assets.open("privacy.html").bufferedReader().use { reader ->
-                        styledPrivacyHtml(
-                            body = reader.readText(),
-                            background = colors.background,
-                            foreground = colors.onBackground,
-                            accent = colors.primary
-                        )
-                    }
-                }
                 PrivacyPolicyScreen(
                     onBack = { finish() }
                 ) {
@@ -356,17 +349,33 @@ class PrivacyPolicyActivity : AppCompatActivity() {
                             WebView(context).apply {
                                 settings.javaScriptEnabled = false
                                 setBackgroundColor(colors.background.toArgb())
+                                webViewClient = object : WebViewClient() {
+                                    override fun shouldOverrideUrlLoading(
+                                        view: WebView,
+                                        request: WebResourceRequest,
+                                    ): Boolean {
+                                        val uri = request.url
+                                        if (uri.scheme == "https" && uri.host == policyHost) return false
+                                        if (uri.scheme in listOf("http", "https", "mailto")) {
+                                            val action = if (uri.scheme == "mailto") Intent.ACTION_SENDTO else Intent.ACTION_VIEW
+                                            try {
+                                                view.context.startActivity(Intent(action, uri))
+                                            } catch (_: ActivityNotFoundException) {
+                                                Toast.makeText(view.context, R.string.privacy_link_unavailable, Toast.LENGTH_SHORT).show()
+                                            }
+                                        }
+                                        return true
+                                    }
+                                }
+                                loadUrl(policyUrl)
                             }
                         },
                         update = { webView ->
                             webView.setBackgroundColor(colors.background.toArgb())
-                            webView.loadDataWithBaseURL(
-                                "file:///android_asset/",
-                                html,
-                                "text/html",
-                                "UTF-8",
-                                null
-                            )
+                        },
+                        onRelease = { webView ->
+                            webView.stopLoading()
+                            webView.destroy()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
@@ -377,40 +386,3 @@ class PrivacyPolicyActivity : AppCompatActivity() {
         }
     }
 }
-
-private fun styledPrivacyHtml(
-    body: String,
-    background: Color,
-    foreground: Color,
-    accent: Color,
-): String = """
-    <!doctype html>
-    <html lang="ko">
-    <head>
-      <meta charset="utf-8">
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <style>
-        html, body {
-          background: ${background.toCssColor()};
-          color: ${foreground.toCssColor()};
-          font-family: sans-serif;
-          font-size: 15px;
-          line-height: 1.65;
-          margin: 0;
-          padding: 12px 16px 24px;
-        }
-        h1 { font-size: 24px; line-height: 1.3; margin: 4px 0 8px; }
-        h2 { font-size: 18px; line-height: 1.4; margin: 28px 0 8px; }
-        p, li { word-break: keep-all; }
-        ul { padding-left: 22px; }
-        a { color: ${accent.toCssColor()}; }
-        .effective-date { margin-top: 0; opacity: 0.75; }
-        .notice { border-left: 3px solid ${accent.toCssColor()}; padding-left: 12px; }
-      </style>
-    </head>
-    <body>$body</body>
-    </html>
-""".trimIndent()
-
-private fun Color.toCssColor(): String =
-    String.format("#%06X", toArgb() and 0xFFFFFF)

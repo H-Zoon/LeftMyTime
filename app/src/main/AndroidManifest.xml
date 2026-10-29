@@ -2,6 +2,7 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
@@ -57,7 +58,6 @@
 
         <activity android:name=".periods.PeriodsActivity" android:exported="false" />
         <activity android:name=".calendar.CalendarImportActivity" android:exported="false" />
-        <activity android:name=".input.PhraseInputActivity" android:exported="false" />
         <activity android:name=".templates.TemplatesActivity" android:exported="false" />
         <activity android:name=".stories.StoryLibraryActivity" android:exported="false" />
         <activity android:name=".focus.FocusActivity" android:exported="false" />

@@ -62,7 +62,7 @@ fun HomeScreen(
     invalidCount: Int = 0,
     actionFailed: Boolean = false,
     onRetry: () -> Unit = {},
-    onStartFocus: ((Int) -> Unit)? = null,
+    onStartFocus: (() -> Unit)? = null,
     onOpenFocus: (Int) -> Unit = {},
     focusBusy: Boolean = false,
     focusError: Int? = null,
@@ -71,7 +71,6 @@ fun HomeScreen(
     onPin: ((AdapterItem) -> Unit)? = null,
     onMove: ((Int, Int) -> Unit)? = null,
     onOpenTemplates: (() -> Unit)? = null,
-    onOpenPhrase: (() -> Unit)? = null,
     onOpenCalendar: (() -> Unit)? = null,
     onMorePeriods: (() -> Unit)? = null,
 ) {
@@ -134,7 +133,7 @@ fun HomeScreen(
                             Icon(Icons.AutoMirrored.Filled.ViewList, stringResource(R.string.home_all_items))
                         } else TextButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
                     } else {
-                        ScheduleAddButton(onAddTime, onAddDate, showText = false, onOpenTemplates = onOpenTemplates, onOpenPhrase = onOpenPhrase, onOpenCalendar = onOpenCalendar)
+                        ScheduleAddButton(onAddTime, onAddDate, showText = false, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
                     }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, stringResource(R.string.home_open_settings), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
                 }
@@ -184,14 +183,14 @@ fun HomeScreen(
                 if (displayedItems.isEmpty() && !loading && !loadFailed) {
                     item(key = "empty", span = { GridItemSpan(maxLineSpan) }) {
                         Column { EmptyItemState(onAddTime, onAddDate)
-                            ScheduleAddButton(onAddTime, onAddDate, true, onOpenTemplates, onOpenPhrase, onOpenCalendar)
+                            ScheduleAddButton(onAddTime, onAddDate, true, onOpenTemplates, onOpenCalendar)
                         }
                     }
                 } else {
                     item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
                         Column {
                             if (hero != null) HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            ScheduleListHeading(onAddTime, onAddDate, onOpenTemplates, onOpenPhrase, onOpenCalendar)
+                            ScheduleListHeading(onAddTime, onAddDate, onOpenTemplates, onOpenCalendar)
                         }
                     }
                     if (upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
@@ -234,12 +233,12 @@ fun HomeScreen(
 
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
-private fun ScheduleListHeading(onAddTime: () -> Unit, onAddDate: () -> Unit, onOpenTemplates: (() -> Unit)? = null, onOpenPhrase: (() -> Unit)? = null, onOpenCalendar: (() -> Unit)? = null) {
+private fun ScheduleListHeading(onAddTime: () -> Unit, onAddDate: () -> Unit, onOpenTemplates: (() -> Unit)? = null, onOpenCalendar: (() -> Unit)? = null) {
     FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
         Text(stringResource(R.string.home_next_schedules), style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
             modifier = Modifier.align(Alignment.CenterVertically).padding(end = Spacing.m))
-        ScheduleAddButton(onAddTime, onAddDate, showText = true, onOpenTemplates = onOpenTemplates, onOpenPhrase = onOpenPhrase, onOpenCalendar = onOpenCalendar)
+        ScheduleAddButton(onAddTime, onAddDate, showText = true, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
     }
 }
 
@@ -250,7 +249,7 @@ private fun ScheduleGroupHeading(title: String) {
 }
 
 @Composable
-private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, showText: Boolean, onOpenTemplates: (() -> Unit)? = null, onOpenPhrase: (() -> Unit)? = null, onOpenCalendar: (() -> Unit)? = null) {
+private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, showText: Boolean, onOpenTemplates: (() -> Unit)? = null, onOpenCalendar: (() -> Unit)? = null) {
     var expanded by remember { mutableStateOf(false) }
     Box {
         if (showText) {
@@ -266,7 +265,6 @@ private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, show
             DropdownMenuItem(text = { Text(stringResource(R.string.home_add_time_range)) }, onClick = { expanded = false; onAddTime() })
             DropdownMenuItem(text = { Text(stringResource(R.string.home_add_date)) }, onClick = { expanded = false; onAddDate() })
             if (onOpenTemplates != null) DropdownMenuItem(text = { Text(stringResource(R.string.templates_title)) }, onClick = { expanded = false; onOpenTemplates() })
-            if (onOpenPhrase != null) DropdownMenuItem(text = { Text(stringResource(R.string.phrase_title)) }, onClick = { expanded = false; onOpenPhrase() })
             if (onOpenCalendar != null) DropdownMenuItem(text = { Text(stringResource(R.string.calendar_import_title)) }, onClick = { expanded = false; onOpenCalendar() })
         }
     }

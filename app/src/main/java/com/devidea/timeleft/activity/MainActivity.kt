@@ -21,6 +21,7 @@ import com.devidea.timeleft.pointhome.isFreshInstall
 import com.devidea.timeleft.pointhome.pointHomeIntroMode
 import com.devidea.timeleft.pointhome.shouldShowPointHomeIntro
 import com.devidea.timeleft.telemetry.AppTelemetry
+import com.devidea.timeleft.telemetry.PointHomeEntrySource
 import com.devidea.timeleft.ui.pointhome.PointHomeIntroFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -63,6 +64,7 @@ class MainActivity : AppCompatActivity() {
     private var pointHomeOpenPending = false
     private var pointHomeOpenJob: Job? = null
     private var pointHomeNotificationBuilder: PointHomeActivityBuilder? = null
+    private var pointHomeFloatingBuilder: PointHomeActivityBuilder? = null
     private var pointHomeButtonReady by mutableStateOf(false)
     private var pointHomeNotificationSession = false
     private var pointHomeIntroLaunches = 0
@@ -117,13 +119,12 @@ class MainActivity : AppCompatActivity() {
                     invalidCount = homeState.invalidCount,
                     actionFailed = homeState.actionFailed,
                     onRetry = viewModel::retryLoading,
-                    onStartFocus = { minutes -> focusModel.start(minutes) { id -> startActivity(FocusActivity.intent(this@MainActivity, id)) } },
+                    onStartFocus = { startActivity(FocusActivity.setupIntent(this@MainActivity)) },
                     onOpenFocus = { id -> startActivity(FocusActivity.intent(this@MainActivity, id)) },
                     focusBusy = focusState.busy, focusError = focusState.error,
                     onDuplicate = { id -> startActivity(ItemEditorActivity.duplicateIntent(this@MainActivity, id)) },
                     onSaveTemplate = { id -> changeSchedule(success = R.string.template_saved) { repository.saveTemplate(id) } },
                     onOpenTemplates = { startActivity(Intent(this@MainActivity, TemplatesActivity::class.java)) },
-                    onOpenPhrase = { startActivity(Intent(this@MainActivity, com.devidea.timeleft.input.PhraseInputActivity::class.java)) },
                     onOpenCalendar = { startActivity(Intent(this@MainActivity, com.devidea.timeleft.calendar.CalendarImportActivity::class.java)) },
                     onMorePeriods = { startActivity(Intent(this@MainActivity, com.devidea.timeleft.periods.PeriodsActivity::class.java)) },
                     onPin = { item ->
@@ -170,10 +171,14 @@ class MainActivity : AppCompatActivity() {
 
         lifecycleScope.launch {
             if (com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()) {
-                com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(this@MainActivity) { created ->
-                    // The intro may only describe a button that the SDK actually created.
-                    runOnUiThread { pointHomeButtonReady = created }
-                }
+                pointHomeFloatingBuilder = com.devidea.timeleft.pointhome.PointHomeIntegration.attachFloatingButton(
+                    this@MainActivity,
+                    onOpened = { telemetry.recordPointHomeOpened(PointHomeEntrySource.FloatingButton) },
+                    onResult = { created ->
+                        // The intro may only describe a button that the SDK actually created.
+                        runOnUiThread { pointHomeButtonReady = created }
+                    },
+                )
             }
         }
         openPointHomeFromNotificationIfPending()
@@ -237,6 +242,7 @@ class MainActivity : AppCompatActivity() {
                     if (entryEnabled) {
                         pointHomeNotificationBuilder = com.devidea.timeleft.pointhome.PointHomeIntegration.open(
                             this@MainActivity,
+                            onOpened = { telemetry.recordPointHomeOpened(PointHomeEntrySource.RewardPush) },
                             onFailure = ::showPointHomeUnavailable,
                         )
                     } else {

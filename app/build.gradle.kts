@@ -61,8 +61,8 @@ android {
         applicationId = "com.devidea.timeleft"
         minSdk = 26
         targetSdk = 36
-        versionCode = 23
-        versionName = "6.6"
+        versionCode = 24
+        versionName = "6.7"
 
         buildConfigField("String", "POINTHOME_SERVICE_ID", buildConfigString(pointHomeServiceId.get()))
         buildConfigField("String", "POINTHOME_SECRET", buildConfigString(pointHomeSecret.get()))
@@ -214,23 +214,27 @@ dependencies {
     implementation("com.google.firebase:firebase-perf")
 
     // PointHome (AdPopcorn and Mezzo are included by product).
-    implementation("com.avatye.pointhome:product:3.6.0")
+    implementation("com.avatye.pointhome:product:3.7.0")
 
-    // PointHome mediation networks: versions follow the integration guide.
+    // AdPopcorn 4.x mediation adapters include their network SDKs (3.7.0 migration guide).
     // AdFit
-    implementation("com.kakao.adfit:ads-base:3.22.2")
+    implementation("com.adpopcorn.mediation:adfit:3.23.1.0")
     // AppLovin / AppLovinMax
-    implementation("com.applovin:applovin-sdk:13.6.3")
+    implementation("com.adpopcorn.mediation:applovin:13.6.4.1")
     // UnityAds
-    implementation("com.unity3d.ads:unity-ads:4.18.1")
+    implementation("com.adpopcorn.mediation:unityads:4.21.0.0")
     // Vungle
-    implementation("com.vungle:vungle-ads:7.7.5")
+    implementation("com.adpopcorn.mediation:vungle:7.7.9.0")
     // Facebook Audience Network
-    implementation("com.facebook.android:audience-network-sdk:6.21.0")
+    implementation("com.adpopcorn.mediation:fan:6.22.0.0")
     // Fyber
-    implementation("com.fyber:marketplace-sdk:8.4.6")
+    implementation("com.adpopcorn.mediation:fyber:8.4.6.2")
     // Cauly
-    implementation("com.fsn.cauly:cauly-sdk:3.5.41")
+    implementation("com.adpopcorn.mediation:cauly:3.5.46.0")
     // Pangle
-    implementation("com.pangle.global:pag-sdk:8.1.0.3")
+    implementation("com.adpopcorn.mediation:pangle:8.3.0.4.0")
+    // MezzoMedia
+    implementation("com.adpopcorn.mediation:mezzomedia:3.1.3.0")
+    // Inmobi
+    implementation("com.adpopcorn.mediation:inmobi:11.5.1.0")
 }

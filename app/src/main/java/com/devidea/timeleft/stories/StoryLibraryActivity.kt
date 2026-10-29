@@ -32,7 +32,7 @@ class StoryLibraryActivity : AppCompatActivity() {
         setContent {
             val (library, favorites) = rememberStoryLibrary()
             var savedOnly by rememberSaveable { mutableStateOf(true) }
-            val stories = allTimeStories().filter { !savedOnly || it.id in favorites }
+            val stories = allTimeStories(includeArchived = savedOnly).filter { !savedOnly || it.id in favorites }
             TimeLeftTheme(designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS,
                 themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO) ?: UserPreferences.THEME_AUTO,
                 paletteKey = prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY) ?: UserPreferences.COLOR_THEME_CLAY) {

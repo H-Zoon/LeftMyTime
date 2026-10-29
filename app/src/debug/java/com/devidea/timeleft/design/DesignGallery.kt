@@ -51,6 +51,7 @@ import com.devidea.timeleft.database.itemdata.RecurrenceMode
 import com.devidea.timeleft.preferences.UserPreferences
 import com.devidea.timeleft.messaging.RewardTopicSyncStatus
 import com.devidea.timeleft.ui.pointhome.PointHomeIntroSheet
+import com.devidea.timeleft.focus.FocusSetupScreen
 import com.devidea.timeleft.ui.editor.ItemEditorScreen
 import com.devidea.timeleft.ui.home.HomeScreen
 import com.devidea.timeleft.ui.settings.SettingsScreen
@@ -182,6 +183,22 @@ private fun GalleryScreen(
             startLabel = "2026-01-01", endLabel = "2026-12-31")
     ).map(::withDetailFixture)
     when {
+        screen.startsWith("focus-setup") -> {
+            var minutes by rememberSaveable(screen) { mutableStateOf(when (screen) {
+                "focus-setup-min" -> 1
+                "focus-setup-max" -> 1440
+                else -> 25
+            }) }
+            FocusSetupScreen(
+                minutes = minutes,
+                onMinutesChange = { minutes = it },
+                busy = screen == "focus-setup-busy",
+                loading = screen == "focus-setup-loading",
+                failed = screen == "focus-setup-failed",
+                error = if (screen == "focus-setup-error") R.string.focus_action_failed else null,
+                onRetry = {}, onStart = {}, onBack = {}, onHistory = {},
+            )
+        }
         screen.startsWith("detail-") -> {
             val item = when {
                 screen.contains("settle-month") -> withDetailFixture(periodItems[1].copy(remainingDays = 7))
@@ -209,6 +226,12 @@ private fun GalleryScreen(
                     startLabel = "14:00", endLabel = "14:05:30", remainingSeconds = 150))
                 screen.contains("same-day") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(
                     startLabel = "2026-09-23", endLabel = "2026-09-23", remainingDays = 0))
+                screen.contains("story-habit") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 120L))
+                screen.contains("story-planning") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 900L))
+                screen.contains("story-focus") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 1500L))
+                screen.contains("story-rest") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 3600L))
+                screen.contains("story-routine") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 19800L))
+                screen.contains("story-day") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 86400L))
                 screen.contains("story-music") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 25))
                 screen.contains("story-literature") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 42, endLabel = "2026-11-01"))
                 screen.contains("story-seconds") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 12))
@@ -495,6 +518,11 @@ private fun GalleryPreview(screen: String, palette: ThemePalette) {
 @Composable
 private fun HomePreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("home", palette)
+
+@DesignPreviews
+@Composable
+private fun FocusSetupPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("focus-setup", palette)
 
 @DesignPreviews
 @Composable

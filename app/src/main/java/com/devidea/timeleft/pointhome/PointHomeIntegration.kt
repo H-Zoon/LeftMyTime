@@ -38,23 +38,29 @@ object PointHomeIntegration {
         }
     }
 
-    /** [onResult] reports the SDK's creation result, on whichever thread the SDK uses. */
-    fun attachFloatingButton(activity: AppCompatActivity, onResult: (created: Boolean) -> Unit = {}) {
-        if (!canUse(activity)) return
-        try {
+    /** Retain the returned builder to keep its service listener alive. Creation is not an open. */
+    fun attachFloatingButton(
+        activity: AppCompatActivity,
+        onOpened: () -> Unit,
+        onResult: (created: Boolean) -> Unit = {},
+    ): PointHomeActivityBuilder? {
+        if (!canUse(activity)) return null
+        return try {
             // Keep the default position, SEEOTTER character and enabled animation.
-            createBuilder(activity)
-                .showAsFloatingButton(message = activity.getString(R.string.pointhome_floating_message)) { created ->
+            createBuilder(activity, PointHomeSDK.CallResource.BUTTON, onOpened).also { builder ->
+                builder.showAsFloatingButton(/*message = activity.getString(R.string.pointhome_floating_message)*/) { created ->
                     if (!created) Log.w(TAG, "Floating button creation failed.")
                     onResult(created)
                 }
+            }
         } catch (exception: Exception) {
             Log.w(TAG, "Floating button setup failed: ${exception.javaClass.simpleName}")
+            null
         }
     }
 
     /** start() enqueues a launch; the owner retains the builder to keep its SDK listener alive. */
-    fun open(activity: AppCompatActivity, onFailure: () -> Unit): PointHomeActivityBuilder? {
+    fun open(activity: AppCompatActivity, onOpened: () -> Unit, onFailure: () -> Unit): PointHomeActivityBuilder? {
         var failureReported = false
         fun reportFailure() {
             if (failureReported) return
@@ -66,7 +72,7 @@ object PointHomeIntegration {
             return null
         }
         return try {
-            createBuilder(activity, ::reportFailure).also { it.start() }
+            createBuilder(activity, PointHomeSDK.CallResource.NATIVE, onOpened, ::reportFailure).also { it.start() }
         } catch (exception: Exception) {
             Log.w(TAG, "Service launch failed: ${exception.javaClass.simpleName}")
             reportFailure()
@@ -85,6 +91,8 @@ object PointHomeIntegration {
 
     private fun createBuilder(
         activity: AppCompatActivity,
+        expectedCaller: PointHomeSDK.CallResource,
+        onOpened: () -> Unit,
         onFailure: () -> Unit = {},
     ): PointHomeActivityBuilder = PointHomeActivityBuilder.with(
         activity = activity,
@@ -93,9 +101,17 @@ object PointHomeIntegration {
     )
         // Omit uniqueID, payload and baseUrl to use SDK defaults.
         .listener(object : PointHomeServiceListener {
-            override fun serviceOpen(caller: PointHomeSDK.CallResource) = Unit
+            private var openReported = false
 
-            override fun serviceClose(caller: PointHomeSDK.CallResource) = Unit
+            override fun serviceOpen(caller: PointHomeSDK.CallResource) {
+                if (caller != expectedCaller || openReported) return
+                openReported = true
+                onOpened()
+            }
+
+            override fun serviceClose(caller: PointHomeSDK.CallResource) {
+                if (caller == expectedCaller) openReported = false
+            }
 
             override fun openFail(reason: PointHomeError) {
                 // Do not log SDK error text, which may contain service/request details.

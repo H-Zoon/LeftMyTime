@@ -114,3 +114,8 @@ SDK의 `start()` 반환은 화면 열림 성공을 뜻하지 않는다. listener
 앱에 포함되는 개인정보처리방침은 토픽 선택을 반영했다. 공개 정책·스토어 원문·실제 Firebase Console은 변경하지 않았다.
 
 공식 참고: [토픽 관리와 ID 교체](https://firebase.google.com/docs/cloud-messaging/manage-topic-subscriptions), [메시지 종류·백그라운드 자동 표시](https://firebase.google.com/docs/cloud-messaging/customize-messages/set-message-type), [Android 알림 채널](https://developer.android.com/develop/ui/compose/notifications/channels).
+
+
+## 리워드 알림 진입 집계 (2026-10-29)
+
+후속 사용자 요청으로 위 ‘새 이벤트 없음’의 범위를 확장했다. 지원하는 리워드 목적지 두 값이 있는 알림을 터치하고 SDK가 실제 화면 열림을 보고하면 `pointhome_open`의 `entry_source=reward_push`를 기록한다. 수신·표시·일반 홈 진입·원격 차단·열기 실패는 이 이벤트로 세지 않는다. 알림 데이터·토큰·제목·본문은 추가 전송하지 않고 기존 목적지·동의·토픽 동작을 유지한다. 전체/일별 진입 횟수와 사용자 수 조회는 [집계 안내](POINTHOME_ANALYTICS.md)를 따른다. 실제 FCM/SDK/GA4 수신 검증은 아직 실행하지 않았다.

@@ -89,3 +89,8 @@ export FIREBASE_APP_DISTRIBUTION_RELEASE_NOTES_FILE='/absolute/path/to/release-n
 - [Performance Monitoring Android 설정](https://firebase.google.com/docs/perf-mon/get-started-android)
 - [App Distribution Gradle 설정·인증·업로드](https://firebase.google.com/docs/app-distribution/android/distribute-gradle)
 - [Firebase 개인정보 처리 항목·보관](https://firebase.google.com/support/privacy)
+
+
+## PointHome 진입 Analytics (2026-10-29)
+
+`pointhome_open`과 고정 경로 파라미터 `entry_source=floating_button|reward_push`를 추가했다. SDK의 화면 열림 콜백에서만 기록하며, 기존 `AppTelemetry`를 재사용한다. 전체·일별 이벤트 수와 알림 진입자 수의 GA4 설정·해석 및 검증 대기는 [PointHome 진입 집계](POINTHOME_ANALYTICS.md)를 따른다. 일별 카운터/이벤트나 별도 사용자 ID는 만들지 않았다. Console의 이벤트 범위 맞춤 측정기준 `entry_source` 등록과 실제 서버 수신 확인은 남아 있다.
