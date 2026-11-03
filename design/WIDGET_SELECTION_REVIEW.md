@@ -31,7 +31,7 @@
 | 화면 제목은 ‘위젯’, 동작은 모두 ‘저장’. 화면 내 뒤로 가기 없음 | 새로 추가하는지 기존 위젯을 수정하는지 불명확 | 공통 상단바 ‘위젯 설정’, 새 추가는 ‘위젯 추가’, 재설정은 ‘변경 적용’ |
 | 설정 미리보기는 실제 렌더러를 공유하지만 런처 PNG/미리보기 XML은 별도 | 추가 목록에서 본 이미지와 선택 결과가 달라질 수 있음 | 런처 미리보기도 새 기본 콘텐츠·A안·초기 크기에 맞춰 갱신 |
 
-근거: [설정 화면](../app/src/main/java/com/devidea/timeleft/widget/AppWidgetConfigure.kt), [표시 형식](../app/src/main/java/com/devidea/timeleft/widget/WidgetPresentation.kt), [기간 데이터](../app/src/main/java/com/devidea/timeleft/ItemGenerate.kt), [자동 선택](../app/src/main/java/com/devidea/timeleft/widget/NextCountdownSelector.kt), [공유 설정](../app/src/main/java/com/devidea/timeleft/widget/WidgetConfiguration.kt), [기간 요약 배치](../app/src/main/java/com/devidea/timeleft/widget/WidgetOverview.kt), [런처 메타데이터 예](../app/src/main/res/xml/app_widget_info.xml).
+근거: [설정 화면](../app/src/main/java/com/devidea/timeleft/widget/AppWidgetConfigure.kt), [표시 형식](../app/src/main/java/com/devidea/timeleft/widget/WidgetPresentation.kt), [기간 데이터](../app/src/main/java/com/devidea/timeleft/ui/TimeDisplayFactory.kt), [자동 선택](../app/src/main/java/com/devidea/timeleft/widget/NextCountdownSelector.kt), [공유 설정](../app/src/main/java/com/devidea/timeleft/widget/WidgetConfiguration.kt), [기간 요약 배치](../app/src/main/java/com/devidea/timeleft/widget/WidgetOverview.kt), [런처 메타데이터 예](../app/src/main/res/xml/app_widget_info.xml).
 
 ## 런처 선택 방식 비교
 

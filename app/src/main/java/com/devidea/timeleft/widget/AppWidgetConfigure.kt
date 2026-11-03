@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.calc.currentOccurrence
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
@@ -38,13 +39,13 @@ import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -97,7 +98,7 @@ class AppWidgetConfigure : AppCompatActivity() {
                     showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
                     paletteKey = currentPaletteKey(),
                     themeMode = currentThemeMode(),
-                    loadItems = { repository.allItems().map { it.forWidgetPreview() } },
+                    loadItems = { repository.allItems().map { it.currentOccurrence() } },
                     onBack = ::finish,
                     onSave = ::saveWidgetConfiguration
                 )
@@ -287,11 +288,8 @@ private fun WidgetConfigureScreen(
     onSave: () -> Unit,
 ) {
     val context = LocalContext.current
-    val generator = remember(context) { ItemGenerate(context) }
-    val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
-    fun customItem(entity: ItemEntity?): AdapterItem? = entity?.let {
-        if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
-    }
+    val generator = remember(context) { TimeDisplayFactory(context) }
+    val periods = generator.standardPeriods()
     val source = configuration.source
     val personal = source == WidgetSource.Custom || source == WidgetSource.Next
     val selectedItem = items.firstOrNull { it.id == configuration.itemId }
@@ -304,9 +302,11 @@ private fun WidgetConfigureScreen(
         WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
         WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
         WidgetSource.Overview -> null
-        WidgetSource.Next -> customItem(NextCountdownSelector.select(items, clock = com.devidea.timeleft.focus.readFocusClock(context)))
+        WidgetSource.Next -> NextCountdownSelector.select(
+            items, clock = com.devidea.timeleft.focus.readFocusClock(context)
+        )?.let(generator::fromSchedule)
             ?: periods[1].takeIf { configuration.legacySummary }
-        WidgetSource.Custom -> customItem(selectedItem)
+        WidgetSource.Custom -> selectedItem?.let(generator::fromSchedule)
             ?: periods[1].takeIf { configuration.legacySummary }
     }
     val emptyMessage = when {
@@ -494,8 +494,8 @@ private fun WidgetOptionRow(label: String, checked: Boolean, enabled: Boolean, o
 internal fun WidgetPreviewBand(
     dimensions: WidgetDimensions,
     configuration: WidgetConfiguration,
-    item: AdapterItem?,
-    periods: List<AdapterItem>,
+    item: TimeDisplayItem?,
+    periods: List<TimeDisplayItem>,
     paletteKey: String,
     dark: Boolean,
     emptyMessage: Int,

@@ -15,9 +15,9 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.lifecycleScope
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.ItemEditorActivity
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.editor.ItemEditorActivity
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -89,5 +89,5 @@ class TemplatesActivity : AppCompatActivity() {
     }
 }
 
-private data class TemplateLoad(val items: List<com.devidea.timeleft.database.itemdata.ItemEntity> = emptyList(),
+private data class TemplateLoad(val items: List<com.devidea.timeleft.database.ItemEntity> = emptyList(),
     val loading: Boolean = true, val failed: Boolean = false)

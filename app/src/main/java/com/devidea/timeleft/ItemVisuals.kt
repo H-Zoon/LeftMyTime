@@ -1,6 +1,6 @@
 package com.devidea.timeleft
 
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemType
 
 object ItemVisuals {
     const val AUTO_COLOR_KEY = "auto"

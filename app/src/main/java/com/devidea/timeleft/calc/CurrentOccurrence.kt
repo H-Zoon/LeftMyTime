@@ -1,7 +1,7 @@
 package com.devidea.timeleft.calc
 
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import java.time.LocalDate
 import java.time.format.DateTimeFormatter
 

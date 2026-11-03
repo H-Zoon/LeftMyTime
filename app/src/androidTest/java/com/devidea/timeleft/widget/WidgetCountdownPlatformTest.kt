@@ -7,9 +7,9 @@ import android.widget.FrameLayout
 import android.widget.TextView
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemType
 import org.junit.Assert.*
 import org.junit.Test
 import org.junit.runner.RunWith
@@ -21,7 +21,7 @@ class WidgetCountdownPlatformTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context get() = instrumentation.targetContext
 
-    private fun render(item: AdapterItem, plan: WidgetSecondsPlan, now: Long, size: WidgetDimensions, board: Boolean = false): View {
+    private fun render(item: TimeDisplayItem, plan: WidgetSecondsPlan, now: Long, size: WidgetDimensions, board: Boolean = false): View {
         val countdown = requireNotNull(WidgetCountdown.create(plan, now, SystemClock.elapsedRealtime(), ZoneId.systemDefault()))
         val palette = WidgetPalette.create("clay", false, if (board) "time-board" else "time-focus")
         val views = createSingleWidgetViews(context, size, WidgetConfiguration(WidgetSource.Custom, item.id, showSeconds = true),
@@ -31,7 +31,7 @@ class WidgetCountdownPlatformTest {
         return root
     }
 
-    private fun timed(now: Long, startOffset: Long, endOffset: Long) = AdapterItem(id = 7, title = "Seconds QA", type = ItemType.Time,
+    private fun timed(now: Long, startOffset: Long, endOffset: Long) = TimeDisplayItem(id = 7, title = "Seconds QA", type = ItemType.Time,
         startsAtMillis = now + startOffset, endsAtMillis = now + endOffset, startLabel = "09:00", endLabel = "10:00")
 
     @Test fun countdownReplacesThePercentTextWithACountingDownChronometer() {

@@ -65,7 +65,6 @@
     <string name="card_progress_value">%1$s%% 지났어요</string>
     <string name="card_time_auto_start_hint">시작 시간이 되면 알아서 시작해요</string>
     <string name="card_time_idle_hint">시작 시간이 되면 알려드릴게요</string>
-    <string name="card_time_widget_idle">00:00 남음</string>
     <string name="card_update_info_none">100% 달성하면 끝나는 일정이에요</string>
     <string name="card_update_info_day">종료 후 %1$d일 쉬고 같은 기간으로 다시 시작해요</string>
     <string name="card_update_info_month">매달 %1$d일에 같은 기간으로 다시 시작해요</string>
@@ -637,10 +636,10 @@
     <string name="notification_channel_push">메시지</string>
     <string name="push_notification_default_title">TimeLeft 메시지</string>
     <string name="push_notification_default_body">새 메시지가 도착했습니다.</string>
-    <string name="notification_channel_rewards">리워드·혜택</string>
-    <string name="notification_channel_rewards_description">일정·집중 알림과 별도로 선택하는 리워드와 혜택 안내입니다.</string>
-    <string name="settings_reward_notifications">리워드·혜택 알림 받기</string>
-    <string name="settings_reward_notifications_summary">리워드와 혜택 안내를 선택해서 받아요. 일정·집중 알림과 별도로 관리해요.</string>
+    <string name="notification_channel_rewards">리워드 광고</string>
+    <string name="notification_channel_rewards_description">별도로 동의한 리워드·혜택 광고성 정보입니다.</string>
+    <string name="settings_reward_notifications">(선택) 리워드 광고성 정보 수신 동의</string>
+    <string name="settings_reward_notifications_summary">TimeLeft가 앱 푸시로 보내는 리워드·혜택 광고를 받아요. 일정·집중 알림과는 별도예요.</string>
     <string name="settings_reward_syncing">선택한 리워드 알림 설정을 반영하고 있어요.</string>
     <string name="settings_reward_unsubscribing">리워드 알림 수신 해제를 반영하고 있어요.</string>
     <string name="settings_reward_sync_unconfirmed">리워드 알림 설정 반영을 아직 확인하지 못했어요. 다시 확인해 주세요.</string>
@@ -663,15 +662,24 @@
     <string name="pointhome_intro_next">다음</string>
     <string name="pointhome_intro_later">나중에</string>
     <string name="pointhome_intro_confirm">확인</string>
-    <string name="pointhome_intro_choice_title">리워드 소식을 알림으로 받을까요?</string>
-    <string name="pointhome_intro_choice_body">새 리워드와 혜택이 생기면 알려드려요. 일정·집중 알림과는 따로 관리하고, 설정의 ‘%1$s’에서 언제든 끌 수 있어요. 알림 권한은 앱의 다른 알림에도 적용돼요.</string>
-    <!-- Reserved for the advertising-information consent wording (sender, content, how to opt out); the sheet hides a blank value. -->
-    <string name="pointhome_intro_consent_notice"></string>
-    <string name="pointhome_intro_accept">알림 받기</string>
-    <string name="pointhome_intro_decline">받지 않기</string>
-    <string name="pointhome_intro_accepted">리워드 알림을 받도록 선택했어요.</string>
+    <string name="pointhome_intro_choice_title">리워드 광고 알림을 받을까요?</string>
+    <string name="pointhome_intro_choice_body">TimeLeft가 리워드·혜택에 관한 광고성 정보를 앱 푸시로 보내요. 동의는 선택 사항이며, 설정의 ‘%1$s’에서 언제든 철회할 수 있어요. 시스템 알림 권한은 일정·집중 알림에도 적용돼요.</string>
+    <!-- Explicit app-push advertising consent, shared by the intro and settings. -->
+    <string name="pointhome_intro_consent_notice">발신자: TimeLeft\n내용: 리워드·혜택 관련 광고성 정보\n발송 시간: 한국시간 08:00~21:00 이전\n무료 수신거부: 광고 알림을 눌러 수신설정을 열거나 앱 설정에서 동의를 꺼 주세요.</string>
+    <string name="pointhome_intro_accept">광고 알림 받기 (동의)</string>
+    <string name="pointhome_intro_decline">동의하지 않기</string>
+    <string name="pointhome_intro_accepted">리워드 광고 알림 수신에 동의했어요.</string>
     <string name="pointhome_intro_declined">리워드 알림을 받지 않아요. 설정에서 언제든 켤 수 있어요.</string>
     <string name="pointhome_intro_closed">리워드 알림은 설정에서 언제든 켤 수 있어요.</string>
     <string name="pointhome_intro_settings_title">시스템 설정에서 알림을 허용해 주세요</string>
     <string name="pointhome_intro_settings_message">알림을 허용하면 리워드 소식을 받을 수 있어요. 리워드 알림을 받겠다는 선택은 그대로 유지돼요.</string>
+    <string name="reward_notification_settings_title">리워드 광고 알림 수신설정</string>
+    <string name="reward_notification_settings_body">광고 알림을 그만 받으려면 아래 동의를 꺼 주세요. 로그인 없이 바로 변경할 수 있어요.</string>
+    <string name="reward_notification_open_reward">리워드 보기</string>
+    <string name="reward_notification_unsubscribe">수신거부</string>
+    <string name="reward_notification_footer">수신거부: 이 알림을 눌러 수신설정을 여세요.</string>
+    <string name="reward_ad_notification_title">(광고) %1$s</string>
+    <string name="reward_notification_body">%1$s\n%2$s</string>
+    <string name="settings_reward_loading">광고 알림 수신 선택을 불러오고 있어요.</string>
+    <string name="settings_reward_load_failed">저장된 수신 선택을 불러오지 못했어요. 다시 확인해 주세요.</string>
 </resources>

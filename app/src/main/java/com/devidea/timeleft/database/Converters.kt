@@ -1,8 +1,6 @@
 package com.devidea.timeleft.database
 
 import androidx.room.TypeConverter
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
 
 class Converters {
     @TypeConverter

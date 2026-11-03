@@ -19,11 +19,11 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.contentDescription
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.RemainingTimeGroup
-import com.devidea.timeleft.formatRemainingTime
-import com.devidea.timeleft.remainingTimeGroups
+import com.devidea.timeleft.ui.RemainingTimeGroup
+import com.devidea.timeleft.ui.formatRemainingTime
+import com.devidea.timeleft.ui.remainingTimeGroups
 import com.devidea.timeleft.ui.theme.Spacing
 import java.text.NumberFormat
 
@@ -35,7 +35,7 @@ internal fun remainingTimeLabel(seconds: Long?, days: Int?, fallback: String = "
 @Composable
 @OptIn(ExperimentalLayoutApi::class)
 internal fun RemainingTimeText(
-    item: AdapterItem,
+    item: TimeDisplayItem,
     hero: Boolean,
     modifier: Modifier = Modifier,
     compact: Boolean = false,

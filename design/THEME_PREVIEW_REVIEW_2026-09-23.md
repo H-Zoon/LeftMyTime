@@ -18,7 +18,7 @@
 | 같은 파일 | `TimeLeftTypography`, `TimeLeftShapes`는 공통 고정값 | 테마별 숫자/글꼴/형태를 주입할 지점이 있음 |
 | `Spacing`, `LayoutTokens`, `Motion`, `TimeRulerTokens` | 공통 객체로 치수·움직임을 관리 | 변경 가능한 시각 값과 접근성·계산처럼 고정할 규칙을 구분해야 함 |
 | `HomeScreen`, `HeaderSection`, `NextCountdownHero`, `TimeLeftItemCard` | 색은 테마를 사용하지만 화면 구성은 한 종류 | 전체 화면 구조 변경에는 별도 표현 방식이 필요. 색상 교체만으로는 바뀌지 않음 |
-| `activity/SettingsActivity.kt` | 화면 모드/색상 선택 즉시 설정 저장, 화면 모드 적용, 위젯 갱신 | 미리보기 선택에 기존 콜백을 연결하면 실제 앱과 위젯까지 바뀜. 임시 상태 분리 필요 |
+| `settings/SettingsActivity.kt` | 화면 모드/색상 선택 즉시 설정 저장, 화면 모드 적용, 위젯 갱신 | 미리보기 선택에 기존 콜백을 연결하면 실제 앱과 위젯까지 바뀜. 임시 상태 분리 필요 |
 | `widget/WidgetRendering.kt` | 공통 팔레트의 색을 읽지만 배경은 밝게/어둡게 두 drawable, XML 기반 RemoteViews로 표현 | 앱 테마의 배경/서체/배치가 자동으로 반영되지 않음. 위젯용 대응 표현 필요 |
 | `widget/AppWidget.kt` | 생성 미리보기 캐시에 팔레트·로케일·글자 배율·진행 표시를 사용 | 디자인 ID/정의 버전/밝기 등 새 시각 요소도 캐시 식별에 포함해야 함 |
 | `design/DesignGallery.kt` (debug) | 실제 화면과 로컬 설정 상태로 모드·색상 변경 가능 | 최종 검수에 재사용. 배포용 테마 선택 화면과 개발자 Preview는 별개 |

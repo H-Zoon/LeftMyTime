@@ -5,7 +5,7 @@ import android.content.SharedPreferences
 import android.content.pm.PackageManager
 import android.os.Build
 import androidx.core.content.edit
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 
 /** Raise this to show the intro again for a new campaign; older completions stay valid for the old one. */
 internal const val POINTHOME_INTRO_VERSION = 1

@@ -29,6 +29,7 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.devidea.timeleft.ui.components.TimeLeftDatePicker
 import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.widget.AppWidget
@@ -38,26 +39,26 @@ import com.devidea.timeleft.widget.WidgetSource
 import com.devidea.timeleft.widget.WidgetConfigureRoute
 import com.devidea.timeleft.widget.WidgetSaveResult
 import com.devidea.timeleft.widget.LocalWidgetPinAllowed
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.TimeDetailFacts
-import com.devidea.timeleft.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDetailFacts
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.ItemVisuals
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.database.RecurrenceMode
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.messaging.RewardTopicSyncStatus
-import com.devidea.timeleft.ui.pointhome.PointHomeIntroSheet
+import com.devidea.timeleft.pointhome.PointHomeIntroSheet
 import com.devidea.timeleft.focus.FocusSetupScreen
-import com.devidea.timeleft.ui.editor.ItemEditorScreen
-import com.devidea.timeleft.ui.home.HomeScreen
-import com.devidea.timeleft.ui.settings.SettingsScreen
-import com.devidea.timeleft.ui.settings.ThemePreviewScreen
-import com.devidea.timeleft.ui.settings.ThemePreviewSnapshot
-import com.devidea.timeleft.ui.settings.ThemePreviewState
+import com.devidea.timeleft.editor.ItemEditorScreen
+import com.devidea.timeleft.home.HomeScreen
+import com.devidea.timeleft.settings.SettingsScreen
+import com.devidea.timeleft.settings.ThemePreviewScreen
+import com.devidea.timeleft.settings.ThemePreviewSnapshot
+import com.devidea.timeleft.settings.ThemePreviewState
 import com.devidea.timeleft.ui.theme.ThemePalette
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
@@ -98,9 +99,9 @@ open class DesignGalleryActivity : ComponentActivity() {
 }
 
 private val sampleItems = listOf(
-    AdapterItem(id = 4, title = "저녁 독서", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 20520, startLabel = "20:00", endLabel = "20:40"),
-    AdapterItem(id = 5, title = "영어 공부", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 24120, startLabel = "21:00", endLabel = "21:30"),
-    AdapterItem(
+    TimeDisplayItem(id = 4, title = "저녁 독서", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 20520, startLabel = "20:00", endLabel = "20:40"),
+    TimeDisplayItem(id = 5, title = "영어 공부", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 24120, startLabel = "21:00", endLabel = "21:30"),
+    TimeDisplayItem(
         id = 1, title = "기획안 마무리", percent = 30f,
         type = ItemType.Time, timePhase = TimeRangePhase.Active, remainingSeconds = 2520,
         startLabel = "14:00", endLabel = "15:00", currentLabel = "14:18",
@@ -108,22 +109,22 @@ private val sampleItems = listOf(
         startString = "시작: 오후 2:00", endString = "종료: 오후 3:00",
         remainingSortKey = 2520, iconKey = "school"
     ),
-    AdapterItem(
+    TimeDisplayItem(
         id = 2, title = "가족과 함께하는 제주 여행 준비", percent = 62f, type = ItemType.Date, remainingDays = 12,
         countdownText = "D-12", dueText = "2026-10-01까지", leftString = "12일 남음",
         startLabel = "2026-09-01", endLabel = "2026-10-01",
         category = "여행", colorKey = "blue", iconKey = "flight", reminderText = "하루 전",
         remainingSortKey = 1_036_800
     ),
-    AdapterItem(
+    TimeDisplayItem(
         id = 3, type = ItemType.Date, remainingDays = -3, title = "완료한 일정", percent = 100f, countdownText = "D+3",
         dueText = "2026-09-16까지", leftString = "3일 지남", isExpired = true,
         startLabel = "2026-09-01", endLabel = "2026-09-16",
     )
 ).map(::withDetailFixture)
 
-/** Original lengths for debug fixtures only; production facts come from ItemGenerate. */
-private fun withDetailFixture(item: AdapterItem): AdapterItem {
+/** Original lengths for debug fixtures only; production facts come from TimeDisplayFactory. */
+private fun withDetailFixture(item: TimeDisplayItem): TimeDisplayItem {
     val inDays = item.remainingDays != null
     val range = if (inDays) TimeDetailRange.Calendar(java.time.LocalDate.parse(item.startLabel),
         java.time.LocalDate.parse(item.endLabel), includesFirstDay = item.type == null)
@@ -151,7 +152,7 @@ private fun withDetailFixture(item: AdapterItem): AdapterItem {
         }))
 }
 
-private fun homeDateFixtures(): List<AdapterItem> {
+private fun homeDateFixtures(): List<TimeDisplayItem> {
     val base = sampleItems.first { it.id == 2 }
     return listOf(
         base.copy(id = 20, title = "오늘까지 제출하는 원고", remainingDays = 0, startLabel = "2026-09-01", endLabel = "2026-09-23"),
@@ -172,17 +173,31 @@ private fun GalleryScreen(
 ) {
     val longTitle = if (LocalContext.current.resources.configuration.locales[0].language == "en") "Review quarterly service metrics and prepare the work plan for next week" else "분기별 서비스 운영 지표를 검토하고 다음 주 업무 계획 정리하기"
     val periodItems = listOf(
-        AdapterItem(title = "오늘", remainingSeconds = if (screen == "period-long") 86340 else if (screen == "period-boundary") 0 else 34920,
+        TimeDisplayItem(title = "오늘", remainingSeconds = if (screen == "period-long") 86340 else if (screen == "period-boundary") 0 else 34920,
             leftString = "9시간 42분 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.07f; else -> 59.58f },
             startLabel = "00:00", endLabel = "23:59:59"),
-        AdapterItem(title = "이번 달", remainingDays = if (screen == "period-boundary") 0 else 12,
+        TimeDisplayItem(title = "이번 달", remainingDays = if (screen == "period-boundary") 0 else 12,
             leftString = "12일 남음", percent = if (screen == "period-boundary") 100f else 60f,
             startLabel = "2026-09-01", endLabel = "2026-09-30"),
-        AdapterItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
+        TimeDisplayItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
             leftString = "104일 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.27f; else -> 71.51f },
             startLabel = "2026-01-01", endLabel = "2026-12-31")
     ).map(::withDetailFixture)
     when {
+        screen.startsWith("reward-notification-settings") -> {
+            var consent by rememberSaveable(screen) { mutableStateOf(!screen.endsWith("off")) }
+            com.devidea.timeleft.settings.RewardNotificationSettingsScreen(
+                state = com.devidea.timeleft.messaging.RewardMessagingState(
+                    consentGranted = consent,
+                    consentReady = !screen.endsWith("loading"),
+                    notificationsAllowed = !screen.endsWith("blocked"),
+                    topicSync = if (screen.endsWith("failed")) com.devidea.timeleft.messaging.RewardTopicSyncStatus.Failed
+                        else com.devidea.timeleft.messaging.RewardTopicSyncStatus.Synced,
+                ),
+                onBack = {}, onConsentChanged = { consent = it },
+                onOpenSystemSettings = {}, onRetry = {}, onOpenReward = {},
+            )
+        }
         screen.startsWith("focus-setup") -> {
             var minutes by rememberSaveable(screen) { mutableStateOf(when (screen) {
                 "focus-setup-min" -> 1
@@ -427,15 +442,14 @@ private fun PointHomeIntroGallery(screen: String) {
     if (open) PointHomeIntroSheet(
         step = step,
         totalSteps = if (screen == "pointhome-intro-info") 1 else 2,
-        // The notice slot is blank in production until the wording is confirmed; this checks its layout only.
-        consentNotice = if (screen == "pointhome-intro-notice") "광고성 정보 수신 동의 문구가 들어갈 자리입니다. (검수용 임시 문구)" else "",
+        consentNotice = stringResource(R.string.pointhome_intro_consent_notice),
         onNext = { step = 2 }, onAccept = { open = false }, onDecline = { open = false }, onClose = { open = false },
     )
 }
 
 /** Real settings controls with local state only; no saved preferences or reminders are changed. */
 @Composable
-private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<AdapterItem>) {
+private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<TimeDisplayItem>) {
     val initialDesign = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key
     var design by rememberSaveable(screen) { mutableStateOf(initialDesign) }
     val selectedFixture = screen == "settings-selected"

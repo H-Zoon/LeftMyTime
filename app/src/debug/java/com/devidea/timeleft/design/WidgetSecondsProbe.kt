@@ -20,8 +20,8 @@ import androidx.core.content.edit
 import androidx.compose.remote.creation.CreationDisplayInfo
 import androidx.compose.remote.creation.Rc
 import com.devidea.timeleft.R
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.database.ItemType
 import com.devidea.timeleft.widget.*
 import java.time.Instant
 import java.time.ZoneId
@@ -88,8 +88,8 @@ class WidgetSecondsProbeProvider : AppWidgetProvider() {
                     val end = prefs.getLong("end_wall", start + 60_000)
                     val format = DateTimeFormatter.ofPattern("HH:mm:ss").withZone(ZoneId.systemDefault())
                     val source = if (prefs.getString("source", "custom") == "today") WidgetSource.Today else WidgetSource.Custom
-                    val item = if (source == WidgetSource.Today) com.devidea.timeleft.ItemGenerate(configured).timeItem()
-                    else AdapterItem(id = 1, title = configured.getString(if (prefs.getBoolean("long_title", false))
+                    val item = if (source == WidgetSource.Today) com.devidea.timeleft.ui.TimeDisplayFactory(configured).today()
+                    else TimeDisplayItem(id = 1, title = configured.getString(if (prefs.getBoolean("long_title", false))
                         R.string.widget_seconds_probe_long_title else R.string.widget_seconds_probe_title), type = ItemType.Time,
                         startLabel = format.format(Instant.ofEpochMilli(start)), endLabel = format.format(Instant.ofEpochMilli(end)),
                         startsAtMillis = start, endsAtMillis = end)

@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.calc.currentOccurrence
 import android.appwidget.AppWidgetManager
 import android.content.Context
 import android.content.Intent
@@ -18,13 +19,12 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.devidea.timeleft.focus.FocusActivity
-import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.ItemEditorActivity
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.editor.ItemEditorActivity
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
@@ -73,17 +73,15 @@ class WidgetDetailsActivity : AppCompatActivity() {
                     while (isActive) { now = System.currentTimeMillis(); delay(1_000) }
                 }
             }
-            val generator = remember { ItemGenerate(this) }
+            val generator = remember { TimeDisplayFactory(this) }
             val itemResult = remember(source, itemId, entities, now) { runCatching {
                 when (source) {
-                    WidgetSource.Today -> generator.timeItem()
-                    WidgetSource.Month -> generator.monthItem()
-                    WidgetSource.Year -> generator.yearItem()
+                    WidgetSource.Today -> generator.today()
+                    WidgetSource.Month -> generator.month()
+                    WidgetSource.Year -> generator.year()
                     WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(this@WidgetDetailsActivity, com.devidea.timeleft.periods.CalendarPeriod.Week)
                     WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(this@WidgetDetailsActivity, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
-                    else -> entities?.firstOrNull { it.id == itemId }?.forWidgetPreview()?.let {
-                        if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
-                    }
+                    else -> entities?.firstOrNull { it.id == itemId }?.currentOccurrence()?.let(generator::fromSchedule)
                 }
             } }
             val item = itemResult.getOrNull()

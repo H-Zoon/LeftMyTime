@@ -5,7 +5,7 @@ import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.Shapes
 import androidx.compose.material3.Typography
 import com.devidea.timeleft.R
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 
 /** Brightness and accent are user choices; a design owns its visual definitions. */
 internal data class ThemeSelection(val mode: String, val paletteKey: String,

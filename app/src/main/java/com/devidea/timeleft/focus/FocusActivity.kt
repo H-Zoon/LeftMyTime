@@ -26,11 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.notification.canPostReminderNotifications
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.RemainingTimeText
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.components.TimeLeftSwitchRow
@@ -57,14 +57,14 @@ class FocusActivity : AppCompatActivity() {
         val setupRequested = intent.getBooleanExtra(SETUP, false)
         setContent {
             val state by model.state.collectAsStateWithLifecycle()
-            val generator = remember { ItemGenerate(this) }
+            val generator = remember { TimeDisplayFactory(this) }
             var id by rememberSaveable { mutableStateOf(initialId) }
             var showHistory by rememberSaveable { mutableStateOf(initialId < 0 && !setupRequested) }
             var selectedMinutes by rememberSaveable { mutableStateOf(25) }
             var keepAwake by rememberSaveable { mutableStateOf(false) }
             var confirmStop by rememberSaveable { mutableStateOf(false) }
             val item = state.items.firstOrNull { it.id == id }
-            val display = remember(item, state.now) { item?.let(generator::customTimeItem) }
+            val display = remember(item, state.now) { item?.let(generator::focusItem) }
             val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
             val showSetup = setupRequested && id < 0 && !showHistory
             val activeFocus = state.items.map { FocusSession.settle(it, state.now) }

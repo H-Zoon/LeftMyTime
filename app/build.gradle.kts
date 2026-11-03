@@ -61,8 +61,8 @@ android {
         applicationId = "com.devidea.timeleft"
         minSdk = 26
         targetSdk = 36
-        versionCode = 24
-        versionName = "6.7"
+        versionCode = 25
+        versionName = "6.8"
 
         buildConfigField("String", "POINTHOME_SERVICE_ID", buildConfigString(pointHomeServiceId.get()))
         buildConfigField("String", "POINTHOME_SECRET", buildConfigString(pointHomeSecret.get()))

@@ -1,6 +1,6 @@
 package com.devidea.timeleft.calc
 
-import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.ItemEntity
 import com.devidea.timeleft.calendar.isTimedOccurrence
 import java.time.Instant
 import java.time.Duration

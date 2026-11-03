@@ -1,5 +1,6 @@
 package com.devidea.timeleft.ui.components
 
+import com.devidea.timeleft.stories.TimeStoriesSection
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -12,26 +13,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.style.TextAlign
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.formatPercent
-import com.devidea.timeleft.formatRemainingTime
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.roundPercent
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.ui.formatPercent
+import com.devidea.timeleft.ui.formatRemainingTime
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.ui.roundPercent
 import com.devidea.timeleft.ui.theme.Spacing
 
 /** Used inside both the period sheet and the activity opened from a widget. No independent ticker. */
 @Composable
-internal fun TimeDetailContent(item: AdapterItem, progressDisplayMode: String, modifier: Modifier = Modifier) {
+internal fun TimeDetailContent(item: TimeDisplayItem, progressDisplayMode: String, modifier: Modifier = Modifier) {
     // State survives ticks/rotation, and belongs to this item and actual period only.
     val identity = "${item.type}/${item.id}/${item.detailFacts?.range ?: "${item.startLabel}/${item.endLabel}"}"
     key(identity) { TimeDetailBody(item, progressDisplayMode, modifier) }
 }
 
 @Composable
-private fun TimeDetailBody(item: AdapterItem, progressDisplayMode: String, modifier: Modifier) {
+private fun TimeDetailBody(item: TimeDisplayItem, progressDisplayMode: String, modifier: Modifier) {
     val facts = item.detailFacts
     if (facts?.validRange == false) {
         Text(stringResource(R.string.detail_invalid_range), modifier = modifier, style = MaterialTheme.typography.bodyLarge)

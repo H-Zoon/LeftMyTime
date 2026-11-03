@@ -64,28 +64,46 @@
         <receiver android:name=".focus.FocusReceiver" android:exported="false" />
         <receiver android:name=".widget.WidgetBoundaryReceiver" android:exported="false" />
         <activity
-            android:name=".activity.ItemEditorActivity"
+            android:name=".editor.ItemEditorActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".settings.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.PrivacyPolicyActivity"
+            android:name=".settings.PrivacyPolicyActivity"
             android:exported="false" />
         <activity
             android:name=".widget.WidgetDetailsActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".home.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.MyApplication.Splash">
+            android:theme="@style/Theme.MyApplication.Splash" />
+
+        <!-- Keep the installed launcher entry and existing notification intents valid. -->
+        <activity-alias
+            android:name=".activity.MainActivity"
+            android:targetActivity=".home.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".activity.ItemEditorActivity"
+            android:targetActivity=".editor.ItemEditorActivity"
+            android:exported="false" />
+        <activity-alias
+            android:name=".activity.SettingsActivity"
+            android:targetActivity=".settings.SettingsActivity"
+            android:exported="false" />
+        <activity-alias
+            android:name=".activity.PrivacyPolicyActivity"
+            android:targetActivity=".settings.PrivacyPolicyActivity"
+            android:exported="false" />
 
         <receiver android:name=".widget.PeriodAppWidget" android:label="@string/widget_periods_label" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>

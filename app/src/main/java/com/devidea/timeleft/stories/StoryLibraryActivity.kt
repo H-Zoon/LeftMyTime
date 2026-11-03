@@ -17,8 +17,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.R
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.ui.components.allTimeStories
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing

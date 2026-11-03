@@ -47,12 +47,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.formatClockTime
-import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.ui.formatClockTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
@@ -64,7 +64,7 @@ import kotlin.math.abs
 /** Only app details use this controller. Static home/list/widget rulers share the drawing. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun InteractiveTimeRuler(item: AdapterItem, range: TimeDetailRange) {
+internal fun InteractiveTimeRuler(item: TimeDisplayItem, range: TimeDetailRange) {
     val facts = item.detailFacts ?: return
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]

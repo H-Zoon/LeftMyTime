@@ -22,7 +22,7 @@ import androidx.compose.remote.creation.actions.HostAction
 import androidx.compose.remote.creation.modifiers.RecordingModifier
 import androidx.core.graphics.createBitmap
 import androidx.appcompat.content.res.AppCompatResources
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.components.drawTimeRulerGlow
 import com.devidea.timeleft.ui.theme.TimeLayout
@@ -37,7 +37,7 @@ import kotlin.math.roundToInt
  */
 @RequiresApi(35)
 internal object WidgetSecondsRenderer {
-    fun create(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
+    fun create(context: Context, size: WidgetDimensions, item: TimeDisplayItem, plan: WidgetSecondsPlan,
         palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long? = null,
         profile: WidgetSecondsProfile = requireNotNull(WidgetSecondsSupport.capability().productionProfile)): RemoteViews =
         RemoteViews(RemoteViews.DrawInstructions.Builder(listOf(
@@ -45,7 +45,7 @@ internal object WidgetSecondsRenderer {
         )).build())
 
     /** Shared by the published widget and platform tests; explicit profiles enable debug candidates. */
-    fun createDocument(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
+    fun createDocument(context: Context, size: WidgetDimensions, item: TimeDisplayItem, plan: WidgetSecondsPlan,
         palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long?, profile: WidgetSecondsProfile): ByteArray {
         val density = context.resources.displayMetrics.density
         val width = size.width * density

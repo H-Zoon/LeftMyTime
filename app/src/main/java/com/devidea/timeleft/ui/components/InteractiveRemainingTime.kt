@@ -23,7 +23,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.ui.theme.LayoutTokens
@@ -32,7 +32,7 @@ import com.devidea.timeleft.ui.theme.Spacing
 
 /** The caller keys this subtree by item + original range, not by the changing countdown. */
 @Composable
-internal fun InteractiveRemainingTime(item: AdapterItem, waiting: Boolean) {
+internal fun InteractiveRemainingTime(item: TimeDisplayItem, waiting: Boolean) {
     val facts = item.detailFacts
     val actual = if (waiting) facts?.secondsUntilStart ?: item.secondsUntilStart else
         item.remainingDays?.toLong() ?: facts?.secondsLeft ?: item.remainingSeconds

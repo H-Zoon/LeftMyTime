@@ -1,6 +1,8 @@
 # PointHome 인트로 → 리워드 알림 허용 플로우 (기획안)
 
-작성일: 2026-10-19 · 상태: **§8 추천 기본값 6개로 확정, 결정 4(광고성 정보 동의 문구)는 자리만 구현.** 소스만 수정했고 빌드·Lint·테스트·실기기 검수는 미실행이다. 구현 기록은 §9.
+2026-10-30 갱신: 광고 고지·동의/거부 문구와 직접 수신거부 동선은 [6.8 변경](REWARD_ADS_2026-10-30.md)을 따른다. 기존 신규 설치/업데이트 인트로 표시 시점과 1회 완료 정책은 유지한다. 아래 빈 고지 등의 설명은 2026-10-19 최초 구현 기록이다.
+
+작성일: 2026-10-19 · 당시 상태: **§8 추천 기본값 6개로 확정, 결정 4(광고성 정보 동의 문구)는 자리만 구현.** 소스만 수정했고 빌드·Lint·테스트·실기기 검수는 미실행이다. 구현 기록은 §9.
 관련 기록: [리워드 알림 수신 설정](REWARD_NOTIFICATIONS.md), [PointHome 플로팅 진입점](DESIGN_SYSTEM.md#pointhome-플로팅-진입점-2026-10-19), [원격 설정 키](FIREBASE_OPERATIONS.md).
 
 ## 1. 문제와 목표
@@ -109,7 +111,7 @@
 2. **저장소**: `pointhome_intro_version` 읽기/쓰기. 결정 1의 추천안을 택하면 "첫 실행 여부" 판단 값(실행 횟수 또는 설치/업데이트 시각 비교)이 추가로 필요하다.
 3. **`PointHomeIntegration`**: 현재 private인 `initialized`/`canUse`를 읽기 전용 가용성 조회로 노출. 소개의 "버튼이 실제 있다"는 전제를 같은 기준으로 판단.
 4. **리워드 동의 흐름 공용화**: `SettingsActivity`의 `selectRewardConsent`·권한 설명·설정 이동을 재사용 가능한 단위로 분리해 설정과 인트로가 같은 코드를 쓴다(회귀 위험이 있으므로 설정 동작을 먼저 고정).
-5. **UI**: `ui/pointhome/PointHomeIntroSheet`(2단계, `TimeLeftTheme`·`Spacing`·`LayoutTokens`·`TimeLeftInlineButton` 재사용). `MainActivity`에서 호스팅.
+5. **UI**: `pointhome/PointHomeIntro.kt`의 `PointHomeIntroSheet`(2단계, `TimeLeftTheme`·`Spacing`·`LayoutTokens`·`TimeLeftInlineButton` 재사용). `MainActivity`에서 호스팅.
 6. **문자열**: ko/en 동시. 사용자 노출 문구는 `values`·`values-ko`만.
 7. **디자인 갤러리**: debug `DesignGallery`에 실제 시트 재사용으로 1/2·2/2·설정 안내 상태를 로컬 상태로 표시. 실제 동의·SDK·시스템 설정을 바꾸지 않는다.
 8. **문서**: `DESIGN_SYSTEM.md`(PointHome 항목에 인트로 규칙), `REWARD_NOTIFICATIONS.md`(인트로 진입점), `WORK_HANDOFF.md`, 문구가 바뀌면 `docs/privacy.html`.
@@ -153,7 +155,7 @@
 | --- | --- |
 | 표시 판단 | `pointhome/PointHomeIntroPolicy.kt` — 순수 함수 `shouldShowPointHomeIntro`, 저장소 `PointHomeIntroStore`(`pointhome_intro_version`, `pointhome_intro_home_launches`), 신규 설치 판정(`firstInstallTime`·`lastUpdateTime` 차이 1분 미만, 판정 실패 시 신규로 간주) |
 | 권한 판단 | `messaging/RewardPermissionPolicy.kt` — `rewardPermissionAction`, `rewardNotificationSettingsIntent`. `SettingsActivity`가 같은 함수를 쓰며 동작은 같게 유지 |
-| UI | `ui/pointhome/PointHomeIntro.kt` — 상태 없는 `PointHomeIntroSheet`, 흐름 `PointHomeIntroFlow`(시스템 권한 창·설정 안내 포함) |
+| UI | `pointhome/PointHomeIntro.kt` — 상태 없는 `PointHomeIntroSheet`, 흐름 `PointHomeIntroFlow`(시스템 권한 창·설정 안내 포함) |
 | 연결 | `MainActivity` — SDK 버튼 생성 성공 콜백(`attachFloatingButton`의 `onResult`) 뒤, 홈 로딩 완료 1초 후 RESUMED에서 시작. 알림 터치 세션 플래그는 회전에도 보존 |
 | 계측 | `UsageEvent`에 `pointhome_intro_shown/accepted/declined/closed`. 개인정보 처리방침(`docs/privacy.html`) 문구 반영 |
 | 문구 | ko/en `pointhome_intro_*`, ko 말풍선 ‘혜택 받기’ |

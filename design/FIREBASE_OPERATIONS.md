@@ -94,3 +94,8 @@ export FIREBASE_APP_DISTRIBUTION_RELEASE_NOTES_FILE='/absolute/path/to/release-n
 ## PointHome 진입 Analytics (2026-10-29)
 
 `pointhome_open`과 고정 경로 파라미터 `entry_source=floating_button|reward_push`를 추가했다. SDK의 화면 열림 콜백에서만 기록하며, 기존 `AppTelemetry`를 재사용한다. 전체·일별 이벤트 수와 알림 진입자 수의 GA4 설정·해석 및 검증 대기는 [PointHome 진입 집계](POINTHOME_ANALYTICS.md)를 따른다. 일별 카운터/이벤트나 별도 사용자 ID는 만들지 않았다. Console의 이벤트 범위 맞춤 측정기준 `entry_source` 등록과 실제 서버 수신 확인은 남아 있다.
+
+
+## 6.8 리워드 광고 예약 변경 (2026-10-30)
+
+기존 reward_notifications 토픽/채널을 유지한다. Console 초안3186944161412585896은 월수금토일14:00 대한민국 시간·1일최대1회·TTL1시간이다. 제목 (광고)·앱 이름, 본문 수신거부 안내와 `notification_kind=reward`, **`open_target=reward_settings`**를 사용한다. 새 앱의 수신설정으로 직접 연결하며 SDK·로그인·원격 진입 설정을 기다리지 않는다. 초안만 저장했고 게시/발송하지 않았다. 구버전은 새 경로를 처리하지 못하므로 배포·실제 수신/철회 확인 후 게시한다. 앱이 직접 표시하는 알림의 야간 검사와 액션은 SDK 자동 표시 알림에는 실행되지 않는다. 자세한 운영 계약·검증은 `REWARD_NOTIFICATIONS.md`, 이번 수정 범위는 `REWARD_ADS_2026-10-30.md`를 따른다.

@@ -11,10 +11,10 @@ import android.view.View
 import android.widget.RemoteViews
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.theme.ThemeSelection
 import com.devidea.timeleft.ui.theme.TimeLayout
 import com.devidea.timeleft.ui.theme.resolveTheme
@@ -73,8 +73,8 @@ internal fun createSingleWidgetViews(
     context: Context,
     dimensions: WidgetDimensions,
     configuration: WidgetConfiguration,
-    item: AdapterItem?,
-    periods: List<AdapterItem>,
+    item: TimeDisplayItem?,
+    periods: List<TimeDisplayItem>,
     palette: WidgetPalette,
     emptyMessage: Int,
     showProgress: Boolean,

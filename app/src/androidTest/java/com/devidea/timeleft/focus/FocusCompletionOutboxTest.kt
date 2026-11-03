@@ -4,7 +4,7 @@ import androidx.room.Room
 import androidx.room.withTransaction
 import androidx.test.platform.app.InstrumentationRegistry
 import com.devidea.timeleft.database.AppDatabase
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.TimeLeftRepository
 import kotlinx.coroutines.runBlocking
 import org.junit.Assert.*
 import org.junit.Test

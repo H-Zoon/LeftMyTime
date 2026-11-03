@@ -25,7 +25,7 @@ import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.text.style.TextAlign
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens

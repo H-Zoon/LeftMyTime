@@ -11,7 +11,7 @@ import android.text.TextPaint
 import android.text.style.AbsoluteSizeSpan
 import android.text.style.ForegroundColorSpan
 import android.text.style.TypefaceSpan
-import com.devidea.timeleft.RemainingTimeGroup
+import com.devidea.timeleft.ui.RemainingTimeGroup
 import com.devidea.timeleft.R
 
 /** Uses the same number/unit roles as RemainingTimeText. No parsing of translated values. */

@@ -7,7 +7,7 @@ import android.util.Log
 import com.devidea.timeleft.focus.FocusCoordinator
 import com.devidea.timeleft.notification.ReminderCoordinator
 import com.devidea.timeleft.notification.ReminderScheduler
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.TimeLeftRepository
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope

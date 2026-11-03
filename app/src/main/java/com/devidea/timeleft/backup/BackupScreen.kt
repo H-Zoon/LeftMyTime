@@ -14,8 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
-import com.devidea.timeleft.ui.settings.SettingsDropdownRow
-import com.devidea.timeleft.ui.settings.SettingsOption
+import com.devidea.timeleft.settings.SettingsDropdownRow
+import com.devidea.timeleft.settings.SettingsOption
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import java.time.LocalDate

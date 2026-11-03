@@ -12,8 +12,8 @@ import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.database.ItemType
 import org.junit.Assert.*
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -33,7 +33,7 @@ class WidgetSecondsPlatformTest {
     @Test fun unavailableHostKeepsTheExistingSnapshotEvenWithASavedSecondsPreference() {
         assumeTrue(!WidgetSecondsSupport.available())
         instrumentation.runOnMainSync {
-            val item = com.devidea.timeleft.ItemGenerate(context).timeItem()
+            val item = com.devidea.timeleft.ui.TimeDisplayFactory(context).today()
             val views = AppWidget().previewViews(context, WidgetDimensions(320, 200),
                 WidgetConfiguration(WidgetSource.Today, showSeconds = true), item, listOf(item), "clay", false)
             assertNotEquals(0, views.layoutId)
@@ -64,7 +64,7 @@ class WidgetSecondsPlatformTest {
     @Test fun releasedTodayPreviewUsesTheProductionSecondsPath() {
         assumeTrue(Build.VERSION.SDK_INT >= 35 && WidgetSecondsSupport.delivery(context) == WidgetSecondsDelivery.DrawInstructions)
         instrumentation.runOnMainSync {
-            val item = com.devidea.timeleft.ItemGenerate(context).timeItem()
+            val item = com.devidea.timeleft.ui.TimeDisplayFactory(context).today()
             val size = WidgetDimensions(400, 320)
             val views = AppWidget().previewViews(context, size,
                 WidgetConfiguration(WidgetSource.Today, showSeconds = true), item, listOf(item), "clay", false)
@@ -83,7 +83,7 @@ class WidgetSecondsPlatformTest {
         val now = System.currentTimeMillis()
         instrumentation.runOnMainSync {
             val configured = context.createConfigurationContext(Configuration(context.resources.configuration).apply { fontScale = 1f })
-            val item = AdapterItem(title = "Seconds QA", type = ItemType.Time,
+            val item = TimeDisplayItem(title = "Seconds QA", type = ItemType.Time,
                 startsAtMillis = now, endsAtMillis = now + 60_000)
             val size = WidgetDimensions(400, 320)
             val palette = WidgetPalette.create("clay", false, "time-focus")
@@ -110,7 +110,7 @@ class WidgetSecondsPlatformTest {
                     })
                     for (design in listOf("time-focus", "time-board")) for (dark in listOf(false, true)) {
                         val palette = WidgetPalette.create("clay", dark, design)
-                        val item = AdapterItem(id = 1, title = "긴 시간 구간 / Long schedule title", type = ItemType.Time,
+                        val item = TimeDisplayItem(id = 1, title = "긴 시간 구간 / Long schedule title", type = ItemType.Time,
                             startLabel = "10:00 AM", endLabel = "11:00 AM", startsAtMillis = now, endsAtMillis = now + 3_600_000)
                         for (source in listOf(WidgetSource.Today, WidgetSource.Custom)) {
                             val plan = WidgetSecondsPlan.create(WidgetConfiguration(source, 1), item, now)!!

@@ -65,7 +65,6 @@
     <string name="card_progress_value">%1$s%% gone</string>
     <string name="card_time_auto_start_hint">Kicks off when the time arrives</string>
     <string name="card_time_idle_hint">Will let you know when it starts</string>
-    <string name="card_time_widget_idle">00:00 left</string>
     <string name="card_update_info_none">Wraps up at 100%</string>
     <string name="card_update_info_day">Restarts with the same length after a %1$d-day break</string>
     <string name="card_update_info_month">Restarts on day %1$d every month, same length</string>
@@ -642,10 +641,10 @@
     <string name="notification_channel_push">Messages</string>
     <string name="push_notification_default_title">TimeLeft message</string>
     <string name="push_notification_default_body">A new message has arrived.</string>
-    <string name="notification_channel_rewards">Rewards and benefits</string>
-    <string name="notification_channel_rewards_description">Optional reward and benefit announcements, separate from schedule and focus reminders.</string>
-    <string name="settings_reward_notifications">Receive reward and benefit notifications</string>
-    <string name="settings_reward_notifications_summary">Optional reward and benefit announcements. This choice is separate from schedule and focus reminders.</string>
+    <string name="notification_channel_rewards">Reward advertising</string>
+    <string name="notification_channel_rewards_description">Reward and benefit advertising you separately consented to receive.</string>
+    <string name="settings_reward_notifications">(Optional) Consent to reward advertising notifications</string>
+    <string name="settings_reward_notifications_summary">Receive reward and benefit advertising from TimeLeft through app push notifications, separately from schedule and focus alerts.</string>
     <string name="settings_reward_syncing">Applying your reward notification choice…</string>
     <string name="settings_reward_unsubscribing">Applying your choice to turn off reward notifications…</string>
     <string name="settings_reward_sync_unconfirmed">The reward notification update is not confirmed yet. Please check again.</string>
@@ -668,15 +667,24 @@
     <string name="pointhome_intro_next">Next</string>
     <string name="pointhome_intro_later">Not now</string>
     <string name="pointhome_intro_confirm">OK</string>
-    <string name="pointhome_intro_choice_title">Get reward news as notifications?</string>
-    <string name="pointhome_intro_choice_body">We will let you know when new rewards and benefits are available. They are managed separately from schedule and focus notifications, and you can turn them off anytime in Settings under “%1$s”. The notification permission also applies to the app\'s other notifications.</string>
-    <!-- Reserved for the advertising-information consent wording (sender, content, how to opt out); the sheet hides a blank value. -->
-    <string name="pointhome_intro_consent_notice"></string>
-    <string name="pointhome_intro_accept">Get notifications</string>
-    <string name="pointhome_intro_decline">No thanks</string>
-    <string name="pointhome_intro_accepted">You chose to receive reward notifications.</string>
+    <string name="pointhome_intro_choice_title">Receive reward advertising notifications?</string>
+    <string name="pointhome_intro_choice_body">TimeLeft sends reward and benefit advertising through app push notifications. Consent is optional and can be withdrawn anytime under “%1$s” in Settings. System notification permission also applies to schedule and focus alerts.</string>
+    <!-- Explicit app-push advertising consent, shared by the intro and settings. -->
+    <string name="pointhome_intro_consent_notice">Sender: TimeLeft\nContent: Reward and benefit advertising\nSending hours: 08:00 to before 21:00, Korea time\nFree opt-out: Tap an advertising notification to open its preferences, or withdraw consent in app settings.</string>
+    <string name="pointhome_intro_accept">Agree to advertising notifications</string>
+    <string name="pointhome_intro_decline">Do not agree</string>
+    <string name="pointhome_intro_accepted">You agreed to receive reward advertising notifications.</string>
     <string name="pointhome_intro_declined">You will not receive reward notifications. You can turn them on anytime in Settings.</string>
     <string name="pointhome_intro_closed">You can turn on reward notifications anytime in Settings.</string>
     <string name="pointhome_intro_settings_title">Allow notifications in system settings</string>
     <string name="pointhome_intro_settings_message">Allow notifications to receive reward news. Your choice to receive reward notifications stays as it is.</string>
+    <string name="reward_notification_settings_title">Reward advertising preferences</string>
+    <string name="reward_notification_settings_body">To stop advertising notifications, turn off consent below. No login is required.</string>
+    <string name="reward_notification_open_reward">View rewards</string>
+    <string name="reward_notification_unsubscribe">Unsubscribe</string>
+    <string name="reward_notification_footer">Opt out: Tap this notification to open its preferences.</string>
+    <string name="reward_ad_notification_title">(광고) %1$s</string>
+    <string name="reward_notification_body">%1$s\n%2$s</string>
+    <string name="settings_reward_loading">Loading your advertising notification preference.</string>
+    <string name="settings_reward_load_failed">Your saved preference could not be loaded. Please try again.</string>
 </resources>

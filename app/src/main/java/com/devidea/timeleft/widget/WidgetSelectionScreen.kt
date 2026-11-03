@@ -1,7 +1,7 @@
 package com.devidea.timeleft.widget
 
 import android.content.Context
-import com.devidea.timeleft.formatClockTime
+import com.devidea.timeleft.ui.formatClockTime
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -17,8 +17,8 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
 import com.devidea.timeleft.ui.theme.LayoutTokens

@@ -6,6 +6,7 @@ data class RewardMessagingState(
     val consentGranted: Boolean = false,
     val notificationsAllowed: Boolean = false,
     val topicSync: RewardTopicSyncStatus = RewardTopicSyncStatus.Syncing,
+    val consentReady: Boolean = false,
 )
 
 /** All access is serialized by RewardMessaging's lock; no Android or Firebase state is owned here. */
@@ -62,3 +63,6 @@ internal class RewardTopicSyncPolicy {
 
 internal fun isRewardMessage(messageType: String?, from: String?, channelId: String?): Boolean =
     messageType == "reward" || from == "/topics/reward_notifications" || channelId == "reward_notifications"
+
+/** Reward campaigns use Korea time. At night, service-delivered ads are dropped, never deferred. */
+internal fun isRewardAdDaytime(hourInKorea: Int): Boolean = hourInKorea in 8..20

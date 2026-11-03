@@ -28,11 +28,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.R
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.*
-import com.devidea.timeleft.ui.settings.SettingsDropdownRow
-import com.devidea.timeleft.ui.settings.SettingsOption
+import com.devidea.timeleft.settings.SettingsDropdownRow
+import com.devidea.timeleft.settings.SettingsOption
 import com.devidea.timeleft.widget.widgetScheduleDescription
 import java.time.ZoneId
 

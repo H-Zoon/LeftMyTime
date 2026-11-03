@@ -15,12 +15,11 @@ import android.appwidget.AppWidgetProviderInfo
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.InterfaceItem
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.telemetry.AppPerformance
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -78,8 +77,8 @@ open class AppWidget : AppWidgetProvider() {
                     val prefs = ep.prefs()
                     val palette = WidgetPalette.fromPreferences(appContext, prefs)
                     val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-                    val generator = ep.itemGenerator()
-                    val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
+                    val generator = ep.displayFactory()
+                    val periods = generator.standardPeriods()
                     val manager = AppWidgetManager.getInstance(appContext)
                     val design = com.devidea.timeleft.ui.theme.TimeLeftThemes.TimeFocus
                     val signature = "${design.id}:${design.version}:v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
@@ -116,7 +115,7 @@ open class AppWidget : AppWidgetProvider() {
     interface AppWidgetEntryPoint {
         fun prefs(): SharedPreferences
         fun telemetry(): com.devidea.timeleft.telemetry.AppTelemetry
-        fun itemGenerator(): InterfaceItem
+        fun displayFactory(): TimeDisplayFactory
         fun repository(): TimeLeftRepository
     }
 
@@ -262,13 +261,13 @@ open class AppWidget : AppWidgetProvider() {
         try {
             val ep = entryPoint(context)
             val prefs = ep.prefs()
-            val itemGenerator = ep.itemGenerator()
+            val displayFactory = ep.displayFactory()
             val repository = ep.repository()
-            var loadedEntities: List<com.devidea.timeleft.database.itemdata.ItemEntity>? = null
+            var loadedEntities: List<com.devidea.timeleft.database.ItemEntity>? = null
             suspend fun entities() = loadedEntities ?: repository.allItems().also { loadedEntities = it }
 
             val configuration = WidgetConfiguration.read(prefs, appWidgetId)
-            val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
+            val periods = displayFactory.standardPeriods()
             var emptyMessage = R.string.widget_no_upcoming
             var dataLoaded = true
             val item = when (configuration.source) {
@@ -283,12 +282,7 @@ open class AppWidget : AppWidgetProvider() {
                         val selected = NextCountdownSelector.select(
                             entities().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
                         )
-                        selected?.let {
-                            when (it.type) {
-                                ItemType.Time -> itemGenerator.customTimeItem(it)
-                                ItemType.Date -> itemGenerator.customMonthItem(it)
-                            }
-                        } ?: periods[1].takeIf { configuration.legacySummary }
+                        selected?.let(displayFactory::fromSchedule) ?: periods[1].takeIf { configuration.legacySummary }
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
@@ -301,12 +295,7 @@ open class AppWidget : AppWidgetProvider() {
                     emptyMessage = R.string.widget_selected_deleted
                     try {
                         val entity = entities().firstOrNull { it.id == configuration.itemId }
-                        entity?.let { it.currentOccurrence() }?.let { selected ->
-                            when (selected.type) {
-                                ItemType.Time -> itemGenerator.customTimeItem(selected)
-                                ItemType.Date -> itemGenerator.customMonthItem(selected)
-                            }
-                        } ?: periods[1].takeIf { configuration.legacySummary }
+                        entity?.currentOccurrence()?.let(displayFactory::fromSchedule) ?: periods[1].takeIf { configuration.legacySummary }
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
@@ -399,7 +388,7 @@ open class AppWidget : AppWidgetProvider() {
         views: RemoteViews,
         appWidgetId: Int,
         source: WidgetSource,
-        item: AdapterItem?,
+        item: TimeDisplayItem?,
         emptyMessage: Int,
     ) {
         val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
@@ -462,8 +451,8 @@ open class AppWidget : AppWidgetProvider() {
         context: Context,
         dimensions: WidgetDimensions,
         configuration: WidgetConfiguration,
-        item: AdapterItem?,
-        periods: List<AdapterItem>,
+        item: TimeDisplayItem?,
+        periods: List<TimeDisplayItem>,
         palette: WidgetPalette,
         emptyMessage: Int,
         showProgress: Boolean = true,
@@ -493,8 +482,8 @@ open class AppWidget : AppWidgetProvider() {
         context: Context,
         dimensions: WidgetDimensions,
         configuration: WidgetConfiguration,
-        item: AdapterItem?,
-        periods: List<AdapterItem>,
+        item: TimeDisplayItem?,
+        periods: List<TimeDisplayItem>,
         paletteKey: String,
         dark: Boolean,
         emptyMessage: Int = R.string.widget_no_upcoming,
