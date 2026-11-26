@@ -1,32 +1,24 @@
 package com.devidea.timeleft.widget
 
 import android.content.Context
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.calc.currentOccurrence
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.formatRemainingTime
-import com.devidea.timeleft.remainingTimeGroups
-import com.devidea.timeleft.RemainingTimeGroup
-import java.time.LocalDate
-import java.time.format.DateTimeFormatter
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.ui.formatRemainingTime
+import com.devidea.timeleft.ui.remainingTimeGroups
+import com.devidea.timeleft.ui.RemainingTimeGroup
 
-/** Compatibility entry point shared by previews and installed widget details. */
-internal fun ItemEntity.forWidgetPreview(today: LocalDate = LocalDate.now()): ItemEntity = currentOccurrence(today)
-
-internal fun AdapterItem.toWidgetData(
+internal fun TimeDisplayItem.toWidgetData(
     context: Context,
     showRemaining: Boolean,
-    useWidgetString: Boolean,
+    allowTimeCountdown: Boolean,
 ): WidgetDisplayData {
     val waiting = !isFocusSession && type == ItemType.Time && secondsUntilStart != null
     val remainingText = formatRemainingTime(
         context, if (waiting) secondsUntilStart else remainingSeconds,
         remainingDays?.takeIf { it >= 0 }, countdownText.ifBlank { leftString }
     )
-    val useCountdown = !showRemaining && (type == ItemType.Date || (useWidgetString && !waiting)) && countdownText.isNotBlank()
+    val useCountdown = !showRemaining && (type == ItemType.Date || (allowTimeCountdown && !waiting)) && countdownText.isNotBlank()
     val endedFocus = isFocusSession && isExpired
     val value = when {
         isCalendarOccurrence && isExpired -> countdownText

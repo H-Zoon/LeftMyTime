@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
@@ -26,9 +27,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringResource
 import com.devidea.timeleft.ui.components.TimeLeftDatePicker
 import com.devidea.timeleft.ui.components.TimeLeftTimePicker
 import com.devidea.timeleft.widget.AppWidget
@@ -38,24 +41,26 @@ import com.devidea.timeleft.widget.WidgetSource
 import com.devidea.timeleft.widget.WidgetConfigureRoute
 import com.devidea.timeleft.widget.WidgetSaveResult
 import com.devidea.timeleft.widget.LocalWidgetPinAllowed
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.TimeDetailFacts
-import com.devidea.timeleft.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDetailFacts
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.R
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.ItemVisuals
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.database.RecurrenceMode
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.messaging.RewardTopicSyncStatus
-import com.devidea.timeleft.ui.editor.ItemEditorScreen
-import com.devidea.timeleft.ui.home.HomeScreen
-import com.devidea.timeleft.ui.settings.SettingsScreen
-import com.devidea.timeleft.ui.settings.ThemePreviewScreen
-import com.devidea.timeleft.ui.settings.ThemePreviewSnapshot
-import com.devidea.timeleft.ui.settings.ThemePreviewState
+import com.devidea.timeleft.pointhome.PointHomeIntroSheet
+import com.devidea.timeleft.focus.FocusSetupScreen
+import com.devidea.timeleft.editor.ItemEditorScreen
+import com.devidea.timeleft.home.HomeScreen
+import com.devidea.timeleft.settings.SettingsScreen
+import com.devidea.timeleft.settings.ThemePreviewScreen
+import com.devidea.timeleft.settings.ThemePreviewSnapshot
+import com.devidea.timeleft.settings.ThemePreviewState
 import com.devidea.timeleft.ui.theme.ThemePalette
 import com.devidea.timeleft.ui.theme.TimeLeftTheme
 import com.devidea.timeleft.ui.theme.systemUsesDarkTheme
@@ -96,9 +101,9 @@ open class DesignGalleryActivity : ComponentActivity() {
 }
 
 private val sampleItems = listOf(
-    AdapterItem(id = 4, title = "저녁 독서", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 20520, startLabel = "20:00", endLabel = "20:40"),
-    AdapterItem(id = 5, title = "영어 공부", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 24120, startLabel = "21:00", endLabel = "21:30"),
-    AdapterItem(
+    TimeDisplayItem(id = 4, title = "저녁 독서", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 20520, startLabel = "20:00", endLabel = "20:40"),
+    TimeDisplayItem(id = 5, title = "영어 공부", type = ItemType.Time, timePhase = TimeRangePhase.Upcoming, secondsUntilStart = 24120, startLabel = "21:00", endLabel = "21:30"),
+    TimeDisplayItem(
         id = 1, title = "기획안 마무리", percent = 30f,
         type = ItemType.Time, timePhase = TimeRangePhase.Active, remainingSeconds = 2520,
         startLabel = "14:00", endLabel = "15:00", currentLabel = "14:18",
@@ -106,22 +111,22 @@ private val sampleItems = listOf(
         startString = "시작: 오후 2:00", endString = "종료: 오후 3:00",
         remainingSortKey = 2520, iconKey = "school"
     ),
-    AdapterItem(
+    TimeDisplayItem(
         id = 2, title = "가족과 함께하는 제주 여행 준비", percent = 62f, type = ItemType.Date, remainingDays = 12,
         countdownText = "D-12", dueText = "2026-10-01까지", leftString = "12일 남음",
         startLabel = "2026-09-01", endLabel = "2026-10-01",
         category = "여행", colorKey = "blue", iconKey = "flight", reminderText = "하루 전",
         remainingSortKey = 1_036_800
     ),
-    AdapterItem(
+    TimeDisplayItem(
         id = 3, type = ItemType.Date, remainingDays = -3, title = "완료한 일정", percent = 100f, countdownText = "D+3",
         dueText = "2026-09-16까지", leftString = "3일 지남", isExpired = true,
         startLabel = "2026-09-01", endLabel = "2026-09-16",
     )
 ).map(::withDetailFixture)
 
-/** Original lengths for debug fixtures only; production facts come from ItemGenerate. */
-private fun withDetailFixture(item: AdapterItem): AdapterItem {
+/** Original lengths for debug fixtures only; production facts come from TimeDisplayFactory. */
+private fun withDetailFixture(item: TimeDisplayItem): TimeDisplayItem {
     val inDays = item.remainingDays != null
     val range = if (inDays) TimeDetailRange.Calendar(java.time.LocalDate.parse(item.startLabel),
         java.time.LocalDate.parse(item.endLabel), includesFirstDay = item.type == null)
@@ -149,7 +154,7 @@ private fun withDetailFixture(item: AdapterItem): AdapterItem {
         }))
 }
 
-private fun homeDateFixtures(): List<AdapterItem> {
+private fun homeDateFixtures(): List<TimeDisplayItem> {
     val base = sampleItems.first { it.id == 2 }
     return listOf(
         base.copy(id = 20, title = "오늘까지 제출하는 원고", remainingDays = 0, startLabel = "2026-09-01", endLabel = "2026-09-23"),
@@ -170,19 +175,63 @@ private fun GalleryScreen(
 ) {
     val longTitle = if (LocalContext.current.resources.configuration.locales[0].language == "en") "Review quarterly service metrics and prepare the work plan for next week" else "분기별 서비스 운영 지표를 검토하고 다음 주 업무 계획 정리하기"
     val periodItems = listOf(
-        AdapterItem(title = "오늘", remainingSeconds = if (screen == "period-long") 86340 else if (screen == "period-boundary") 0 else 34920,
+        TimeDisplayItem(title = "오늘", remainingSeconds = if (screen == "period-long") 86340 else if (screen == "period-boundary") 0 else 34920,
             leftString = "9시간 42분 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.07f; else -> 59.58f },
             startLabel = "00:00", endLabel = "23:59:59"),
-        AdapterItem(title = "이번 달", remainingDays = if (screen == "period-boundary") 0 else 12,
+        TimeDisplayItem(title = "이번 달", remainingDays = if (screen == "period-boundary") 0 else 12,
             leftString = "12일 남음", percent = if (screen == "period-boundary") 100f else 60f,
             startLabel = "2026-09-01", endLabel = "2026-09-30"),
-        AdapterItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
+        TimeDisplayItem(title = "올해", remainingDays = if (screen == "period-long") 364 else if (screen == "period-boundary") 0 else 104,
             leftString = "104일 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.27f; else -> 71.51f },
             startLabel = "2026-01-01", endLabel = "2026-12-31")
     ).map(::withDetailFixture)
+    val homeReview = screen.startsWith("home-review")
+    val homePeriods = if (homeReview) listOf(
+        withDetailFixture(periodItems[0].copy(remainingSeconds = if (screen.endsWith("empty")) 32399 else 34919)),
+        withDetailFixture(periodItems[1].copy(startLabel = "2026-11-01", endLabel = "2026-11-30", remainingDays = 24)),
+        withDetailFixture(periodItems[2].copy(remainingDays = 55)),
+    ) else periodItems
     when {
+        screen.startsWith("video-record-") -> VideoRecordGallery(screen)
+        screen.startsWith("reward-notification-settings") -> {
+            var consent by rememberSaveable(screen) { mutableStateOf(!screen.endsWith("off")) }
+            com.devidea.timeleft.settings.RewardNotificationSettingsScreen(
+                state = com.devidea.timeleft.messaging.RewardMessagingState(
+                    consentGranted = consent,
+                    consentReady = !screen.endsWith("loading"),
+                    notificationsAllowed = !screen.endsWith("blocked"),
+                    topicSync = if (screen.endsWith("failed")) com.devidea.timeleft.messaging.RewardTopicSyncStatus.Failed
+                        else com.devidea.timeleft.messaging.RewardTopicSyncStatus.Synced,
+                ),
+                onBack = {}, onConsentChanged = { consent = it },
+                onOpenSystemSettings = {}, onRetry = {}, onOpenReward = {},
+            )
+        }
+        screen.startsWith("focus-setup") -> {
+            var minutes by rememberSaveable(screen) { mutableStateOf(when (screen) {
+                "focus-setup-min" -> 1
+                "focus-setup-max" -> 1440
+                else -> 25
+            }) }
+            FocusSetupScreen(
+                minutes = minutes,
+                onMinutesChange = { minutes = it },
+                busy = screen == "focus-setup-busy",
+                loading = screen == "focus-setup-loading",
+                failed = screen == "focus-setup-failed",
+                error = if (screen == "focus-setup-error") R.string.focus_action_failed else null,
+                onRetry = {}, onStart = {}, onBack = {}, onHistory = {},
+            )
+        }
         screen.startsWith("detail-") -> {
             val item = when {
+                screen.contains("review-month") -> withDetailFixture(periodItems[1].copy(
+                    startLabel = "2026-11-01", endLabel = "2026-11-30", remainingDays = 24))
+                screen.contains("review-year") -> withDetailFixture(periodItems[2].copy(remainingDays = 55))
+                screen.contains("review-quarter") -> withDetailFixture(periodItems[1].copy(title = "이번 분기",
+                    startLabel = "2026-10-01", endLabel = "2026-12-31", remainingDays = 55))
+                screen.contains("review-week") -> withDetailFixture(periodItems[1].copy(title = "이번 주",
+                    startLabel = "2026-11-02", endLabel = "2026-11-08", remainingDays = 2))
                 screen.contains("settle-month") -> withDetailFixture(periodItems[1].copy(remainingDays = 7))
                 screen.contains("settle-year") -> withDetailFixture(periodItems[2].copy(remainingDays = 99))
                 screen.contains("settle-today") -> withDetailFixture(periodItems[0].copy(remainingSeconds = 9 * 3_600L + 42 * 60 + 35))
@@ -208,9 +257,6 @@ private fun GalleryScreen(
                     startLabel = "14:00", endLabel = "14:05:30", remainingSeconds = 150))
                 screen.contains("same-day") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(
                     startLabel = "2026-09-23", endLabel = "2026-09-23", remainingDays = 0))
-                screen.contains("story-music") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 25))
-                screen.contains("story-literature") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 42, endLabel = "2026-11-01"))
-                screen.contains("story-seconds") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 12))
                 screen.contains("today") -> periodItems[0]
                 screen.contains("month") -> periodItems[1]
                 screen.contains("year") -> periodItems[2]
@@ -357,7 +403,8 @@ private fun GalleryScreen(
         }
         screen.startsWith("settings") || screen.startsWith("theme-preview") ->
             SettingsGallery(screen, themeMode, paletteKey, periodItems)
-        else -> HomeScreen(
+        else -> {
+        HomeScreen(
             initialSortValue = UserPreferences.SORT_NEAREST,
             initialLayoutValue = if (screen == "grid" || screen == "date-grid") UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST,
             expiredItemsMode = when (screen) {
@@ -365,9 +412,15 @@ private fun GalleryScreen(
                 "date-items", "date-grid" -> UserPreferences.EXPIRED_ITEMS_BOTTOM
                 else -> UserPreferences.EXPIRED_ITEMS_SHOW
             },
-            progressDisplayMode = if (screen == "progress-hidden") UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
-            topItems = periodItems,
+            progressDisplayMode = if (screen.endsWith("progress-hidden")) UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
+            topItems = homePeriods,
             customItems = when (screen) {
+                "home-review-empty", "home-review-all-empty", "home-review-loading", "home-review-failed" -> emptyList()
+                "home-review", "home-review-progress-hidden", "home-review-focus-busy", "home-review-focus-error" ->
+                    sampleItems.filter { it.id in setOf(1, 2, 4) }.map {
+                        if (it.id == 2) withDetailFixture(it.copy(title = "프로젝트 마감", startLabel = "2026-11-01",
+                            endLabel = "2026-11-18", remainingDays = 12, dueText = "", countdownText = "", leftString = "")) else it
+                    }
                 "empty" -> emptyList()
                 "idle" -> sampleItems.filter { it.timePhase != TimeRangePhase.Active }
                 "dates" -> sampleItems.filter { it.type == ItemType.Date }
@@ -384,17 +437,36 @@ private fun GalleryScreen(
                 "long" -> sampleItems.map { if (it.id == 1) it.copy(title = longTitle) else it }
                 else -> sampleItems
             },
-            initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid",
+            initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid" || screen == "home-review-all-empty",
+            loading = screen == "home-review-loading", loadFailed = screen == "home-review-failed",
+            focusBusy = screen == "home-review-focus-busy",
+            focusError = R.string.focus_action_failed.takeIf { screen == "home-review-focus-error" },
             onOpenSettings = {}, onSortChange = {}, onLayoutChange = {},
             onStartFocus = {}, onOpenFocus = {}, onMorePeriods = {},
+            onOpenTemplates = if (homeReview) ({}) else null, onOpenCalendar = if (homeReview) ({}) else null,
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
         )
+        if (screen.startsWith("pointhome-intro")) PointHomeIntroGallery(screen)
+        }
     }
+}
+
+/** The real intro sheet over the real home. Choices only close it; no consent, SDK or settings change. */
+@Composable
+private fun PointHomeIntroGallery(screen: String) {
+    var open by rememberSaveable(screen) { mutableStateOf(true) }
+    var step by rememberSaveable(screen) { androidx.compose.runtime.mutableIntStateOf(if (screen == "pointhome-intro-choice" || screen == "pointhome-intro-notice") 2 else 1) }
+    if (open) PointHomeIntroSheet(
+        step = step,
+        totalSteps = if (screen == "pointhome-intro-info") 1 else 2,
+        consentNotice = stringResource(R.string.pointhome_intro_consent_notice),
+        onNext = { step = 2 }, onAccept = { open = false }, onDecline = { open = false }, onClose = { open = false },
+    )
 }
 
 /** Real settings controls with local state only; no saved preferences or reminders are changed. */
 @Composable
-private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<AdapterItem>) {
+private fun SettingsGallery(screen: String, initialTheme: String, initialPalette: String, periods: List<TimeDisplayItem>) {
     val initialDesign = com.devidea.timeleft.ui.theme.LocalTimeLayout.current.key
     var design by rememberSaveable(screen) { mutableStateOf(initialDesign) }
     val selectedFixture = screen == "settings-selected"
@@ -415,13 +487,20 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
     }
     var dateReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 7 else ItemVisuals.REMINDER_DISABLED) }
     var timeReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 60 else ItemVisuals.REMINDER_DISABLED) }
-    var rewardConsent by rememberSaveable(screen) { mutableStateOf(screen.startsWith("settings-rewards-")) }
-    var rewardNotificationsAllowed by rememberSaveable(screen) { mutableStateOf(screen != "settings-rewards-blocked") }
-    var rewardTopicSync by rememberSaveable(screen) { mutableStateOf(when (screen) {
-        "settings-rewards-syncing" -> RewardTopicSyncStatus.Syncing
-        "settings-rewards-failed" -> RewardTopicSyncStatus.Failed
+    val rewardFixture = screen.replace("settings-reward-detail", "settings-rewards")
+    var rewardConsent by rememberSaveable(screen) { mutableStateOf(rewardFixture.startsWith("settings-rewards-") &&
+        rewardFixture !in setOf("settings-rewards-off", "settings-rewards-unsubscribing", "settings-rewards-unsubscribe-failed",
+            "settings-rewards-loading", "settings-rewards-load-failed")) }
+    var rewardNotificationsAllowed by rememberSaveable(screen) { mutableStateOf(rewardFixture != "settings-rewards-blocked") }
+    var rewardConsentReady by rememberSaveable(screen) { mutableStateOf(rewardFixture !in setOf("settings-rewards-loading", "settings-rewards-load-failed")) }
+    var rewardTopicSync by rememberSaveable(screen) { mutableStateOf(when (rewardFixture) {
+        "settings-rewards-syncing", "settings-rewards-unsubscribing", "settings-rewards-loading" -> RewardTopicSyncStatus.Syncing
+        "settings-rewards-failed", "settings-rewards-unsubscribe-failed", "settings-rewards-load-failed" -> RewardTopicSyncStatus.Failed
         else -> RewardTopicSyncStatus.Synced
     }) }
+    var showRewardPreferences by rememberSaveable(screen) { mutableStateOf(screen.startsWith("settings-reward-detail")) }
+    val settingsStateHolder = rememberSaveableStateHolder()
+    BackHandler(enabled = showRewardPreferences) { showRewardPreferences = false }
     var previewOpen by rememberSaveable(screen) { mutableStateOf(screen.startsWith("theme-preview")) }
     var previewStatus by rememberSaveable(screen) { mutableStateOf(when (screen) {
         "theme-preview-loading" -> "loading"
@@ -442,20 +521,26 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
             state = previewState, expiredItemsMode = expired, progressDisplayMode = progress,
             onBack = { previewOpen = false }, onRetry = { previewStatus = "ready" },
             onApply = { choice -> previewOpen = false; theme = choice.mode; palette = choice.paletteKey; design = choice.designKey },
-        ) else SettingsScreen(
-            themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
-            progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
-            dateReminderTime = "09:00", remindersEnabled = !selectedFixture,
-            rewardConsentGranted = rewardConsent, rewardNotificationsAllowed = rewardNotificationsAllowed,
-            rewardTopicSync = rewardTopicSync, versionName = "디자인 검수",
-            onBack = {}, onOpenThemePreview = { previewOpen = true }, previewPeriods = periods, onSortSelected = { sort = it },
-            onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
-            onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
-            onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
-            onRewardConsentChanged = { rewardConsent = it; rewardTopicSync = RewardTopicSyncStatus.Synced },
-            onOpenRewardNotificationSettings = { rewardNotificationsAllowed = true },
-            onRetryRewardTopicSync = { rewardTopicSync = RewardTopicSyncStatus.Synced },
-        )
+        ) else if (showRewardPreferences) com.devidea.timeleft.settings.RewardPreferencesScreen(
+            state = com.devidea.timeleft.messaging.RewardMessagingState(rewardConsent, rewardNotificationsAllowed, rewardTopicSync, rewardConsentReady),
+            onBack = { showRewardPreferences = false },
+            onConsentChanged = { rewardConsent = it; rewardTopicSync = RewardTopicSyncStatus.Synced },
+            onOpenSystemSettings = { rewardNotificationsAllowed = true },
+            onRetry = { rewardConsentReady = true; rewardTopicSync = RewardTopicSyncStatus.Synced },
+        ) else settingsStateHolder.SaveableStateProvider("settings") {
+            SettingsScreen(
+                themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
+                progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
+                dateReminderTime = "09:00", remindersEnabled = !selectedFixture,
+                rewardConsentGranted = rewardConsent, rewardNotificationsAllowed = rewardNotificationsAllowed,
+                rewardTopicSync = rewardTopicSync, rewardConsentReady = rewardConsentReady, versionName = "디자인 검수",
+                onBack = {}, onOpenThemePreview = { previewOpen = true }, onSortSelected = { sort = it },
+                onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
+                onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
+                onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
+                onOpenRewardPreferences = { showRewardPreferences = true },
+            )
+        }
     }
 }
 
@@ -477,6 +562,11 @@ private fun GalleryPreview(screen: String, palette: ThemePalette) {
 @Composable
 private fun HomePreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
     GalleryPreview("home", palette)
+
+@DesignPreviews
+@Composable
+private fun FocusSetupPreview(@PreviewParameter(PalettePreviewProvider::class) palette: ThemePalette) =
+    GalleryPreview("focus-setup", palette)
 
 @DesignPreviews
 @Composable

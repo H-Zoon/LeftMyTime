@@ -1,8 +1,8 @@
 package com.devidea.timeleft.widget
 
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemType
 import java.time.Instant
 import java.time.ZoneId
 
@@ -40,7 +40,7 @@ internal data class WidgetSecondsPlan(
         // Keep integer subtraction and float formatting exact in the supported short-time scope.
         const val MAX_SECONDS = 7 * 86_400L
 
-        fun create(configuration: WidgetConfiguration, item: AdapterItem?, nowMillis: Long): WidgetSecondsPlan? {
+        fun create(configuration: WidgetConfiguration, item: TimeDisplayItem?, nowMillis: Long): WidgetSecondsPlan? {
             if (item == null || item.dataError || item.isFocusSession || configuration.legacySummary) return null
             if (configuration.source == WidgetSource.Today) return WidgetSecondsPlan(today = true)
             if (configuration.source !in listOf(WidgetSource.Custom, WidgetSource.Next) || item.type != ItemType.Time) return null

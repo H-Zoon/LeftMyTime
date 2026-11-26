@@ -9,7 +9,7 @@ import androidx.room.Query
 import androidx.room.Update
 import androidx.room.withTransaction
 import com.devidea.timeleft.database.AppDatabase
-import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.ItemEntity
 import javax.inject.Inject
 import javax.inject.Singleton
 

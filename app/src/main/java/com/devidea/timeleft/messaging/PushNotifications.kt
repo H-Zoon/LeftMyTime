@@ -6,13 +6,16 @@ import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.net.Uri
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.MainActivity
+import com.devidea.timeleft.home.MainActivity
 import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
 import com.google.firebase.messaging.RemoteMessage
 import java.util.concurrent.atomic.AtomicInteger
+import java.time.ZoneId
+import java.time.ZonedDateTime
 
-internal enum class PushNotificationResult { Posted, Blocked, RewardOptedOut }
+internal enum class PushNotificationResult { Posted, Blocked, RewardOptedOut, RewardQuietHours }
 
 /** Remote messages use a channel and notification tag independent of local schedule reminders. */
 object PushNotifications {
@@ -20,7 +23,6 @@ object PushNotifications {
     const val REWARD_CHANNEL_ID = "reward_notifications"
     private const val NOTIFICATION_TAG = "remote_messages"
     private const val OPEN_ACTION = "com.devidea.timeleft.action.OPEN_PUSH"
-    private const val OPEN_REQUEST_CODE = 70_001
     private val nextNotificationId = AtomicInteger((System.currentTimeMillis() % Int.MAX_VALUE).toInt())
 
     fun createChannel(context: Context) {
@@ -75,7 +77,8 @@ object PushNotifications {
         val channelId = if (reward) REWARD_CHANNEL_ID else CHANNEL_ID
         if (reward) {
             return RewardMessaging.postWithConsent {
-                if (!canPostRewardNotifications(context)) PushNotificationResult.Blocked
+                if (!isRewardAdDaytime(ZonedDateTime.now(ZoneId.of("Asia/Seoul")).hour)) PushNotificationResult.RewardQuietHours
+                else if (!canPostRewardNotifications(context)) PushNotificationResult.Blocked
                 else post(context, message, channelId, REWARD_CHANNEL_ID)
             }
         }
@@ -89,30 +92,45 @@ object PushNotifications {
         channelId: String,
         tag: String,
     ): PushNotificationResult {
-        val title = message.notification?.title?.takeIf { it.isNotBlank() }
+        val originalTitle = message.notification?.title?.takeIf { it.isNotBlank() }
             ?: message.data["title"]?.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.push_notification_default_title)
-        val body = message.notification?.body?.takeIf { it.isNotBlank() }
+        val originalBody = message.notification?.body?.takeIf { it.isNotBlank() }
             ?: message.data["body"]?.takeIf { it.isNotBlank() }
             ?: context.getString(R.string.push_notification_default_body)
+        val notificationId = message.messageId?.hashCode() ?: nextNotificationId.incrementAndGet()
+        val reward = channelId == REWARD_CHANNEL_ID
+        val title = if (reward && !originalTitle.startsWith("(광고)")) {
+            context.getString(R.string.reward_ad_notification_title, originalTitle)
+        } else originalTitle
+        val footer = context.getString(R.string.reward_notification_footer)
+        val body = if (reward && !originalBody.endsWith(footer)) {
+            context.getString(R.string.reward_notification_body, originalBody, footer)
+        } else originalBody
         val target = Intent(context, MainActivity::class.java)
             .setAction(OPEN_ACTION)
+            .setData(Uri.Builder().scheme("timeleft").authority("push")
+                .appendPath(tag).appendPath(notificationId.toString()).build())
             .addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+        if (reward) {
+            // Use the same one-shot destination handling as Console-posted background notifications.
+            target.putExtra(PointHomePushOpen.KIND_KEY, PointHomePushOpen.REWARD_KIND)
+                .putExtra(PointHomePushOpen.TARGET_KEY, PointHomePushOpen.POINT_HOME_TARGET)
+        }
         val click = PendingIntent.getActivity(
             context,
-            OPEN_REQUEST_CODE,
+            notificationId,
             target,
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
-        val notification = Notification.Builder(context, channelId)
+        val builder = Notification.Builder(context, channelId)
             .setSmallIcon(R.drawable.ic_baseline_refresh_24)
             .setContentTitle(title)
             .setContentText(body)
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(click)
             .setAutoCancel(true)
-            .build()
-        val notificationId = message.messageId?.hashCode() ?: nextNotificationId.incrementAndGet()
+        val notification = builder.build()
         context.getSystemService(NotificationManager::class.java)
             .notify(tag, notificationId, notification)
         return PushNotificationResult.Posted

@@ -7,7 +7,8 @@ import android.util.Log
 import com.devidea.timeleft.focus.FocusCoordinator
 import com.devidea.timeleft.notification.ReminderCoordinator
 import com.devidea.timeleft.notification.ReminderScheduler
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.TimeLeftRepository
+import com.devidea.timeleft.videorecords.VideoRecordStore
 import dagger.hilt.android.HiltAndroidApp
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
@@ -24,19 +25,31 @@ class App : Application() {
     @Inject lateinit var focus: FocusCoordinator
     @Inject lateinit var reminders: ReminderCoordinator
     @Inject lateinit var repository: TimeLeftRepository
+    @Inject lateinit var videoRecords: VideoRecordStore
     @Inject lateinit var telemetry: com.devidea.timeleft.telemetry.AppTelemetry
     private val applicationScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
 
     override fun onCreate() {
         super.onCreate()
+        // The removed time-story feature kept favorites and read history in this file only.
+        // Retry on every process start without adding a migration flag or touching other data.
+        if (!deleteSharedPreferences("story_library")) {
+            Log.w("StoryCleanup", "Could not delete retired story preferences; will retry on next start")
+        }
         telemetry.initialize()
         com.devidea.timeleft.telemetry.AppPerformance.initialize()
         com.devidea.timeleft.config.AppRemoteConfig.initialize(this)
         com.devidea.timeleft.messaging.RewardMessaging.initialize(this)
         com.devidea.timeleft.messaging.PushMessaging.initialize(this)
+        com.devidea.timeleft.pointhome.PointHomeIntegration.initialize(this)
         ReminderScheduler.createChannel(this)
         // Repair missing work on any process start, independently of reminder/database reads.
         applicationScope.launch { com.devidea.timeleft.widget.WidgetRefreshSchedule.reconcileSafely(this@App) }
+        applicationScope.launch {
+            try { videoRecords.pruneDiscardedFiles() }
+            catch (error: CancellationException) { throw error }
+            catch (_: Exception) { Log.w("VideoRecords", "Local video cleanup will retry on the next launch") }
+        }
         applicationScope.launch {
             repository.items.retryWhen { cause, attempt ->
                 if (cause is CancellationException) throw cause

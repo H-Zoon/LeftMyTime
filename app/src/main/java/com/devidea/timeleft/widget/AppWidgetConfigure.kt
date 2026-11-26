@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.calc.currentOccurrence
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
@@ -32,13 +33,16 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.ItemGenerate
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
+import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
@@ -91,7 +95,7 @@ class AppWidgetConfigure : AppCompatActivity() {
                     showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
                     paletteKey = currentPaletteKey(),
                     themeMode = currentThemeMode(),
-                    loadItems = { repository.allItems().map { it.forWidgetPreview() } },
+                    loadItems = { repository.allItems().map { it.currentOccurrence() } },
                     onBack = ::finish,
                     onSave = ::saveWidgetConfiguration
                 )
@@ -281,11 +285,8 @@ private fun WidgetConfigureScreen(
     onSave: () -> Unit,
 ) {
     val context = LocalContext.current
-    val generator = remember(context) { ItemGenerate(context) }
-    val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
-    fun customItem(entity: ItemEntity?): AdapterItem? = entity?.let {
-        if (it.type == ItemType.Time) generator.customTimeItem(it) else generator.customMonthItem(it)
-    }
+    val generator = remember(context) { TimeDisplayFactory(context) }
+    val periods = generator.standardPeriods()
     val source = configuration.source
     val personal = source == WidgetSource.Custom || source == WidgetSource.Next
     val selectedItem = items.firstOrNull { it.id == configuration.itemId }
@@ -298,9 +299,11 @@ private fun WidgetConfigureScreen(
         WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
         WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
         WidgetSource.Overview -> null
-        WidgetSource.Next -> customItem(NextCountdownSelector.select(items, clock = com.devidea.timeleft.focus.readFocusClock(context)))
+        WidgetSource.Next -> NextCountdownSelector.select(
+            items, clock = com.devidea.timeleft.focus.readFocusClock(context)
+        )?.let(generator::fromSchedule)
             ?: periods[1].takeIf { configuration.legacySummary }
-        WidgetSource.Custom -> customItem(selectedItem)
+        WidgetSource.Custom -> selectedItem?.let(generator::fromSchedule)
             ?: periods[1].takeIf { configuration.legacySummary }
     }
     val emptyMessage = when {
@@ -314,9 +317,18 @@ private fun WidgetConfigureScreen(
     val remainingValue = previewItem?.let { it.toWidgetData(context, true, it.type == ItemType.Time).value }
     val countdownValue = previewItem?.let { it.toWidgetData(context, false, it.type == ItemType.Time).value }
     val showFormat = personal && !unavailable && !customMissing && remainingValue != countdownValue
-    val canShowSeconds = WidgetSecondsSupport.available() && !unavailable &&
+    // The default launcher may have changed while configuration was in the background.
+    var resumeVersion by remember { mutableIntStateOf(0) }
+    val lifecycleOwner = LocalLifecycleOwner.current
+    DisposableEffect(lifecycleOwner) {
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resumeVersion++ }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
+    val secondsDelivery = remember(context, resumeVersion) { WidgetSecondsSupport.delivery(context) }
+    val canShowSeconds = secondsDelivery != WidgetSecondsDelivery.Unavailable && !unavailable &&
         WidgetSecondsPlan.create(configuration, previewItem, System.currentTimeMillis()) != null
-    val secondsEnabled = canShowSeconds && configuration.showSeconds
+    val secondsEnabled = canShowSeconds && configuration.showSeconds && secondsDelivery.showsSeconds
     Scaffold(
         topBar = { TimeLeftTopAppBar(stringResource(R.string.widget_configure_title), onBack) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -364,11 +376,13 @@ private fun WidgetConfigureScreen(
                     com.devidea.timeleft.ui.components.TimeLeftSwitchRow(
                         title = stringResource(R.string.widget_seconds_option), checked = configuration.showSeconds,
                         onCheckedChange = onShowSecondsChanged, enabled = !saving,
-                        summary = stringResource(R.string.widget_seconds_hint))
+                        summary = stringResource(if (secondsDelivery == WidgetSecondsDelivery.DrawInstructions)
+                            R.string.widget_seconds_hint else R.string.widget_seconds_hint_number_only))
                 }
                 if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
-                    if (!secondsEnabled) Text(stringResource(if (configuration.showSeconds) R.string.widget_seconds_unavailable else R.string.widget_snapshot_hint),
-                        style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    if (!secondsEnabled) Text(stringResource(
+                        if (configuration.showSeconds) R.string.widget_seconds_unavailable else R.string.widget_snapshot_hint
+                    ), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (showFormat && !secondsEnabled) {
                     Column(Modifier.selectableGroup()) {
@@ -468,8 +482,8 @@ private fun WidgetOptionRow(label: String, checked: Boolean, enabled: Boolean, o
 internal fun WidgetPreviewBand(
     dimensions: WidgetDimensions,
     configuration: WidgetConfiguration,
-    item: AdapterItem?,
-    periods: List<AdapterItem>,
+    item: TimeDisplayItem?,
+    periods: List<TimeDisplayItem>,
     paletteKey: String,
     dark: Boolean,
     emptyMessage: Int,
@@ -485,24 +499,31 @@ internal fun WidgetPreviewBand(
             fontScale = previewFontScale
         })
     }
-    val meetsMinimum = dimensions.meetsMinimumFor(configuration.source)
-    val previewDimensions = if (meetsMinimum) dimensions else WidgetDimensions.previewFor(configuration.source)
-    val views = remember(context, previewDimensions, configuration, item, periods, paletteKey, dark, designKey, emptyMessage, showProgress, snapshotTimeMillis) {
-        AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
-            snapshotTimeMillis = snapshotTimeMillis, designKey = designKey)
+    val preview = remember(context, dimensions, configuration, item, periods, paletteKey, dark, designKey, emptyMessage, showProgress, snapshotTimeMillis) {
+        val renderer = AppWidget()
+        val snapshot = snapshotTimeMillis ?: System.currentTimeMillis()
+        widgetContentPreview(dimensions, configuration.source) { size ->
+            var fits = false
+            val rendered = renderer.previewViews(context, size, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
+                snapshotTimeMillis = snapshot, designKey = designKey, onSizeMeasured = { fits = it })
+            WidgetPreview(size, rendered, fits)
+        }
     }
-    val spokenPreview = if (previewDescription != null && views.layoutId == R.layout.app_widget_resize)
+    val previewDimensions = preview.dimensions
+    val views = preview.views
+    val expanded = previewDimensions != dimensions
+    val spokenPreview = if (previewDescription != null && !preview.fits)
         stringResource(R.string.widget_size_hint) else previewDescription
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         WidgetSectionLabel(stringResource(when {
             previewDescription != null -> R.string.theme_widget_preview_size
-            meetsMinimum -> R.string.widget_preview_current_size
-            else -> R.string.widget_preview_recommended_size
+            expanded -> R.string.widget_preview_recommended_size
+            else -> R.string.widget_preview_current_size
         }))
         Text(stringResource(if (configuration.source == WidgetSource.Overview) R.string.widget_overview_size_hint else R.string.widget_minimum_size_hint), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (!meetsMinimum || views.layoutId == R.layout.app_widget_resize) {
-            Text(stringResource(R.string.widget_size_hint), style = MaterialTheme.typography.bodyMedium,
+        if (expanded || !preview.fits) {
+            Text(stringResource(if (preview.fits) R.string.widget_preview_expanded_hint else R.string.widget_size_hint), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {

@@ -104,3 +104,19 @@ HTTP 성공 응답은 발송 접수 결과다. 실제 수신은 기기 알림과
 ## 리워드 메시지 테스트
 
 일반 FID 수신 테스트와 별도로, 선택형 리워드 알림은 [리워드 수신 설정·토픽 발송 안내](REWARD_NOTIFICATIONS.md)를 따른다. 토픽은 `reward_notifications`, Android 채널 ID도 `reward_notifications`, 사용자 정의 데이터는 `notification_kind=reward`다. FID를 직접 지정하는 테스트는 캠페인의 토픽 대상 선별을 검증하지 않는다.
+
+
+## PointHome 알림 터치 테스트 (2026-10-19)
+
+리워드 토픽 메시지의 사용자 정의 데이터에 다음 두 값을 함께 지정한다. 전체 payload와 채널 설정은 [리워드 알림 안내](REWARD_NOTIFICATIONS.md)를 따른다.
+
+```json
+{
+  "notification_kind": "reward",
+  "open_target": "pointhome"
+}
+```
+
+백그라운드 SDK 자동 표시도 확인하려면 notification+data를 사용하고 별도 click_action·링크 없이 기본 런처를 연다. 두 값 누락/미지원 목적지는 기존 홈 진입이며, 수신만으로 PointHome을 자동 실행하지 않는다. 원격 `pointhome_entry_enabled=false`에서는 알림을 눌러도 SDK 화면을 호출하지 않고 홈에서 안내한다.
+
+최종 검증에서 포그라운드·백그라운드·프로세스 재생성, MainActivity 기존 인스턴스·편집 화면·SDK 화면 위의 알림 터치, 여러 일반/리워드 알림의 목적지 독립, 설정 대기 중 회전·복귀/복원 중복 방지, 빠른 연속 터치와 SDK 실패를 확인한다. 이 구현에서는 정적 소스·SDK/API 검토만 수행했으며 새 APK 빌드·설치·실제 FCM 발송/터치·실행 테스트는 수행하지 않았다.

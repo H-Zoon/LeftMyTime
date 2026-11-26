@@ -18,6 +18,7 @@ LeftMyTime은 사용자가 설정한 특정 날짜 또는 시간까지 남은 �
 
 ## 디자인과 장기 운영
 
+* [기능별 코드 구조와 파일 배치 기준](design/CODE_STRUCTURE.md)
 * [다른 PC에서 이어서 작업하기 — 현재 상태와 남은 검증](design/WORK_HANDOFF.md)
 * [Firebase 원격 설정·성능 측정·테스터 배포 안내](design/FIREBASE_OPERATIONS.md)
 * [선택형 리워드·혜택 알림과 토픽 발송 안내](design/REWARD_NOTIFICATIONS.md)

@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import android.content.Context
 import android.os.Build
 import android.widget.RemoteViews
 import com.devidea.timeleft.config.AppRemoteConfig
@@ -18,7 +19,32 @@ internal object WidgetSecondsSupport {
             .withRemoteSecondsEnabled(AppRemoteConfig.widgetSecondsEnabled)
     }
 
-    fun available(): Boolean = capability().productionProfile != null
+    fun drawInstructionsAvailable(): Boolean = capability().productionProfile != null
+
+    fun delivery(context: Context): WidgetSecondsDelivery {
+        val drawSupported = drawInstructionsAvailable()
+        return WidgetSecondsDelivery.resolve(
+            secondsEnabled = AppRemoteConfig.widgetSecondsEnabled,
+            drawSupported = drawSupported,
+            launcherVerified = drawSupported && WidgetSecondsLauncher.isVerified(WidgetSecondsLauncher.homePackage(context)),
+        )
+    }
+}
+
+internal enum class WidgetSecondsDelivery {
+    Unavailable,
+    DrawInstructions,
+    Chronometer;
+
+    val showsSeconds: Boolean get() = this != Unavailable
+
+    companion object {
+        fun resolve(secondsEnabled: Boolean, drawSupported: Boolean, launcherVerified: Boolean): WidgetSecondsDelivery = when {
+            !secondsEnabled -> Unavailable
+            drawSupported && launcherVerified -> DrawInstructions
+            else -> Chronometer
+        }
+    }
 }
 
 /** Remote configuration can disable an existing production path, never enable an unsupported host. */

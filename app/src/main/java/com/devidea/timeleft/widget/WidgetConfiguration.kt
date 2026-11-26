@@ -51,15 +51,55 @@ internal fun widgetViewsForSizes(options: Bundle, source: WidgetSource, render: 
     return if (portrait == landscape) render(portrait) else RemoteViews(render(landscape), render(portrait))
 }
 
-/** Hosts also resize pin/picker previews. Offer the same type scale at each supported size. */
+internal data class WidgetPreview(
+    val dimensions: WidgetDimensions,
+    val views: RemoteViews,
+    val fits: Boolean = views.layoutId != R.layout.app_widget_resize,
+)
+
+/** Preview-only growth bounds; installed widgets always use the size supplied by their host. */
+private const val PREVIEW_GROWTH_DP = 64
+private const val PREVIEW_MAX_WIDTH_DP = 640
+private const val PREVIEW_MAX_HEIGHT_DP = 960
+
+internal fun widgetContentPreview(
+    requested: WidgetDimensions,
+    source: WidgetSource,
+    render: (WidgetDimensions) -> WidgetPreview,
+): WidgetPreview {
+    val representative = WidgetDimensions.previewFor(source)
+    var size = if (requested.meetsMinimumFor(source)) requested else representative
+    val maxWidth = maxOf(size.width, PREVIEW_MAX_WIDTH_DP)
+    val maxHeight = maxOf(size.height, PREVIEW_MAX_HEIGHT_DP)
+    while (true) {
+        val preview = render(size)
+        if (preview.fits) return preview
+        val next = WidgetDimensions(
+            maxOf(representative.width, minOf(size.width + PREVIEW_GROWTH_DP, maxWidth)),
+            maxOf(representative.height, minOf(size.height + PREVIEW_GROWTH_DP, maxHeight)),
+        )
+        if (next == size) return preview
+        size = next
+    }
+}
+
+/** Static pin/picker previews contain only variants that actually show their content. */
 internal fun widgetPreviewForSizes(source: WidgetSource, render: (WidgetDimensions) -> RemoteViews): RemoteViews {
     val minimum = WidgetDimensions.minimumFor(source)
     val preview = WidgetDimensions.previewFor(source)
-    if (Build.VERSION.SDK_INT < 31) return render(preview)
+    if (Build.VERSION.SDK_INT < 31) return widgetContentPreview(preview, source) {
+        WidgetPreview(it, render(it))
+    }.views
     val sizes = listOf(minimum, WidgetDimensions(preview.width, minimum.height),
         WidgetDimensions(minimum.width, preview.height), preview,
         WidgetDimensions(340, 260), WidgetDimensions(360, 320), WidgetDimensions(400, 240)).distinct()
-    return RemoteViews(sizes.associate { SizeF(it.width.toFloat(), it.height.toFloat()) to render(it) })
+    val rendered = sizes.map { WidgetPreview(it, render(it)) }.filter { it.fits }
+    val content = rendered.ifEmpty {
+        listOf(widgetContentPreview(preview, source) { WidgetPreview(it, render(it)) })
+    }
+    return RemoteViews(content.associate {
+        SizeF(it.dimensions.width.toFloat(), it.dimensions.height.toFloat()) to it.views
+    })
 }
 
 internal data class WidgetConfiguration(

@@ -1,0 +1,41 @@
+package com.devidea.timeleft.ui
+
+import com.devidea.timeleft.ItemVisuals
+import com.devidea.timeleft.calc.TimeRangePhase
+import com.devidea.timeleft.database.ItemType
+
+data class TimeDisplayItem(
+    val id: Int = 0,
+    val title: String = "",
+    val percent: Float = 0f,
+    val startString: String = "",
+    val endString: String = "",
+    val leftString: String = "",
+    val updateInfo: String = "",
+    val countdownText: String = "",
+    val dueText: String = "",
+    val recurrenceText: String = "",
+    val category: String = "",
+    val colorKey: String = ItemVisuals.AUTO_COLOR_KEY,
+    val iconKey: String = ItemVisuals.DEFAULT_ICON_KEY,
+    val reminderText: String = "",
+    val remainingSortKey: Long = Long.MAX_VALUE,
+    val isExpired: Boolean = false,
+    val type: ItemType? = null,
+    val timePhase: TimeRangePhase? = null,
+    val remainingSeconds: Long? = null,
+    val remainingDays: Int? = null,
+    val secondsUntilStart: Long? = null,
+    val startLabel: String = "",
+    val endLabel: String = "",
+    val currentLabel: String = "",
+    val dataError: Boolean = false,
+    val isPinned: Boolean = false,
+    val manualOrder: Long = 0,
+    val isFocusSession: Boolean = false,
+    val isCalendarOccurrence: Boolean = false,
+    val focusState: String = "",
+    val startsAtMillis: Long? = null,
+    val endsAtMillis: Long? = null,
+    val detailFacts: TimeDetailFacts? = null,
+)

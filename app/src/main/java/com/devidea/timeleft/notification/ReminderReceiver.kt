@@ -9,8 +9,8 @@ import android.content.Context
 import android.content.Intent
 import android.util.Log
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.widget.WidgetDetailsActivity
 import com.devidea.timeleft.widget.WidgetSource
 import dagger.hilt.android.AndroidEntryPoint

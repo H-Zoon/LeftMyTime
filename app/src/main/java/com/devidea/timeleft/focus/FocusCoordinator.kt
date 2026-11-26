@@ -11,7 +11,7 @@ import android.util.Log
 import androidx.room.withTransaction
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.AppDatabase
-import com.devidea.timeleft.database.itemdata.ItemEntity
+import com.devidea.timeleft.database.ItemEntity
 import com.devidea.timeleft.notification.ReminderScheduler
 import com.devidea.timeleft.notification.canPostReminderNotifications
 import dagger.hilt.android.qualifiers.ApplicationContext

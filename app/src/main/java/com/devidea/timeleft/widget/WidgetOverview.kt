@@ -2,10 +2,10 @@ package com.devidea.timeleft.widget
 
 import android.content.Context
 import android.widget.RemoteViews
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatRemainingTime
-import com.devidea.timeleft.remainingTimeGroups
+import com.devidea.timeleft.ui.formatRemainingTime
+import com.devidea.timeleft.ui.remainingTimeGroups
 import kotlin.math.ceil
 import kotlin.math.max
 import kotlin.math.roundToInt
@@ -14,7 +14,7 @@ import kotlin.math.roundToInt
 internal fun createOverviewViews(
     context: Context,
     dimensions: WidgetDimensions,
-    periods: List<AdapterItem>,
+    periods: List<TimeDisplayItem>,
     palette: WidgetPalette,
 ): RemoteViews {
     if (!dimensions.meetsMinimumFor(WidgetSource.Overview) || periods.size < 3) return resizeWidgetViews(context, palette)

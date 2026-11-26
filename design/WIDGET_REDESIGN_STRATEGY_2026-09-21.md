@@ -25,7 +25,7 @@
 | 탭 동작 | 위젯의 공통 앱 실행 Intent에 표시 항목 정보가 없다. | 보고 있던 일정·기간의 상세로 바로 연결되지 않는다. | 위젯·기간·일정 식별자를 전달하여 해당 상세를 연다. |
 | 설정 반영 | 위젯은 진행 표시 숨김 설정을 읽지 않고, 그 설정 변경도 위젯 갱신을 요청하지 않는다. | 앱에서 숨긴 눈금이 위젯에는 남을 수 있다. | 공통 표시 설정과 변경 후 갱신을 함께 적용한다. |
 
-근거 파일: [위젯 렌더링](../app/src/main/java/com/devidea/timeleft/widget/AppWidget.kt), [요약 배치](../app/src/main/java/com/devidea/timeleft/widget/WidgetOverview.kt), [앱 숫자 표현](../app/src/main/java/com/devidea/timeleft/ui/components/RemainingTimeText.kt), [앱 눈금](../app/src/main/java/com/devidea/timeleft/ui/components/TimeRuler.kt), [위젯 설정](../app/src/main/java/com/devidea/timeleft/widget/AppWidgetConfigure.kt), [앱 설정](../app/src/main/java/com/devidea/timeleft/activity/SettingsActivity.kt).
+근거 파일: [위젯 렌더링](../app/src/main/java/com/devidea/timeleft/widget/AppWidget.kt), [요약 배치](../app/src/main/java/com/devidea/timeleft/widget/WidgetOverview.kt), [앱 숫자 표현](../app/src/main/java/com/devidea/timeleft/ui/components/RemainingTimeText.kt), [앱 눈금](../app/src/main/java/com/devidea/timeleft/ui/components/TimeRuler.kt), [위젯 설정](../app/src/main/java/com/devidea/timeleft/widget/AppWidgetConfigure.kt), [앱 설정](../app/src/main/java/com/devidea/timeleft/settings/SettingsActivity.kt).
 
 ## 3. 디자인 개편안
 

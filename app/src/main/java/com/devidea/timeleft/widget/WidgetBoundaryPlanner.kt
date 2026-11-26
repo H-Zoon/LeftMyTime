@@ -1,10 +1,10 @@
 package com.devidea.timeleft.widget
 
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.calc.currentOccurrence
 import com.devidea.timeleft.calc.scheduledTimeWindow
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import com.devidea.timeleft.focus.isFocusSession
 import java.time.ZonedDateTime
 
@@ -14,7 +14,7 @@ import java.time.ZonedDateTime
  */
 internal fun nextSnapshotRefreshMillis(
     configuration: WidgetConfiguration,
-    item: AdapterItem?,
+    item: TimeDisplayItem?,
     nowMillis: Long,
 ): Long? {
     val showsTime = configuration.source == WidgetSource.Today ||
@@ -22,7 +22,7 @@ internal fun nextSnapshotRefreshMillis(
         item?.type == ItemType.Time
     if (!showsTime) return null
     return listOfNotNull(
-        nowMillis + 15 * 60_000L,
+        nowMillis + WIDGET_SNAPSHOT_REFRESH_MILLIS,
         item?.startsAtMillis?.takeIf { it > nowMillis },
         item?.endsAtMillis?.takeIf { it > nowMillis },
     ).minOrNull()

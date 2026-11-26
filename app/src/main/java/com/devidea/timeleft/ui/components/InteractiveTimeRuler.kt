@@ -47,12 +47,12 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.setProgress
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.formatClockTime
-import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.ui.formatClockTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Motion
 import com.devidea.timeleft.ui.theme.Spacing
@@ -64,7 +64,7 @@ import kotlin.math.abs
 /** Only app details use this controller. Static home/list/widget rulers share the drawing. */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-internal fun InteractiveTimeRuler(item: AdapterItem, range: TimeDetailRange) {
+internal fun InteractiveTimeRuler(item: TimeDisplayItem, range: TimeDetailRange) {
     val facts = item.detailFacts ?: return
     val context = LocalContext.current
     val locale = context.resources.configuration.locales[0]
@@ -190,16 +190,27 @@ internal fun InteractiveTimeRuler(item: AdapterItem, range: TimeDetailRange) {
         TimeRuler(facts.percentElapsed, item.startLabel, item.endLabel, glowEnabled = facts.glowActive,
             interaction = RulerInteraction(probe?.let(range::fraction), touchFraction, touchStrength.value),
             trackModifier = input)
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(if (probe == null) currentLabel else previewLabel, modifier = Modifier.alignByBaseline(),
-                style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
+        if (probe != null) {
+            // The ruler and primary readout remain current; only this named group is a preview.
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    Text(stringResource(if (range is TimeDetailRange.Calendar) R.string.detail_preview_title else R.string.detail_clock_preview_title),
+                        modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { reset(); haptics.tick() },
+                        modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
+                        contentPadding = PaddingValues(vertical = Spacing.s)) { Text(resetLabel) }
+                }
+                Text(stringResource(R.string.detail_preview_basis, timeLabel),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                Text(stringResource(R.string.detail_preview_remaining, remainingLabel),
+                    style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            Text(stringResource(R.string.detail_probe_hint), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (probe != null) TextButton(onClick = { reset(); haptics.tick() },
-                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
-                contentPadding = PaddingValues(vertical = Spacing.s)) { Text(resetLabel) }
         }
-        Text(stringResource(R.string.detail_probe_hint), style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

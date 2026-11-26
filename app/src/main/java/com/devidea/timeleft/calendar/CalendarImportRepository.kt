@@ -12,7 +12,7 @@ import androidx.core.content.ContextCompat
 import androidx.room.withTransaction
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.AppDatabase
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.TimeLeftRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import java.time.LocalDate
 import java.time.ZoneId

@@ -1,8 +1,8 @@
 package com.devidea.timeleft.backup
 
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.database.RecurrenceMode
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue

@@ -87,4 +87,25 @@ class RewardMessagingPolicyTest {
         assertFalse(isRewardMessage("reminder", "/topics/other", "remote_messages"))
         assertFalse(isRewardMessage("rewards", "/topics/reward_notifications_extra", null))
     }
+
+    @Test fun `reward ads exclude the full night interval including its start boundary`() {
+        assertFalse(isRewardAdDaytime(0))
+        assertFalse(isRewardAdDaytime(7))
+        assertTrue(isRewardAdDaytime(8))
+        assertTrue(isRewardAdDaytime(14))
+        assertTrue(isRewardAdDaytime(20))
+        assertFalse(isRewardAdDaytime(21))
+        assertFalse(isRewardAdDaytime(23))
+    }
+
+    @Test fun `reward body taps accept only the PointHome destination`() {
+        assertTrue(PointHomePushOpen.isRequested("reward", "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested("reward", "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested("general", "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested("general", "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested(null, "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested(null, "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested("reward", "https://example.com"))
+        assertFalse(PointHomePushOpen.isRequested("reward", null))
+    }
 }

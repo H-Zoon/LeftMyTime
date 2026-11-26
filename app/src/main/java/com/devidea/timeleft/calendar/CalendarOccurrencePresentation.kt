@@ -1,10 +1,16 @@
 package com.devidea.timeleft.calendar
 
 import android.content.Context
-import com.devidea.timeleft.*
+import com.devidea.timeleft.ItemVisuals
+import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.TimeDetailFacts
+import com.devidea.timeleft.ui.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.formatClockTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -16,7 +22,7 @@ internal fun occurrenceLabel(context: Context, millis: Long): String {
     return context.getString(R.string.time_date_clock, date, formatClockTime(context, time.toLocalTime()))
 }
 
-internal fun timedOccurrenceItem(context: Context, item: ItemEntity, now: Long = System.currentTimeMillis()): AdapterItem {
+internal fun timedOccurrenceItem(context: Context, item: ItemEntity, now: Long = System.currentTimeMillis()): TimeDisplayItem {
     val start = requireNotNull(item.occurrenceStartMillis)
     val end = requireNotNull(item.occurrenceEndMillis)
     require(end > start)
@@ -33,7 +39,7 @@ internal fun timedOccurrenceItem(context: Context, item: ItemEntity, now: Long =
     val finished = phase == TimeRangePhase.Finished
     val value = if (finished) context.getString(R.string.calendar_occurrence_finished)
         else formatRemainingTime(context, untilStart ?: remaining, null, showSeconds = true)
-    return AdapterItem(id = item.id, title = item.title, type = ItemType.Time,
+    return TimeDisplayItem(id = item.id, title = item.title, type = ItemType.Time,
         isCalendarOccurrence = true, timePhase = phase, isExpired = finished,
         isPinned = item.isPinned && (item.pinnedUntilMillis ?: 0) > now && !finished, manualOrder = item.manualOrder,
         startsAtMillis = start, endsAtMillis = end, remainingSeconds = remaining, secondsUntilStart = untilStart,

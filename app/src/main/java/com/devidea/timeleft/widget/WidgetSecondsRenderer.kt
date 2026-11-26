@@ -22,7 +22,7 @@ import androidx.compose.remote.creation.actions.HostAction
 import androidx.compose.remote.creation.modifiers.RecordingModifier
 import androidx.core.graphics.createBitmap
 import androidx.appcompat.content.res.AppCompatResources
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.components.drawTimeRulerGlow
 import com.devidea.timeleft.ui.theme.TimeLayout
@@ -37,16 +37,18 @@ import kotlin.math.roundToInt
  */
 @RequiresApi(35)
 internal object WidgetSecondsRenderer {
-    fun create(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
+    fun create(context: Context, size: WidgetDimensions, item: TimeDisplayItem, plan: WidgetSecondsPlan,
         palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long? = null,
-        profile: WidgetSecondsProfile = requireNotNull(WidgetSecondsSupport.capability().productionProfile)): RemoteViews =
+        profile: WidgetSecondsProfile = requireNotNull(WidgetSecondsSupport.capability().productionProfile),
+        onSizeMeasured: ((Boolean) -> Unit)? = null): RemoteViews =
         RemoteViews(RemoteViews.DrawInstructions.Builder(listOf(
-            createDocument(context, size, item, plan, palette, showProgress, snapshotMillis, profile)
+            createDocument(context, size, item, plan, palette, showProgress, snapshotMillis, profile, onSizeMeasured)
         )).build())
 
     /** Shared by the published widget and platform tests; explicit profiles enable debug candidates. */
-    fun createDocument(context: Context, size: WidgetDimensions, item: AdapterItem, plan: WidgetSecondsPlan,
-        palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long?, profile: WidgetSecondsProfile): ByteArray {
+    fun createDocument(context: Context, size: WidgetDimensions, item: TimeDisplayItem, plan: WidgetSecondsPlan,
+        palette: WidgetPalette, showProgress: Boolean, snapshotMillis: Long?, profile: WidgetSecondsProfile,
+        onSizeMeasured: ((Boolean) -> Unit)? = null): ByteArray {
         val density = context.resources.displayMetrics.density
         val width = size.width * density
         val height = size.height * density
@@ -82,6 +84,8 @@ internal object WidgetSecondsRenderer {
         val headingHeight = max(touch, title.height.toFloat())
         val required = topPadding * 2 + headingHeight + gap + valueHeight + gap +
             (if (showProgress) rulerHeight + smallGap else 0f) + rangeHeight
+        val fits = size.meetsMinimum && required <= height && numberWidth <= contentWidth
+        onSizeMeasured?.invoke(fits)
         val writer = createWidgetSecondsWriter(
             CreationDisplayInfo(width.roundToInt(), height.roundToInt(), context.resources.displayMetrics.densityDpi),
             item.title, profile)
@@ -93,7 +97,7 @@ internal object WidgetSecondsRenderer {
         writer.rcPaint.setColor(palette.background).commit()
         val radius = context.resources.getDimension(android.R.dimen.system_app_widget_background_radius)
         writer.drawRoundRect(0f, 0f, width, height, radius, radius)
-        if (!size.meetsMinimum || required > height || numberWidth > contentWidth) {
+        if (!fits) {
             val hint = layout(context.getString(R.string.widget_seconds_size_hint), labelSize, contentWidth)
             // Same payload kind at every responsive size. Never mix XML and draw instructions.
             writer.save()

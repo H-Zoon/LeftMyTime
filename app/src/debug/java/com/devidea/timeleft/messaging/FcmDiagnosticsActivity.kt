@@ -33,7 +33,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.R
 import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.theme.LayoutTokens

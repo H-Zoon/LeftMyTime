@@ -17,7 +17,6 @@ object Motion {
     const val DetailApproachFraction = .4f
     // A clock may need one short borrow before all of its units can count down.
     const val DetailClockBorrowFraction = .15f
-    const val StoryChangeMs = 180
 
     // Used for the approach/borrow phase; the final steps have their own value-based timing.
     val DetailEntranceEasing = CubicBezierEasing(0.2f, 0f, 0.1f, 1f)

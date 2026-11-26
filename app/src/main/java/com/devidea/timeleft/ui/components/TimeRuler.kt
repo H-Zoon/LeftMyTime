@@ -24,8 +24,8 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.text.style.TextAlign
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatPercent
-import com.devidea.timeleft.roundPercent
+import com.devidea.timeleft.ui.formatPercent
+import com.devidea.timeleft.ui.roundPercent
 import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.ui.theme.TimeRulerTokens
 import com.devidea.timeleft.ui.theme.LayoutTokens

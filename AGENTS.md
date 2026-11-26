@@ -5,6 +5,10 @@
 장기 개선 방향과 아직 해결하지 않은 문제는 `design/PRODUCT_REVIEW.md`에 있다.
 2026-09-18 사용자가 **A안 ‘시간 중심’**을 확정했다. `DESIGN_SYSTEM.md`의 v2가 앞으로의 기준이며, v1은 이전 구현 기록이다. 현재 코드를 이유로 둥근 글꼴·카드·링 중심 디자인으로 되돌리지 않는다.
 
+## 코드 배치
+
+- 화면·Activity·ViewModel·전용 로직은 `home`, `editor`, `settings`, `focus` 등 해당 기능 패키지에 함께 둔다. 클래스 종류별 `activity`·`viewmodels` 패키지를 다시 만들지 않는다. 공통 코드와 기존 Android 컴포넌트 이름의 호환 규칙은 `design/CODE_STRUCTURE.md`를 따른다.
+
 ## UI 변경
 
 - 색상·글꼴·모서리는 `TimeLeftTheme`, 간격은 `Spacing`과 `LayoutTokens`를 사용한다.

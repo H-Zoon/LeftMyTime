@@ -9,17 +9,18 @@ import android.content.Context
 import android.content.Intent
 import android.content.SharedPreferences
 import android.os.Bundle
+import android.os.SystemClock
 import android.os.Build
 import android.appwidget.AppWidgetProviderInfo
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import androidx.core.net.toUri
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.InterfaceItem
+import com.devidea.timeleft.focus.canUseExactAlarms
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.database.TimeLeftRepository
 import com.devidea.timeleft.telemetry.AppPerformance
 import dagger.hilt.EntryPoint
 import dagger.hilt.InstallIn
@@ -32,6 +33,7 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import java.time.ZoneId
 
 open class AppWidget : AppWidgetProvider() {
 
@@ -76,11 +78,11 @@ open class AppWidget : AppWidgetProvider() {
                     val prefs = ep.prefs()
                     val palette = WidgetPalette.fromPreferences(appContext, prefs)
                     val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-                    val generator = ep.itemGenerator()
-                    val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
+                    val generator = ep.displayFactory()
+                    val periods = generator.standardPeriods()
                     val manager = AppWidgetManager.getInstance(appContext)
                     val design = com.devidea.timeleft.ui.theme.TimeLeftThemes.TimeFocus
-                    val signature = "${design.id}:${design.version}:v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
+                    val signature = "${design.id}:${design.version}:v2-time-8:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
                     val now = System.currentTimeMillis()
                     providerClasses.forEach { provider ->
                         val cacheKey = "widget_picker_${provider.simpleName}"
@@ -114,7 +116,7 @@ open class AppWidget : AppWidgetProvider() {
     interface AppWidgetEntryPoint {
         fun prefs(): SharedPreferences
         fun telemetry(): com.devidea.timeleft.telemetry.AppTelemetry
-        fun itemGenerator(): InterfaceItem
+        fun displayFactory(): TimeDisplayFactory
         fun repository(): TimeLeftRepository
     }
 
@@ -260,13 +262,13 @@ open class AppWidget : AppWidgetProvider() {
         try {
             val ep = entryPoint(context)
             val prefs = ep.prefs()
-            val itemGenerator = ep.itemGenerator()
+            val displayFactory = ep.displayFactory()
             val repository = ep.repository()
-            var loadedEntities: List<com.devidea.timeleft.database.itemdata.ItemEntity>? = null
+            var loadedEntities: List<com.devidea.timeleft.database.ItemEntity>? = null
             suspend fun entities() = loadedEntities ?: repository.allItems().also { loadedEntities = it }
 
             val configuration = WidgetConfiguration.read(prefs, appWidgetId)
-            val periods = listOf(itemGenerator.timeItem(), itemGenerator.monthItem(), itemGenerator.yearItem())
+            val periods = displayFactory.standardPeriods()
             var emptyMessage = R.string.widget_no_upcoming
             var dataLoaded = true
             val item = when (configuration.source) {
@@ -281,12 +283,7 @@ open class AppWidget : AppWidgetProvider() {
                         val selected = NextCountdownSelector.select(
                             entities().map { it.currentOccurrence() }, clock = com.devidea.timeleft.focus.readFocusClock(context)
                         )
-                        selected?.let {
-                            when (it.type) {
-                                ItemType.Time -> itemGenerator.customTimeItem(it)
-                                ItemType.Date -> itemGenerator.customMonthItem(it)
-                            }
-                        } ?: periods[1].takeIf { configuration.legacySummary }
+                        selected?.let(displayFactory::fromSchedule) ?: periods[1].takeIf { configuration.legacySummary }
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
@@ -299,12 +296,7 @@ open class AppWidget : AppWidgetProvider() {
                     emptyMessage = R.string.widget_selected_deleted
                     try {
                         val entity = entities().firstOrNull { it.id == configuration.itemId }
-                        entity?.let { it.currentOccurrence() }?.let { selected ->
-                            when (selected.type) {
-                                ItemType.Time -> itemGenerator.customTimeItem(selected)
-                                ItemType.Date -> itemGenerator.customMonthItem(selected)
-                            }
-                        } ?: periods[1].takeIf { configuration.legacySummary }
+                        entity?.currentOccurrence()?.let(displayFactory::fromSchedule) ?: periods[1].takeIf { configuration.legacySummary }
                     } catch (exception: CancellationException) {
                         throw exception
                     } catch (_: Exception) {
@@ -316,20 +308,32 @@ open class AppWidget : AppWidgetProvider() {
             }
             val palette = WidgetPalette.fromPreferences(context, prefs)
             val showProgress = prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL) != UserPreferences.PROGRESS_DISPLAY_HIDDEN
-            val secondsPlan = if (configuration.showSeconds && WidgetSecondsSupport.available())
-                WidgetSecondsPlan.create(configuration, item, System.currentTimeMillis()) else null
+            // The saved choice is kept; the launcher decides how, or whether, seconds are delivered.
+            val secondsDelivery = if (configuration.showSeconds) WidgetSecondsSupport.delivery(context) else WidgetSecondsDelivery.Unavailable
+            if (configuration.showSeconds) {
+                android.util.Log.i("WidgetSeconds", "Seconds delivery=$secondsDelivery launcher=${WidgetSecondsLauncher.homePackage(context)}")
+            }
+            val planTime = System.currentTimeMillis()
+            val secondsPlan = if (secondsDelivery.showsSeconds) WidgetSecondsPlan.create(configuration, item, planTime) else null
+            // One immutable countdown for the entire responsive map, like the draw-instruction plan.
+            val countdown = if (secondsDelivery == WidgetSecondsDelivery.Chronometer)
+                secondsPlan?.let { WidgetCountdown.create(it, planTime, SystemClock.elapsedRealtime(), ZoneId.systemDefault()) } else null
             fun render(seconds: Boolean) = widgetViewsForSizes(appWidgetManager.getAppWidgetOptions(appWidgetId), configuration.source) { size ->
                 // One immutable plan for the entire responsive map, even at a validity boundary.
-                val views = if (seconds && secondsPlan != null && item != null && Build.VERSION.SDK_INT >= 35)
+                val views = if (seconds && secondsDelivery == WidgetSecondsDelivery.DrawInstructions && secondsPlan != null &&
+                    item != null && Build.VERSION.SDK_INT >= 35)
                     WidgetSecondsRenderer.create(context, size, item, secondsPlan, palette, showProgress)
-                else createViews(context, size, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress)
+                else createViews(context, size, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress,
+                    countdown = countdown.takeIf { seconds })
                 views.also {
                     val shownSource = if (configuration.source in listOf(WidgetSource.Custom, WidgetSource.Next) && item?.id == 0)
                         WidgetSource.Month else configuration.source
                     bindWidgetActions(context, appWidgetManager, it, appWidgetId, shownSource, item, emptyMessage)
                 }
             }
-            var secondsRendered = secondsPlan != null
+            // A finished countdown plan is intentionally static; only a failed attempt is a fallback.
+            var secondsRendered = (secondsDelivery == WidgetSecondsDelivery.DrawInstructions && secondsPlan != null) || countdown != null
+            val secondsAttempted = secondsRendered
             try {
                 appWidgetManager.updateAppWidget(appWidgetId, render(secondsRendered))
             } catch (error: CancellationException) {
@@ -341,13 +345,26 @@ open class AppWidget : AppWidgetProvider() {
                 // Rebuild every responsive size with the same XML payload type, including posting errors.
                 appWidgetManager.updateAppWidget(appWidgetId, render(false))
             }
-            trace.finish(if (!dataLoaded || (secondsPlan != null && !secondsRendered))
+            trace.finish(if (!dataLoaded || (secondsAttempted && !secondsRendered))
                 AppPerformance.Outcome.Fallback else AppPerformance.Outcome.Success)
             // Submission is observable here; it does not prove that the launcher drew the new views.
             android.util.Log.i("WidgetRefresh", "Widget submitted: widget=$appWidgetId dataLoaded=$dataLoaded seconds=$secondsRendered")
             val refreshTime = System.currentTimeMillis()
-            var boundary = if (secondsRendered) secondsPlan?.nextBoundaryMillis(refreshTime)
-                else nextSnapshotRefreshMillis(configuration, item, refreshTime)
+            // Refresh the snapshot periodically, and request a transition when the host clock reaches zero.
+            var exactBoundary: Long? = null
+            var boundary = when {
+                secondsRendered && countdown != null -> {
+                    if (canUseExactAlarms(context)) {
+                        exactBoundary = WidgetCountdown.alarmAtMillis(countdown.targetMillis, refreshTime)
+                    }
+                    countdown.nextSnapshotMillis(refreshTime, exactBoundaryScheduled = exactBoundary != null)
+                }
+                secondsRendered -> secondsPlan?.nextBoundaryMillis(refreshTime)
+                // During today's last second there is no running clock. Start the next day at midnight.
+                secondsDelivery == WidgetSecondsDelivery.Chronometer && secondsPlan?.today == true && countdown == null ->
+                    WidgetCountdown.endOfTodayMillis(planTime, ZoneId.systemDefault()) + 1_000L
+                else -> nextSnapshotRefreshMillis(configuration, item, refreshTime)
+            }
             if (configuration.source == WidgetSource.Next) {
                 // Also watch future timed candidates while the automatic widget currently shows a date.
                 // A failed repository read must not discard an already rendered, self-clamping timer.
@@ -360,7 +377,7 @@ open class AppWidget : AppWidgetProvider() {
                 }
             }
             if (!dataLoaded) boundary = listOfNotNull(boundary, refreshTime + 60_000L).minOrNull()
-            WidgetBoundarySchedule.record(context, appWidgetId, boundary)
+            WidgetBoundarySchedule.record(context, appWidgetId, boundary, exactBoundary)
             return dataLoaded
         } catch (error: CancellationException) {
             unfinishedOutcome = AppPerformance.Outcome.Cancelled
@@ -377,7 +394,7 @@ open class AppWidget : AppWidgetProvider() {
         views: RemoteViews,
         appWidgetId: Int,
         source: WidgetSource,
-        item: AdapterItem?,
+        item: TimeDisplayItem?,
         emptyMessage: Int,
     ) {
         val provider = appWidgetManager.getAppWidgetInfo(appWidgetId)?.provider
@@ -431,6 +448,7 @@ open class AppWidget : AppWidgetProvider() {
         if (views.layoutId == R.layout.app_widget_single || views.layoutId == R.layout.app_widget_board) {
             views.setOnClickPendingIntent(R.id.refresh, updatePendingIntent)
             views.setOnClickPendingIntent(R.id.percent, rootAction)
+            views.setOnClickPendingIntent(R.id.widgetSecondsGroup, rootAction)
         }
     }
 
@@ -439,42 +457,61 @@ open class AppWidget : AppWidgetProvider() {
         context: Context,
         dimensions: WidgetDimensions,
         configuration: WidgetConfiguration,
-        item: AdapterItem?,
-        periods: List<AdapterItem>,
+        item: TimeDisplayItem?,
+        periods: List<TimeDisplayItem>,
         palette: WidgetPalette,
         emptyMessage: Int,
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
+        countdown: WidgetCountdown? = null,
+        onSizeMeasured: ((Boolean) -> Unit)? = null,
     ): RemoteViews {
-        if (configuration.showSeconds && WidgetSecondsSupport.available() && Build.VERSION.SDK_INT >= 35) {
-            val plan = WidgetSecondsPlan.create(configuration, item, snapshotTimeMillis ?: System.currentTimeMillis())
-            if (plan != null && item != null) return WidgetSecondsRenderer.create(context, dimensions, item, plan, palette, showProgress, snapshotTimeMillis)
+        var chronometer = countdown
+        if (configuration.showSeconds && chronometer == null) {
+            val reference = snapshotTimeMillis ?: System.currentTimeMillis()
+            when (WidgetSecondsSupport.delivery(context)) {
+                WidgetSecondsDelivery.DrawInstructions -> if (Build.VERSION.SDK_INT >= 35) {
+                    val plan = WidgetSecondsPlan.create(configuration, item, reference)
+                    if (plan != null && item != null) return WidgetSecondsRenderer.create(context, dimensions, item, plan, palette, showProgress, snapshotTimeMillis,
+                        onSizeMeasured = onSizeMeasured)
+                }
+                // Previews and pins show one frozen moment; installed widgets pass their own live countdown.
+                WidgetSecondsDelivery.Chronometer -> chronometer = WidgetSecondsPlan.create(configuration, item, reference)?.let {
+                    WidgetCountdown.create(it, reference, SystemClock.elapsedRealtime(), ZoneId.systemDefault(), running = snapshotTimeMillis == null)
+                }
+                else -> Unit
+            }
         }
-        return if (configuration.source == WidgetSource.Overview) createOverviewViews(context, dimensions, periods, palette)
-        else createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis)
+        val views = if (configuration.source == WidgetSource.Overview) createOverviewViews(context, dimensions, periods, palette)
+        else createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis, chronometer)
+        onSizeMeasured?.invoke(views.layoutId != R.layout.app_widget_resize)
+        return views
     }
 
     internal fun previewViews(
         context: Context,
         dimensions: WidgetDimensions,
         configuration: WidgetConfiguration,
-        item: AdapterItem?,
-        periods: List<AdapterItem>,
+        item: TimeDisplayItem?,
+        periods: List<TimeDisplayItem>,
         paletteKey: String,
         dark: Boolean,
         emptyMessage: Int = R.string.widget_no_upcoming,
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
         designKey: String = UserPreferences.DESIGN_TIME_FOCUS,
+        onSizeMeasured: ((Boolean) -> Unit)? = null,
     ): RemoteViews {
         val palette = WidgetPalette.create(paletteKey, dark, designKey)
         val snapshot = snapshotTimeMillis ?: System.currentTimeMillis()
         return try {
-            createViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshot)
+            createViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshot,
+                onSizeMeasured = onSizeMeasured)
         } catch (error: RuntimeException) {
             if (!configuration.showSeconds) throw error
             android.util.Log.e("WidgetSeconds", "Seconds preview failed: ${error.javaClass.simpleName}")
-            createViews(context, dimensions, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress, snapshot)
+            createViews(context, dimensions, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress, snapshot,
+                onSizeMeasured = onSizeMeasured)
         }
     }
 
