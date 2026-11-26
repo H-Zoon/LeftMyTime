@@ -17,7 +17,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.devidea.timeleft.R
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 
 /** All palettes share A's quiet surfaces and hierarchy; saved accents remain available. */
 enum class ThemePalette(

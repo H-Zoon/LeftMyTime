@@ -2,7 +2,7 @@ package com.devidea.timeleft.calc
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.database.RecurrenceMode
 import org.junit.Assert.assertTrue
 import org.junit.Test
 import java.time.Duration

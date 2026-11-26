@@ -2,14 +2,23 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS"/>
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
-    <uses-permission android:name="com.google.android.gms.permission.AD_ID" tools:node="remove" />
+    <uses-permission android:name="com.google.android.gms.permission.AD_ID" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_AD_ID" tools:node="remove" />
     <uses-permission android:name="android.permission.ACCESS_ADSERVICES_ATTRIBUTION" tools:node="remove" />
+
+    <!-- Reads which home app hosts the widgets; seconds are sent only to verified launchers. -->
+    <queries>
+        <intent>
+            <action android:name="android.intent.action.MAIN" />
+            <category android:name="android.intent.category.HOME" />
+        </intent>
+    </queries>
 
     <application
         android:name=".App"
@@ -47,37 +56,63 @@
             </intent-filter>
         </service>
 
+        <activity android:name=".videorecords.VideoRecordActivity" android:exported="false" />
+        <provider
+            android:name=".videorecords.VideoCaptureFileProvider"
+            android:authorities="${applicationId}.video-records"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/video_record_camera_paths" />
+        </provider>
         <activity android:name=".periods.PeriodsActivity" android:exported="false" />
         <activity android:name=".calendar.CalendarImportActivity" android:exported="false" />
-        <activity android:name=".input.PhraseInputActivity" android:exported="false" />
         <activity android:name=".templates.TemplatesActivity" android:exported="false" />
-        <activity android:name=".stories.StoryLibraryActivity" android:exported="false" />
         <activity android:name=".focus.FocusActivity" android:exported="false" />
         <receiver android:name=".focus.FocusReceiver" android:exported="false" />
         <receiver android:name=".widget.WidgetBoundaryReceiver" android:exported="false" />
         <activity
-            android:name=".activity.ItemEditorActivity"
+            android:name=".editor.ItemEditorActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.SettingsActivity"
+            android:name=".settings.SettingsActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.PrivacyPolicyActivity"
+            android:name=".settings.PrivacyPolicyActivity"
             android:exported="false" />
         <activity
             android:name=".widget.WidgetDetailsActivity"
             android:exported="false" />
         <activity
-            android:name=".activity.MainActivity"
+            android:name=".home.MainActivity"
             android:exported="true"
             android:launchMode="singleTop"
-            android:theme="@style/Theme.MyApplication.Splash">
+            android:theme="@style/Theme.MyApplication.Splash" />
+
+        <!-- Keep the installed launcher entry and existing notification intents valid. -->
+        <activity-alias
+            android:name=".activity.MainActivity"
+            android:targetActivity=".home.MainActivity"
+            android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-        </activity>
+        </activity-alias>
+        <activity-alias
+            android:name=".activity.ItemEditorActivity"
+            android:targetActivity=".editor.ItemEditorActivity"
+            android:exported="false" />
+        <activity-alias
+            android:name=".activity.SettingsActivity"
+            android:targetActivity=".settings.SettingsActivity"
+            android:exported="false" />
+        <activity-alias
+            android:name=".activity.PrivacyPolicyActivity"
+            android:targetActivity=".settings.PrivacyPolicyActivity"
+            android:exported="false" />
 
         <receiver android:name=".widget.PeriodAppWidget" android:label="@string/widget_periods_label" android:exported="true">
             <intent-filter><action android:name="android.appwidget.action.APPWIDGET_UPDATE" /></intent-filter>

@@ -15,7 +15,6 @@ import kotlinx.coroutines.flow.asStateFlow
 
 /** Installation-local consent is authoritative. Notification permission is a separate device state. */
 object RewardMessaging {
-    private const val CONSENT_KEY = "reward_notifications_consent"
     private const val CONFIRMATION_TIMEOUT_SECONDS = 60L
     private val lock = Any()
     private val executor = Executors.newSingleThreadScheduledExecutor()
@@ -27,7 +26,10 @@ object RewardMessaging {
     private var applicationContext: Context? = null
     private var preferences: SharedPreferences? = null // Accessed only on the executor.
     private var persistedConsent: Boolean? = null // Accessed only on the executor.
+    private var persistedChoiceAt = 0L // Accessed only on the executor.
+    private var choiceAt: Long? = null // Guarded by lock; null until an explicit selection.
     private var userChoseConsent = false
+    private var preferencesLoaded = false // Guarded by lock.
 
     fun initialize(context: Context) {
         val appContext = context.applicationContext
@@ -38,15 +40,7 @@ object RewardMessaging {
         // Preference initialization, channel I/O, and all SDK calls stay off the UI thread.
         executor.execute {
             try {
-                val prefs = PreferenceManager.getDefaultSharedPreferences(appContext)
-                preferences = prefs
-                val saved = prefs.getBoolean(CONSENT_KEY, false)
-                persistedConsent = saved
-                synchronized(lock) {
-                    // A choice made while the disk load was pending must win over the old value.
-                    if (!userChoseConsent) policy.setConsent(saved)
-                    publishLocked()
-                }
+                loadPreferencesOnExecutor(appContext)
                 consentLoaded.countDown()
                 refreshOnExecutor(appContext, retryFailed = true)
             } catch (_: Exception) {
@@ -66,12 +60,17 @@ object RewardMessaging {
     fun setConsent(granted: Boolean) {
         val context = synchronized(lock) {
             userChoseConsent = true
+            choiceAt = System.currentTimeMillis()
             policy.setConsent(granted)
             publishLocked() // Revocation blocks service-delivered rewards immediately.
             applicationContext
         } ?: return
         executor.execute {
-            if (!granted) cancelRewardsIfStillOptedOut(context)
+            if (!granted) {
+                cancelRewardsIfStillOptedOut(context)
+                // Queue withdrawal even if a subsequent preference read/write fails.
+                queueUnsubscribeSafely()
+            }
             refreshOnExecutor(context, retryFailed = true)
         }
     }
@@ -107,6 +106,7 @@ object RewardMessaging {
 
     private fun refreshOnExecutor(context: Context, retryFailed: Boolean) {
         try {
+            if (!synchronized(lock) { preferencesLoaded }) loadPreferencesOnExecutor(context)
             PushNotifications.createRewardChannel(context)
             val allowed = PushNotifications.canPostRewardNotifications(context)
             synchronized(lock) {
@@ -119,24 +119,43 @@ object RewardMessaging {
         }
     }
 
+    private fun loadPreferencesOnExecutor(context: Context) {
+        val prefs = PreferenceManager.getDefaultSharedPreferences(context)
+        val saved = RewardAdConsent.read(prefs)
+        preferences = prefs
+        persistedConsent = saved.selection
+        persistedChoiceAt = saved.changedAt
+        synchronized(lock) {
+            preferencesLoaded = true
+            // A notification opt-out made during this read must win over the saved selection.
+            if (!userChoseConsent) policy.setConsent(saved.selection)
+            publishLocked()
+        }
+    }
+
     private fun reconcileOnExecutor(context: Context, retryFailed: Boolean) {
         try {
-            val consent = synchronized(lock) { policy.consentGranted }
+            val (consent, selectedAt) = synchronized(lock) { policy.consentGranted to choiceAt }
             val prefs = preferences ?: PreferenceManager.getDefaultSharedPreferences(context).also {
                 preferences = it
             }
-            if (persistedConsent != consent) {
+            if (selectedAt != null && (persistedConsent != consent || persistedChoiceAt != selectedAt)) {
                 // Synchronous disk confirmation is allowed here, never on the main thread.
-                if (!prefs.edit().putBoolean(CONSENT_KEY, consent).commit()) {
+                if (!RewardAdConsent.write(prefs, consent, selectedAt)) {
+                    if (!consent) {
+                        // A disk failure must not prevent the cloud unsubscribe from being queued.
+                        queueUnsubscribeSafely()
+                    }
                     failLocally()
                     return
                 }
                 persistedConsent = consent
+                persistedChoiceAt = selectedAt
             }
             val attempt = synchronized(lock) {
                 // If consent changed during the disk save, the next queued reconciliation saves it
                 // before issuing that generation's SDK operation.
-                if (policy.consentGranted != persistedConsent) return
+                if (policy.consentGranted != consent || choiceAt != selectedAt) return
                 policy.begin(retryFailed).also { publishLocked() }
             } ?: return
             // Do not await an earlier task: offline subscribe -> opt-out must append unsubscribe
@@ -175,6 +194,11 @@ object RewardMessaging {
         }
     }
 
+    private fun queueUnsubscribeSafely() {
+        try { FirebaseMessaging.getInstance().unsubscribeFromTopic(PushNotifications.REWARD_CHANNEL_ID) }
+        catch (_: Exception) { Log.w("RewardMessaging", "Reward unsubscribe could not be queued") }
+    }
+
     private fun failLocally() {
         synchronized(lock) {
             policy.localFailure()
@@ -188,6 +212,7 @@ object RewardMessaging {
         mutableState.value = mutableState.value.copy(
             consentGranted = policy.consentGranted,
             topicSync = policy.status,
+            consentReady = preferencesLoaded || userChoseConsent,
         )
     }
 }

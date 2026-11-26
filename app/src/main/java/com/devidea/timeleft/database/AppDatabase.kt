@@ -5,8 +5,6 @@ import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
 import androidx.room.migration.Migration
 import androidx.sqlite.db.SupportSQLiteDatabase
-import com.devidea.timeleft.database.itemdata.ItemDao
-import com.devidea.timeleft.database.itemdata.ItemEntity
 import com.devidea.timeleft.focus.FocusCompletionDao
 import com.devidea.timeleft.focus.FocusCompletionNotice
 

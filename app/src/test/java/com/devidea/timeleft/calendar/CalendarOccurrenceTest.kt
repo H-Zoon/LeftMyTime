@@ -2,7 +2,7 @@ package com.devidea.timeleft.calendar
 
 import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.calc.scheduledTimeWindow
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.database.RecurrenceMode
 import com.devidea.timeleft.notification.ReminderPlanner
 import org.junit.Assert.*
 import org.junit.Test

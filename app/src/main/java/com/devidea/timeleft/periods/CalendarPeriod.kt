@@ -1,10 +1,10 @@
 package com.devidea.timeleft.periods
 
 import android.content.Context
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.TimeDetailFacts
-import com.devidea.timeleft.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDetailFacts
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.calc.TimeRangePhase
 import java.time.DayOfWeek
 import java.time.LocalDate
@@ -21,13 +21,13 @@ internal enum class CalendarPeriod(val title: Int) {
 }
 
 /** Same calendar convention as Month/Year: today's date is elapsed; remaining days exclude it. */
-internal fun calendarPeriodItem(context: Context, period: CalendarPeriod, today: LocalDate = LocalDate.now()): AdapterItem {
+internal fun calendarPeriodItem(context: Context, period: CalendarPeriod, today: LocalDate = LocalDate.now()): TimeDisplayItem {
     val (start, end) = period.bounds(today)
     val total = ChronoUnit.DAYS.between(start, end) + 1
     val elapsed = ChronoUnit.DAYS.between(start, today) + 1
     val remaining = ChronoUnit.DAYS.between(today, end).toInt()
     val percent = elapsed.toFloat() / total * 100f
-    return AdapterItem(title = context.getString(period.title), remainingDays = remaining,
+    return TimeDisplayItem(title = context.getString(period.title), remainingDays = remaining,
         startLabel = start.toString(), endLabel = end.toString(), percent = percent,
         leftString = context.getString(R.string.home_days_left, remaining),
         detailFacts = TimeDetailFacts(percent, elapsed, total, TimeRangePhase.Active,

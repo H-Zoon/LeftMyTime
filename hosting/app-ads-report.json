@@ -1,0 +1,282 @@
+{
+  "source_sha256": "80f890375d92b7b6453370e7a406405e811199a325fd65c8604bc22fd7f3a168",
+  "source_line_count": 2034,
+  "input_record_count": 2033,
+  "published_record_count": 1580,
+  "exact_normalized_duplicates_removed": 453,
+  "invalid_record_count": 0,
+  "normalization": [
+    "Remove descriptive first-line heading",
+    "Trim field whitespace",
+    "Normalize advertising-system domain and certification ID to lowercase",
+    "Normalize relationship to uppercase",
+    "Remove exact normalized duplicates",
+    "Preserve seller/account ID spelling and case",
+    "Preserve distinct three-field/four-field records",
+    "Preserve differing DIRECT/RESELLER declarations"
+  ],
+  "relationship_counts": {
+    "RESELLER": 1485,
+    "DIRECT": 95
+  },
+  "different_relationships_preserved": [
+    {
+      "domain": "adiiix.com",
+      "seller_id": "par-AA7BB9E49434DE3B1B9D9A3373B69DE",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "admixer.co.kr",
+      "seller_id": "1140",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "admixer.co.kr",
+      "seller_id": "1370",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "admixer.net",
+      "seller_id": "51dc18e4-86e3-42de-9a82-341b2cb39c2e",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "admixer.net",
+      "seller_id": "607b7931-c92d-4de4-b1c3-34eee1ec4ee3",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "appnexus.com",
+      "seller_id": "13698",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "aralego.com",
+      "seller_id": "par-AA7BB9E49434DE3B1B9D9A3373B69DE",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "axonix.com",
+      "seller_id": "59089",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "betweendigital.com",
+      "seller_id": "43683",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "bidence.com",
+      "seller_id": "33e179e0cbebd2f91f2f1e15d848bc32",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "bidence.com",
+      "seller_id": "ac6abd1022213c05377c1b26dbac5f36",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "bizzclick.com",
+      "seller_id": "246",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "digitalpiee.com",
+      "seller_id": "162588",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "digitalpiee.com",
+      "seller_id": "163354",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "gumgum.com",
+      "seller_id": "13706",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "inmobi.com",
+      "seller_id": "1b65eb509c00429fbfaeeeb8c184790f",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "lijit.com",
+      "seller_id": "297837",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "milkywase.com",
+      "seller_id": "159302",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "30388",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "30915",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "31742",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "31852",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "31953",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "mman.kr",
+      "seller_id": "32002",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "onetag.com",
+      "seller_id": "5d100f439ce5dcc",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "opera.com",
+      "seller_id": "pub7226695071424",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "rubiconproject.com",
+      "seller_id": "14334",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "smaato.com",
+      "seller_id": "1100004890",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "smartyads.com",
+      "seller_id": "100036",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "sovrn.com",
+      "seller_id": "297837",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "ucfunnel.com",
+      "seller_id": "par-AA7BB9E49434DE3B1B9D9A3373B69DE",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    },
+    {
+      "domain": "video.unrulymedia.com",
+      "seller_id": "3563866356",
+      "relationships": [
+        "DIRECT",
+        "RESELLER"
+      ]
+    }
+  ],
+  "published_sha256": "31d554331ad4870a1965f28107a8a3b7037984ff7bd5597afa7a8a16f23d4dac",
+  "validation_scope": "Syntax and normalization only. Seller authorization and business relationships are supplied by the user, not independently verified."
+}

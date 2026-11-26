@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.calc.currentOccurrence
 import android.app.PendingIntent
 import android.appwidget.AppWidgetManager
 import android.content.BroadcastReceiver
@@ -19,10 +20,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import dagger.hilt.android.EntryPointAccessors
 import kotlinx.coroutines.CancellationException
@@ -37,7 +37,7 @@ internal val LocalWidgetPinAllowed = staticCompositionLocalOf { true }
 /** Kept in expanded details so widget promotion does not compete with the remaining time. */
 @Composable
 internal fun PinWidgetButton(
-    item: AdapterItem,
+    item: TimeDisplayItem,
     source: WidgetSource,
     enabled: Boolean = true,
     contentPadding: PaddingValues = ButtonDefaults.TextButtonContentPadding,
@@ -83,26 +83,26 @@ private suspend fun requestWidgetPin(context: Context, source: WidgetSource, ite
     if (!manager.isRequestPinAppWidgetSupported) return R.string.widget_pin_unsupported
     try {
         val ep = EntryPointAccessors.fromApplication(context.applicationContext, AppWidget.AppWidgetEntryPoint::class.java)
-        val generator = ep.itemGenerator()
+        val generator = ep.displayFactory()
         // An automatic widget's detail pins the item the user is actually viewing.
         val pinnedSource = if (source == WidgetSource.Next) WidgetSource.Custom else source
         val configuration = WidgetConfiguration(pinnedSource, itemId.takeIf { pinnedSource == WidgetSource.Custom })
         val item = when (pinnedSource) {
-            WidgetSource.Today -> generator.timeItem()
-            WidgetSource.Month -> generator.monthItem()
-            WidgetSource.Year -> generator.yearItem()
+            WidgetSource.Today -> generator.today()
+            WidgetSource.Month -> generator.month()
+            WidgetSource.Year -> generator.year()
             WidgetSource.Week -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Week)
             WidgetSource.Quarter -> com.devidea.timeleft.periods.calendarPeriodItem(context, com.devidea.timeleft.periods.CalendarPeriod.Quarter)
             WidgetSource.Custom -> {
                 val entity = withContext(Dispatchers.IO) { ep.repository().allItems().firstOrNull { it.id == itemId } }
-                    ?.forWidgetPreview() ?: return R.string.widget_selected_deleted
-                if (entity.type == ItemType.Time) generator.customTimeItem(entity) else generator.customMonthItem(entity)
+                    ?.currentOccurrence() ?: return R.string.widget_selected_deleted
+                generator.fromSchedule(entity)
             }
             else -> null
         }
         val prefs = ep.prefs()
         val palette = WidgetPalette.fromPreferences(context, prefs)
-        val periods = listOf(generator.timeItem(), generator.monthItem(), generator.yearItem())
+        val periods = generator.standardPeriods()
         val preview = widgetPreviewForSizes(pinnedSource) { size ->
             if (pinnedSource == WidgetSource.Overview) createOverviewViews(context, size, periods, palette)
             else createSingleWidgetViews(context, size, configuration, item, periods, palette, R.string.widget_no_upcoming,

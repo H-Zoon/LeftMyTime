@@ -7,8 +7,8 @@ import com.devidea.timeleft.calc.TimeRangePhase
 import com.devidea.timeleft.calc.scheduledTimeWindow
 import java.time.Duration
 import java.time.ZoneId
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import java.time.LocalDate
 import java.time.LocalTime
 import java.time.format.DateTimeFormatter

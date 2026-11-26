@@ -8,8 +8,8 @@ import android.content.Context
 import android.content.Intent
 import androidx.preference.PreferenceManager
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.config.UserPreferences
 import java.security.MessageDigest
 import java.time.Instant
 import java.time.LocalTime

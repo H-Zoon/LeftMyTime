@@ -26,11 +26,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import com.devidea.timeleft.ItemGenerate
+import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
-import com.devidea.timeleft.formatRemainingTime
+import com.devidea.timeleft.ui.formatRemainingTime
 import com.devidea.timeleft.notification.canPostReminderNotifications
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.RemainingTimeText
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
 import com.devidea.timeleft.ui.components.TimeLeftSwitchRow
@@ -53,17 +53,30 @@ class FocusActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        val id = intent.getIntExtra(ITEM_ID, -1)
+        val initialId = intent.getIntExtra(ITEM_ID, -1)
+        val setupRequested = intent.getBooleanExtra(SETUP, false)
         setContent {
             val state by model.state.collectAsStateWithLifecycle()
-            val generator = remember { ItemGenerate(this) }
-            var showHistory by rememberSaveable { mutableStateOf(id < 0) }
+            val generator = remember { TimeDisplayFactory(this) }
+            var id by rememberSaveable { mutableStateOf(initialId) }
+            var showHistory by rememberSaveable { mutableStateOf(initialId < 0 && !setupRequested) }
+            var selectedMinutes by rememberSaveable { mutableStateOf(25) }
             var keepAwake by rememberSaveable { mutableStateOf(false) }
             var confirmStop by rememberSaveable { mutableStateOf(false) }
             val item = state.items.firstOrNull { it.id == id }
-            val display = remember(item, state.now) { item?.let(generator::customTimeItem) }
+            val display = remember(item, state.now) { item?.let(generator::focusItem) }
             val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { }
-            fun back() { if (showHistory && id > 0) showHistory = false else finish() }
+            val showSetup = setupRequested && id < 0 && !showHistory
+            val activeFocus = state.items.map { FocusSession.settle(it, state.now) }
+                .filter { it.focusState in setOf(FocusSession.RUNNING, FocusSession.PAUSED) }
+                .minByOrNull { if (it.focusState == FocusSession.RUNNING) 0 else 1 }
+            // Also recovers a start that finished while this Activity was being recreated.
+            LaunchedEffect(showSetup, state.loading, state.failed, activeFocus?.id) {
+                if (showSetup && !state.loading && !state.failed && activeFocus != null) {
+                    id = activeFocus.id
+                }
+            }
+            fun back() { if (showHistory && (id > 0 || setupRequested)) showHistory = false else finish() }
             BackHandler { back() }
             DisposableEffect(keepAwake, showHistory, display?.focusState) {
                 fun apply() {
@@ -78,6 +91,25 @@ class FocusActivity : AppCompatActivity() {
             TimeLeftTheme(designKey = prefs.getString(UserPreferences.KEY_DESIGN, UserPreferences.DESIGN_TIME_FOCUS) ?: UserPreferences.DESIGN_TIME_FOCUS,
                 themeMode = prefs.getString(UserPreferences.KEY_THEME, UserPreferences.THEME_AUTO) ?: UserPreferences.THEME_AUTO,
                 paletteKey = prefs.getString(UserPreferences.KEY_COLOR_THEME, UserPreferences.COLOR_THEME_CLAY) ?: UserPreferences.COLOR_THEME_CLAY) {
+                if (showSetup) {
+                    FocusSetupScreen(
+                        minutes = selectedMinutes,
+                        onMinutesChange = { selectedMinutes = it },
+                        busy = state.busy || activeFocus != null,
+                        loading = state.loading,
+                        failed = state.failed,
+                        error = state.error,
+                        onRetry = model::retry,
+                        onStart = {
+                            model.start(selectedMinutes) { created ->
+                                id = created
+                            }
+                        },
+                        onBack = ::back,
+                        onHistory = { showHistory = true },
+                    )
+                    return@TimeLeftTheme
+                }
                 Scaffold(containerColor = MaterialTheme.colorScheme.background,
                     topBar = { TimeLeftTopAppBar(if (showHistory) stringResource(R.string.focus_history) else display?.title ?: stringResource(R.string.focus_default_title), ::back) }) { padding ->
                     LazyColumn(Modifier.fillMaxSize().padding(padding), contentPadding = PaddingValues(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l),
@@ -170,6 +202,9 @@ class FocusActivity : AppCompatActivity() {
 
     companion object {
         private const val ITEM_ID = "focus_item_id"
+        private const val SETUP = "focus_setup"
+        fun setupIntent(context: Context): Intent = Intent(context, FocusActivity::class.java)
+            .putExtra(SETUP, true).setData(Uri.parse("timeleft://focus/setup"))
         fun intent(context: Context, id: Int): Intent = Intent(context, FocusActivity::class.java).putExtra(ITEM_ID, id)
             .setData(Uri.parse("timeleft://focus/$id"))
     }

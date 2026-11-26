@@ -1,6 +1,6 @@
 package com.devidea.timeleft.calc
 
-import com.devidea.timeleft.database.itemdata.RecurrenceMode
+import com.devidea.timeleft.database.RecurrenceMode
 import java.time.Duration
 import java.time.LocalDate
 import java.time.LocalTime

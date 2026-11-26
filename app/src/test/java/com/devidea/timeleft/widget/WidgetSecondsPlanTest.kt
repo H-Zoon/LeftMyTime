@@ -1,8 +1,8 @@
 package com.devidea.timeleft.widget
 
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.calc.TimeRangePhase
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemType
 import org.junit.Assert.*
 import org.junit.Test
 import java.time.Instant
@@ -13,7 +13,7 @@ class WidgetSecondsPlanTest {
     private val start = Instant.parse("2026-09-26T01:00:00Z")
     private val config = WidgetConfiguration(WidgetSource.Custom, itemId = 1, showSeconds = true)
     private fun item(startMillis: Long = start.toEpochMilli(), endMillis: Long = startMillis + 3_600_000) =
-        AdapterItem(id = 1, type = ItemType.Time, startsAtMillis = startMillis, endsAtMillis = endMillis)
+        TimeDisplayItem(id = 1, type = ItemType.Time, startsAtMillis = startMillis, endsAtMillis = endMillis)
 
     @Test fun `boundaries switch upcoming active and finished without an app update`() {
         val plan = WidgetSecondsPlan.create(config, item(), start.toEpochMilli())!!
@@ -42,7 +42,7 @@ class WidgetSecondsPlanTest {
     }
 
     @Test fun `today rolls at local midnight and uses the app civil day convention`() {
-        val plan = WidgetSecondsPlan.create(WidgetConfiguration(WidgetSource.Today), AdapterItem(), start.toEpochMilli())!!
+        val plan = WidgetSecondsPlan.create(WidgetConfiguration(WidgetSource.Today), TimeDisplayItem(), start.toEpochMilli())!!
         val midnight = Instant.parse("2026-09-26T15:00:00Z")
         assertEquals(WidgetSecondsPlan.Frame(TimeRangePhase.Finished, 0, 86_399 / 86_400f), plan.frame(midnight.minusSeconds(1), zone))
         assertEquals(WidgetSecondsPlan.Frame(TimeRangePhase.Active, 86_399, 0f), plan.frame(midnight, zone))

@@ -1,7 +1,7 @@
 package com.devidea.timeleft.widget
 
-import com.devidea.timeleft.AdapterItem
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.ui.TimeDisplayItem
+import com.devidea.timeleft.database.ItemType
 import org.junit.Assert.*
 import org.junit.Test
 
@@ -17,7 +17,7 @@ class WidgetSnapshotRefreshTest {
 
     @Test fun `a time boundary earlier than the periodic refresh wins`() {
         val configuration = WidgetConfiguration(WidgetSource.Custom, 1)
-        val item = AdapterItem(type = ItemType.Time, startsAtMillis = now + 120_000, endsAtMillis = now + 600_000)
+        val item = TimeDisplayItem(type = ItemType.Time, startsAtMillis = now + 120_000, endsAtMillis = now + 600_000)
         assertEquals(now + 120_000, nextSnapshotRefreshMillis(configuration, item, now))
         assertEquals(now + 600_000, nextSnapshotRefreshMillis(configuration, item, now + 120_000))
     }

@@ -1,6 +1,7 @@
 package com.devidea.timeleft.telemetry
 
 import android.content.Context
+import android.os.Bundle
 import android.util.Log
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
@@ -16,6 +17,17 @@ enum class UsageEvent(val eventName: String) {
     ThemeApplied("theme_applied"),
     ThemeCancelled("theme_cancelled"),
     FocusStarted("focus_started"),
+    // PointHome intro funnel: only whether it was shown and how it ended, never consent state or IDs.
+    PointHomeIntroShown("pointhome_intro_shown"),
+    PointHomeIntroAccepted("pointhome_intro_accepted"),
+    PointHomeIntroDeclined("pointhome_intro_declined"),
+    PointHomeIntroClosed("pointhome_intro_closed"),
+}
+
+/** Fixed app entry paths only; no message content, campaign strings or user identifiers. */
+enum class PointHomeEntrySource(val analyticsValue: String) {
+    FloatingButton("floating_button"),
+    RewardPush("reward_push"),
 }
 
 @Singleton
@@ -35,6 +47,16 @@ class AppTelemetry @Inject constructor(
 
     fun record(event: UsageEvent) {
         safely { FirebaseAnalytics.getInstance(context).logEvent(event.eventName, null) }
+    }
+
+    /** Count confirmed SDK opens; Analytics supplies event time and distinct-user aggregation. */
+    fun recordPointHomeOpened(source: PointHomeEntrySource) {
+        safely {
+            FirebaseAnalytics.getInstance(context).logEvent(
+                "pointhome_open",
+                Bundle().apply { putString("entry_source", source.analyticsValue) },
+            )
+        }
     }
 
     private fun enableUsageCollection() {

@@ -16,7 +16,7 @@ class TimeLeftMessagingService : FirebaseMessagingService() {
             when (PushNotifications.show(applicationContext, message)) {
                 PushNotificationResult.Posted -> PushMessaging.notificationResult(blocked = false)
                 PushNotificationResult.Blocked -> PushMessaging.notificationResult(blocked = true)
-                PushNotificationResult.RewardOptedOut -> Unit
+                PushNotificationResult.RewardOptedOut, PushNotificationResult.RewardQuietHours -> Unit
             }
         } catch (exception: Exception) {
             PushMessaging.notificationFailed(exception)

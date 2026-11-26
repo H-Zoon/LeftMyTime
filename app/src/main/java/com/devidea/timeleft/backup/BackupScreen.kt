@@ -14,8 +14,8 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
-import com.devidea.timeleft.ui.settings.SettingsDropdownRow
-import com.devidea.timeleft.ui.settings.SettingsOption
+import com.devidea.timeleft.settings.SettingsDropdownRow
+import com.devidea.timeleft.settings.SettingsOption
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import java.time.LocalDate
@@ -46,7 +46,11 @@ fun BackupScreen(state: BackupState, onBack: () -> Unit, onExport: (android.net.
             contentPadding = PaddingValues(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
             item {
-                Text(stringResource(R.string.backup_scope), style = MaterialTheme.typography.bodyMedium)
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                    Text(stringResource(R.string.backup_scope), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.video_record_backup_scope), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             state.message?.let { message -> item {
                 Text(stringResource(message), style = MaterialTheme.typography.bodyLarge)

@@ -1,7 +1,7 @@
 package com.devidea.timeleft.notification
 
 import android.content.Context
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.TimeLeftRepository
 import dagger.hilt.android.qualifiers.ApplicationContext
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock

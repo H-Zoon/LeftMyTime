@@ -5,15 +5,16 @@ import android.content.SharedPreferences
 import android.graphics.Bitmap
 import android.graphics.Canvas
 import android.graphics.Paint
+import android.os.SystemClock
 import android.util.TypedValue
 import android.view.View
 import android.widget.RemoteViews
 import androidx.compose.ui.graphics.toArgb
 import androidx.core.graphics.createBitmap
-import com.devidea.timeleft.AdapterItem
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.theme.ThemeSelection
 import com.devidea.timeleft.ui.theme.TimeLayout
 import com.devidea.timeleft.ui.theme.resolveTheme
@@ -72,12 +73,13 @@ internal fun createSingleWidgetViews(
     context: Context,
     dimensions: WidgetDimensions,
     configuration: WidgetConfiguration,
-    item: AdapterItem?,
-    periods: List<AdapterItem>,
+    item: TimeDisplayItem?,
+    periods: List<TimeDisplayItem>,
     palette: WidgetPalette,
     emptyMessage: Int,
     showProgress: Boolean,
     snapshotTimeMillis: Long? = null,
+    countdown: WidgetCountdown? = null,
 ): RemoteViews {
     if (!dimensions.meetsMinimum) return resizeWidgetViews(context, palette)
     val data = item?.toWidgetData(context, configuration.showRemaining,
@@ -104,13 +106,22 @@ internal fun createSingleWidgetViews(
             measure.height(updatedLabel, R.dimen.widget_label_size, titleWidth)
     val valueSize = when {
         item == null -> R.dimen.widget_title_size
-        data.isTextValue -> R.dimen.widget_message_value_size
+        countdown == null && data.isTextValue -> R.dimen.widget_message_value_size
         dimensions.width >= 340 && dimensions.height >= 260 -> R.dimen.widget_large_value_size
         else -> R.dimen.widget_value_size
     }
-    val value = widgetValueWithStatus(context,
+    // Reserve a minus sign too: a delayed boundary refresh can leave the host counting below zero.
+    // The status label sits beside the clock or, if too wide, below it.
+    val value = countdown?.widestText?.let { clock ->
+        listOf("-$clock", "−$clock").maxBy { measure.width(it, valueSize) }
+    } ?: widgetValueWithStatus(context,
         widgetValueText(context, data.groups, data.value, R.dimen.widget_unit_size, palette.muted),
         data.valueTemplateRes, palette.muted)
+    val statusLabel = countdown?.let { context.getString(it.statusRes) }.orEmpty()
+    val statusInline = countdown == null || measure.width(value, valueSize) + gap +
+        measure.width(statusLabel, R.dimen.widget_label_size) <= width
+    val statusBelowHeight = if (countdown == null || statusInline) 0f else
+        measure.px(R.dimen.widget_small_gap) + measure.height(statusLabel, R.dimen.widget_label_size, width)
     val rulerVisible = item != null && showProgress && !(item.isFocusSession && item.isExpired)
     val rangeVisible = rulerVisible && data.startLabel.isNotBlank() && data.endLabel.isNotBlank()
     val meta = data.meta.takeUnless { rangeVisible }.orEmpty()
@@ -120,7 +131,7 @@ internal fun createSingleWidgetViews(
     val legacy = configuration.legacySummary && dimensions.sizeClass == WidgetSizeClass.Large
     val legacyValues = if (legacy) periods.map { it.title + " · " + it.toWidgetData(context, true, true).value } else emptyList()
     val baseHeight = verticalPadding * 2 + max(touch, titleHeight) +
-        gap + measure.height(value, valueSize, width) +
+        gap + measure.height(value, valueSize, width) + statusBelowHeight +
         (if (meta.isBlank()) 0f else gap + measure.height(meta, R.dimen.widget_label_size, width)) +
         (if (rulerVisible) gap + measure.px(R.dimen.widget_ruler_height) else 0f) + rangeHeight +
         (if (legacyValues.isEmpty()) 0f else section + legacyValues.sumOf { measure.height(it, R.dimen.widget_label_size, width) } + gap * (legacyValues.size - 1))
@@ -137,10 +148,30 @@ internal fun createSingleWidgetViews(
         setTextColor(R.id.widgetUpdatedAt, palette.muted)
         setViewVisibility(R.id.widgetUpdatedAt, if (updatedLabel.isBlank()) View.GONE else View.VISIBLE)
         if (updatedAt.isNotBlank()) setContentDescription(R.id.refresh, context.getString(R.string.widget_refresh_as_of, updatedAt))
-        setTextColor(R.id.percent, palette.onSurface)
-        setTextViewTextSize(R.id.percent, TypedValue.COMPLEX_UNIT_PX, measure.px(valueSize))
-        setTextViewText(R.id.percent, value)
-        setContentDescription(R.id.percent, listOf(data.accessibilityText, updatedLabel).filter { it.isNotBlank() }.joinToString(", "))
+        if (countdown != null) {
+            // The Chronometer text is read live, so no frozen description of the time is attached.
+            setViewVisibility(R.id.percent, View.GONE)
+            setViewVisibility(R.id.widgetSecondsGroup, View.VISIBLE)
+            setChronometerCountDown(R.id.widgetChronometer, true)
+            setChronometer(R.id.widgetChronometer, countdown.baseElapsedMillis, null, countdown.running)
+            setTextColor(R.id.widgetChronometer, palette.onSurface)
+            setTextViewTextSize(R.id.widgetChronometer, TypedValue.COMPLEX_UNIT_PX, measure.px(valueSize))
+            mapOf(R.id.widgetSecondsStatusInline to statusInline, R.id.widgetSecondsStatusBelow to !statusInline).forEach { (id, shown) ->
+                setViewVisibility(id, if (shown) View.VISIBLE else View.GONE)
+                setTextViewText(id, statusLabel)
+                setTextColor(id, palette.muted)
+            }
+        } else {
+            // Launchers reapply new views onto the existing hierarchy, so undo a previous countdown explicitly:
+            // hide its group, show the text again, and stop the hidden Chronometer from ticking (or going negative).
+            setViewVisibility(R.id.widgetSecondsGroup, View.GONE)
+            setChronometer(R.id.widgetChronometer, SystemClock.elapsedRealtime(), null, false)
+            setViewVisibility(R.id.percent, View.VISIBLE)
+            setTextColor(R.id.percent, palette.onSurface)
+            setTextViewTextSize(R.id.percent, TypedValue.COMPLEX_UNIT_PX, measure.px(valueSize))
+            setTextViewText(R.id.percent, value)
+            setContentDescription(R.id.percent, listOf(data.accessibilityText, updatedLabel).filter { it.isNotBlank() }.joinToString(", "))
+        }
         setInt(R.id.refresh, "setColorFilter", palette.muted)
         setTextColor(R.id.widgetMeta, palette.muted)
         setTextViewText(R.id.widgetMeta, meta)

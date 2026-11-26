@@ -14,13 +14,13 @@ import androidx.compose.ui.res.stringResource
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.repeatOnLifecycle
 import com.devidea.timeleft.R
-import com.devidea.timeleft.activity.ItemEditorActivity
-import com.devidea.timeleft.database.itemdata.ItemType
-import com.devidea.timeleft.preferences.UserPreferences
+import com.devidea.timeleft.editor.ItemEditorActivity
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.components.TimeDetailContent
 import com.devidea.timeleft.ui.components.TimeLeftTopAppBar
-import com.devidea.timeleft.ui.settings.SettingsDropdownRow
-import com.devidea.timeleft.ui.settings.SettingsOption
+import com.devidea.timeleft.settings.SettingsDropdownRow
+import com.devidea.timeleft.settings.SettingsOption
 import com.devidea.timeleft.ui.theme.*
 import com.devidea.timeleft.widget.PinWidgetButton
 import com.devidea.timeleft.widget.WidgetSource
@@ -55,11 +55,9 @@ class PeriodsActivity : AppCompatActivity() {
                         item {
                             SettingsDropdownRow(title = stringResource(R.string.period_choose), selectedValue = choice,
                                 options = CalendarPeriod.entries.map { SettingsOption(it.name, it.title) }, onSelected = { choice = it })
-                            Text(stringResource(R.string.period_calendar_policy), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         item { TimeDetailContent(item, prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL)
-                            ?: UserPreferences.PROGRESS_DISPLAY_FULL) }
+                            ?: UserPreferences.PROGRESS_DISPLAY_FULL, calendarPolicy = stringResource(R.string.period_calendar_policy)) }
                         item { PinWidgetButton(item, if (period == CalendarPeriod.Week) WidgetSource.Week else WidgetSource.Quarter,
                             contentPadding = PaddingValues(vertical = Spacing.s)) }
                         item {

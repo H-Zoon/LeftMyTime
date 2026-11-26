@@ -27,10 +27,11 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.AdapterItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
+import com.devidea.timeleft.videorecords.VideoRecordLink
 import com.devidea.timeleft.widget.PinWidgetButton
 import com.devidea.timeleft.widget.WidgetSource
 import kotlinx.coroutines.launch
@@ -39,7 +40,7 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 internal fun TimeDetailSheet(
-    item: AdapterItem,
+    item: TimeDisplayItem,
     title: String,
     progressDisplayMode: String,
     source: WidgetSource?,
@@ -65,6 +66,7 @@ internal fun TimeDetailSheet(
                     }
                 }
                 TimeDetailContent(item, progressDisplayMode)
+                VideoRecordLink(item, fullRow = true)
                 source?.let { PinWidgetButton(item, it, contentPadding = PaddingValues(vertical = Spacing.s)) }
             }
         }

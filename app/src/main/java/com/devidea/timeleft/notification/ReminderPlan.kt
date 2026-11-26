@@ -4,8 +4,8 @@ import com.devidea.timeleft.focus.isFocusSession
 import com.devidea.timeleft.calendar.isTimedOccurrence
 import com.devidea.timeleft.calc.windowOn
 import com.devidea.timeleft.calc.TimeProgressCalculator
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.database.itemdata.ItemType
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.ItemType
 import java.time.Instant
 import java.time.LocalDate
 import java.time.LocalTime

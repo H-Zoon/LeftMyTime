@@ -3,8 +3,8 @@ package com.devidea.timeleft.focus
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.devidea.timeleft.R
-import com.devidea.timeleft.database.itemdata.ItemEntity
-import com.devidea.timeleft.repository.TimeLeftRepository
+import com.devidea.timeleft.database.ItemEntity
+import com.devidea.timeleft.database.TimeLeftRepository
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.delay

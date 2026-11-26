@@ -1,0 +1,67 @@
+{
+  "verified_at": "2026-10-29T14:55:14.530221+09:00",
+  "project_id": "timeleft-f83ba",
+  "site_url": "https://timeleft-f83ba.web.app",
+  "app_ads_url": "https://timeleft-f83ba.web.app/app-ads.txt",
+  "firebase_cli_version": "15.34.2",
+  "node_runtime_major": 24,
+  "resources": [
+    {
+      "path": "/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "max-age=3600",
+      "bytes": 2490,
+      "matches_local": true,
+      "sha256": "add7af3b28cee64e2ad85ec36f2d0907bd79249fc0a127da0648d0bba2a633cb"
+    },
+    {
+      "path": "/privacy.html",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "public, max-age=0, must-revalidate",
+      "bytes": 15236,
+      "matches_local": true,
+      "sha256": "62a4e4d1a5a47af3eff6cb50cf714d1d34df5470e8a4f6e65cfde56f742b2da5"
+    },
+    {
+      "path": "/styles.css",
+      "status": 200,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "max-age=3600",
+      "bytes": 4443,
+      "matches_local": true,
+      "sha256": "7f841145fa59356dfbc4c1508e40db1a7a0139f104f0b973bcaf33ff0e6a9dfb"
+    },
+    {
+      "path": "/app-ads.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "cache_control": "public, max-age=3600",
+      "bytes": 70187,
+      "matches_local": true,
+      "sha256": "31d554331ad4870a1965f28107a8a3b7037984ff7bd5597afa7a8a16f23d4dac"
+    }
+  ],
+  "store_website_updated": false,
+  "supplier_crawler_verified": false,
+  "visual_review": {
+    "desktop_dark": "observed",
+    "small_light": "observed; content width 345px, no horizontal overflow, link targets at least 48px",
+    "large_text": "not verified",
+    "screen_reader": "not verified",
+    "privacy": {
+      "desktop_dark": "observed",
+      "small_light": "observed at 360px; scrollWidth 345px",
+      "large_text": "observed at 360px with root font 200%; no horizontal overflow",
+      "screen_reader": "not verified",
+      "android_webview": "not verified",
+      "minimum_link_height_px": 48
+    }
+  },
+  "privacy_policy_url": "https://timeleft-f83ba.web.app/privacy.html",
+  "store_privacy_url_updated": false,
+  "android_privacy_url_updated_in_source": true,
+  "android_build_tests_install": "not run; user request required",
+  "privacy_policy_pointhome_entry_disclosure": true
+}
