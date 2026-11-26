@@ -192,6 +192,7 @@ private fun GalleryScreen(
         withDetailFixture(periodItems[2].copy(remainingDays = 55)),
     ) else periodItems
     when {
+        screen.startsWith("album-") -> SharedClipsGallery(screen)
         screen.startsWith("reward-notification-settings") -> {
             var consent by rememberSaveable(screen) { mutableStateOf(!screen.endsWith("off")) }
             com.devidea.timeleft.settings.RewardNotificationSettingsScreen(

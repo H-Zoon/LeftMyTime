@@ -56,6 +56,7 @@
             </intent-filter>
         </service>
 
+        <activity android:name=".sharedclips.SharedClipsActivity" android:exported="false" />
         <activity android:name=".periods.PeriodsActivity" android:exported="false" />
         <activity android:name=".calendar.CalendarImportActivity" android:exported="false" />
         <activity android:name=".templates.TemplatesActivity" android:exported="false" />

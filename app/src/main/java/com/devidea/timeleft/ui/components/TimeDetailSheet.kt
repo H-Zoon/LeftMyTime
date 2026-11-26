@@ -24,11 +24,17 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
+import com.devidea.timeleft.database.ItemType
+import com.devidea.timeleft.sharedclips.AlbumEvent
+import com.devidea.timeleft.sharedclips.SharedAlbumNavigationRow
+import com.devidea.timeleft.sharedclips.SharedClipsActivity
+import com.devidea.timeleft.ui.TimeDetailRange
+import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.widget.PinWidgetButton
@@ -65,6 +71,14 @@ internal fun TimeDetailSheet(
                     }
                 }
                 TimeDetailContent(item, progressDisplayMode)
+                val range = item.detailFacts?.range as? TimeDetailRange.Calendar
+                if (SharedClipsActivity.enabled && item.id > 0 && item.type == ItemType.Date &&
+                    !item.isCalendarOccurrence && !item.dataError && range != null) {
+                    val context = LocalContext.current
+                    SharedAlbumNavigationRow(title = stringResource(R.string.shared_clips_title)) {
+                        SharedClipsActivity.launch(context, AlbumEvent(item.id, item.title, range.end))
+                    }
+                }
                 source?.let { PinWidgetButton(item, it, contentPadding = PaddingValues(vertical = Spacing.s)) }
             }
         }

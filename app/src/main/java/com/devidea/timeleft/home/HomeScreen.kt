@@ -76,6 +76,7 @@ fun HomeScreen(
     onOpenCalendar: (() -> Unit)? = null,
     onMorePeriods: (() -> Unit)? = null,
     onIsAtTopChanged: ((Boolean) -> Unit)? = null,
+    onOpenAlbums: (() -> Unit)? = null,
 ) {
     var showAll by rememberSaveable { mutableStateOf(initialShowAll) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -255,6 +256,15 @@ fun HomeScreen(
                             onLayoutChange(selectedLayoutValue)
                         })
                         SearchAndSortSection(searchQuery, selectedSort, { searchQuery = it }, { selectedSortValue = it.name; onSortChange(it.name) })
+                    }
+                }
+                if (onOpenAlbums != null) item(key = "shared-albums", span = { GridItemSpan(maxLineSpan) }) {
+                    TimeLeftInlineButton(
+                        onClick = onOpenAlbums,
+                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                    ) {
+                        Icon(Icons.Default.VideoLibrary, contentDescription = null, modifier = Modifier.padding(end = Spacing.xs))
+                        Text(stringResource(R.string.shared_clips_title))
                     }
                 }
                 if (emptyHome) item(span = { GridItemSpan(maxLineSpan) }) {

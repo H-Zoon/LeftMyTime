@@ -36,6 +36,11 @@ val pointHomeSecret = providers.gradleProperty("pointHomeSecret")
     .orElse(providers.environmentVariable("POINTHOME_SECRET"))
     .orElse(providers.provider { pointHomeProperties.getProperty("pointHomeSecret", "") })
 
+val localDebugProperties = Properties().apply {
+    val file = rootProject.file("local.properties")
+    if (file.isFile) file.inputStream().use { load(it) }
+}
+
 fun buildConfigString(value: String): String = "\"" + value
     .replace("\\", "\\\\")
     .replace("\"", "\\\"")
@@ -66,6 +71,9 @@ android {
 
         buildConfigField("String", "POINTHOME_SERVICE_ID", buildConfigString(pointHomeServiceId.get()))
         buildConfigField("String", "POINTHOME_SECRET", buildConfigString(pointHomeSecret.get()))
+
+        buildConfigField("String", "SHARED_CLIPS_URL", buildConfigString(""))
+        buildConfigField("String", "SHARED_CLIPS_KEY", buildConfigString(""))
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -112,6 +120,16 @@ android {
                 }
             }
         }
+        debug {
+            buildConfigField("String", "SHARED_CLIPS_URL", buildConfigString(
+                providers.gradleProperty("sharedClipsUrl")
+                    .orElse(localDebugProperties.getProperty("sharedClipsUrl", "")).get()
+            ))
+            buildConfigField("String", "SHARED_CLIPS_KEY", buildConfigString(
+                providers.gradleProperty("sharedClipsPublishableKey")
+                    .orElse(localDebugProperties.getProperty("sharedClipsPublishableKey", "")).get()
+            ))
+        }
         release {
             if (hasReleaseSigningProperties) {
                 signingConfig = signingConfigs.getByName("release")
@@ -157,6 +175,9 @@ dependencies {
     androidTestImplementation("androidx.test.ext:junit:1.2.1")
     androidTestImplementation("androidx.test.espresso:espresso-core:3.6.1")
     androidTestImplementation(composeBom)
+
+    implementation("androidx.media3:media3-exoplayer:1.9.4")
+    implementation("androidx.media3:media3-ui:1.9.4")
 
     // Room
     implementation("androidx.room:room-runtime:$roomVersion")

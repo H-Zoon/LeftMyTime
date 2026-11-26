@@ -10,6 +10,7 @@
 | `editor` | 일정 편집 화면·입력 상태·시간 다이얼, `ItemEditorActivity` |
 | `settings` | 설정·리워드 알림 설정·테마 미리보기·개인정보처리방침 화면과 Activity |
 | `focus`, `calendar`, `backup`, `templates`, `periods` | 각 기능의 화면과 전용 상태·로직 |
+| `sharedclips` | 초대형 영상 앨범, 날짜별 클립 목록·재생, Supabase Auth·Storage 연동 |
 | `pointhome` | PointHome 연동·소개 화면·노출 정책 |
 | `widget` | 위젯 설정·표현·갱신·초 표시와 런처 대응 |
 | `notification` | 일정 알림 예약·수신·권한 판정·공통 권한 안내 UI |

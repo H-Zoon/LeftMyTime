@@ -1,5 +1,6 @@
 package com.devidea.timeleft.home
 
+import com.devidea.timeleft.sharedclips.SharedClipsActivity
 import com.devidea.timeleft.editor.ItemEditorActivity
 import com.devidea.timeleft.settings.SettingsActivity
 
@@ -165,6 +166,9 @@ class MainActivity : AppCompatActivity() {
                         else startActivity(ItemEditorActivity.editIntent(this@MainActivity, id))
                     },
                     onDeleteItem = viewModel::deleteItem,
+                    onOpenAlbums = if (SharedClipsActivity.enabled) {
+                        { SharedClipsActivity.launch(this@MainActivity) }
+                    } else null,
                     onIsAtTopChanged = { isAtTop ->
                         pointHomeIsAtTop = isAtTop
                         updatePointHomeButtonVisibility()
