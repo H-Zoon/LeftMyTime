@@ -105,6 +105,7 @@ fun FocusSetupScreen(
             Button(
                 onClick = { if (enabled && !hoursScrolling && !minutesScrolling) onStart() },
                 enabled = enabled && !hoursScrolling && !minutesScrolling,
+                shape = MaterialTheme.shapes.small,
                 modifier = Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget),
             ) { Text(stringResource(R.string.focus_start)) }
             TimeLeftInlineButton(onClick = onHistory, enabled = !busy) {

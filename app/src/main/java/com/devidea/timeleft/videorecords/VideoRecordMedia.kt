@@ -1,4 +1,4 @@
-package com.devidea.timeleft.sharedclips
+package com.devidea.timeleft.videorecords
 
 import android.graphics.Bitmap
 import android.media.MediaMetadataRetriever
@@ -48,13 +48,14 @@ import androidx.compose.ui.window.Dialog
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import androidx.media3.common.AudioAttributes
 import androidx.media3.common.MediaItem
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.common.VideoSize
 import androidx.media3.common.util.UnstableApi
-import androidx.media3.datasource.DefaultDataSource
-import androidx.media3.datasource.DefaultHttpDataSource
+import androidx.media3.datasource.DataSource
+import androidx.media3.datasource.FileDataSource
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.source.ProgressiveMediaSource
 import androidx.media3.ui.PlayerView
@@ -64,26 +65,24 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.sync.Semaphore
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
+import java.io.File
 
 private val thumbnailRequests = Semaphore(2)
 
 @Composable
 internal fun ClipThumbnail(
-    uri: Uri,
+    file: File,
     modifier: Modifier,
-    headers: Map<String, String> = emptyMap(),
-    cache: LruCache<Uri, Bitmap>? = null,
+    cache: LruCache<File, Bitmap>? = null,
     showPlay: Boolean = false,
 ) {
-    val context = LocalContext.current
-    val bitmap by produceState(cache?.get(uri), uri, headers) {
-        if (value != null || uri.scheme !in setOf("https", "content", "file")) return@produceState
+    val bitmap by produceState(cache?.get(file), file) {
+        if (value != null) return@produceState
         value = thumbnailRequests.withPermit {
             withContext(Dispatchers.IO) {
                 val retriever = MediaMetadataRetriever()
                 try {
-                    if (uri.scheme == "https") retriever.setDataSource(uri.toString(), headers)
-                    else retriever.setDataSource(context, uri)
+                    retriever.setDataSource(file.absolutePath)
                     if (Build.VERSION.SDK_INT >= 27) {
                         retriever.getScaledFrameAtTime(0, MediaMetadataRetriever.OPTION_CLOSEST_SYNC, 384, 216)
                     } else {
@@ -96,7 +95,7 @@ internal fun ClipThumbnail(
                 }
             }
         }
-        value?.let { cache?.put(uri, it) }
+        value?.let { cache?.put(file, it) }
     }
     val image = bitmap
     Box(
@@ -120,18 +119,19 @@ internal fun ClipThumbnail(
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-internal fun ClipPlayerDialog(playback: AlbumPlayback, clip: SharedClip, onClose: () -> Unit) {
+internal fun ClipPlayerDialog(videos: List<RecordedVideo>, start: RecordedVideo, onClose: () -> Unit) {
     val context = LocalContext.current
     val lifecycle = LocalLifecycleOwner.current.lifecycle
-    var failed by remember(playback, clip.path) { mutableStateOf(false) }
-    var aspect by remember(playback, clip.path) { mutableFloatStateOf(16f / 9f) }
+    var failed by remember(videos, start.file) { mutableStateOf(false) }
+    var aspect by remember(videos, start.file) { mutableFloatStateOf(16f / 9f) }
     val maxVideoHeight = LocalConfiguration.current.screenHeightDp.dp * .62f
-    val player = remember(playback, clip.path, context) {
-        val http = DefaultHttpDataSource.Factory().setDefaultRequestProperties(playback.headers)
-        val sources = ProgressiveMediaSource.Factory(DefaultDataSource.Factory(context, http))
+    val player = remember(videos, start.file, context) {
+        val sources = ProgressiveMediaSource.Factory(DataSource.Factory { FileDataSource() })
         ExoPlayer.Builder(context).setMediaSourceFactory(sources).build().apply {
-            val start = playback.clips.indexOfFirst { it.path == clip.path }
-            setMediaItems(playback.clips.map { MediaItem.fromUri(playback.streamBase + it.path) }, start, 0)
+            setAudioAttributes(AudioAttributes.DEFAULT, true)
+            setHandleAudioBecomingNoisy(true)
+            val index = videos.indexOfFirst { it.file == start.file }
+            setMediaItems(videos.map { MediaItem.fromUri(Uri.fromFile(it.file)) }, index, 0)
             prepare()
             playWhenReady = true
         }
@@ -163,10 +163,10 @@ internal fun ClipPlayerDialog(playback: AlbumPlayback, clip: SharedClip, onClose
         Surface(shape = MaterialTheme.shapes.medium, color = MaterialTheme.colorScheme.background) {
             Column(Modifier.fillMaxWidth().padding(Spacing.m), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
                 Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                    Text(stringResource(R.string.shared_clips_play_video), style = MaterialTheme.typography.titleMedium,
+                    Text(stringResource(R.string.video_record_play), style = MaterialTheme.typography.titleMedium,
                         modifier = Modifier.weight(1f))
                     IconButton(onClick = onClose) {
-                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.shared_clips_close_player))
+                        Icon(Icons.Default.Close, contentDescription = stringResource(R.string.video_record_close_player))
                     }
                 }
                 AndroidView(
@@ -174,7 +174,11 @@ internal fun ClipPlayerDialog(playback: AlbumPlayback, clip: SharedClip, onClose
                     update = { it.player = player },
                     modifier = Modifier.fillMaxWidth().heightIn(max = maxVideoHeight).aspectRatio(aspect),
                 )
-                if (failed) AlbumError(R.string.shared_clips_playback_error)
+                if (failed) Text(
+                    stringResource(R.string.video_record_playback_error),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.error,
+                )
             }
         }
     }

@@ -1,5 +1,6 @@
 package com.devidea.timeleft.widget
 
+import com.devidea.timeleft.videorecords.VideoRecordLink
 import com.devidea.timeleft.calc.currentOccurrence
 import android.appwidget.AppWidgetManager
 import android.content.Context
@@ -113,6 +114,7 @@ class WidgetDetailsActivity : AppCompatActivity() {
                         } else {
                             TimeDetailContent(item, prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL)
                                 ?: UserPreferences.PROGRESS_DISPLAY_FULL)
+                            if (personal) VideoRecordLink(item, fullRow = true)
                             if (personal) TextButton(onClick = { startActivity(if (item.isFocusSession) FocusActivity.intent(this@WidgetDetailsActivity, item.id) else ItemEditorActivity.editIntent(this@WidgetDetailsActivity, item.id)) },
                                 modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
                                 Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit))

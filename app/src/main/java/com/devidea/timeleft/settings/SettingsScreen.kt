@@ -106,6 +106,8 @@ fun SettingsScreen(
                     SettingsOption(UserPreferences.EXPIRED_ITEMS_HIDE, R.string.settings_expired_hide),
                 ),
                 onSelected = onExpiredItemsModeSelected,
+                summary = stringResource(R.string.settings_past_filter_summary)
+                    .takeIf { expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE },
             )
         }
 

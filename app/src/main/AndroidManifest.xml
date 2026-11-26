@@ -56,7 +56,16 @@
             </intent-filter>
         </service>
 
-        <activity android:name=".sharedclips.SharedClipsActivity" android:exported="false" />
+        <activity android:name=".videorecords.VideoRecordActivity" android:exported="false" />
+        <provider
+            android:name=".videorecords.VideoCaptureFileProvider"
+            android:authorities="${applicationId}.video-records"
+            android:exported="false"
+            android:grantUriPermissions="true">
+            <meta-data
+                android:name="android.support.FILE_PROVIDER_PATHS"
+                android:resource="@xml/video_record_camera_paths" />
+        </provider>
         <activity android:name=".periods.PeriodsActivity" android:exported="false" />
         <activity android:name=".calendar.CalendarImportActivity" android:exported="false" />
         <activity android:name=".templates.TemplatesActivity" android:exported="false" />

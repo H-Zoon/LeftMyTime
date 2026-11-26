@@ -18,6 +18,7 @@ import com.devidea.timeleft.telemetry.AppPerformance
 import com.devidea.timeleft.widget.AppWidget
 import dagger.hilt.android.lifecycle.HiltViewModel
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.devidea.timeleft.videorecords.VideoRecordStore
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -55,6 +56,7 @@ data class HomeLoadState(
 @HiltViewModel
 class TimeLeftViewModel @Inject constructor(
     private val repository: TimeLeftRepository,
+    private val videoRecords: VideoRecordStore,
     private val displayFactory: TimeDisplayFactory,
     @param:ApplicationContext private val context: Context,
 ) : ViewModel() {
@@ -147,7 +149,7 @@ class TimeLeftViewModel @Inject constructor(
     fun deleteItem(id: Int) {
         viewModelScope.launch(Dispatchers.IO) {
             try {
-                repository.delete(id)
+                videoRecords.deleteSchedule(id) { repository.delete(id) }
                 ReminderScheduler.cancel(context, id)
                 AppWidget.updateAllWidgets(context, AppWidgetManager.getInstance(context))
             } catch (exception: CancellationException) { throw exception }

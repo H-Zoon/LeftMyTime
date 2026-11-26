@@ -31,10 +31,13 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import com.devidea.timeleft.focus.FocusSession
 import com.devidea.timeleft.focus.QuickFocusSection
+import com.devidea.timeleft.ui.TimeDetailRange
 import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.ItemType
 import com.devidea.timeleft.config.UserPreferences
+import com.devidea.timeleft.settings.SettingsDropdownRow
+import com.devidea.timeleft.settings.SettingsOption
 import com.devidea.timeleft.ui.components.remainingTimeLabel
 import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
@@ -42,6 +45,8 @@ import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.launch
+import java.time.ZoneId
 
 @Composable
 fun HomeScreen(
@@ -76,10 +81,10 @@ fun HomeScreen(
     onOpenCalendar: (() -> Unit)? = null,
     onMorePeriods: (() -> Unit)? = null,
     onIsAtTopChanged: ((Boolean) -> Unit)? = null,
-    onOpenAlbums: (() -> Unit)? = null,
 ) {
     var showAll by rememberSaveable { mutableStateOf(initialShowAll) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
+    var pastOnly by rememberSaveable { mutableStateOf(false) }
     var selectedSortValue by rememberSaveable(initialSortValue) { mutableStateOf(initialSortValue) }
     var selectedLayoutValue by rememberSaveable(initialLayoutValue) { mutableStateOf(initialLayoutValue) }
     var selectedActiveId by rememberSaveable { mutableStateOf<Int?>(null) }
@@ -97,7 +102,9 @@ fun HomeScreen(
     val hero = candidates.hero(selectedActiveId)
     val activeHeroId = hero?.takeIf { it.type == ItemType.Time }?.id
     LaunchedEffect(activeHeroId) { selectedActiveId = activeHeroId }
-    val emptyHome = displayedItems.isEmpty() && !loading && !loadFailed
+    val listReady = !loading && !loadFailed
+    val emptyHome = customItems.isEmpty() && listReady
+    val pastItems = remember(customItems) { customItems.filter { it.isExpired && !it.dataError } }
     // Share the same existing running/paused focus selection across both empty and populated layouts.
     val currentFocus = remember(customItems) {
         customItems.filter { it.isFocusSession && it.focusState in setOf(FocusSession.RUNNING, FocusSession.PAUSED) }
@@ -112,14 +119,23 @@ fun HomeScreen(
     }
 
     val visibleItems = if (showAll) {
-        remember(displayedItems, searchQuery, selectedSort, expiredItemsMode) {
+        val list = if (pastOnly) pastItems else displayedItems
+        remember(list, searchQuery, selectedSort, expiredItemsMode, pastOnly) {
             val query = searchQuery.trim()
-            val matches = if (query.isEmpty()) displayedItems else displayedItems.filter {
+            val matches = if (query.isEmpty()) list else list.filter {
                 it.title.contains(query, ignoreCase = true) || it.category.contains(query, ignoreCase = true)
             }
             val sorted = when (selectedSort) {
                 HomeSortMode.Manual -> matches.sortedWith(compareBy<TimeDisplayItem> { it.manualOrder }.thenBy { it.id })
-                HomeSortMode.Nearest -> matches.sortedWith(compareBy<TimeDisplayItem> { it.remainingSortKey }.thenBy { it.id })
+                HomeSortMode.Nearest -> {
+                    if (pastOnly) {
+                        val zone = ZoneId.systemDefault()
+                        matches.sortedWith(compareByDescending<TimeDisplayItem> { pastScheduleEnd(it, zone) }
+                            .thenByDescending { it.id })
+                    } else {
+                        matches.sortedWith(compareBy<TimeDisplayItem> { it.remainingSortKey }.thenBy { it.id })
+                    }
+                }
                 HomeSortMode.Created -> matches.sortedByDescending { it.id }
                 HomeSortMode.Title -> matches.sortedBy { it.title.lowercase() }
                 HomeSortMode.Progress -> matches.sortedByDescending { it.percent }
@@ -127,7 +143,16 @@ fun HomeScreen(
             if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_BOTTOM) sorted.sortedBy { it.isExpired } else sorted
         }
     } else emptyList()
-    val scrollState = rememberLazyGridState()
+    val homeScroll = rememberLazyGridState()
+    val allScroll = rememberLazyGridState()
+    val scrollState = if (showAll) allScroll else homeScroll
+    val scope = rememberCoroutineScope()
+    fun openPast() {
+        pastOnly = true
+        searchQuery = ""
+        showAll = true
+        scope.launch { allScroll.scrollToItem(0) }
+    }
     val currentOnIsAtTopChanged by rememberUpdatedState(onIsAtTopChanged)
     if (onIsAtTopChanged != null) {
         LaunchedEffect(scrollState) {
@@ -136,7 +161,6 @@ fun HomeScreen(
                 .collect { isAtTop -> currentOnIsAtTopChanged?.invoke(isAtTop) }
         }
     }
-    LaunchedEffect(showAll) { scrollState.scrollToItem(0) }
     BackHandler(showAll) { showAll = false }
 
     Scaffold(containerColor = MaterialTheme.colorScheme.background) { innerPadding ->
@@ -231,9 +255,14 @@ fun HomeScreen(
                             ScheduleListHeading(onAddTime, onAddDate, onOpenTemplates, onOpenCalendar)
                         }
                     }
-                    if (!loading && !loadFailed && upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
-                        Text(stringResource(R.string.home_no_next_schedule), style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.l))
+                    if (listReady && upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
+                        Column(Modifier.padding(vertical = Spacing.l)) {
+                            Text(stringResource(R.string.home_no_next_schedule), style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            if (pastItems.isNotEmpty()) TimeLeftInlineButton(onClick = ::openPast) {
+                                Text(stringResource(R.string.home_open_past))
+                            }
+                        }
                     }
                     if (upcomingItems.isNotEmpty()) item(key = "time-heading", span = { GridItemSpan(maxLineSpan) }) {
                         ScheduleGroupHeading(stringResource(R.string.home_time_ranges))
@@ -249,28 +278,36 @@ fun HomeScreen(
                     }
                 }
             } else {
-                item(key = "controls", span = { GridItemSpan(maxLineSpan) }) {
-                    Column(Modifier.padding(bottom = Spacing.page), verticalArrangement = Arrangement.spacedBy(Spacing.page)) {
-                        SectionHeader(stringResource(R.string.home_my_items), visibleItems.size, isGrid, onGridChange = { grid ->
-                            selectedLayoutValue = if (grid) UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST
-                            onLayoutChange(selectedLayoutValue)
-                        })
-                        SearchAndSortSection(searchQuery, selectedSort, { searchQuery = it }, { selectedSortValue = it.name; onSortChange(it.name) })
+                if (customItems.isNotEmpty() || pastOnly || searchQuery.isNotBlank()) {
+                    item(key = "controls", span = { GridItemSpan(maxLineSpan) }) {
+                        Column(Modifier.padding(bottom = Spacing.page), verticalArrangement = Arrangement.spacedBy(Spacing.page)) {
+                            SectionHeader(stringResource(R.string.home_my_items), visibleItems.size.takeIf { listReady }, isGrid, onGridChange = { grid ->
+                                selectedLayoutValue = if (grid) UserPreferences.HOME_LAYOUT_GRID else UserPreferences.HOME_LAYOUT_LIST
+                                onLayoutChange(selectedLayoutValue)
+                            })
+                            SearchAndSortSection(
+                                searchQuery, selectedSort, { searchQuery = it },
+                                { selectedSortValue = it.name; onSortChange(it.name) },
+                                pastOnly = pastOnly,
+                                canShowPast = pastItems.isNotEmpty() || pastOnly,
+                                onPastOnlyChange = { pastOnly = it },
+                            )
+                        }
                     }
                 }
-                if (onOpenAlbums != null) item(key = "shared-albums", span = { GridItemSpan(maxLineSpan) }) {
-                    TimeLeftInlineButton(
-                        onClick = onOpenAlbums,
-                        colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
-                    ) {
-                        Icon(Icons.Default.VideoLibrary, contentDescription = null, modifier = Modifier.padding(end = Spacing.xs))
-                        Text(stringResource(R.string.shared_clips_title))
+                if (visibleItems.isEmpty() && listReady) item(key = "empty-filter", span = { GridItemSpan(maxLineSpan) }) {
+                    if (emptyHome && !pastOnly && searchQuery.isBlank()) {
+                        EmptyItemState(onAddTime, onAddDate, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
+                    } else {
+                        val queryIsActive = searchQuery.isNotBlank()
+                        Text(stringResource(when {
+                            queryIsActive -> R.string.home_empty_search
+                            pastOnly -> R.string.home_past_empty
+                            pastItems.isNotEmpty() -> R.string.home_past_hidden
+                            else -> R.string.home_no_next_schedule
+                        }), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
-                if (emptyHome) item(span = { GridItemSpan(maxLineSpan) }) {
-                    EmptyItemState(onAddTime, onAddDate, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
-                }
-                else if (visibleItems.isEmpty() && !loading && !loadFailed) item(span = { GridItemSpan(maxLineSpan) }) { Text(stringResource(R.string.home_empty_search)) }
                 items(visibleItems, key = { it.id }) { item ->
                     TimeLeftItemCard(item, onEditItem, onDeleteItem, grid = columns == 2, progressDisplayMode = progressDisplayMode, onDuplicate = onDuplicate, onSaveTemplate = onSaveTemplate, onPin = onPin, onMove = onMove)
                 }
@@ -388,43 +425,54 @@ private fun SearchAndSortSection(
     selectedSort: HomeSortMode,
     onQueryChange: (String) -> Unit,
     onSortChange: (HomeSortMode) -> Unit,
-    modifier: Modifier = Modifier,
+    pastOnly: Boolean,
+    canShowPast: Boolean,
+    onPastOnlyChange: (Boolean) -> Unit,
 ) {
     val focusManager = LocalFocusManager.current
-    Column(modifier = modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
+    Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         TimeLeftUnderlineTextField(
             value = query,
             onValueChange = onQueryChange,
             trailingIcon = {
-                Icon(
-                    imageVector = Icons.Filled.Search,
-                    contentDescription = null
-                )
+                if (query.isEmpty()) Icon(Icons.Filled.Search, contentDescription = null)
+                else IconButton(onClick = { onQueryChange("") }) {
+                    Icon(Icons.Filled.Close, contentDescription = stringResource(R.string.home_clear_search))
+                }
             },
             label = { Text(stringResource(R.string.home_search_hint)) },
             keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
             keyboardActions = KeyboardActions(onSearch = { focusManager.clearFocus() }),
-            modifier = Modifier.fillMaxWidth()
-        )
-        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(Spacing.s),
-            verticalArrangement = Arrangement.spacedBy(Spacing.s)
-        ) {
-            HomeSortMode.values().forEach { mode ->
+        )
+        SettingsDropdownRow(
+            title = stringResource(R.string.home_sort_label),
+            selectedValue = selectedSort,
+            options = HomeSortMode.entries.map { SettingsOption(it, it.labelRes) },
+            onSelected = onSortChange,
+        )
+        if (canShowPast) {
+            FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.s), modifier = Modifier.selectableGroup()) {
                 FilterChip(
-                    selected = selectedSort == mode,
-                    onClick = { onSortChange(mode) },
-                    label = {
-                        Text(
-                            text = stringResource(mode.labelRes)
-                        )
-                    }
+                    selected = !pastOnly, onClick = { onPastOnlyChange(false) },
+                    label = { Text(stringResource(R.string.home_default_schedule_filter)) },
+                    modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
+                )
+                FilterChip(
+                    selected = pastOnly, onClick = { onPastOnlyChange(true) },
+                    label = { Text(stringResource(R.string.home_past_only_filter)) },
+                    modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
                 )
             }
         }
     }
 }
+
+private fun pastScheduleEnd(item: TimeDisplayItem, zone: ZoneId): Long =
+    item.endsAtMillis
+        ?: (item.detailFacts?.range as? TimeDetailRange.Calendar)?.end?.plusDays(1)
+            ?.atStartOfDay(zone)?.toInstant()?.toEpochMilli()?.minus(1)
+        ?: Long.MIN_VALUE
 
 private enum class HomeSortMode(val labelRes: Int) {
     Manual(R.string.home_sort_manual),

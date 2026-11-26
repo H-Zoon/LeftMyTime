@@ -46,7 +46,11 @@ fun BackupScreen(state: BackupState, onBack: () -> Unit, onExport: (android.net.
             contentPadding = PaddingValues(horizontal = LayoutTokens.ScreenHorizontal, vertical = Spacing.l),
             verticalArrangement = Arrangement.spacedBy(Spacing.l)) {
             item {
-                Text(stringResource(R.string.backup_scope), style = MaterialTheme.typography.bodyMedium)
+                Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                    Text(stringResource(R.string.backup_scope), style = MaterialTheme.typography.bodyMedium)
+                    Text(stringResource(R.string.video_record_backup_scope), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                }
             }
             state.message?.let { message -> item {
                 Text(stringResource(message), style = MaterialTheme.typography.bodyLarge)

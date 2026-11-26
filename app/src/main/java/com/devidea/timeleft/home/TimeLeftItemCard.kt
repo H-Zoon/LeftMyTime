@@ -31,9 +31,9 @@ import com.devidea.timeleft.ui.components.TimeDetailSheet
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.config.UserPreferences
 import com.devidea.timeleft.ui.itemAccentColor
-import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
-import com.devidea.timeleft.widget.PinWidgetButton
+import com.devidea.timeleft.videorecords.VideoRecordLink
+import com.devidea.timeleft.videorecords.canRecordVideo
 import com.devidea.timeleft.widget.WidgetSource
 
 private const val DetailExpandDurationMillis = 220
@@ -129,15 +129,27 @@ internal fun TimeLeftItemCard(
                     Text(it, style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.l)) {
-                    TimeLeftInlineButton(onClick = { showTimeDetails = true }, enabled = interactive && expanded && !item.dataError,
-                        modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_time_details)) }
-                    TimeLeftInlineButton(onClick = { onEditItem(item.id) }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit)) }
-                    PinWidgetButton(item, WidgetSource.Custom, enabled = interactive && expanded && !item.dataError,
-                        contentPadding = PaddingValues(vertical = Spacing.s))
-                    if (onDuplicate != null || onSaveTemplate != null || onPin != null || onMove != null) Box {
-                        TimeLeftInlineButton(onClick = { moreActions = true }, enabled = interactive && expanded,
-                            modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.schedule_more_actions)) }
+                    val actionsEnabled = interactive && expanded
+                    TimeLeftInlineButton(onClick = { showTimeDetails = true }, enabled = actionsEnabled && !item.dataError) {
+                        Text(stringResource(R.string.card_action_time_details))
+                    }
+                    val editLabel = if (item.isFocusSession) R.string.focus_open else R.string.card_action_edit
+                    if (item.canRecordVideo) {
+                        VideoRecordLink(item, enabled = actionsEnabled)
+                    } else {
+                        TimeLeftInlineButton(onClick = { onEditItem(item.id) }, enabled = actionsEnabled) {
+                            Text(stringResource(editLabel))
+                        }
+                    }
+                    Box {
+                        TimeLeftInlineButton(onClick = { moreActions = true }, enabled = actionsEnabled) {
+                            Text(stringResource(R.string.schedule_more_actions))
+                        }
                         DropdownMenu(moreActions, onDismissRequest = { moreActions = false }) {
+                            if (item.canRecordVideo) DropdownMenuItem(
+                                text = { Text(stringResource(editLabel)) },
+                                onClick = { moreActions = false; onEditItem(item.id) },
+                            )
                             if (onDuplicate != null && !item.isFocusSession && !item.dataError) DropdownMenuItem(
                                 text = { Text(stringResource(R.string.schedule_duplicate)) }, onClick = { moreActions = false; onDuplicate(item.id) })
                             if (onSaveTemplate != null && !item.isFocusSession && !item.isCalendarOccurrence && !item.dataError) DropdownMenuItem(
@@ -149,9 +161,12 @@ internal fun TimeLeftItemCard(
                                 DropdownMenuItem(text = { Text(stringResource(R.string.schedule_move_up)) }, onClick = { moreActions = false; onMove(item.id, -1) })
                                 DropdownMenuItem(text = { Text(stringResource(R.string.schedule_move_down)) }, onClick = { moreActions = false; onMove(item.id, 1) })
                             }
+                            DropdownMenuItem(
+                                text = { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) },
+                                onClick = { moreActions = false; showDeleteDialog = true },
+                            )
                         }
                     }
-                    TimeLeftInlineButton(onClick = { showDeleteDialog = true }, enabled = interactive && expanded, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) }
                 }
             }
         }
@@ -161,7 +176,12 @@ internal fun TimeLeftItemCard(
     if (interactive && showDeleteDialog) AlertDialog(
         onDismissRequest = { showDeleteDialog = false },
         title = { Text(stringResource(R.string.card_delete_title)) },
-        text = { Text(stringResource(R.string.card_delete_message, item.title)) },
+        text = {
+            Text(stringResource(
+                if (item.type == ItemType.Date) R.string.video_record_delete_schedule_message else R.string.card_delete_message,
+                item.title,
+            ))
+        },
         confirmButton = { TextButton(onClick = { showDeleteDialog = false; onDeleteItem(item.id) }) { Text(stringResource(R.string.card_action_delete), color = MaterialTheme.colorScheme.error) } },
         dismissButton = { TextButton(onClick = { showDeleteDialog = false }) { Text(stringResource(R.string.action_cancel)) } }
     )
