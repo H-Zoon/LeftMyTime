@@ -35,6 +35,8 @@ import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.collect
 import kotlinx.coroutines.launch
 
+internal const val DEFAULT_FOCUS_MINUTES = 25
+
 /** Shared by the real preparation route and the debug gallery. No session is created here. */
 @Composable
 fun FocusSetupScreen(

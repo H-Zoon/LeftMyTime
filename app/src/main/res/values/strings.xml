@@ -605,12 +605,13 @@
     <string name="settings_reward_load_failed">Your saved preference could not be loaded. Please try again.</string>
 
     <string name="video_record_title">Video diary</string>
+    <string name="video_record_entry_hint">Keep short videos for this schedule</string>
     <string name="video_record_add">Add a video</string>
     <string name="video_record_capture">Record a video</string>
     <string name="video_record_pick">Choose from this device</string>
     <string name="video_record_limits">Use an MP4 video up to 15 seconds and 32 MB.</string>
-    <string name="video_record_empty">No videos yet</string>
-    <string name="video_record_local">This schedule’s videos are stored on this device.</string>
+    <string name="video_record_empty">Save your first video</string>
+    <string name="video_record_local">Your videos stay on this device and appear by date in this schedule.</string>
     <string name="video_record_review">Save this video?</string>
     <string name="video_record_day_group">%1$s · %2$s</string>
     <string name="video_record_play_all">Play from the beginning</string>
@@ -639,4 +640,20 @@
     <string name="home_clear_search">Clear search</string>
     <string name="settings_past_filter_summary">You can still find them with Past only in All schedules.</string>
     <string name="video_record_backup_scope">Video diaries are stored on this device and are separate from schedule backups.</string>
+    <string name="app_intro_progress">Step %1$d of %2$d</string>
+    <string name="app_intro_time_title">See the time you have left</string>
+    <string name="app_intro_time_description">Check what remains of today, this month and this year. Add an important date or a time range to count down to it.</string>
+    <string name="app_intro_focus_title">Make time to focus</string>
+    <string name="app_intro_focus_description">Set a focus timer to get started. Add a widget to see a countdown without opening the app.</string>
+    <string name="app_intro_video_title">Save the moments around your D-day</string>
+    <string name="app_intro_video_description">Keep clips of up to 15 seconds in a date schedule and play them back in date order. Videos stay on this device.</string>
+    <string name="app_intro_skip">Skip</string>
+    <string name="app_intro_previous">Back</string>
+    <string name="app_intro_next">Next</string>
+    <string name="app_intro_start">Get started</string>
+    <string name="app_intro_open_video">Open video diary</string>
+    <string name="app_intro_add_date">Add a date schedule</string>
+    <string name="app_intro_trip_prepare">Pack for the trip</string>
+    <string name="app_intro_trip_depart">Depart</string>
+    <string name="app_intro_trip_arrive">Arrive</string>
 </resources>

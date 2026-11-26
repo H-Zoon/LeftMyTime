@@ -35,7 +35,7 @@ internal fun VideoRecordGallery(screen: String) {
         mutableStateOf(
             when (screen) {
                 "video-record-error" -> null
-                "video-record-empty", "video-record-draft" -> emptyList()
+                "video-record-empty", "video-record-empty-large", "video-record-draft" -> emptyList()
                 else -> fixtures
             },
         )

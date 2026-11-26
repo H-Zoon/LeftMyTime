@@ -94,7 +94,14 @@ internal fun VideoRecordLink(item: TimeDisplayItem, enabled: Boolean = true, ful
         horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
         Icon(Icons.Outlined.VideoLibrary, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        Text(label, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f))
+        Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+            Text(label, style = MaterialTheme.typography.bodyLarge)
+            Text(
+                stringResource(R.string.video_record_entry_hint),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+            )
+        }
         Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null,
             tint = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -155,24 +162,39 @@ internal fun VideoRecordScreen(
                 }
             }
             if (clips != null) {
-                item(key = "actions") {
-                    RecordButton(R.string.video_record_add, Icons.Default.Add, enabled = !busy) {
-                        onClearError()
-                        chooseSource = true
-                    }
-                }
                 if (clips.isEmpty()) {
-                    item(key = "empty") {
-                        Column(Modifier.padding(top = LayoutTokens.SectionGap),
-                            verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                    item(key = "first-video") {
+                        Column(verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
-                            Text(stringResource(R.string.video_record_empty), style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(top = Spacing.s))
-                            Text(stringResource(R.string.video_record_local), style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                            Text(
+                                stringResource(R.string.video_record_empty),
+                                style = MaterialTheme.typography.titleMedium,
+                                modifier = Modifier.semantics { heading() },
+                            )
+                            Text(
+                                stringResource(R.string.video_record_local),
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
+                            RecordSourceActions(
+                                enabled = !busy,
+                                onRecord = { onClearError(); onRecord() },
+                                onPick = { onClearError(); onPick() },
+                            )
+                            Text(
+                                stringResource(R.string.video_record_limits),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            )
                         }
                     }
                 } else {
+                    item(key = "actions") {
+                        RecordButton(R.string.video_record_add, Icons.Default.Add, enabled = !busy) {
+                            onClearError()
+                            chooseSource = true
+                        }
+                    }
                     if (clips.size > 1) item(key = "play-all") {
                         TimeLeftInlineButton(
                             onClick = { playingFile = clips.first().file.name },
@@ -212,13 +234,11 @@ internal fun VideoRecordScreen(
         RecordSheet(R.string.video_record_add, busy = false, onClose = { chooseSource = false }) {
             Text(stringResource(R.string.video_record_limits), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            RecordButton(R.string.video_record_capture, Icons.Outlined.Videocam) {
-                chooseSource = false
-                onRecord()
-            }
-            TimeLeftInlineButton(onClick = { chooseSource = false; onPick() }) {
-                Text(stringResource(R.string.video_record_pick))
-            }
+            RecordSourceActions(
+                enabled = !busy,
+                onRecord = { chooseSource = false; onRecord() },
+                onPick = { chooseSource = false; onPick() },
+            )
         }
     }
     if (draft != null) {
@@ -243,6 +263,20 @@ internal fun VideoRecordScreen(
     if (clips != null) {
         val clip = clips.firstOrNull { it.file.name == playingFile }
         if (clip != null) ClipPlayerDialog(clips, clip) { playingFile = null }
+    }
+}
+
+@Composable
+@OptIn(ExperimentalLayoutApi::class)
+private fun RecordSourceActions(enabled: Boolean, onRecord: () -> Unit, onPick: () -> Unit) {
+    FlowRow(
+        horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+        verticalArrangement = Arrangement.spacedBy(Spacing.xs),
+    ) {
+        RecordButton(R.string.video_record_capture, Icons.Outlined.Videocam, enabled, onRecord)
+        TimeLeftInlineButton(onClick = onPick, enabled = enabled) {
+            Text(stringResource(R.string.video_record_pick))
+        }
     }
 }
 

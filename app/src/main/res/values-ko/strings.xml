@@ -600,12 +600,13 @@
     <string name="settings_reward_load_failed">저장된 수신 선택을 불러오지 못했어요. 다시 확인해 주세요.</string>
 
     <string name="video_record_title">영상 기록</string>
+    <string name="video_record_entry_hint">이 일정에 짧은 영상을 남겨요</string>
     <string name="video_record_add">영상 추가</string>
     <string name="video_record_capture">영상 촬영</string>
     <string name="video_record_pick">기기에서 선택</string>
     <string name="video_record_limits">15초 이하, 32MB 이하의 MP4 영상을 남길 수 있어요.</string>
-    <string name="video_record_empty">아직 남긴 영상이 없어요</string>
-    <string name="video_record_local">이 일정의 영상은 이 기기에 저장돼요.</string>
+    <string name="video_record_empty">첫 영상을 남겨보세요</string>
+    <string name="video_record_local">이 일정에 남긴 영상은 이 기기에 저장되고 날짜순으로 모여요.</string>
     <string name="video_record_review">이 영상을 남길까요?</string>
     <string name="video_record_day_group">%1$s · %2$s</string>
     <string name="video_record_play_all">처음부터 보기</string>
@@ -634,4 +635,20 @@
     <string name="home_clear_search">검색어 지우기</string>
     <string name="settings_past_filter_summary">전체 일정에서 ‘지난 일정만’을 선택하면 볼 수 있어요.</string>
     <string name="video_record_backup_scope">영상 기록은 이 기기에만 저장되며 일정 백업에 들어가지 않아요.</string>
+    <string name="app_intro_progress">%2$d단계 중 %1$d단계</string>
+    <string name="app_intro_time_title">남은 시간을 한눈에</string>
+    <string name="app_intro_time_description">오늘·이번 달·올해에 얼마나 시간이 남았는지 확인하세요. 중요한 날짜나 시간 구간도 일정으로 추가할 수 있어요.</string>
+    <string name="app_intro_focus_title">시간을 정해 집중하세요</string>
+    <string name="app_intro_focus_description">집중할 시간을 정해 바로 시작하세요. 자주 보는 카운트다운은 홈 화면에 위젯으로 추가할 수 있어요.</string>
+    <string name="app_intro_video_title">디데이를 영상으로 남겨보세요</string>
+    <string name="app_intro_video_description">날짜 일정에 최대 15초 영상을 남기면 날짜순으로 다시 볼 수 있어요. 영상은 이 기기에만 저장돼요.</string>
+    <string name="app_intro_skip">건너뛰기</string>
+    <string name="app_intro_previous">이전</string>
+    <string name="app_intro_next">다음</string>
+    <string name="app_intro_start">시작하기</string>
+    <string name="app_intro_open_video">영상 기록 열기</string>
+    <string name="app_intro_add_date">날짜 일정 추가</string>
+    <string name="app_intro_trip_prepare">여행 준비</string>
+    <string name="app_intro_trip_depart">출발</string>
+    <string name="app_intro_trip_arrive">도착</string>
 </resources>

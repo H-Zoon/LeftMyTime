@@ -60,7 +60,7 @@ class FocusActivity : AppCompatActivity() {
             val generator = remember { TimeDisplayFactory(this) }
             var id by rememberSaveable { mutableStateOf(initialId) }
             var showHistory by rememberSaveable { mutableStateOf(initialId < 0 && !setupRequested) }
-            var selectedMinutes by rememberSaveable { mutableStateOf(25) }
+            var selectedMinutes by rememberSaveable { mutableStateOf(DEFAULT_FOCUS_MINUTES) }
             var keepAwake by rememberSaveable { mutableStateOf(false) }
             var confirmStop by rememberSaveable { mutableStateOf(false) }
             val item = state.items.firstOrNull { it.id == id }

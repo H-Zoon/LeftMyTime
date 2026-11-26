@@ -192,6 +192,17 @@ private fun GalleryScreen(
         withDetailFixture(periodItems[2].copy(remainingDays = 55)),
     ) else periodItems
     when {
+        screen.startsWith("app-intro") -> com.devidea.timeleft.home.AppIntroScreen(
+            today = periodItems.first(),
+            canOpenRecord = screen == "app-intro-video-existing",
+            onComplete = {},
+            onVideoAction = {},
+            initialPage = when {
+                screen.startsWith("app-intro-video") -> com.devidea.timeleft.home.AppIntroPage.Video
+                screen == "app-intro-focus" -> com.devidea.timeleft.home.AppIntroPage.Focus
+                else -> com.devidea.timeleft.home.AppIntroPage.Time
+            },
+        )
         screen.startsWith("video-record-") -> VideoRecordGallery(screen)
         screen.startsWith("reward-notification-settings") -> {
             var consent by rememberSaveable(screen) { mutableStateOf(!screen.endsWith("off")) }

@@ -11,6 +11,8 @@ object Motion {
     const val ShortMs = 150
     const val MediumMs = 200
     const val EmphasizedMs = 720
+    const val IntroFocusPreviewMs = 2200
+    const val IntroVideoPreviewMs = 1500
     const val DetailEntranceMs = 1200
     // Large gaps reserve the final 60% for six visible, progressively slower steps.
     const val DetailSettleSteps = 6L

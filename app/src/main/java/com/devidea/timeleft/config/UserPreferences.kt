@@ -11,6 +11,7 @@ object UserPreferences {
     // Legacy key: calendar details now open only from the period the user taps.
     const val KEY_HOME_HEADER_INDEX = "home_header_index"
     const val KEY_START_SCREEN = "start_screen"
+    const val KEY_APP_INTRO_COMPLETED = "app_intro_completed"
     const val KEY_EXPIRED_ITEMS = "expired_items"
     const val KEY_PROGRESS_DISPLAY = "progress_display"
     const val KEY_DEFAULT_DATE_REMINDER = "default_date_reminder"
