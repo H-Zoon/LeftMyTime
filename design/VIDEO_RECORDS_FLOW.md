@@ -31,4 +31,12 @@
 4. 기본 지난 일정 표시의 표시·맨 아래·숨김 각각에서 **지난 일정만**을 확인한다. 검색 지우기와 빈 상태, 두 화면의 스크롤 복귀, 펼친 일정의 편집·삭제와 상세의 위젯 추가를 따라간다.
 5. 한/영, 밝게/어둡게, 작은 화면·큰 글자에서 저장 시트·영상 옵션·날짜 그룹을 확인한다. 두 개 이상의 순차 재생, 세로·가로 영상, 화면을 떠날 때 오디오 정지를 확인한다.
 
-Debug 디자인 갤러리에서 `video-record-empty`, `video-record-timeline`, `video-record-draft`, `video-record-error`, `video-record-timeline-large`가 실제 기록 화면을 재사용한다. 이 문서의 캡처는 기존 앱 분석 범위이며, 새 코드로 실행한 화면 증거는 설치 검수 시 추가한다.
+Debug 디자인 갤러리에서 `video-record-empty`, `video-record-timeline`, `video-record-draft`, `video-record-error`, `video-record-timeline-large`가 실제 기록 화면을 재사용한다. 위의 화면별 분석에는 기존 앱 캡처를 사용했다. 변경 화면은 아래 실행 기록에 있다.
+
+
+## 6.9 Debug 실행 확인
+
+- Galaxy A33에 설치돼 있던 APK는 영상 기록 Activity가 빠진 빌드였다. 개인 기록 브랜치에서 Debug APK를 생성해 데이터를 유지하는 업데이트로 설치했다. 기기의 설치 APK가 영상 기록 Activity를 포함한 빌드와 일치하는지 확인했다.
+- 에뮬레이터에서 Wi-Fi와 모바일 데이터를 끄고 실제 날짜 일정에서 기기 파일을 골라 저장했다. 앱 프로세스를 다시 시작해 동일 일정의 영상이 남아 있고 Media3로 재생할 수 있는지 확인했다. [날짜 상세](qa-local-video-flow/after-01-date-detail.png) · [저장된 기록](qa-local-video-flow/after-05-record-timeline.png) · [로컬 재생](qa-local-video-flow/after-06-local-playback.png)
+- 한국어 디자인 갤러리에서 ‘지난 일정만’ 필터와 펼친 일정의 ‘영상 기록’ 진입을 확인했다. [지난 일정 진입](qa-local-video-flow/after-07-past-date-entry.png)
+- 시스템 카메라로 직접 촬영하는 흐름과 실기기에서 재생하는 동작은 이번 실행 확인에 포함하지 않았다.

@@ -94,9 +94,10 @@ class VideoRecordActivity : AppCompatActivity() {
                     onRetry = { model.load(id) },
                     onClearError = model::clearError,
                     onRecord = {
-                        val targetFile = File(cameraDirectory(), "${UUID.randomUUID()}.mp4")
+                        val directory = cameraDirectory()
+                        val targetFile = File(directory, "${UUID.randomUUID()}.mp4")
                         try {
-                            if (!targetFile.parentFile.isDirectory && !targetFile.parentFile.mkdirs()) {
+                            if (!directory.isDirectory && !directory.mkdirs()) {
                                 throw IOException()
                             }
                             val output = cameraUri(targetFile)
