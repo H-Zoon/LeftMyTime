@@ -1,6 +1,6 @@
 # 리워드·혜택 알림 수신 설정
 
-기준: `4418c7a`의 FID 기반 FCM·Firebase 운영 기능을 보존하고 `feature/reward-notifications`에서 추가했다. 현재 소스는 6.8(25) 광고 동의·수신거부 개선을 포함한다. 2026-10-30 Console에는 정기 캠페인 초안을 저장했으며 게시·실제 발송은 하지 않았다. 최신 동작·검증 대기는 `REWARD_ADS_2026-10-30.md`를 따른다.
+기준: `4418c7a`의 FID 기반 FCM·Firebase 운영 기능을 보존하고 `feature/reward-notifications`에서 추가했다. 현재 소스는 6.8(25) 광고 동의·수신거부 개선을 포함한다. 2026-10-30 Console에는 정기 캠페인 초안을 저장했으며 게시·실제 발송은 하지 않았다. 2026-11-03 사용자 요청으로 본문 탭은 PointHome 진입, 수신거부는 앱 설정 경로 안내로 변경했다. 이전 구현·검증 기록은 `REWARD_ADS_2026-10-30.md`, 최신 미검증 변경은 `WORK_HANDOFF.md`를 따른다.
 
 ## 사용자 동작
 
@@ -20,9 +20,9 @@
 | FCM 토픽 | `reward_notifications` — 사용자 지시로 기존 토픽 유지 |
 | Android 채널 ID | `reward_notifications` |
 | 사용자 정의 데이터 | `notification_kind` = `reward` |
-| 광고 알림 터치 | **`open_target` = `reward_settings`** |
+| 광고 알림 터치 | **`open_target` = `pointhome`** |
 | 제목 | `(광고) TimeLeft 리워드 안내` |
-| 본문 | 혜택 안내 뒤 ‘수신거부: 이 알림을 눌러 수신설정을 여세요.’ 포함 |
+| 본문 | 혜택 안내 뒤 ‘수신거부: 앱 설정 > 알림 > 리워드 광고 알림에서 수신 동의를 꺼 주세요.’ 포함 |
 | 정기 일정 | 매주 월·수·금·토·일 14:00, 대한민국 시간(GMT+09:00), 사용자당 1일 최대1회 |
 | 메시지 만료 | 1시간 |
 
@@ -32,14 +32,14 @@
 
 1. **주제 → `reward_notifications`**를 선택한다. 기존 구독자를 그대로 사용한다.
 2. 제목의 `(광고)`와 앱 이름, 본문의 수신거부 안내를 넣는다.
-3. 맞춤 데이터에 `notification_kind: reward`, **`open_target: reward_settings`**를 설정한다. 광고 캠페인은 종전 `pointhome` 직접 진입을 사용하지 않는다.
-4. Android 알림 채널 ID를 `reward_notifications`로 설정한다. 알림 터치가 SDK·로그인·원격 설정을 기다리지 않고 리워드 광고 수신설정을 연다. 해당 화면의 스위치를 끄면 바로 철회하며 ‘리워드 보기’는 별도 행동이다.
+3. 맞춤 데이터에 `notification_kind: reward`, **`open_target: pointhome`**을 설정한다.
+4. Android 알림 채널 ID를 `reward_notifications`로 설정한다. 알림 본문을 누르면 PointHome을 연다. 수신거부 안내는 앱 설정 → 알림 → 리워드 광고 알림 → 수신 동의를 끄는 경로로 쓴다.
 5. 맞춤 반복 **매주 월·수·금·토·일 14:00**, 시간대 **대한민국**, 빈도 커스텀 **1일당 최대1회**, 만료 **1시간**을 설정한다.
 6. **6.8 앱 배포와 실제 토픽/터치/철회 검증 후** 게시한다. 현재 ID `3186944161412585896`은 초안이며 테스트 발송·게시를 하지 않았다.
 
-6.7 이하의 앱은 `reward_settings` 경로를 처리하지 못해 홈만 열 수 있다. 사용자 지시로 토픽은 분리하지 않았으므로 기존 수신 선택을 모두 새 고지에 따른 동의로 확인한 상태라고 해석하지 않는다. 구버전 사용자에게도 새 수신거부 동선이 보장된다고 쓰지 않는다.
+사용자가 Console의 이전 목적지와 본문을 직접 정리한다. Firebase Console의 SDK 자동 표시 본문은 앱의 리소스로 교체되지 않으므로, 초안 본문과 맞춤 데이터 `notification_kind=reward`, `open_target=pointhome`을 위 현행 안내로 갱신한 뒤 실제 수신을 검증해야 한다. 앱의 이전 목적지 호환 처리는 제거했다. 2026-11-03 이번 작업에서는 Console 초안을 변경하지 않았다.
 
-Console의 `notification` 메시지는 앱이 백그라운드일 때 SDK가 직접 표시한다. Console에는 Android 액션 버튼 입력란이 없어, 본문 탭을 수신설정으로 연결한다. 앱이 직접 표시하는 포그라운드/data 알림에는 별도 ‘수신거부’ 액션도 붙으며, 이 행동은 수신 선택을 끄고 같은 화면을 연다. `handleIntent` 등 SDK 내부 훅을 재정의하지 않는다.
+Console의 `notification` 메시지는 앱이 백그라운드일 때 SDK가 직접 표시한다. Console 본문에도 앱 설정의 수신거부 경로를 넣고, 본문 탭은 PointHome으로 연결한다. 앱이 직접 게시하는 알림도 같은 동작을 사용한다. 신규 알림에는 별도 수신거부 액션을 붙이지 않는다. 이미 게시된 이전 알림의 명시적 수신거부 액션은 기존 SettingsActivity 처리로 호환한다.
 
 앱이 직접 표시하는 리워드 알림은 한국시간 **21:00~익일08:00**에 폐기하며 다음 날로 재예약하지 않는다. SDK가 자동 표시하는 백그라운드 Console 알림에는 이 검사가 실행되지 않으므로 발송 시각과 TTL도 운영에서 반드시 제한한다. 모든 기기에서 실제 표시 시각이 보장되는 것으로 해석하지 않는다.
 
@@ -51,9 +51,9 @@ HTTP v1 예시:
     "topic": "reward_notifications",
     "notification": {
       "title": "(광고) TimeLeft 리워드 안내",
-      "body": "이용 가능한 리워드와 혜택을 확인해 보세요.\n수신거부: 이 알림을 눌러 수신설정을 여세요."
+      "body": "이용 가능한 리워드와 혜택을 확인해 보세요.\n수신거부: 앱 설정 > 알림 > 리워드 광고 알림에서 수신 동의를 꺼 주세요."
     },
-    "data": { "notification_kind": "reward", "open_target": "reward_settings" },
+    "data": { "notification_kind": "reward", "open_target": "pointhome" },
     "android": {
       "priority": "NORMAL", "ttl": "3600s",
       "notification": { "channel_id": "reward_notifications" }
@@ -62,11 +62,11 @@ HTTP v1 예시:
 }
 ```
 
-## 이전 PointHome 직접 진입 경로 (2026-10-19)
+## PointHome 직접 진입 경로
 
-아래는 기존 `pointhome` 경로의 구현 기록이다. 6.8 광고 캠페인은 위의 `reward_settings`를 사용하며, 수신설정 화면에서 ‘리워드 보기’를 눌렀을 때에만 이 경로를 재사용한다.
+2026-11-03부터 아래 경로만 알림 본문 탭에 사용한다.
 
-**사용자 정의 데이터 두 값 `notification_kind=reward`, `open_target=pointhome`이 함께 있을 때만** 알림 터치가 PointHome 직접 실행으로 연결된다. 목적지가 없거나 다른 값이면 기존처럼 앱 홈을 연다. 단순 수신만으로 서비스 화면을 열지는 않는다.
+**사용자 정의 데이터 `notification_kind=reward`, `open_target=pointhome`**으로 알림 터치를 PointHome 직접 실행에 연결한다. 목적지가 없거나 다른 값이면 기존처럼 앱 홈을 연다. 단순 수신만으로 서비스 화면을 열지는 않는다.
 
 - 포그라운드 및 앱이 직접 처리하는 data 메시지: 게시 알림의 immutable PendingIntent에 지원하는 두 값만 전달한다. 알림별 태그/ID로 Intent 식별값을 나눠 뒤에 온 일반 알림이 앞선 리워드 알림의 목적지를 덮어쓰지 않게 한다.
 - 백그라운드 notification+data: FCM SDK가 알림을 표시하고 터치하면 기본 런처 MainActivity의 extras로 data를 전달한다. **별도 click_action·링크를 지정하지 않고 기본 앱 실행을 사용**한다. Manifest에 임의 SDK Activity를 외부 진입점으로 등록하지 않는다.
@@ -94,7 +94,7 @@ SDK의 `start()` 반환은 화면 열림 성공을 뜻하지 않는다. listener
 
 이번 구현은 **동의자 토픽 선별 + 전용 시스템 채널 + 앱에서 처리하는 수신 시 동의 확인**을 제공한다. 모든 상황에서 철회 직후 notification 표시가 0건임을 보장하지 않는다. 수신 시점의 동의를 매번 확인해야 한다면 서버에서 `notification` 없는 data 메시지를 보내고 앱이 표시 여부를 결정하는 별도 발송 구성이 필요하다. 현재 콘솔 운영을 해당 구성으로 바꾸지는 않았다.
 
-리워드 토픽은 공통 혜택 안내용이다. 개인별 리워드 지급 결과나 지급 권한을 토픽 구독 여부로 판단하지 않는다. 6.8 광고 알림 탭은 수신설정 화면으로 연결하며, 실제 리워드 지급은 해당 화면의 별도 ‘리워드 보기’로 들어간 SDK 서비스가 처리한다.
+리워드 토픽은 공통 혜택 안내용이다. 개인별 리워드 지급 결과나 지급 권한을 토픽 구독 여부로 판단하지 않는다. 광고 알림 탭은 PointHome으로 연결하며, 실제 리워드 지급은 SDK 서비스가 처리한다.
 
 ## 최종 검증 대기
 

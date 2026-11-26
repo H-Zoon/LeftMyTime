@@ -98,12 +98,14 @@ class RewardMessagingPolicyTest {
         assertFalse(isRewardAdDaytime(23))
     }
 
-    @Test fun `only the fixed reward preferences destination is accepted`() {
-        assertTrue(RewardSettingsPushOpen.isRequested("reward", "reward_settings"))
-        assertFalse(RewardSettingsPushOpen.isRequested("general", "reward_settings"))
-        assertFalse(RewardSettingsPushOpen.isRequested(null, "reward_settings"))
-        assertFalse(RewardSettingsPushOpen.isRequested("reward", "pointhome"))
-        assertFalse(RewardSettingsPushOpen.isRequested("reward", "https://example.com"))
-        assertFalse(RewardSettingsPushOpen.isRequested("reward", null))
+    @Test fun `reward body taps accept only the PointHome destination`() {
+        assertTrue(PointHomePushOpen.isRequested("reward", "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested("reward", "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested("general", "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested("general", "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested(null, "pointhome"))
+        assertFalse(PointHomePushOpen.isRequested(null, "reward_settings"))
+        assertFalse(PointHomePushOpen.isRequested("reward", "https://example.com"))
+        assertFalse(PointHomePushOpen.isRequested("reward", null))
     }
 }

@@ -9,7 +9,7 @@
 | `home` | 홈 화면·일정 목록·대표 선택, `MainActivity`, `TimeLeftViewModel`, 시작 화면 전환 |
 | `editor` | 일정 편집 화면·입력 상태·시간 다이얼, `ItemEditorActivity` |
 | `settings` | 설정·리워드 알림 설정·테마 미리보기·개인정보처리방침 화면과 Activity |
-| `focus`, `calendar`, `backup`, `templates`, `periods`, `stories` | 각 기능의 화면과 전용 상태·로직 |
+| `focus`, `calendar`, `backup`, `templates`, `periods` | 각 기능의 화면과 전용 상태·로직 |
 | `pointhome` | PointHome 연동·소개 화면·노출 정책 |
 | `widget` | 위젯 설정·표현·갱신·초 표시와 런처 대응 |
 | `notification` | 일정 알림 예약·수신·권한 판정·공통 권한 안내 UI |
@@ -20,7 +20,7 @@
 - `ui`에는 앱과 위젯이 함께 쓰는 `TimeDisplayItem`, 표시용 시간 포맷, 상세 정보, 아이콘 표현이 있다. `TimeDisplayFactory.fromSchedule`은 현재 회차의 일정 한 건을 표시 모델로 바꾼다. 현재 회차 선택과 오류 처리는 호출부에서 담당한다.
 - `TimeDisplayFactory.standardPeriods()`는 오늘·이번 달·올해 순으로 목록을 만든다. 홈은 초마다 오늘만 갱신하고, 월·연 값은 날짜가 바뀔 때 계산해 재사용한다.
 - 홈 날짜 표시는 `TimeLeftViewModel.kt`의 `HomeDateCache`에서 원본 일정·현재 날짜·고정 만료 상태를 확인한 뒤 현재 회차를 계산한다. 캐시는 홈 데이터 수집 흐름 안에서 소유한다. `HomeHeroCandidates`는 대표 선택과 날짜 목록이 같은 정렬 결과를 사용하게 하며, 전체 일정의 검색·정렬은 전체보기에서 계산한다.
-- `ui/components`와 `ui/theme`에는 여러 화면이 공유하는 UI와 디자인 토큰을 둔다. 이야기 목록·선택 규칙·화면은 `stories`에서 함께 관리한다.
+- `ui/components`와 `ui/theme`에는 여러 화면이 공유하는 UI와 디자인 토큰을 둔다.
 - `calc`는 시간·날짜·반복 회차를 계산한다. `database`에는 Room 정의와 일정을 읽고 쓰는 `TimeLeftRepository`를 함께 둔다.
 - `config`는 사용자 설정 키와 원격 설정, `telemetry`는 계측을 담당한다. 앱 시작과 의존성 연결은 루트의 `App.kt`와 `AppModule.kt`에서 찾을 수 있다.
 

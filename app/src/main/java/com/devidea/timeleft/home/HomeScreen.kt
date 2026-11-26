@@ -40,6 +40,8 @@ import com.devidea.timeleft.ui.components.TimeLeftUnderlineTextField
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.theme.LayoutTokens
 import com.devidea.timeleft.ui.theme.Spacing
+import kotlinx.coroutines.flow.collect
+import kotlinx.coroutines.flow.distinctUntilChanged
 
 @Composable
 fun HomeScreen(
@@ -73,6 +75,7 @@ fun HomeScreen(
     onOpenTemplates: (() -> Unit)? = null,
     onOpenCalendar: (() -> Unit)? = null,
     onMorePeriods: (() -> Unit)? = null,
+    onIsAtTopChanged: ((Boolean) -> Unit)? = null,
 ) {
     var showAll by rememberSaveable { mutableStateOf(initialShowAll) }
     var searchQuery by rememberSaveable { mutableStateOf("") }
@@ -83,7 +86,7 @@ fun HomeScreen(
     val selectedSort = runCatching { HomeSortMode.valueOf(selectedSortValue) }.getOrDefault(HomeSortMode.Nearest)
     val isGrid = selectedLayoutValue == UserPreferences.HOME_LAYOUT_GRID
     // Keep the saved grid preference, but use one column when text cannot fit two.
-    val compactToolbar = LocalConfiguration.current.screenWidthDp < 360 && LocalDensity.current.fontScale > 1.2f
+    val compactToolbar = LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f
     val columns = if (showAll && isGrid && LocalConfiguration.current.screenWidthDp >= 360 && LocalDensity.current.fontScale <= 1.15f) 2 else 1
     val displayedItems = remember(customItems, expiredItemsMode) {
         if (expiredItemsMode == UserPreferences.EXPIRED_ITEMS_HIDE) customItems.filterNot { it.isExpired } else customItems
@@ -93,6 +96,12 @@ fun HomeScreen(
     val hero = candidates.hero(selectedActiveId)
     val activeHeroId = hero?.takeIf { it.type == ItemType.Time }?.id
     LaunchedEffect(activeHeroId) { selectedActiveId = activeHeroId }
+    val emptyHome = displayedItems.isEmpty() && !loading && !loadFailed
+    // Share the same existing running/paused focus selection across both empty and populated layouts.
+    val currentFocus = remember(customItems) {
+        customItems.filter { it.isFocusSession && it.focusState in setOf(FocusSession.RUNNING, FocusSession.PAUSED) }
+            .sortedBy { if (it.focusState == FocusSession.RUNNING) 0 else 1 }.firstOrNull()
+    }
 
     val upcomingItems = if (showAll) emptyList() else remember(displayedItems, hero?.id) {
         upcomingTimeItems(displayedItems).asSequence().filterNot { it.id == hero?.id }.take(3).toList()
@@ -118,6 +127,14 @@ fun HomeScreen(
         }
     } else emptyList()
     val scrollState = rememberLazyGridState()
+    val currentOnIsAtTopChanged by rememberUpdatedState(onIsAtTopChanged)
+    if (onIsAtTopChanged != null) {
+        LaunchedEffect(scrollState) {
+            snapshotFlow { scrollState.firstVisibleItemIndex == 0 && scrollState.firstVisibleItemScrollOffset == 0 }
+                .distinctUntilChanged()
+                .collect { isAtTop -> currentOnIsAtTopChanged?.invoke(isAtTop) }
+        }
+    }
     LaunchedEffect(showAll) { scrollState.scrollToItem(0) }
     BackHandler(showAll) { showAll = false }
 
@@ -143,9 +160,13 @@ fun HomeScreen(
                     )
                     if (!showAll) {
                         if (compactToolbar) IconButton(onClick = { showAll = true }) {
-                            Icon(Icons.AutoMirrored.Filled.ViewList, stringResource(R.string.home_all_items))
-                        } else TextButton(onClick = { showAll = true }) { Text(stringResource(R.string.home_all_items)) }
-                    } else {
+                            Icon(Icons.AutoMirrored.Filled.ViewList, stringResource(R.string.home_all_items),
+                                tint = MaterialTheme.colorScheme.onSurfaceVariant)
+                        } else TextButton(onClick = { showAll = true },
+                            colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant)) {
+                            Text(stringResource(R.string.home_all_items))
+                        }
+                    } else if (!emptyHome) {
                         ScheduleAddButton(onAddTime, onAddDate, showText = false, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
                     }
                     IconButton(onClick = onOpenSettings) { Icon(Icons.Default.Settings, stringResource(R.string.home_open_settings), tint = MaterialTheme.colorScheme.onSurfaceVariant) }
@@ -183,21 +204,24 @@ fun HomeScreen(
                                     }
                                 }
                             }
-                            NextCountdownHero(hero, progressDisplayMode, onEditItem = onEditItem)
+                            NextCountdownHero(hero, progressDisplayMode, onEditItem = onEditItem,
+                                supportingAction = {
+                                    if (onStartFocus != null) QuickFocusSection(currentFocus, focusBusy, focusError,
+                                        onStartFocus, onOpenFocus, inActionRow = true)
+                                })
                         }
                     }
                 }
                 // Keep the current countdown ahead of actions for starting another one.
-                if (onStartFocus != null) item(key = "quick-focus", span = { GridItemSpan(maxLineSpan) }) {
-                    val focus = customItems.filter { it.isFocusSession && it.focusState in setOf(FocusSession.RUNNING, FocusSession.PAUSED) }
-                        .sortedBy { if (it.focusState == FocusSession.RUNNING) 0 else 1 }.firstOrNull()
-                    QuickFocusSection(focus, focusBusy, focusError, onStartFocus, onOpenFocus)
+                if (hero == null && !emptyHome && onStartFocus != null) item(key = "quick-focus", span = { GridItemSpan(maxLineSpan) }) {
+                    QuickFocusSection(currentFocus, focusBusy, focusError, onStartFocus, onOpenFocus)
                 }
-                if (displayedItems.isEmpty() && !loading && !loadFailed) {
+                if (emptyHome) {
                     item(key = "empty", span = { GridItemSpan(maxLineSpan) }) {
-                        Column { EmptyItemState(onAddTime, onAddDate)
-                            ScheduleAddButton(onAddTime, onAddDate, true, onOpenTemplates, onOpenCalendar)
-                        }
+                        EmptyItemState(onAddTime, onAddDate, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
+                    }
+                    if (onStartFocus != null) item(key = "quick-focus", span = { GridItemSpan(maxLineSpan) }) {
+                        QuickFocusSection(currentFocus, focusBusy, focusError, onStartFocus, onOpenFocus)
                     }
                 } else {
                     item(key = "upcoming-heading", span = { GridItemSpan(maxLineSpan) }) {
@@ -206,7 +230,7 @@ fun HomeScreen(
                             ScheduleListHeading(onAddTime, onAddDate, onOpenTemplates, onOpenCalendar)
                         }
                     }
-                    if (upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
+                    if (!loading && !loadFailed && upcomingItems.isEmpty() && dateItems.isEmpty()) item(key = "no-next", span = { GridItemSpan(maxLineSpan) }) {
                         Text(stringResource(R.string.home_no_next_schedule), style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(vertical = Spacing.l))
                     }
@@ -233,7 +257,9 @@ fun HomeScreen(
                         SearchAndSortSection(searchQuery, selectedSort, { searchQuery = it }, { selectedSortValue = it.name; onSortChange(it.name) })
                     }
                 }
-                if (displayedItems.isEmpty() && !loading && !loadFailed) item(span = { GridItemSpan(maxLineSpan) }) { EmptyItemState(onAddTime, onAddDate) }
+                if (emptyHome) item(span = { GridItemSpan(maxLineSpan) }) {
+                    EmptyItemState(onAddTime, onAddDate, onOpenTemplates = onOpenTemplates, onOpenCalendar = onOpenCalendar)
+                }
                 else if (visibleItems.isEmpty() && !loading && !loadFailed) item(span = { GridItemSpan(maxLineSpan) }) { Text(stringResource(R.string.home_empty_search)) }
                 items(visibleItems, key = { it.id }) { item ->
                     TimeLeftItemCard(item, onEditItem, onDeleteItem, grid = columns == 2, progressDisplayMode = progressDisplayMode, onDuplicate = onDuplicate, onSaveTemplate = onSaveTemplate, onPin = onPin, onMove = onMove)
@@ -259,28 +285,6 @@ private fun ScheduleListHeading(onAddTime: () -> Unit, onAddDate: () -> Unit, on
 private fun ScheduleGroupHeading(title: String) {
     Text(title, style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.onSurfaceVariant,
         modifier = Modifier.padding(top = Spacing.l, bottom = Spacing.s))
-}
-
-@Composable
-private fun ScheduleAddButton(onAddTime: () -> Unit, onAddDate: () -> Unit, showText: Boolean, onOpenTemplates: (() -> Unit)? = null, onOpenCalendar: (() -> Unit)? = null) {
-    var expanded by remember { mutableStateOf(false) }
-    Box {
-        if (showText) {
-            TimeLeftInlineButton(onClick = { expanded = true }) {
-                Icon(Icons.Default.Add, null)
-                Spacer(Modifier.width(Spacing.xs))
-                Text(stringResource(R.string.home_add_schedule))
-            }
-        } else {
-            IconButton(onClick = { expanded = true }) { Icon(Icons.Default.Add, stringResource(R.string.home_add_item)) }
-        }
-        DropdownMenu(expanded, { expanded = false }) {
-            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_time_range)) }, onClick = { expanded = false; onAddTime() })
-            DropdownMenuItem(text = { Text(stringResource(R.string.home_add_date)) }, onClick = { expanded = false; onAddDate() })
-            if (onOpenTemplates != null) DropdownMenuItem(text = { Text(stringResource(R.string.templates_title)) }, onClick = { expanded = false; onOpenTemplates() })
-            if (onOpenCalendar != null) DropdownMenuItem(text = { Text(stringResource(R.string.calendar_import_title)) }, onClick = { expanded = false; onOpenCalendar() })
-        }
-    }
 }
 
 @Composable

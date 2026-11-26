@@ -1,5 +1,6 @@
 package com.devidea.timeleft.settings
 
+import androidx.annotation.StringRes
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -14,6 +15,7 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.Icon
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
@@ -21,8 +23,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.ItemVisuals
 import com.devidea.timeleft.R
 import com.devidea.timeleft.database.ItemType
@@ -58,13 +62,9 @@ fun SettingsScreen(
     onDefaultTimeReminderSelected: (Int) -> Unit,
     onSelectDateReminderTime: () -> Unit,
     onOpenNotificationSettings: () -> Unit,
-    onRewardConsentChanged: (Boolean) -> Unit,
-    onOpenRewardNotificationSettings: () -> Unit,
-    onRetryRewardTopicSync: () -> Unit,
+    onOpenRewardPreferences: () -> Unit,
     onOpenPrivacyPolicy: () -> Unit,
-    previewPeriods: List<TimeDisplayItem> = emptyList(),
     onOpenBackup: () -> Unit = {},
-    onOpenStoryLibrary: () -> Unit = {},
     onOpenTemplates: () -> Unit = {},
     rewardConsentReady: Boolean = true,
 ) {
@@ -74,7 +74,14 @@ fun SettingsScreen(
         onBack = onBack
     ) {
         SettingsSection(title = stringResource(R.string.settings_display)) {
-            ThemePreviewEntry(themeMode, paletteKey, previewPeriods, progressDisplayMode, onOpenThemePreview)
+            ThemePreviewEntry(themeMode, paletteKey, onOpenThemePreview)
+            TimeLeftSwitchRow(
+                title = stringResource(R.string.settings_progress_display),
+                checked = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
+                onCheckedChange = { checked ->
+                    onProgressDisplayModeSelected(if (checked) UserPreferences.PROGRESS_DISPLAY_FULL else UserPreferences.PROGRESS_DISPLAY_HIDDEN)
+                },
+            )
         }
 
         SettingsSection(title = stringResource(R.string.settings_home_behavior)) {
@@ -100,17 +107,10 @@ fun SettingsScreen(
                 ),
                 onSelected = onExpiredItemsModeSelected,
             )
-            TimeLeftSwitchRow(
-                title = stringResource(R.string.settings_progress_display),
-                checked = progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN,
-                onCheckedChange = { checked ->
-                    onProgressDisplayModeSelected(if (checked) UserPreferences.PROGRESS_DISPLAY_FULL else UserPreferences.PROGRESS_DISPLAY_HIDDEN)
-                },
-            )
         }
 
         SettingsSection(title = stringResource(R.string.settings_notifications)) {
-            NavigationRow(
+            SettingsNavigationRow(
                 title = stringResource(R.string.settings_notification_permission),
                 summary = stringResource(
                     if (remindersEnabled) R.string.settings_notification_enabled
@@ -118,11 +118,15 @@ fun SettingsScreen(
                 ),
                 onClick = onOpenNotificationSettings
             )
-            NavigationRow(
+            SettingsNavigationRow(
                 title = stringResource(R.string.settings_date_reminder_time),
                 summary = runCatching { com.devidea.timeleft.ui.formatClockTime(context, java.time.LocalTime.parse(dateReminderTime)) }.getOrDefault(dateReminderTime),
                 onClick = onSelectDateReminderTime
             )
+            Text(stringResource(R.string.settings_new_schedule_reminders),
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(top = Spacing.l).semantics { heading() })
             ReminderDropdownRow(
                 title = stringResource(R.string.settings_default_date_reminder),
                 type = ItemType.Date,
@@ -135,34 +139,34 @@ fun SettingsScreen(
                 selectedOffset = defaultTimeReminderOffset,
                 onSelected = onDefaultTimeReminderSelected
             )
-            RewardNotificationPreferences(
-                consentGranted = rewardConsentGranted,
-                notificationsAllowed = rewardNotificationsAllowed,
-                topicSync = rewardTopicSync,
-                consentReady = rewardConsentReady,
-                onConsentChanged = onRewardConsentChanged,
-                onOpenSystemSettings = onOpenRewardNotificationSettings,
-                onRetry = onRetryRewardTopicSync,
+            Text(stringResource(R.string.settings_default_reminder_summary),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = Spacing.m))
+            HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
+            SettingsNavigationRow(
+                title = stringResource(R.string.settings_reward_entry),
+                summary = stringResource(rewardPreferenceStatusRes(rewardConsentGranted,
+                    rewardNotificationsAllowed, rewardTopicSync, rewardConsentReady)),
+                onClick = onOpenRewardPreferences,
             )
         }
 
         SettingsSection(title = stringResource(R.string.settings_data)) {
-            NavigationRow(title = stringResource(R.string.story_library), onClick = onOpenStoryLibrary)
-            NavigationRow(title = stringResource(R.string.templates_title), onClick = onOpenTemplates)
-            NavigationRow(title = stringResource(R.string.backup_title),
+            SettingsNavigationRow(title = stringResource(R.string.templates_title), onClick = onOpenTemplates)
+            SettingsNavigationRow(title = stringResource(R.string.backup_title),
                 summary = stringResource(R.string.backup_entry_summary), onClick = onOpenBackup)
         }
 
-        SettingsSection(title = stringResource(R.string.settings_privacy)) {
-            Text(stringResource(R.string.settings_data_collection_summary),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            NavigationRow(
+        SettingsSection(title = stringResource(R.string.settings_about)) {
+            SettingsNavigationRow(
                 title = stringResource(R.string.settings_privacy_policy),
                 onClick = onOpenPrivacyPolicy
             )
-        }
-        SettingsSection(title = stringResource(R.string.settings_about)) {
+            Text(stringResource(R.string.settings_data_collection_summary),
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(bottom = Spacing.m))
             ValueRow(
                 title = stringResource(R.string.settings_version),
                 value = versionName
@@ -180,7 +184,6 @@ private fun ReminderDropdownRow(
 ) {
     SettingsDropdownRow(
         title = title,
-        summary = stringResource(R.string.settings_default_reminder_summary),
         selectedValue = selectedOffset,
         options = ItemVisuals.reminderOffsets(type).map { offset ->
             SettingsOption(offset, ItemVisuals.reminderNameRes(type, offset))
@@ -242,7 +245,7 @@ private fun SettingsSection(
             text = title,
             style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
-            modifier = Modifier.padding(bottom = Spacing.xs)
+            modifier = Modifier.padding(bottom = Spacing.xs).semantics { heading() }
         )
         TimeLeftSection(modifier = Modifier.fillMaxWidth()) {
             Column(content = content)
@@ -251,7 +254,7 @@ private fun SettingsSection(
 }
 
 @Composable
-private fun NavigationRow(
+internal fun SettingsNavigationRow(
     title: String,
     summary: String? = null,
     onClick: () -> Unit,
@@ -260,9 +263,10 @@ private fun NavigationRow(
         modifier = Modifier
             .fillMaxWidth()
             .heightIn(min = LayoutTokens.MinTouchTarget)
-            .clickable(onClick = onClick)
+            .clickable(role = Role.Button, onClick = onClick)
             .padding(vertical = Spacing.m),
-        verticalAlignment = Alignment.CenterVertically
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(Spacing.m),
     ) {
         Column(
             modifier = Modifier.weight(1f),
@@ -297,6 +301,7 @@ private fun ValueRow(
     Row(
         modifier = Modifier
             .fillMaxWidth()
+            .semantics(mergeDescendants = true) {}
             .padding(vertical = Spacing.m),
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -325,46 +330,52 @@ internal fun RewardNotificationPreferences(
     onOpenSystemSettings: () -> Unit,
     onRetry: () -> Unit,
 ) {
-    Text(stringResource(R.string.pointhome_intro_consent_notice),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant)
-    TimeLeftSwitchRow(
-        title = stringResource(R.string.settings_reward_notifications),
-        summary = stringResource(R.string.settings_reward_notifications_summary),
-        checked = consentGranted,
-        onCheckedChange = onConsentChanged,
-        enabled = consentReady,
-    )
-    Text(
-        text = stringResource(when {
-            !consentReady && topicSync == RewardTopicSyncStatus.Failed -> R.string.settings_reward_load_failed
-            !consentReady -> R.string.settings_reward_loading
-            topicSync == RewardTopicSyncStatus.Syncing ->
-                if (consentGranted) R.string.settings_reward_syncing
-                else R.string.settings_reward_unsubscribing
-            topicSync == RewardTopicSyncStatus.Failed ->
-                if (consentGranted) R.string.settings_reward_sync_unconfirmed
-                else R.string.settings_reward_unsubscribe_unconfirmed
-            !consentGranted -> R.string.settings_reward_off
-            !notificationsAllowed -> R.string.settings_reward_blocked
-            else -> R.string.settings_reward_ready
-        }),
-        style = MaterialTheme.typography.bodyMedium,
-        color = MaterialTheme.colorScheme.onSurfaceVariant,
-        modifier = Modifier.padding(bottom = Spacing.s),
-    )
-    if (topicSync == RewardTopicSyncStatus.Failed) {
-        NavigationRow(
-            title = stringResource(R.string.settings_reward_retry),
-            onClick = onRetry,
+    Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+        Text(stringResource(R.string.pointhome_intro_consent_notice),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        TimeLeftSwitchRow(
+            title = stringResource(R.string.settings_reward_notifications),
+            summary = stringResource(R.string.settings_reward_notifications_summary),
+            checked = consentGranted,
+            onCheckedChange = onConsentChanged,
+            enabled = consentReady,
+        )
+        Text(stringResource(rewardPreferenceStatusRes(consentGranted, notificationsAllowed, topicSync, consentReady)),
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant)
+        if (topicSync == RewardTopicSyncStatus.Failed) {
+            SettingsNavigationRow(
+                title = stringResource(R.string.settings_reward_retry),
+                onClick = onRetry,
+            )
+        }
+        SettingsNavigationRow(
+            title = stringResource(R.string.settings_reward_system_settings),
+            summary = stringResource(
+                if (notificationsAllowed) R.string.settings_reward_display_allowed
+                else R.string.settings_reward_display_blocked
+            ),
+            onClick = onOpenSystemSettings,
         )
     }
-    NavigationRow(
-        title = stringResource(R.string.settings_reward_system_settings),
-        summary = stringResource(
-            if (notificationsAllowed) R.string.settings_reward_display_allowed
-            else R.string.settings_reward_display_blocked
-        ),
-        onClick = onOpenSystemSettings,
-    )
+}
+
+/** Both levels describe the same saved choice, delivery sync and system permission. */
+@StringRes
+private fun rewardPreferenceStatusRes(
+    consentGranted: Boolean,
+    notificationsAllowed: Boolean,
+    topicSync: RewardTopicSyncStatus,
+    consentReady: Boolean,
+): Int = when {
+    !consentReady && topicSync == RewardTopicSyncStatus.Failed -> R.string.settings_reward_load_failed
+    !consentReady -> R.string.settings_reward_loading
+    topicSync == RewardTopicSyncStatus.Syncing ->
+        if (consentGranted) R.string.settings_reward_syncing else R.string.settings_reward_unsubscribing
+    topicSync == RewardTopicSyncStatus.Failed ->
+        if (consentGranted) R.string.settings_reward_sync_unconfirmed else R.string.settings_reward_unsubscribe_unconfirmed
+    !consentGranted -> R.string.settings_reward_off
+    !notificationsAllowed -> R.string.settings_reward_blocked
+    else -> R.string.settings_reward_ready
 }

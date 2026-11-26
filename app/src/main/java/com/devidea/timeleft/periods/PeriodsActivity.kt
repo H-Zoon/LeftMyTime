@@ -55,11 +55,9 @@ class PeriodsActivity : AppCompatActivity() {
                         item {
                             SettingsDropdownRow(title = stringResource(R.string.period_choose), selectedValue = choice,
                                 options = CalendarPeriod.entries.map { SettingsOption(it.name, it.title) }, onSelected = { choice = it })
-                            Text(stringResource(R.string.period_calendar_policy), style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant)
                         }
                         item { TimeDetailContent(item, prefs.getString(UserPreferences.KEY_PROGRESS_DISPLAY, UserPreferences.PROGRESS_DISPLAY_FULL)
-                            ?: UserPreferences.PROGRESS_DISPLAY_FULL) }
+                            ?: UserPreferences.PROGRESS_DISPLAY_FULL, calendarPolicy = stringResource(R.string.period_calendar_policy)) }
                         item { PinWidgetButton(item, if (period == CalendarPeriod.Week) WidgetSource.Week else WidgetSource.Quarter,
                             contentPadding = PaddingValues(vertical = Spacing.s)) }
                         item {

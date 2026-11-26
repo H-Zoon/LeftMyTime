@@ -65,13 +65,18 @@ internal fun InteractiveRemainingTime(item: TimeDisplayItem, waiting: Boolean) {
         days = item.remainingDays, showSeconds = true,
     )
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
-        // Always retain the true value as the caption; the entrance never hides it.
-        if (!waiting) Text(stringResource(R.string.detail_actual_remaining, currentLabel),
-            modifier = Modifier.clearAndSetSemantics {}, // The large readout already exposes the true value.
-            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
         RemainingTimeText(item, hero = true, showSeconds = true, untilStart = waiting, showRelation = !waiting,
             presentationValue = shown, reserveValue = maximum.takeIf { !waiting },
-            unitReferenceSeconds = unitReference.takeIf { !waiting }, totalSeconds = totalSeconds)
+            unitReferenceSeconds = unitReference.takeIf { !waiting }, totalSeconds = totalSeconds,
+            consistentDaySize = facts?.inDays == true && facts.includesToday)
+        // Keep the true value available during the entrance, then remove the duplicate.
+        if (running) Text(stringResource(R.string.detail_actual_remaining, currentLabel),
+            modifier = Modifier.clearAndSetSemantics {}, // The large readout exposes the true value too.
+            style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+        else if (!waiting && facts?.inDays == true && facts.includesToday) {
+            Text(stringResource(R.string.detail_calendar_remaining_basis), style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant)
+        }
         if (item.remainingDays == null && actual != null &&
             (actual >= 60 || (!waiting && maximum >= 60) || totalSeconds) && facts?.validRange != false) {
             TextButton(onClick = { totalSeconds = !totalSeconds; haptics.tick() },

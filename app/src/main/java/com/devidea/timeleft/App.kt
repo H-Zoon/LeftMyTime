@@ -29,6 +29,11 @@ class App : Application() {
 
     override fun onCreate() {
         super.onCreate()
+        // The removed time-story feature kept favorites and read history in this file only.
+        // Retry on every process start without adding a migration flag or touching other data.
+        if (!deleteSharedPreferences("story_library")) {
+            Log.w("StoryCleanup", "Could not delete retired story preferences; will retry on next start")
+        }
         telemetry.initialize()
         com.devidea.timeleft.telemetry.AppPerformance.initialize()
         com.devidea.timeleft.config.AppRemoteConfig.initialize(this)

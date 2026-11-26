@@ -6,18 +6,18 @@ Remote Config, Performance Monitoring, App Distribution의 앱·Gradle 연결을
 
 | 키 | Console 자료형 | 앱 기본값 | 적용 범위 |
 | --- | --- | --- | --- |
-| `widget_seconds_enabled` | Boolean | `true` | 지원 기기에서 제공하는 실험적 위젯 초 표시 |
+| `widget_seconds_enabled` | Boolean | `true` | 실험적 위젯 초 표시 전체(표준 Chronometer·지원 런처의 DrawInstructions) |
 | `pointhome_entry_enabled` | Boolean | `true` | PointHome 플로팅·리워드 알림 터치 진입 UI 호출 여부 |
 
 `AppRemoteConfig`가 프로세스 시작 시 로컬 설정을 읽고 이전 실행에서 받아 둔 값을 활성화한다. 새 값은 비동기로 fetch하고 **다음 프로세스 시작 시 활성화**한다. fetch 최소 간격은 12시간이며 실시간 리스너나 `fetchAndActivate()`를 사용하지 않는다. 화면을 열 때마다 네트워크를 기다리지 않는다.
 
 - Console의 **Remote Config → 매개변수**에 위 키를 Boolean으로 추가하고 원하는 값을 게시한다. 아직 게시하지 않았거나 값이 없으면 기존 동작을 유지한다.
 - 원격 값이 정확한 `false`일 때만 제품 초 표시 경로를 끈다. 누락·빈값·잘못된 값·SDK 오류는 기본값 `true`로 처리한다. 콘솔에서는 문자열 대신 Boolean을 사용한다.
-- `true`여도 기존 Android/호스트 문서 지원 판정과 사용자의 초 표시 선택을 모두 만족해야 한다. 원격 설정이 미지원 기기를 지원으로 바꾸거나 저장된 사용자 선택을 덮어쓰지 않는다. debug 검증용 capability는 유지한다.
+- `true`여도 사용자의 위젯별 초 표시 선택과 오늘/짧은 시간 일정 조건을 만족해야 한다. 2026-11-03부터 Android 8 이상에서 표준 XML `Chronometer`를 제공하며 정확 알람 접근은 필수가 아니다. 숫자·눈금을 함께 갱신하는 `DrawInstructions`만 기존 문서/API·검증 런처 조건을 적용한다. 저장된 사용자 선택과 debug 검증용 capability는 유지한다. [확대 범위와 미검증 조건](WIDGET_SECONDS_ALL_LAUNCHERS_2026-11-03.md)을 따른다.
 - 적용된 `false`에서는 다음 위젯 갱신부터 기존 정적 표시를 사용한다. 이미 런처에 제출한 위젯을 즉시 회수하지 않으며, 앱 프로세스 재시작과 위젯 갱신이 필요할 수 있다. 초기화 중에는 기본/기존 활성 값을 사용한다.
 - 12시간 제한, 네트워크 및 다음 실행 적용 전략 때문에 긴급 즉시 차단 용도로 간주하지 않는다. 앱 강제 종료 후 다시 열어야 하는 경우 단순한 Activity 재진입과 구분한다.
 
-최종 검증 시 테스트 설치에서 `true → false → true`를 게시하고 fetch 간격을 고려해 각 다음 프로세스와 위젯 갱신을 확인한다. 오프라인·키 삭제·잘못된 값·초 미지원 기기·사용자 선택 꺼짐도 포함한다. 운영 코드의 fetch 간격을 0으로 낮추지 않는다.
+최종 검증 시 테스트 설치에서 `true → false → true`를 게시하고 fetch 간격을 고려해 각 다음 프로세스와 위젯 갱신을 확인한다. 오프라인·키 삭제·잘못된 값·두 전달 방식·초 미지원 항목·사용자 선택 꺼짐도 포함한다. 운영 코드의 fetch 간격을 0으로 낮추지 않는다.
 
 ### PointHome 진입 UI (2026-10-19)
 
@@ -98,4 +98,4 @@ export FIREBASE_APP_DISTRIBUTION_RELEASE_NOTES_FILE='/absolute/path/to/release-n
 
 ## 6.8 리워드 광고 예약 변경 (2026-10-30)
 
-기존 reward_notifications 토픽/채널을 유지한다. Console 초안3186944161412585896은 월수금토일14:00 대한민국 시간·1일최대1회·TTL1시간이다. 제목 (광고)·앱 이름, 본문 수신거부 안내와 `notification_kind=reward`, **`open_target=reward_settings`**를 사용한다. 새 앱의 수신설정으로 직접 연결하며 SDK·로그인·원격 진입 설정을 기다리지 않는다. 초안만 저장했고 게시/발송하지 않았다. 구버전은 새 경로를 처리하지 못하므로 배포·실제 수신/철회 확인 후 게시한다. 앱이 직접 표시하는 알림의 야간 검사와 액션은 SDK 자동 표시 알림에는 실행되지 않는다. 자세한 운영 계약·검증은 `REWARD_NOTIFICATIONS.md`, 이번 수정 범위는 `REWARD_ADS_2026-10-30.md`를 따른다.
+기존 reward_notifications 토픽/채널을 유지한다. Console 초안3186944161412585896은 월수금토일14:00 대한민국 시간·1일최대1회·TTL1시간이다. 2026-10-30에 저장한 `open_target=reward_settings`와 본문의 알림 탭→수신설정 안내는 이전 상태다. 2026-11-03 사용자 요청에 따른 현행 계약은 `notification_kind=reward`, **`open_target=pointhome`**, 본문 ‘수신거부: 앱 설정 > 알림에서 리워드 광고성 정보 수신 동의를 꺼 주세요.’다. 앱의 이전 목적지 호환 처리는 사용자 요청으로 제거했다. 사용자가 Console의 이전 발송값과 본문을 직접 정리하며, 현행 맞춤 데이터 두 값과 설정 경로 안내 본문을 사용한다. 이번 작업에서는 로그인된 Console 프로젝트에 접근하지 못해 원격 초안 변경·발송·게시는 하지 않았다. 현재 앱으로 갱신/실제 수신을 검증한 뒤 게시한다. 운영 계약과 과거 검증 범위는 `REWARD_NOTIFICATIONS.md`와 `REWARD_ADS_2026-10-30.md`를 따른다.

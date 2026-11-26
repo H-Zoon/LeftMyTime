@@ -7,8 +7,7 @@ import android.content.pm.PackageManager
 /**
  * The document version comes from the framework in this process; the launcher still has to draw
  * the document. A launcher outside this list never receives draw instructions: an unknown or
- * future launcher gets the Chronometer countdown (see [WidgetSecondsDelivery]) or the static
- * widget instead of risking a crash in the home app.
+ * future launcher uses the XML Chronometer when seconds are enabled for that widget.
  *
  * Live widget checks: Launcher3 (document 6) and Pixel Launcher (documents 8, 9) on 2026-10-06.
  * One UI Home 17.0.05.19 (One UI 8, Galaxy A33, document 6) was rejected on 2026-10-19: its

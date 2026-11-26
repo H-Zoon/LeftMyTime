@@ -2,7 +2,7 @@ package com.devidea.timeleft.messaging
 
 import android.content.Intent
 
-/** Only this fixed destination is supported; push data cannot name arbitrary screens or methods. */
+/** Only the fixed PointHome destination is accepted; push data cannot name arbitrary screens or methods. */
 object PointHomePushOpen {
     const val KIND_KEY = "notification_kind"
     const val TARGET_KEY = "open_target"

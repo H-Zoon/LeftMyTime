@@ -17,7 +17,6 @@ import kotlinx.coroutines.delay
 import com.avatye.pointhome.builder.PointHomeActivityBuilder
 import com.devidea.timeleft.messaging.PointHomePushOpen
 import com.devidea.timeleft.messaging.RewardMessaging
-import com.devidea.timeleft.messaging.RewardSettingsPushOpen
 import com.devidea.timeleft.pointhome.PointHomeIntroInputs
 import com.devidea.timeleft.pointhome.PointHomeIntroMode
 import com.devidea.timeleft.pointhome.PointHomeIntroStore
@@ -57,18 +56,17 @@ class MainActivity : AppCompatActivity() {
 
     private companion object {
         const val STATE_POINT_HOME_OPEN_PENDING = "point_home_open_pending"
-        const val STATE_REWARD_SETTINGS_OPEN_PENDING = "reward_settings_open_pending"
         const val STATE_POINT_HOME_NOTIFICATION_SESSION = "point_home_notification_session"
         // Lets the splash exit and first list load settle before a sheet covers the home.
         const val POINT_HOME_INTRO_DELAY_MILLIS = 1_000L
     }
 
     private var pointHomeOpenPending = false
-    private var rewardSettingsOpenPending = false
     private var pointHomeOpenJob: Job? = null
     private var pointHomeNotificationBuilder: PointHomeActivityBuilder? = null
     private var pointHomeFloatingBuilder: PointHomeActivityBuilder? = null
     private var pointHomeButtonReady by mutableStateOf(false)
+    private var pointHomeIsAtTop by mutableStateOf(true)
     private var pointHomeNotificationSession = false
     private var pointHomeIntroLaunches = 0
     private val freshInstall by lazy { isFreshInstall(this) }
@@ -91,13 +89,10 @@ class MainActivity : AppCompatActivity() {
         val splashScreen = installSplashScreen()
         super.onCreate(savedInstanceState)
 
-        val rewardSettingsOpen = RewardSettingsPushOpen.consume(intent)
         val notificationOpen = PointHomePushOpen.consume(intent)
         pointHomeOpenPending = if (savedInstanceState == null) notificationOpen
         else savedInstanceState.getBoolean(STATE_POINT_HOME_OPEN_PENDING, false)
-        rewardSettingsOpenPending = if (savedInstanceState == null) rewardSettingsOpen
-        else savedInstanceState.getBoolean(STATE_REWARD_SETTINGS_OPEN_PENDING, false)
-        pointHomeNotificationSession = notificationOpen || rewardSettingsOpen ||
+        pointHomeNotificationSession = notificationOpen || pointHomeOpenPending ||
             savedInstanceState?.getBoolean(STATE_POINT_HOME_NOTIFICATION_SESSION, false) == true
         pointHomeIntroLaunches = PointHomeIntroStore.recordHomeLaunch(prefs, countThisLaunch = savedInstanceState == null)
 
@@ -169,7 +164,11 @@ class MainActivity : AppCompatActivity() {
                         if (homeState.items.any { it.id == id && it.isFocusSession }) startActivity(FocusActivity.intent(this@MainActivity, id))
                         else startActivity(ItemEditorActivity.editIntent(this@MainActivity, id))
                     },
-                    onDeleteItem = viewModel::deleteItem
+                    onDeleteItem = viewModel::deleteItem,
+                    onIsAtTopChanged = { isAtTop ->
+                        pointHomeIsAtTop = isAtTop
+                        updatePointHomeButtonVisibility()
+                    }
                 )
                 PointHomeIntroHost(homeLoading = homeState.loading)
             }
@@ -182,9 +181,14 @@ class MainActivity : AppCompatActivity() {
                     onOpened = { telemetry.recordPointHomeOpened(PointHomeEntrySource.FloatingButton) },
                     onResult = { created ->
                         // The intro may only describe a button that the SDK actually created.
-                        runOnUiThread { pointHomeButtonReady = created }
+                        runOnUiThread {
+                            pointHomeButtonReady = created
+                            updatePointHomeButtonVisibility()
+                        }
                     },
                 )
+                // Also cover a synchronous creation callback before the builder assignment.
+                updatePointHomeButtonVisibility()
             }
         }
         openPointHomeFromNotificationIfPending()
@@ -193,16 +197,14 @@ class MainActivity : AppCompatActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         setIntent(intent)
-        rewardSettingsOpenPending = RewardSettingsPushOpen.consume(intent)
         pointHomeOpenPending = PointHomePushOpen.consume(intent)
-        if (pointHomeOpenPending || rewardSettingsOpenPending) pointHomeNotificationSession = true
+        if (pointHomeOpenPending) pointHomeNotificationSession = true
         pointHomeOpenJob?.cancel()
         openPointHomeFromNotificationIfPending()
     }
 
     override fun onSaveInstanceState(outState: Bundle) {
         outState.putBoolean(STATE_POINT_HOME_OPEN_PENDING, pointHomeOpenPending)
-        outState.putBoolean(STATE_REWARD_SETTINGS_OPEN_PENDING, rewardSettingsOpenPending)
         outState.putBoolean(STATE_POINT_HOME_NOTIFICATION_SESSION, pointHomeNotificationSession)
         super.onSaveInstanceState(outState)
     }
@@ -211,7 +213,7 @@ class MainActivity : AppCompatActivity() {
     @androidx.compose.runtime.Composable
     private fun PointHomeIntroHost(homeLoading: Boolean) {
         var introMode by rememberSaveable { mutableStateOf(PointHomeIntroMode.Hidden) }
-        LaunchedEffect(pointHomeButtonReady, homeLoading) {
+        LaunchedEffect(pointHomeButtonReady, pointHomeIsAtTop, homeLoading) {
             if (introMode != PointHomeIntroMode.Hidden || homeLoading || !shouldStartPointHomeIntro()) return@LaunchedEffect
             delay(POINT_HOME_INTRO_DELAY_MILLIS)
             this@MainActivity.lifecycle.withResumed {
@@ -231,7 +233,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun shouldStartPointHomeIntro(): Boolean = shouldShowPointHomeIntro(
         PointHomeIntroInputs(
-            buttonReady = pointHomeButtonReady,
+            buttonReady = pointHomeButtonReady && pointHomeIsAtTop,
             completedVersion = PointHomeIntroStore.completedVersion(prefs),
             freshInstall = freshInstall,
             homeLaunches = pointHomeIntroLaunches,
@@ -240,18 +242,8 @@ class MainActivity : AppCompatActivity() {
     )
 
     private fun openPointHomeFromNotificationIfPending() {
-        if ((!pointHomeOpenPending && !rewardSettingsOpenPending) || pointHomeOpenJob?.isActive == true) return
+        if (!pointHomeOpenPending || pointHomeOpenJob?.isActive == true) return
         pointHomeOpenJob = lifecycleScope.launch {
-            // Consent withdrawal never waits for Remote Config, SDK readiness or a reward login.
-            if (rewardSettingsOpenPending) {
-                lifecycle.withResumed {
-                    if (rewardSettingsOpenPending) {
-                        rewardSettingsOpenPending = false
-                        startActivity(SettingsActivity.rewardNotificationIntent(this@MainActivity))
-                    }
-                }
-                return@launch
-            }
             val entryEnabled = com.devidea.timeleft.config.AppRemoteConfig.isPointHomeEntryEnabled()
             lifecycle.withResumed {
                 if (pointHomeOpenPending) {
@@ -293,8 +285,17 @@ class MainActivity : AppCompatActivity() {
 
     override fun onResume() {
         super.onResume()
+        // Apply after the SDK's own Activity lifecycle observer has resumed its view.
+        window.decorView.post { updatePointHomeButtonVisibility() }
         if (::prefs.isInitialized) refreshPreferences()
         AppWidget.updateAllWidgets(this, android.appwidget.AppWidgetManager.getInstance(this))
+    }
+
+    private fun updatePointHomeButtonVisibility() {
+        if (pointHomeButtonReady && !isFinishing && !isDestroyed) {
+            com.devidea.timeleft.pointhome.PointHomeIntegration.setFloatingButtonVisible(
+                pointHomeFloatingBuilder, pointHomeIsAtTop)
+        }
     }
 
     private fun refreshPreferences() {

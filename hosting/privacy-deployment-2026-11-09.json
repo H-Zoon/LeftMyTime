@@ -1,0 +1,51 @@
+{
+  "verified_at": "2026-11-09T16:13:41.308420+09:00",
+  "project_id": "timeleft-f83ba",
+  "deployed": true,
+  "resources": [
+    {
+      "path": "/privacy.html",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "public, max-age=0, must-revalidate",
+      "matches_local": true,
+      "sha256": "9e53c1f25e32e3f95d007479af0d383b39bd25ab4d8e672f95aef85a1c27478f",
+      "bytes": 15477
+    },
+    {
+      "path": "/",
+      "status": 200,
+      "content_type": "text/html; charset=utf-8",
+      "cache_control": "max-age=3600",
+      "matches_local": true,
+      "sha256": "add7af3b28cee64e2ad85ec36f2d0907bd79249fc0a127da0648d0bba2a633cb",
+      "bytes": 2490
+    },
+    {
+      "path": "/styles.css",
+      "status": 200,
+      "content_type": "text/css; charset=utf-8",
+      "cache_control": "max-age=3600",
+      "matches_local": true,
+      "sha256": "7f841145fa59356dfbc4c1508e40db1a7a0139f104f0b973bcaf33ff0e6a9dfb",
+      "bytes": 4443
+    },
+    {
+      "path": "/app-ads.txt",
+      "status": 200,
+      "content_type": "text/plain; charset=utf-8",
+      "cache_control": "public, max-age=3600",
+      "matches_local": true,
+      "sha256": "31d554331ad4870a1965f28107a8a3b7037984ff7bd5597afa7a8a16f23d4dac",
+      "bytes": 70187
+    }
+  ],
+  "policy_changes": [
+    "removed retired story storage copy",
+    "removed retired sentence input copy",
+    "updated reward consent and opt-out explanation"
+  ],
+  "unrelated_public_files_unchanged": true,
+  "android_rebuild": "not run; Hosting content only",
+  "android_webview_after_deploy": "not verified"
+}

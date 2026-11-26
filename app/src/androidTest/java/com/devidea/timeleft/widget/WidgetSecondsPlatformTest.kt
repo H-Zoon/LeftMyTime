@@ -7,11 +7,13 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.os.Build
 import android.view.View
+import android.widget.Chronometer
 import android.widget.FrameLayout
 import android.widget.RemoteViews
 import androidx.annotation.RequiresApi
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
+import com.devidea.timeleft.R
 import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.database.ItemType
 import org.junit.Assert.*
@@ -30,14 +32,19 @@ class WidgetSecondsPlatformTest {
     private val instrumentation = InstrumentationRegistry.getInstrumentation()
     private val context get() = instrumentation.targetContext
 
-    @Test fun unavailableHostKeepsTheExistingSnapshotEvenWithASavedSecondsPreference() {
-        assumeTrue(!WidgetSecondsSupport.available())
+    @Test fun launcherWithoutDrawDeliveryShowsTheXmlCountdownWhenSecondsAreEnabled() {
+        assumeTrue(WidgetSecondsSupport.delivery(context) == WidgetSecondsDelivery.Chronometer)
+        val now = System.currentTimeMillis()
+        val item = TimeDisplayItem(id = 7, title = "Seconds", type = ItemType.Time,
+            startsAtMillis = now - 60_000, endsAtMillis = now + 3_600_000)
         instrumentation.runOnMainSync {
-            val item = com.devidea.timeleft.ui.TimeDisplayFactory(context).today()
-            val views = AppWidget().previewViews(context, WidgetDimensions(320, 200),
-                WidgetConfiguration(WidgetSource.Today, showSeconds = true), item, listOf(item), "clay", false)
-            assertNotEquals(0, views.layoutId)
-            assertNotNull(views.apply(context, FrameLayout(context)))
+            val configured = context.createConfigurationContext(Configuration(context.resources.configuration).apply { fontScale = 1f })
+            val views = AppWidget().previewViews(configured, WidgetDimensions(400, 320),
+                WidgetConfiguration(WidgetSource.Custom, 7, showSeconds = true), item, emptyList(), "clay", false,
+                snapshotTimeMillis = now)
+            val root = views.apply(configured, FrameLayout(configured))
+            assertEquals(View.VISIBLE, root.findViewById<View>(R.id.widgetSecondsGroup).visibility)
+            assertTrue(root.findViewById<Chronometer>(R.id.widgetChronometer).isCountDown)
         }
     }
 
@@ -57,7 +64,7 @@ class WidgetSecondsPlatformTest {
     }
 
     @Test fun releasedDocumentsDrawAcrossStatesSizesAndThemes() {
-        assumeTrue(Build.VERSION.SDK_INT >= 35 && WidgetSecondsSupport.available())
+        assumeTrue(Build.VERSION.SDK_INT >= 35 && WidgetSecondsSupport.drawInstructionsAvailable())
         checkDocuments(requireNotNull(WidgetSecondsSupport.capability().productionProfile))
     }
 

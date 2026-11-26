@@ -9,7 +9,7 @@ class WidgetSecondsLauncherTest {
         assertTrue(WidgetSecondsLauncher.isVerified("com.google.android.apps.nexuslauncher"))
     }
 
-    @Test fun `One UI Home that died on draw instructions stays on the static widget`() {
+    @Test fun `One UI Home that died on draw instructions is never selected for draw instructions`() {
         assertFalse(WidgetSecondsLauncher.isVerified("com.sec.android.app.launcher"))
     }
 

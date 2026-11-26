@@ -59,6 +59,16 @@ object PointHomeIntegration {
         }
     }
 
+    /** Hide while the time content is scrolled underneath; the SDK keeps its character and saved position. */
+    fun setFloatingButtonVisible(builder: PointHomeActivityBuilder?, visible: Boolean) {
+        if (builder == null) return
+        try {
+            builder.setFloatingButtonVisible(visible)
+        } catch (exception: Exception) {
+            Log.w(TAG, "Floating button visibility failed: ${exception.javaClass.simpleName}")
+        }
+    }
+
     /** start() enqueues a launch; the owner retains the builder to keep its SDK listener alive. */
     fun open(activity: AppCompatActivity, onOpened: () -> Unit, onFailure: () -> Unit): PointHomeActivityBuilder? {
         var failureReported = false

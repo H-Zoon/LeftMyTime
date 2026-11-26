@@ -10,7 +10,7 @@ class WidgetCountdownTest {
     private val utc = ZoneId.of("UTC")
     private val elapsedNow = 5_000_000L
 
-    /** Mirrors Chronometer.updateText: countdown seconds are truncated toward zero. */
+    /** Historical truncating-host model; newer hosts may round differently and have less grace. */
     private fun shownSeconds(base: Long, elapsed: Long): Long = (base - elapsed) / 1000
 
     private fun create(plan: WidgetSecondsPlan, now: Long, zone: ZoneId = utc, running: Boolean = true) =
@@ -42,7 +42,7 @@ class WidgetCountdownTest {
         assertNull(create(plan, 9_000_000L))
     }
 
-    @Test fun `Chronometer shows the next whole second until the target and never goes negative before the grace ends`() {
+    @Test fun `a truncating host rounds up before the target and eventually shows negative time`() {
         val plan = WidgetSecondsPlan(false, startSecond = 0, endSecond = 100)
         val now = 10_250L
         val countdown = requireNotNull(create(plan, now))
@@ -63,6 +63,10 @@ class WidgetCountdownTest {
         assertFalse(countdown.waiting)
         val lastSecond = ZonedDateTime.of(2026, 10, 19, 23, 59, 59, 0, utc).toInstant().toEpochMilli()
         assertNull(create(plan, lastSecond))
+        val midnight = lastSecond + 1_000L
+        val nextDay = requireNotNull(create(plan, midnight))
+        assertEquals(86_399L, nextDay.remainingSeconds)
+        assertEquals(midnight + 86_399_000L, nextDay.targetMillis)
     }
 
     @Test fun `today follows real elapsed time on a 23 hour daylight saving day`() {
@@ -94,7 +98,7 @@ class WidgetCountdownTest {
     /** Measured on the Galaxy A33: alarm to widget posted took about 1.8 s cold and is assumed 0.5 s warm. */
     private val coldAlarmToPostMillis = 1_800L
     private val warmAlarmToPostMillis = 500L
-    /** The Chronometer first shows a negative text this long after the target. */
+    /** Grace in the historical truncating-host model, not a guarantee for other Android versions. */
     private val negativeAfterMillis = 1_999L
 
     @Test fun `a cold start posts the ended state well inside the Chronometer grace`() {
@@ -126,6 +130,21 @@ class WidgetCountdownTest {
     @Test fun `without the lead a cold start would have used almost the whole grace`() {
         // The measurement behind ALARM_LEAD_MILLIS: arming at the target left about 0.2 s.
         assertEquals(199L, negativeAfterMillis - coldAlarmToPostMillis)
+    }
+
+    @Test fun `without exact access request the nearer of the countdown boundary and snapshot refresh`() {
+        val now = 1_000_000L
+        val waiting = requireNotNull(create(WidgetSecondsPlan(false, 1_060, 9_000), now))
+        assertEquals(1_060_000L, waiting.nextSnapshotMillis(now, exactBoundaryScheduled = false))
+
+        val ending = requireNotNull(create(WidgetSecondsPlan(false, 900, 1_030), now))
+        assertEquals(1_030_000L, ending.nextSnapshotMillis(now, exactBoundaryScheduled = false))
+        assertEquals(now + WIDGET_SNAPSHOT_REFRESH_MILLIS, ending.nextSnapshotMillis(now, exactBoundaryScheduled = true))
+        // Revoking exact access returns the phase boundary to the ordinary refresh request.
+        assertEquals(1_030_000L, ending.nextSnapshotMillis(now, exactBoundaryScheduled = false))
+
+        val longRange = requireNotNull(create(WidgetSecondsPlan(false, 900, 9_000), now))
+        assertEquals(now + WIDGET_SNAPSHOT_REFRESH_MILLIS, longRange.nextSnapshotMillis(now, exactBoundaryScheduled = false))
     }
 
     @Test fun `a frozen preview does not start the Chronometer`() {

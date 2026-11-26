@@ -15,6 +15,7 @@ import android.appwidget.AppWidgetProviderInfo
 import android.widget.RemoteViews
 import androidx.core.content.edit
 import androidx.core.net.toUri
+import com.devidea.timeleft.focus.canUseExactAlarms
 import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.ui.TimeDisplayFactory
 import com.devidea.timeleft.R
@@ -81,7 +82,7 @@ open class AppWidget : AppWidgetProvider() {
                     val periods = generator.standardPeriods()
                     val manager = AppWidgetManager.getInstance(appContext)
                     val design = com.devidea.timeleft.ui.theme.TimeLeftThemes.TimeFocus
-                    val signature = "${design.id}:${design.version}:v2-time-7:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
+                    val signature = "${design.id}:${design.version}:v2-time-8:${palette}:${appContext.resources.configuration.locales.toLanguageTags()}:${appContext.resources.configuration.fontScale}:$showProgress"
                     val now = System.currentTimeMillis()
                     providerClasses.forEach { provider ->
                         val cacheKey = "widget_picker_${provider.simpleName}"
@@ -349,14 +350,19 @@ open class AppWidget : AppWidgetProvider() {
             // Submission is observable here; it does not prove that the launcher drew the new views.
             android.util.Log.i("WidgetRefresh", "Widget submitted: widget=$appWidgetId dataLoaded=$dataLoaded seconds=$secondsRendered")
             val refreshTime = System.currentTimeMillis()
-            // A countdown widget also keeps an exact alarm that swaps it out as its Chronometer reaches zero.
+            // Refresh the snapshot periodically, and request a transition when the host clock reaches zero.
             var exactBoundary: Long? = null
             var boundary = when {
                 secondsRendered && countdown != null -> {
-                    exactBoundary = WidgetCountdown.alarmAtMillis(countdown.targetMillis, refreshTime)
-                    refreshTime + WIDGET_SNAPSHOT_REFRESH_MILLIS
+                    if (canUseExactAlarms(context)) {
+                        exactBoundary = WidgetCountdown.alarmAtMillis(countdown.targetMillis, refreshTime)
+                    }
+                    countdown.nextSnapshotMillis(refreshTime, exactBoundaryScheduled = exactBoundary != null)
                 }
                 secondsRendered -> secondsPlan?.nextBoundaryMillis(refreshTime)
+                // During today's last second there is no running clock. Start the next day at midnight.
+                secondsDelivery == WidgetSecondsDelivery.Chronometer && secondsPlan?.today == true && countdown == null ->
+                    WidgetCountdown.endOfTodayMillis(planTime, ZoneId.systemDefault()) + 1_000L
                 else -> nextSnapshotRefreshMillis(configuration, item, refreshTime)
             }
             if (configuration.source == WidgetSource.Next) {
@@ -458,6 +464,7 @@ open class AppWidget : AppWidgetProvider() {
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
         countdown: WidgetCountdown? = null,
+        onSizeMeasured: ((Boolean) -> Unit)? = null,
     ): RemoteViews {
         var chronometer = countdown
         if (configuration.showSeconds && chronometer == null) {
@@ -465,7 +472,8 @@ open class AppWidget : AppWidgetProvider() {
             when (WidgetSecondsSupport.delivery(context)) {
                 WidgetSecondsDelivery.DrawInstructions -> if (Build.VERSION.SDK_INT >= 35) {
                     val plan = WidgetSecondsPlan.create(configuration, item, reference)
-                    if (plan != null && item != null) return WidgetSecondsRenderer.create(context, dimensions, item, plan, palette, showProgress, snapshotTimeMillis)
+                    if (plan != null && item != null) return WidgetSecondsRenderer.create(context, dimensions, item, plan, palette, showProgress, snapshotTimeMillis,
+                        onSizeMeasured = onSizeMeasured)
                 }
                 // Previews and pins show one frozen moment; installed widgets pass their own live countdown.
                 WidgetSecondsDelivery.Chronometer -> chronometer = WidgetSecondsPlan.create(configuration, item, reference)?.let {
@@ -474,8 +482,10 @@ open class AppWidget : AppWidgetProvider() {
                 else -> Unit
             }
         }
-        return if (configuration.source == WidgetSource.Overview) createOverviewViews(context, dimensions, periods, palette)
+        val views = if (configuration.source == WidgetSource.Overview) createOverviewViews(context, dimensions, periods, palette)
         else createSingleWidgetViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshotTimeMillis, chronometer)
+        onSizeMeasured?.invoke(views.layoutId != R.layout.app_widget_resize)
+        return views
     }
 
     internal fun previewViews(
@@ -490,15 +500,18 @@ open class AppWidget : AppWidgetProvider() {
         showProgress: Boolean = true,
         snapshotTimeMillis: Long? = null,
         designKey: String = UserPreferences.DESIGN_TIME_FOCUS,
+        onSizeMeasured: ((Boolean) -> Unit)? = null,
     ): RemoteViews {
         val palette = WidgetPalette.create(paletteKey, dark, designKey)
         val snapshot = snapshotTimeMillis ?: System.currentTimeMillis()
         return try {
-            createViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshot)
+            createViews(context, dimensions, configuration, item, periods, palette, emptyMessage, showProgress, snapshot,
+                onSizeMeasured = onSizeMeasured)
         } catch (error: RuntimeException) {
             if (!configuration.showSeconds) throw error
             android.util.Log.e("WidgetSeconds", "Seconds preview failed: ${error.javaClass.simpleName}")
-            createViews(context, dimensions, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress, snapshot)
+            createViews(context, dimensions, configuration.copy(showSeconds = false), item, periods, palette, emptyMessage, showProgress, snapshot,
+                onSizeMeasured = onSizeMeasured)
         }
     }
 

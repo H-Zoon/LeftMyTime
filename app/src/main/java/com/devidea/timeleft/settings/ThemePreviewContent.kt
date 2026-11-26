@@ -1,20 +1,12 @@
 package com.devidea.timeleft.settings
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
-import com.devidea.timeleft.ui.TimeDisplayItem
 import com.devidea.timeleft.R
 import com.devidea.timeleft.config.UserPreferences
-import com.devidea.timeleft.ui.components.RemainingTimeText
-import com.devidea.timeleft.ui.components.TimeRuler
 import com.devidea.timeleft.home.*
 import com.devidea.timeleft.ui.theme.*
 
@@ -22,8 +14,6 @@ import com.devidea.timeleft.ui.theme.*
 internal fun ThemePreviewEntry(
     themeMode: String,
     paletteKey: String,
-    periods: List<TimeDisplayItem>,
-    progressDisplayMode: String,
     onOpen: () -> Unit,
 ) {
     val modeRes = when (themeMode) {
@@ -31,32 +21,13 @@ internal fun ThemePreviewEntry(
         UserPreferences.THEME_DARK -> R.string.settings_theme_dark
         else -> R.string.settings_theme_system
     }
-    Column(
-        Modifier.fillMaxWidth().heightIn(min = LayoutTokens.MinTouchTarget)
-            .clickable(role = Role.Button, onClickLabel = stringResource(R.string.theme_preview_open), onClick = onOpen)
-            .padding(vertical = Spacing.m),
-        verticalArrangement = Arrangement.spacedBy(Spacing.s),
-    ) {
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(Spacing.m)) {
-            Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-                Text(stringResource(LocalTimeLayout.current.labelRes), style = MaterialTheme.typography.bodyLarge)
-                Text(stringResource(R.string.theme_selection_summary, stringResource(ThemePalette.fromKey(paletteKey).labelRes), stringResource(modeRes)),
-                    style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            }
-            Icon(Icons.AutoMirrored.Filled.KeyboardArrowRight, contentDescription = null, tint = MaterialTheme.colorScheme.onSurfaceVariant)
-        }
-        periods.firstOrNull()?.let { today ->
-            com.devidea.timeleft.ui.components.TimeHeadline(spacing = Spacing.s,
-                label = { Text(stringResource(R.string.theme_preview_today), style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant) },
-                value = { RemainingTimeText(today, hero = false, compact = true, showSeconds = true,
-                    centered = LocalTimeLayout.current == TimeLayout.TimeBoard) })
-            if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN) {
-                TimeRuler(today.detailFacts?.percentElapsed ?: today.percent, "", "", glowEnabled = today.detailFacts?.glowActive == true)
-            }
-        }
-        Text(stringResource(R.string.theme_preview_open), style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-    }
+    SettingsNavigationRow(
+        title = stringResource(R.string.theme_preview_title),
+        summary = stringResource(R.string.settings_theme_summary,
+            stringResource(LocalTimeLayout.current.labelRes),
+            stringResource(ThemePalette.fromKey(paletteKey).labelRes), stringResource(modeRes)),
+        onClick = onOpen,
+    )
 }
 
 /** Reuses production renderers at the real available width, with action semantics removed. */

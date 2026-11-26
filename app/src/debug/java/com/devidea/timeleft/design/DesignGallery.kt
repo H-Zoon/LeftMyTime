@@ -5,6 +5,7 @@ import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.platform.LocalDensity
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.platform.LocalContext
@@ -183,6 +185,12 @@ private fun GalleryScreen(
             leftString = "104일 남음", percent = when (screen) { "period-boundary" -> 100f; "period-long" -> 0.27f; else -> 71.51f },
             startLabel = "2026-01-01", endLabel = "2026-12-31")
     ).map(::withDetailFixture)
+    val homeReview = screen.startsWith("home-review")
+    val homePeriods = if (homeReview) listOf(
+        withDetailFixture(periodItems[0].copy(remainingSeconds = if (screen.endsWith("empty")) 32399 else 34919)),
+        withDetailFixture(periodItems[1].copy(startLabel = "2026-11-01", endLabel = "2026-11-30", remainingDays = 24)),
+        withDetailFixture(periodItems[2].copy(remainingDays = 55)),
+    ) else periodItems
     when {
         screen.startsWith("reward-notification-settings") -> {
             var consent by rememberSaveable(screen) { mutableStateOf(!screen.endsWith("off")) }
@@ -216,6 +224,13 @@ private fun GalleryScreen(
         }
         screen.startsWith("detail-") -> {
             val item = when {
+                screen.contains("review-month") -> withDetailFixture(periodItems[1].copy(
+                    startLabel = "2026-11-01", endLabel = "2026-11-30", remainingDays = 24))
+                screen.contains("review-year") -> withDetailFixture(periodItems[2].copy(remainingDays = 55))
+                screen.contains("review-quarter") -> withDetailFixture(periodItems[1].copy(title = "이번 분기",
+                    startLabel = "2026-10-01", endLabel = "2026-12-31", remainingDays = 55))
+                screen.contains("review-week") -> withDetailFixture(periodItems[1].copy(title = "이번 주",
+                    startLabel = "2026-11-02", endLabel = "2026-11-08", remainingDays = 2))
                 screen.contains("settle-month") -> withDetailFixture(periodItems[1].copy(remainingDays = 7))
                 screen.contains("settle-year") -> withDetailFixture(periodItems[2].copy(remainingDays = 99))
                 screen.contains("settle-today") -> withDetailFixture(periodItems[0].copy(remainingSeconds = 9 * 3_600L + 42 * 60 + 35))
@@ -241,15 +256,6 @@ private fun GalleryScreen(
                     startLabel = "14:00", endLabel = "14:05:30", remainingSeconds = 150))
                 screen.contains("same-day") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(
                     startLabel = "2026-09-23", endLabel = "2026-09-23", remainingDays = 0))
-                screen.contains("story-habit") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 120L))
-                screen.contains("story-planning") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 900L))
-                screen.contains("story-focus") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 1500L))
-                screen.contains("story-rest") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 3600L))
-                screen.contains("story-routine") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 19800L))
-                screen.contains("story-day") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 86400L))
-                screen.contains("story-music") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 25))
-                screen.contains("story-literature") -> withDetailFixture(sampleItems.first { it.id == 2 }.copy(remainingDays = 42, endLabel = "2026-11-01"))
-                screen.contains("story-seconds") -> withDetailFixture(sampleItems.first { it.id == 1 }.copy(remainingSeconds = 12))
                 screen.contains("today") -> periodItems[0]
                 screen.contains("month") -> periodItems[1]
                 screen.contains("year") -> periodItems[2]
@@ -405,9 +411,15 @@ private fun GalleryScreen(
                 "date-items", "date-grid" -> UserPreferences.EXPIRED_ITEMS_BOTTOM
                 else -> UserPreferences.EXPIRED_ITEMS_SHOW
             },
-            progressDisplayMode = if (screen == "progress-hidden") UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
-            topItems = periodItems,
+            progressDisplayMode = if (screen.endsWith("progress-hidden")) UserPreferences.PROGRESS_DISPLAY_HIDDEN else UserPreferences.PROGRESS_DISPLAY_FULL,
+            topItems = homePeriods,
             customItems = when (screen) {
+                "home-review-empty", "home-review-all-empty", "home-review-loading", "home-review-failed" -> emptyList()
+                "home-review", "home-review-progress-hidden", "home-review-focus-busy", "home-review-focus-error" ->
+                    sampleItems.filter { it.id in setOf(1, 2, 4) }.map {
+                        if (it.id == 2) withDetailFixture(it.copy(title = "프로젝트 마감", startLabel = "2026-11-01",
+                            endLabel = "2026-11-18", remainingDays = 12, dueText = "", countdownText = "", leftString = "")) else it
+                    }
                 "empty" -> emptyList()
                 "idle" -> sampleItems.filter { it.timePhase != TimeRangePhase.Active }
                 "dates" -> sampleItems.filter { it.type == ItemType.Date }
@@ -424,9 +436,13 @@ private fun GalleryScreen(
                 "long" -> sampleItems.map { if (it.id == 1) it.copy(title = longTitle) else it }
                 else -> sampleItems
             },
-            initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid",
+            initialShowAll = screen == "grid" || screen == "items" || screen == "date-items" || screen == "date-grid" || screen == "home-review-all-empty",
+            loading = screen == "home-review-loading", loadFailed = screen == "home-review-failed",
+            focusBusy = screen == "home-review-focus-busy",
+            focusError = R.string.focus_action_failed.takeIf { screen == "home-review-focus-error" },
             onOpenSettings = {}, onSortChange = {}, onLayoutChange = {},
             onStartFocus = {}, onOpenFocus = {}, onMorePeriods = {},
+            onOpenTemplates = if (homeReview) ({}) else null, onOpenCalendar = if (homeReview) ({}) else null,
             onAddTime = {}, onAddDate = {}, onEditItem = {}, onDeleteItem = {}
         )
         if (screen.startsWith("pointhome-intro")) PointHomeIntroGallery(screen)
@@ -470,13 +486,20 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
     }
     var dateReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 7 else ItemVisuals.REMINDER_DISABLED) }
     var timeReminder by rememberSaveable(screen) { mutableStateOf(if (selectedFixture) 60 else ItemVisuals.REMINDER_DISABLED) }
-    var rewardConsent by rememberSaveable(screen) { mutableStateOf(screen.startsWith("settings-rewards-")) }
-    var rewardNotificationsAllowed by rememberSaveable(screen) { mutableStateOf(screen != "settings-rewards-blocked") }
-    var rewardTopicSync by rememberSaveable(screen) { mutableStateOf(when (screen) {
-        "settings-rewards-syncing" -> RewardTopicSyncStatus.Syncing
-        "settings-rewards-failed" -> RewardTopicSyncStatus.Failed
+    val rewardFixture = screen.replace("settings-reward-detail", "settings-rewards")
+    var rewardConsent by rememberSaveable(screen) { mutableStateOf(rewardFixture.startsWith("settings-rewards-") &&
+        rewardFixture !in setOf("settings-rewards-off", "settings-rewards-unsubscribing", "settings-rewards-unsubscribe-failed",
+            "settings-rewards-loading", "settings-rewards-load-failed")) }
+    var rewardNotificationsAllowed by rememberSaveable(screen) { mutableStateOf(rewardFixture != "settings-rewards-blocked") }
+    var rewardConsentReady by rememberSaveable(screen) { mutableStateOf(rewardFixture !in setOf("settings-rewards-loading", "settings-rewards-load-failed")) }
+    var rewardTopicSync by rememberSaveable(screen) { mutableStateOf(when (rewardFixture) {
+        "settings-rewards-syncing", "settings-rewards-unsubscribing", "settings-rewards-loading" -> RewardTopicSyncStatus.Syncing
+        "settings-rewards-failed", "settings-rewards-unsubscribe-failed", "settings-rewards-load-failed" -> RewardTopicSyncStatus.Failed
         else -> RewardTopicSyncStatus.Synced
     }) }
+    var showRewardPreferences by rememberSaveable(screen) { mutableStateOf(screen.startsWith("settings-reward-detail")) }
+    val settingsStateHolder = rememberSaveableStateHolder()
+    BackHandler(enabled = showRewardPreferences) { showRewardPreferences = false }
     var previewOpen by rememberSaveable(screen) { mutableStateOf(screen.startsWith("theme-preview")) }
     var previewStatus by rememberSaveable(screen) { mutableStateOf(when (screen) {
         "theme-preview-loading" -> "loading"
@@ -497,20 +520,26 @@ private fun SettingsGallery(screen: String, initialTheme: String, initialPalette
             state = previewState, expiredItemsMode = expired, progressDisplayMode = progress,
             onBack = { previewOpen = false }, onRetry = { previewStatus = "ready" },
             onApply = { choice -> previewOpen = false; theme = choice.mode; palette = choice.paletteKey; design = choice.designKey },
-        ) else SettingsScreen(
-            themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
-            progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
-            dateReminderTime = "09:00", remindersEnabled = !selectedFixture,
-            rewardConsentGranted = rewardConsent, rewardNotificationsAllowed = rewardNotificationsAllowed,
-            rewardTopicSync = rewardTopicSync, versionName = "디자인 검수",
-            onBack = {}, onOpenThemePreview = { previewOpen = true }, previewPeriods = periods, onSortSelected = { sort = it },
-            onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
-            onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
-            onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
-            onRewardConsentChanged = { rewardConsent = it; rewardTopicSync = RewardTopicSyncStatus.Synced },
-            onOpenRewardNotificationSettings = { rewardNotificationsAllowed = true },
-            onRetryRewardTopicSync = { rewardTopicSync = RewardTopicSyncStatus.Synced },
-        )
+        ) else if (showRewardPreferences) com.devidea.timeleft.settings.RewardPreferencesScreen(
+            state = com.devidea.timeleft.messaging.RewardMessagingState(rewardConsent, rewardNotificationsAllowed, rewardTopicSync, rewardConsentReady),
+            onBack = { showRewardPreferences = false },
+            onConsentChanged = { rewardConsent = it; rewardTopicSync = RewardTopicSyncStatus.Synced },
+            onOpenSystemSettings = { rewardNotificationsAllowed = true },
+            onRetry = { rewardConsentReady = true; rewardTopicSync = RewardTopicSyncStatus.Synced },
+        ) else settingsStateHolder.SaveableStateProvider("settings") {
+            SettingsScreen(
+                themeMode = theme, paletteKey = palette, homeSort = sort, expiredItemsMode = expired,
+                progressDisplayMode = progress, defaultDateReminderOffset = dateReminder, defaultTimeReminderOffset = timeReminder,
+                dateReminderTime = "09:00", remindersEnabled = !selectedFixture,
+                rewardConsentGranted = rewardConsent, rewardNotificationsAllowed = rewardNotificationsAllowed,
+                rewardTopicSync = rewardTopicSync, rewardConsentReady = rewardConsentReady, versionName = "디자인 검수",
+                onBack = {}, onOpenThemePreview = { previewOpen = true }, onSortSelected = { sort = it },
+                onExpiredItemsModeSelected = { expired = it }, onProgressDisplayModeSelected = { progress = it },
+                onDefaultDateReminderSelected = { dateReminder = it }, onDefaultTimeReminderSelected = { timeReminder = it },
+                onSelectDateReminderTime = {}, onOpenNotificationSettings = {}, onOpenPrivacyPolicy = {},
+                onOpenRewardPreferences = { showRewardPreferences = true },
+            )
+        }
     }
 }
 

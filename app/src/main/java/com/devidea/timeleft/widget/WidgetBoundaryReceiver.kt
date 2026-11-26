@@ -16,7 +16,7 @@ import kotlinx.coroutines.launch
 
 /**
  * Best-effort boundary and snapshot refresh; the OS may defer delivery. A second, exact alarm
- * serves only countdown widgets that must be replaced the moment their Chronometer hits zero.
+ * is used for countdown boundaries when exact-alarm access is available.
  */
 class WidgetBoundaryReceiver : BroadcastReceiver() {
     override fun onReceive(context: Context, intent: Intent) {
@@ -117,11 +117,11 @@ internal object WidgetBoundarySchedule {
 
     private fun setExactBoundary(context: Context, alarm: AlarmManager, at: Long, action: PendingIntent) {
         try {
-            // Waking is deliberate: the countdown must not run past zero while the screen is off.
+            // Wake for a prompt phase change when allowed; even exact delivery can be delayed.
             if (canUseExactAlarms(context)) alarm.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP, at, action)
             else alarm.setWindow(AlarmManager.RTC, at, WINDOW_MILLIS, action)
         } catch (_: SecurityException) {
-            // Access was withdrawn between the check and the call; the widget is made static on its next render.
+            // Exact access was revoked. Request a non-waking transition for the same countdown.
             alarm.setWindow(AlarmManager.RTC, at, WINDOW_MILLIS, action)
         }
     }

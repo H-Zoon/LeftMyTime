@@ -9,7 +9,6 @@ import android.content.Intent
 import android.net.Uri
 import com.devidea.timeleft.R
 import com.devidea.timeleft.home.MainActivity
-import com.devidea.timeleft.settings.SettingsActivity
 import com.devidea.timeleft.notification.isNotificationRuntimePermissionDenied
 import com.google.firebase.messaging.RemoteMessage
 import java.util.concurrent.atomic.AtomicInteger
@@ -24,7 +23,6 @@ object PushNotifications {
     const val REWARD_CHANNEL_ID = "reward_notifications"
     private const val NOTIFICATION_TAG = "remote_messages"
     private const val OPEN_ACTION = "com.devidea.timeleft.action.OPEN_PUSH"
-    private const val UNSUBSCRIBE_ACTION = "com.devidea.timeleft.action.UNSUBSCRIBE_REWARD_ADS"
     private val nextNotificationId = AtomicInteger((System.currentTimeMillis() % Int.MAX_VALUE).toInt())
 
     fun createChannel(context: Context) {
@@ -117,7 +115,7 @@ object PushNotifications {
         if (reward) {
             // Use the same one-shot destination handling as Console-posted background notifications.
             target.putExtra(PointHomePushOpen.KIND_KEY, PointHomePushOpen.REWARD_KIND)
-                .putExtra(PointHomePushOpen.TARGET_KEY, RewardSettingsPushOpen.TARGET)
+                .putExtra(PointHomePushOpen.TARGET_KEY, PointHomePushOpen.POINT_HOME_TARGET)
         }
         val click = PendingIntent.getActivity(
             context,
@@ -132,16 +130,6 @@ object PushNotifications {
             .setStyle(Notification.BigTextStyle().bigText(body))
             .setContentIntent(click)
             .setAutoCancel(true)
-        if (reward) {
-            val unsubscribe = PendingIntent.getActivity(context, notificationId,
-                SettingsActivity.rewardNotificationIntent(context, unsubscribe = true)
-                    .setAction(UNSUBSCRIBE_ACTION)
-                    .setData(Uri.Builder().scheme("timeleft").authority("reward-unsubscribe")
-                        .appendPath(notificationId.toString()).build()),
-                PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE)
-            builder.addAction(Notification.Action.Builder(null,
-                context.getString(R.string.reward_notification_unsubscribe), unsubscribe).build())
-        }
         val notification = builder.build()
         context.getSystemService(NotificationManager::class.java)
             .notify(tag, notificationId, notification)

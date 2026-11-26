@@ -7,8 +7,8 @@ import java.time.ZoneId
 
 /**
  * Seconds for launchers that cannot draw draw-instructions. The number is a host-ticked
- * Chronometer and needs no app process; the ruler stays a snapshot of the last update, and an
- * exact alarm at [targetMillis] replaces the widget before the Chronometer could go negative.
+ * Chronometer and needs no app process; the ruler stays a snapshot of the last update, and the
+ * app requests a new snapshot at the phase boundary. A delayed refresh can show negative time.
  */
 internal data class WidgetCountdown(
     /** Wall-clock second the countdown reaches zero: the start while waiting, otherwise the end. */
@@ -21,13 +21,19 @@ internal data class WidgetCountdown(
 ) {
     val statusRes: Int get() = if (waiting) R.string.widget_seconds_until_start else R.string.widget_seconds_left
 
-    /** Widest text until the next render: seconds only ever count down. Digits are tabular. */
+    /** Without a separate exact alarm, also request the phase change through the ordinary alarm. */
+    fun nextSnapshotMillis(nowMillis: Long, exactBoundaryScheduled: Boolean): Long {
+        val periodic = nowMillis + WIDGET_SNAPSHOT_REFRESH_MILLIS
+        return if (exactBoundaryScheduled) periodic else minOf(periodic, targetMillis)
+    }
+
+    /** Width of the positive time through the target. Digits are tabular. */
     val widestText: String get() = if (remainingSeconds >= 3600) "${remainingSeconds / 3600}:00:00" else "00:00"
 
     companion object {
         /**
-         * Chronometer truncates toward zero. The shift shows 00:01 until the target, 00:00 from it,
-         * and the first negative text only about two seconds later, the grace for the exact alarm.
+         * Preserve the rounded-up remaining second before the target. A host that keeps ticking
+         * after the boundary may show a negative duration until it receives the next widget.
          */
         const val CEIL_SHIFT_MILLIS = 999L
 

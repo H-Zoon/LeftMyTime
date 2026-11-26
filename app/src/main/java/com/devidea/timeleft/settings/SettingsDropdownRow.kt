@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.KeyboardArrowDown
@@ -78,7 +79,8 @@ internal fun <T> SettingsDropdownRow(
                         Text(title, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.weight(1f).alignByBaseline())
                         Text(currentLabel, style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.End,
-                            modifier = Modifier.weight(1f).alignByBaseline())
+                            // Short values take only their own width; long translations leave room for the name.
+                            modifier = Modifier.widthIn(max = menuWidth * .45f).alignByBaseline())
                     }
                 }
                 if (summary != null) Text(summary, style = MaterialTheme.typography.bodyMedium,

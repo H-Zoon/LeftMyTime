@@ -52,14 +52,19 @@ internal fun HeaderSection(
     }
 
     Column(Modifier.fillMaxWidth()) {
-        FlowRow(Modifier.fillMaxWidth().padding(vertical = Spacing.m),
+        FlowRow(Modifier.fillMaxWidth().padding(bottom = Spacing.s),
             horizontalArrangement = Arrangement.SpaceBetween, verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
             Text(stringResource(R.string.period_summary_title), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (interactive) Text(stringResource(R.string.period_tap_hint), style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant)
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.align(Alignment.CenterVertically).padding(end = Spacing.m))
+            if (interactive && onMorePeriods != null) TextButton(onClick = onMorePeriods,
+                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).align(Alignment.CenterVertically),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                contentPadding = PaddingValues(vertical = Spacing.s)) {
+                Text(stringResource(R.string.period_more))
+            }
         }
-        BoxWithConstraints(Modifier.fillMaxWidth().padding(bottom = Spacing.l)) {
+        BoxWithConstraints(Modifier.fillMaxWidth().padding(bottom = Spacing.s)) {
             val board = com.devidea.timeleft.ui.theme.LocalTimeLayout.current == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard
             val stacked = board || maxWidth < 300.dp || LocalDensity.current.fontScale > 1.2f
             @Composable fun Period(position: Int, modifier: Modifier) {
@@ -98,10 +103,8 @@ internal fun HeaderSection(
                 }
             }
         }
-        if (interactive && onMorePeriods != null) TextButton(onClick = onMorePeriods,
-            modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget), contentPadding = PaddingValues(vertical = Spacing.s)) {
-            Text(stringResource(R.string.period_more))
-        }
+        if (interactive) Text(stringResource(R.string.period_tap_hint), style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant, modifier = Modifier.padding(bottom = Spacing.l))
         HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
         Spacer(Modifier.height(Spacing.m))
     }

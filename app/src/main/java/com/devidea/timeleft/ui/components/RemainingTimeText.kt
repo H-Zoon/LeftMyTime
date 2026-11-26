@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.clearAndSetSemantics
@@ -47,6 +48,7 @@ internal fun RemainingTimeText(
     unitReferenceSeconds: Long? = null,
     totalSeconds: Boolean = false,
     centered: Boolean = false,
+    consistentDaySize: Boolean = false,
 ) {
     val center = centered || (hero && com.devidea.timeleft.ui.theme.LocalTimeLayout.current == com.devidea.timeleft.ui.theme.TimeLayout.TimeBoard)
     val seconds = if (untilStart) {
@@ -85,8 +87,12 @@ internal fun RemainingTimeText(
         }
     }
     val groups = displayGroups(presentationValue)
-    val reserved = reserveValue?.let(::displayGroups)
+    // Calendar detail typography follows the readout's role, not a 30/92/365-day entrance.
+    // Its single number can change width naturally; clock groups retain their stable slots.
+    val reserved = reserveValue?.takeUnless { consistentDaySize && days != null }?.let(::displayGroups)
     val primaryCount = groups.count { !it.isSeconds }.coerceAtLeast(1)
+    val stackDayUnit = consistentDaySize && days != null &&
+        (LocalConfiguration.current.screenWidthDp < 360 || LocalDensity.current.fontScale > 1.2f)
     FlowRow(
         modifier = modifier.then(if (center) Modifier.fillMaxWidth() else Modifier).clearAndSetSemantics { contentDescription = description },
         horizontalArrangement = Arrangement.spacedBy(if (compact) Spacing.xs else Spacing.m,
@@ -105,6 +111,7 @@ internal fun RemainingTimeText(
                     secondarySeconds -> MaterialTheme.typography.headlineSmall
                     compact -> MaterialTheme.typography.titleLarge
                     !hero -> MaterialTheme.typography.displaySmall
+                    consistentDaySize && days != null -> MaterialTheme.typography.displayLarge
                     primaryCount > 1 || widestValue.length > 2 -> MaterialTheme.typography.displayMedium
                     else -> MaterialTheme.typography.displayLarge
                 }.copy(fontFeatureSettings = "tnum")
@@ -118,7 +125,7 @@ internal fun RemainingTimeText(
                         Text(value, style = numberStyle)
                     }
                 }
-                if (!compact && LocalDensity.current.fontScale > 1.5f) {
+                if (!compact && (LocalDensity.current.fontScale > 1.5f || stackDayUnit)) {
                     // Share the number's first baseline across groups, including smaller seconds.
                     Column(Modifier.alignByBaseline()) {
                         Number()

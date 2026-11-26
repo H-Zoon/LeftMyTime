@@ -4,9 +4,7 @@ import com.devidea.timeleft.calc.currentOccurrence
 import android.appwidget.AppWidgetManager
 import android.content.Intent
 import android.content.SharedPreferences
-import android.os.Build
 import android.os.Bundle
-import android.provider.Settings
 import android.widget.FrameLayout
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -35,7 +33,6 @@ import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.core.net.toUri
 import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.LifecycleEventObserver
 import androidx.lifecycle.compose.LocalLifecycleOwner
@@ -320,19 +317,18 @@ private fun WidgetConfigureScreen(
     val remainingValue = previewItem?.let { it.toWidgetData(context, true, it.type == ItemType.Time).value }
     val countdownValue = previewItem?.let { it.toWidgetData(context, false, it.type == ItemType.Time).value }
     val showFormat = personal && !unavailable && !customMissing && remainingValue != countdownValue
-    // Exact-alarm access is granted in system settings, so look again whenever this screen resumes.
-    var accessVersion by remember { mutableIntStateOf(0) }
+    // The default launcher may have changed while configuration was in the background.
+    var resumeVersion by remember { mutableIntStateOf(0) }
     val lifecycleOwner = LocalLifecycleOwner.current
     DisposableEffect(lifecycleOwner) {
-        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) accessVersion++ }
+        val observer = LifecycleEventObserver { _, event -> if (event == Lifecycle.Event.ON_RESUME) resumeVersion++ }
         lifecycleOwner.lifecycle.addObserver(observer)
         onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
     }
-    val secondsDelivery = remember(context, accessVersion) { WidgetSecondsSupport.delivery(context) }
+    val secondsDelivery = remember(context, resumeVersion) { WidgetSecondsSupport.delivery(context) }
     val canShowSeconds = secondsDelivery != WidgetSecondsDelivery.Unavailable && !unavailable &&
         WidgetSecondsPlan.create(configuration, previewItem, System.currentTimeMillis()) != null
     val secondsEnabled = canShowSeconds && configuration.showSeconds && secondsDelivery.showsSeconds
-    val needsExactAlarm = canShowSeconds && configuration.showSeconds && secondsDelivery == WidgetSecondsDelivery.NeedsExactAlarm
     Scaffold(
         topBar = { TimeLeftTopAppBar(stringResource(R.string.widget_configure_title), onBack) },
         containerColor = MaterialTheme.colorScheme.background,
@@ -384,17 +380,9 @@ private fun WidgetConfigureScreen(
                             R.string.widget_seconds_hint else R.string.widget_seconds_hint_number_only))
                 }
                 if (source == WidgetSource.Overview || source == WidgetSource.Today || previewItem?.type == ItemType.Time) {
-                    if (!secondsEnabled) Text(stringResource(when {
-                        !configuration.showSeconds -> R.string.widget_snapshot_hint
-                        needsExactAlarm -> R.string.widget_seconds_exact_alarm_needed
-                        else -> R.string.widget_seconds_unavailable
-                    }), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    if (needsExactAlarm) TextButton(enabled = !saving, onClick = {
-                        // Some devices omit this screen; the widget then simply stays static.
-                        if (Build.VERSION.SDK_INT >= 31) runCatching {
-                            context.startActivity(Intent(Settings.ACTION_REQUEST_SCHEDULE_EXACT_ALARM, "package:${context.packageName}".toUri()))
-                        }
-                    }) { Text(stringResource(R.string.widget_seconds_exact_alarm_action)) }
+                    if (!secondsEnabled) Text(stringResource(
+                        if (configuration.showSeconds) R.string.widget_seconds_unavailable else R.string.widget_snapshot_hint
+                    ), style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 if (showFormat && !secondsEnabled) {
                     Column(Modifier.selectableGroup()) {
@@ -511,24 +499,31 @@ internal fun WidgetPreviewBand(
             fontScale = previewFontScale
         })
     }
-    val meetsMinimum = dimensions.meetsMinimumFor(configuration.source)
-    val previewDimensions = if (meetsMinimum) dimensions else WidgetDimensions.previewFor(configuration.source)
-    val views = remember(context, previewDimensions, configuration, item, periods, paletteKey, dark, designKey, emptyMessage, showProgress, snapshotTimeMillis) {
-        AppWidget().previewViews(context, previewDimensions, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
-            snapshotTimeMillis = snapshotTimeMillis, designKey = designKey)
+    val preview = remember(context, dimensions, configuration, item, periods, paletteKey, dark, designKey, emptyMessage, showProgress, snapshotTimeMillis) {
+        val renderer = AppWidget()
+        val snapshot = snapshotTimeMillis ?: System.currentTimeMillis()
+        widgetContentPreview(dimensions, configuration.source) { size ->
+            var fits = false
+            val rendered = renderer.previewViews(context, size, configuration, item, periods, paletteKey, dark, emptyMessage, showProgress,
+                snapshotTimeMillis = snapshot, designKey = designKey, onSizeMeasured = { fits = it })
+            WidgetPreview(size, rendered, fits)
+        }
     }
-    val spokenPreview = if (previewDescription != null && views.layoutId == R.layout.app_widget_resize)
+    val previewDimensions = preview.dimensions
+    val views = preview.views
+    val expanded = previewDimensions != dimensions
+    val spokenPreview = if (previewDescription != null && !preview.fits)
         stringResource(R.string.widget_size_hint) else previewDescription
     Column(verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
         WidgetSectionLabel(stringResource(when {
             previewDescription != null -> R.string.theme_widget_preview_size
-            meetsMinimum -> R.string.widget_preview_current_size
-            else -> R.string.widget_preview_recommended_size
+            expanded -> R.string.widget_preview_recommended_size
+            else -> R.string.widget_preview_current_size
         }))
         Text(stringResource(if (configuration.source == WidgetSource.Overview) R.string.widget_overview_size_hint else R.string.widget_minimum_size_hint), style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant)
-        if (!meetsMinimum || views.layoutId == R.layout.app_widget_resize) {
-            Text(stringResource(R.string.widget_size_hint), style = MaterialTheme.typography.bodyMedium,
+        if (expanded || !preview.fits) {
+            Text(stringResource(if (preview.fits) R.string.widget_preview_expanded_hint else R.string.widget_size_hint), style = MaterialTheme.typography.bodyMedium,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
         }
         BoxWithConstraints(Modifier.fillMaxWidth()) {

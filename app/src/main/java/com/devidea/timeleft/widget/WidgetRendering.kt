@@ -110,8 +110,11 @@ internal fun createSingleWidgetViews(
         dimensions.width >= 340 && dimensions.height >= 260 -> R.dimen.widget_large_value_size
         else -> R.dimen.widget_value_size
     }
-    // A countdown measures its widest clock text; the status label sits beside it or, if too wide, below.
-    val value = countdown?.widestText ?: widgetValueWithStatus(context,
+    // Reserve a minus sign too: a delayed boundary refresh can leave the host counting below zero.
+    // The status label sits beside the clock or, if too wide, below it.
+    val value = countdown?.widestText?.let { clock ->
+        listOf("-$clock", "−$clock").maxBy { measure.width(it, valueSize) }
+    } ?: widgetValueWithStatus(context,
         widgetValueText(context, data.groups, data.value, R.dimen.widget_unit_size, palette.muted),
         data.valueTemplateRes, palette.muted)
     val statusLabel = countdown?.let { context.getString(it.statusRes) }.orEmpty()

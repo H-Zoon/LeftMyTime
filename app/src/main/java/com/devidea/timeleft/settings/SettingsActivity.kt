@@ -18,6 +18,7 @@ import android.webkit.WebResourceRequest
 import android.webkit.WebViewClient
 import android.widget.Toast
 import androidx.activity.compose.setContent
+import androidx.activity.compose.BackHandler
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.appcompat.app.AppCompatActivity
@@ -27,6 +28,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.saveable.rememberSaveableStateHolder
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
@@ -114,11 +116,14 @@ class SettingsActivity : AppCompatActivity() {
         applyRewardRoute(intent, allowUnsubscribe = savedInstanceState == null)
 
         setContent {
+            val settingsStateHolder = rememberSaveableStateHolder()
             var showBackup by rememberSaveable { mutableStateOf(false) }
+            var showRewardPreferences by rememberSaveable { mutableStateOf(false) }
             val backupState by backupModel.state.collectAsStateWithLifecycle()
             val rewardState by RewardMessaging.state.collectAsStateWithLifecycle()
             var showThemePreview by rememberSaveable { mutableStateOf(false) }
             val previewState by themePreviewModel.state.collectAsStateWithLifecycle()
+            BackHandler(enabled = showRewardPreferences && !rewardOnly) { showRewardPreferences = false }
             TimeLeftTheme(themeMode = themeMode, paletteKey = paletteKey, designKey = designKey) {
                 if (rewardOnly) RewardNotificationSettingsScreen(
                     state = rewardState,
@@ -133,6 +138,12 @@ class SettingsActivity : AppCompatActivity() {
                             .putExtra(PointHomePushOpen.TARGET_KEY, PointHomePushOpen.POINT_HOME_TARGET))
                         finish()
                     },
+                ) else if (showRewardPreferences) RewardPreferencesScreen(
+                    state = rewardState,
+                    onBack = { showRewardPreferences = false },
+                    onConsentChanged = ::selectRewardConsent,
+                    onOpenSystemSettings = ::openRewardNotificationSettings,
+                    onRetry = RewardMessaging::refresh,
                 ) else if (showBackup) BackupScreen(backupState, onBack = { showBackup = false },
                     onExport = backupModel::export, onInspect = backupModel::inspect,
                     onRestore = backupModel::restore, onCancelPreview = backupModel::cancelPreview)
@@ -146,41 +157,39 @@ class SettingsActivity : AppCompatActivity() {
                     },
                     onApply = { selection -> showThemePreview = false; applyTheme(selection) },
                     onRetry = { themePreviewModel.refresh() },
-                ) else SettingsScreen(
-                    themeMode = themeMode,
-                    paletteKey = paletteKey,
-                    homeSort = homeSort,
-                    expiredItemsMode = expiredItemsMode,
-                    progressDisplayMode = progressDisplayMode,
-                    defaultDateReminderOffset = defaultDateReminderOffset,
-                    defaultTimeReminderOffset = defaultTimeReminderOffset,
-                    dateReminderTime = dateReminderTime,
-                    remindersEnabled = remindersEnabled,
-                    rewardConsentGranted = rewardState.consentGranted,
-                    rewardNotificationsAllowed = rewardState.notificationsAllowed,
-                    rewardTopicSync = rewardState.topicSync,
-                    rewardConsentReady = rewardState.consentReady,
-                    versionName = BuildConfig.VERSION_NAME,
-                    onBack = { finish() },
-                    onOpenTemplates = { startActivity(Intent(this, com.devidea.timeleft.templates.TemplatesActivity::class.java)) },
-                    onOpenStoryLibrary = { startActivity(Intent(this, com.devidea.timeleft.stories.StoryLibraryActivity::class.java)) },
-                    onOpenBackup = { showBackup = true },
-                    onOpenThemePreview = { themePreviewModel.refresh(); showThemePreview = true },
-                    previewPeriods = previewState.snapshot?.periods.orEmpty(),
-                    onSortSelected = ::selectSort,
-                    onExpiredItemsModeSelected = ::selectExpiredItemsMode,
-                    onProgressDisplayModeSelected = ::selectProgressDisplayMode,
-                    onDefaultDateReminderSelected = ::selectDefaultDateReminder,
-                    onDefaultTimeReminderSelected = ::selectDefaultTimeReminder,
-                    onSelectDateReminderTime = ::selectDateReminderTime,
-                    onOpenNotificationSettings = ::openNotificationSettings,
-                    onRewardConsentChanged = ::selectRewardConsent,
-                    onOpenRewardNotificationSettings = ::openRewardNotificationSettings,
-                    onRetryRewardTopicSync = RewardMessaging::refresh,
-                    onOpenPrivacyPolicy = {
-                        startActivity(Intent(this, PrivacyPolicyActivity::class.java))
-                    }
-                )
+                ) else settingsStateHolder.SaveableStateProvider("settings") {
+                    SettingsScreen(
+                        themeMode = themeMode,
+                        paletteKey = paletteKey,
+                        homeSort = homeSort,
+                        expiredItemsMode = expiredItemsMode,
+                        progressDisplayMode = progressDisplayMode,
+                        defaultDateReminderOffset = defaultDateReminderOffset,
+                        defaultTimeReminderOffset = defaultTimeReminderOffset,
+                        dateReminderTime = dateReminderTime,
+                        remindersEnabled = remindersEnabled,
+                        rewardConsentGranted = rewardState.consentGranted,
+                        rewardNotificationsAllowed = rewardState.notificationsAllowed,
+                        rewardTopicSync = rewardState.topicSync,
+                        rewardConsentReady = rewardState.consentReady,
+                        versionName = BuildConfig.VERSION_NAME,
+                        onBack = { finish() },
+                        onOpenTemplates = { startActivity(Intent(this, com.devidea.timeleft.templates.TemplatesActivity::class.java)) },
+                        onOpenBackup = { showBackup = true },
+                        onOpenThemePreview = { themePreviewModel.refresh(); showThemePreview = true },
+                        onSortSelected = ::selectSort,
+                        onExpiredItemsModeSelected = ::selectExpiredItemsMode,
+                        onProgressDisplayModeSelected = ::selectProgressDisplayMode,
+                        onDefaultDateReminderSelected = ::selectDefaultDateReminder,
+                        onDefaultTimeReminderSelected = ::selectDefaultTimeReminder,
+                        onSelectDateReminderTime = ::selectDateReminderTime,
+                        onOpenNotificationSettings = ::openNotificationSettings,
+                        onOpenRewardPreferences = { showRewardPreferences = true },
+                        onOpenPrivacyPolicy = {
+                            startActivity(Intent(this, PrivacyPolicyActivity::class.java))
+                        }
+                    )
+                }
                 if (showRewardPermissionExplanation) AlertDialog(
                     onDismissRequest = { showRewardPermissionExplanation = false },
                     title = { Text(stringResource(R.string.settings_reward_permission_title)) },

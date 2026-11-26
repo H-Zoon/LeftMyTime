@@ -3,6 +3,7 @@ package com.devidea.timeleft.home
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.*
@@ -26,16 +27,18 @@ import com.devidea.timeleft.ui.theme.Spacing
 import com.devidea.timeleft.widget.WidgetSource
 
 @Composable
+@OptIn(ExperimentalLayoutApi::class)
 internal fun NextCountdownHero(
     item: TimeDisplayItem,
     progressDisplayMode: String,
     onEditItem: (Int) -> Unit,
     interactive: Boolean = true,
+    supportingAction: (@Composable () -> Unit)? = null,
 ) {
     val waiting = item.type == ItemType.Time && !item.isFocusSession && item.secondsUntilStart != null
     val board = LocalTimeLayout.current == TimeLayout.TimeBoard
     var showTimeDetails by rememberSaveable(item.id) { mutableStateOf(false) }
-    Column(Modifier.fillMaxWidth().padding(top = Spacing.m, bottom = Spacing.xxl), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
+    Column(Modifier.fillMaxWidth().padding(top = Spacing.m, bottom = Spacing.l), verticalArrangement = Arrangement.spacedBy(Spacing.m)) {
         if (item.isPinned) Text(stringResource(R.string.schedule_pinned), style = MaterialTheme.typography.labelLarge,
             color = MaterialTheme.colorScheme.primary)
         Text(
@@ -64,8 +67,13 @@ internal fun NextCountdownHero(
             TimeRuler(item.detailFacts?.percentElapsed ?: item.percent, item.startLabel, item.endLabel,
                 currentLabel = item.currentLabel, glowEnabled = item.detailFacts?.glowActive == true)
         }
-        if (interactive) TextButton(onClick = { showTimeDetails = true }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
-            contentPadding = PaddingValues(vertical = Spacing.s)) { Text(stringResource(R.string.card_action_time_details)) }
+        if (interactive) FlowRow(horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+            verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+            TextButton(onClick = { showTimeDetails = true }, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget),
+                colors = ButtonDefaults.textButtonColors(contentColor = MaterialTheme.colorScheme.onSurfaceVariant),
+                contentPadding = PaddingValues(vertical = Spacing.s)) { Text(stringResource(R.string.card_action_time_details)) }
+            supportingAction?.invoke()
+        }
     }
     if (interactive && showTimeDetails) TimeDetailSheet(item, item.title, progressDisplayMode, WidgetSource.Custom,
         onDismiss = { showTimeDetails = false })

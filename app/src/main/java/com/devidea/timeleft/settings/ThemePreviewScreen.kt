@@ -79,7 +79,13 @@ internal fun ThemePreviewScreen(
                                 if (progressDisplayMode != UserPreferences.PROGRESS_DISPLAY_HIDDEN)
                                     TimeRuler(item.detailFacts?.percentElapsed ?: item.percent, "", "", glowEnabled = item.detailFacts?.glowActive == true)
                             } else if (state.loading) Text(stringResource(R.string.theme_preview_loading))
-                            else TextButton(onClick = onRetry) { Text(stringResource(R.string.theme_preview_retry)) }
+                            else {
+                                Text(stringResource(R.string.theme_preview_error), style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+                                TextButton(onClick = onRetry, modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget)) {
+                                    Text(stringResource(R.string.theme_preview_retry))
+                                }
+                            }
                             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
                         }
                     }

@@ -47,12 +47,15 @@ class RewardAdConsentTest {
 
     @Test fun aConsoleNotificationRouteIsConsumedOnceAndDoesNotChangeConsent() {
         val intent = Intent().putExtra(PointHomePushOpen.KIND_KEY, "reward")
-            .putExtra(PointHomePushOpen.TARGET_KEY, "reward_settings")
+            .putExtra(PointHomePushOpen.TARGET_KEY, "pointhome")
             .putExtra("unrelated", "keep")
-        assertTrue(RewardSettingsPushOpen.consume(intent))
-        assertFalse(RewardSettingsPushOpen.consume(intent))
+        assertTrue(PointHomePushOpen.consume(intent))
         assertFalse(PointHomePushOpen.consume(intent))
         assertEquals("keep", intent.getStringExtra("unrelated"))
+
+        val removedTarget = Intent().putExtra(PointHomePushOpen.KIND_KEY, "reward")
+            .putExtra(PointHomePushOpen.TARGET_KEY, "reward_settings")
+        assertFalse(PointHomePushOpen.consume(removedTarget))
 
         val open = SettingsActivity.rewardNotificationIntent(context)
         assertEquals(SettingsActivity::class.java.name, open.component?.className)

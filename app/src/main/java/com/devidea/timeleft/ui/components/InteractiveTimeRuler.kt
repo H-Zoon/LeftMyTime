@@ -190,16 +190,27 @@ internal fun InteractiveTimeRuler(item: TimeDisplayItem, range: TimeDetailRange)
         TimeRuler(facts.percentElapsed, item.startLabel, item.endLabel, glowEnabled = facts.glowActive,
             interaction = RulerInteraction(probe?.let(range::fraction), touchFraction, touchStrength.value),
             trackModifier = input)
-        FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.l),
-            verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
-            Text(if (probe == null) currentLabel else previewLabel, modifier = Modifier.alignByBaseline(),
-                style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
+        if (probe != null) {
+            // The ruler and primary readout remain current; only this named group is a preview.
+            Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(Spacing.s)) {
+                FlowRow(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(Spacing.l),
+                    verticalArrangement = Arrangement.spacedBy(Spacing.xs)) {
+                    Text(stringResource(if (range is TimeDetailRange.Calendar) R.string.detail_preview_title else R.string.detail_clock_preview_title),
+                        modifier = Modifier.alignByBaseline(), style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    TextButton(onClick = { reset(); haptics.tick() },
+                        modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
+                        contentPadding = PaddingValues(vertical = Spacing.s)) { Text(resetLabel) }
+                }
+                Text(stringResource(R.string.detail_preview_basis, timeLabel),
+                    style = MaterialTheme.typography.bodyLarge.copy(fontFeatureSettings = "tnum"))
+                Text(stringResource(R.string.detail_preview_remaining, remainingLabel),
+                    style = MaterialTheme.typography.titleLarge.copy(fontFeatureSettings = "tnum"),
+                    color = MaterialTheme.colorScheme.onSurfaceVariant)
+            }
+        } else {
+            Text(stringResource(R.string.detail_probe_hint), style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant)
-            if (probe != null) TextButton(onClick = { reset(); haptics.tick() },
-                modifier = Modifier.heightIn(min = LayoutTokens.MinTouchTarget).alignByBaseline(),
-                contentPadding = PaddingValues(vertical = Spacing.s)) { Text(resetLabel) }
         }
-        Text(stringResource(R.string.detail_probe_hint), style = MaterialTheme.typography.bodySmall,
-            color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
 }

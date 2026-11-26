@@ -13,6 +13,28 @@ import com.devidea.timeleft.messaging.RewardMessagingState
 import com.devidea.timeleft.ui.components.TimeLeftInlineButton
 import com.devidea.timeleft.ui.theme.LayoutTokens
 
+/** Opened from app settings; the consent notice stays visible above the actual switch. */
+@Composable
+internal fun RewardPreferencesScreen(
+    state: RewardMessagingState,
+    onBack: () -> Unit,
+    onConsentChanged: (Boolean) -> Unit,
+    onOpenSystemSettings: () -> Unit,
+    onRetry: () -> Unit,
+) {
+    SettingsScaffold(title = stringResource(R.string.settings_reward_entry), onBack = onBack) {
+        RewardNotificationPreferences(
+            consentGranted = state.consentGranted,
+            notificationsAllowed = state.notificationsAllowed,
+            topicSync = state.topicSync,
+            consentReady = state.consentReady,
+            onConsentChanged = onConsentChanged,
+            onOpenSystemSettings = onOpenSystemSettings,
+            onRetry = onRetry,
+        )
+    }
+}
+
 /** Notification taps land directly on the same consent control used by app settings. */
 @Composable
 fun RewardNotificationSettingsScreen(
